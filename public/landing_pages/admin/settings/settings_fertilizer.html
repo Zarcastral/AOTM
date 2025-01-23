@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fertilizer List</title>
+  <!-- Firebase SDK v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+    }
+    button {
+      margin: 5px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #addFertilizerModal, #viewFertilizerModal, #editFertilizerModal, #deleteFertilizerModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      width: 300px;
+      text-align: center;
+    }
+  </style>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCzqM09zkPuhrfGAN2_zPEh-HRXq3CwEZI",
+      authDomain: "aotm-bd556.firebaseapp.com",
+      databaseURL: "https://aotm-bd556-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "aotm-bd556",
+      storageBucket: "aotm-bd556.firebasestorage.app",
+      messagingSenderId: "397661129730",
+      appId: "1:397661129730:web:dcffd9b497a7edef19ab1b",
+      measurementId: "G-W6Q6EPMK7R"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Fetch data from Firestore
+    window.onload = function() {
+      const fertilizerList = document.getElementById("fertilizer-list");
+
+      // Reference to the 'tb_fertilizer' collection
+      db.collection("tb_fertilizer").get()
+        .then((querySnapshot) => {
+          if (querySnapshot.empty) {
+            fertilizerList.innerHTML = 'No fertilizer data available.';
+          } else {
+            querySnapshot.forEach((doc) => {
+              const fertilizer = doc.data();
+              const listItem = document.createElement("li");
+              // Displaying Fertilizer from the "fertilizer_name" field
+              listItem.innerHTML = `
+                <strong>Fertilizer Name:</strong> ${fertilizer.fertilizer_name} 
+                <br><strong>Fertilizer ID:</strong> ${fertilizer.fertilizer_id}
+                <br><button onclick="viewFertilizer('${fertilizer.fertilizer_name}', '${doc.id}')">View</button>
+                <button onclick="editFertilizer('${fertilizer.fertilizer_name}', '${doc.id}')">Edit</button>
+                <button onclick="deleteFertilizer('${doc.id}')">Delete</button>
+              `;
+              fertilizerList.appendChild(listItem);
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error getting documents: ", error);
+          fertilizerList.innerHTML = 'Error fetching data.';
+        });
+    };
+
+    // Add Fertilizer function (getting highest fertilizer_id from the tb_fertilizer collection)
+    function addFertilizer() {
+      const fertilizerName = document.getElementById('addFertilizerName').value;
+
+      if (fertilizerName.trim() === '') {
+        alert('Fertilizer name cannot be empty');
+        return;
+      }
+
+      // Reference to the 'tb_fertilizer' collection to get the highest fertilizer_id
+      db.collection("tb_fertilizer").orderBy("fertilizer_id", "desc").limit(1).get()
+        .then((querySnapshot) => {
+          let newFertilizerId = 1;  // Default value for fertilizer_id if no records exist
+
+          if (!querySnapshot.empty) {
+            // Get the highest fertilizer_id
+            const highestFertilizer = querySnapshot.docs[0].data();
+            newFertilizerId = highestFertilizer.fertilizer_id + 1;
+          }
+
+          // Prepare data for the new fertilizer
+          const newFertilizer = {
+            fertilizer_name: fertilizerName,
+            fertilizer_id: newFertilizerId
+          };
+
+          // Add the new fertilizer to Firestore
+          db.collection("tb_fertilizer").add(newFertilizer)
+            .then(() => {
+              alert("Fertilizer added successfully!");
+              closeModal('addFertilizerModal');
+              window.location.reload();  // Reload to show the updated list
+            })
+            .catch((error) => {
+              console.error("Error adding fertilizer: ", error);
+              alert("Error adding fertilizer.");
+            });
+        })
+        .catch((error) => {
+          console.error("Error fetching fertilizer_id: ", error);
+          alert("Error fetching fertilizer_id.");
+        });
+    }
+
+    // Show Add Fertilizer Modal
+    function showAddFertilizerModal() {
+      document.getElementById('addFertilizerModal').style.display = 'flex';
+    }
+
+    // Close Modal
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // View Fertilizer (Popup)
+    function viewFertilizer(fertilizerName, fertilizerId) {
+      document.getElementById('viewFertilizerLabel').innerText = "Fertilizer Name: " + fertilizerName;
+      document.getElementById('viewFertilizerModal').style.display = 'flex';
+    }
+
+    // Edit Fertilizer (Popup)
+    function editFertilizer(fertilizerName, fertilizerId) {
+      document.getElementById('editFertilizerName').value = fertilizerName;
+      document.getElementById('editFertilizerId').value = fertilizerId;
+      document.getElementById('editFertilizerModal').style.display = 'flex';
+    }
+
+    // Save Edited Fertilizer
+    function saveEditedFertilizer() {
+      const newFertilizerName = document.getElementById('editFertilizerName').value;
+      const fertilizerId = document.getElementById('editFertilizerId').value;
+
+      if (newFertilizerName.trim() === '') {
+        alert('Fertilizer name cannot be empty');
+        return;
+      }
+
+      // Update the fertilizer name in Firestore
+      db.collection("tb_fertilizer").doc(fertilizerId).update({
+        fertilizer_name: newFertilizerName
+      }).then(() => {
+        alert("Fertilizer updated!");
+        closeModal('editFertilizerModal');
+        window.location.reload();
+      }).catch((error) => {
+        console.error("Error updating fertilizer: ", error);
+      });
+    }
+
+    // Delete Fertilizer (Popup)
+    function deleteFertilizer(fertilizerId) {
+      document.getElementById('deleteFertilizerId').value = fertilizerId;
+      document.getElementById('deleteFertilizerModal').style.display = 'flex';
+    }
+
+    // Confirm Delete
+    function confirmDeleteFertilizer() {
+      const fertilizerId = document.getElementById('deleteFertilizerId').value;
+      db.collection("tb_fertilizer").doc(fertilizerId).delete()
+        .then(() => {
+          alert("Fertilizer deleted!");
+          closeModal('deleteFertilizerModal');
+          window.location.reload();  // Reload to remove the deleted fertilizer
+        })
+        .catch((error) => {
+          console.error("Error deleting fertilizer: ", error);
+        });
+    }
+  </script>
+</head>
+<body>
+  <h1>Fertilizer List</h1>
+
+  <button onclick="showAddFertilizerModal()">Add Fertilizer</button>
+
+  <div id="addFertilizerModal">
+    <div class="modal-content">
+      <h2>Add Fertilizer</h2>
+      <input type="text" id="addFertilizerName" placeholder="Enter Fertilizer Name">
+      <button onclick="addFertilizer()">Add Fertilizer</button>
+      <button onclick="closeModal('addFertilizerModal')">Close</button>
+    </div>
+  </div>
+
+  <div id="viewFertilizerModal">
+    <div class="modal-content">
+      <h2>View Fertilizer</h2>
+      <label id="viewFertilizerLabel"></label><br>
+      <button onclick="closeModal('viewFertilizerModal')">Close</button>
+    </div>
+  </div>
+
+  <div id="editFertilizerModal">
+    <div class="modal-content">
+      <h2>Edit Fertilizer</h2>
+      <input type="text" id="editFertilizerName" placeholder="Enter Fertilizer Name">
+      <input type="hidden" id="editFertilizerId">
+      <button onclick="saveEditedFertilizer()">Save Changes</button>
+      <button onclick="closeModal('editFertilizerModal')">Close</button>
+    </div>
+  </div>
+
+  <div id="deleteFertilizerModal">
+    <div class="modal-content">
+      <h2>Delete Fertilizer</h2>
+      <p>Are you sure you want to delete this fertilizer?</p>
+      <input type="hidden" id="deleteFertilizerId">
+      <button onclick="confirmDeleteFertilizer()">Yes, Delete</button>
+      <button onclick="closeModal('deleteFertilizerModal')">Cancel</button>
+    </div>
+  </div>
+
+  <ul id="fertilizer-list">
+    <!-- Data will be populated here -->
+  </ul>
+</body>
+</html>

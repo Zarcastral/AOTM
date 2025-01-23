@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Types</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 8px;
+            background: #f9f9f9;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .button-group {
+            display: flex;
+            gap: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .view-button {
+            background-color: #007BFF;
+            color: white;
+        }
+        .edit-button {
+            background-color: #FFC107;
+            color: white;
+        }
+        .delete-button {
+            background-color: #DC3545;
+            color: white;
+        }
+        .add-new-button {
+            background-color: #28A745;
+            color: white;
+            margin-bottom: 15px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            text-align: center;
+        }
+        .modal-content input,
+        .modal-content select {
+            width: 90%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .modal-content button {
+            margin: 5px;
+            padding: 10px 20px;
+        }
+        .close-button {
+            background-color: #DC3545;
+            color: white;
+        }
+        .save-button {
+            background-color: #28A745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Crop Types</h1>
+    <button class="add-new-button" id="addNewCropButton">Add New Crop</button>
+    <ul id="cropList"></ul>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Add New Crop</h2>
+            <input type="text" id="cropInput" placeholder="Enter crop name" />
+            <select id="cropNameSelect">
+                <option value="">Select Crop</option>
+            </select>
+            <button class="save-button" id="saveCropButton">Save</button>
+            <button class="close-button" id="closeModalButton">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCzqM09zkPuhrfGAN2_zPEh-HRXq3CwEZI",
+            authDomain: "aotm-bd556.firebaseapp.com",
+            projectId: "aotm-bd556",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let isEditMode = false;
+        let editCropId = null;
+
+        async function fetchCropTypes() {
+            const cropTypesCollection = collection(db, "tb_crop_types");
+            const snapshot = await getDocs(cropTypesCollection);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+
+        async function fetchCropNames() {
+            const cropsCollection = collection(db, "tb_crops");
+            const snapshot = await getDocs(cropsCollection);
+            return snapshot.docs.map(doc => doc.data().crop_name);
+        }
+
+        async function getNextCropTypeId() {
+            const cropTypesCollection = collection(db, "tb_crop_types");
+            const snapshot = await getDocs(cropTypesCollection);
+            const cropTypes = snapshot.docs.map(doc => doc.data());
+            return cropTypes.reduce((max, crop) => Math.max(max, crop.crop_type_id || 0), 0) + 1;
+        }
+
+        async function displayCropTypes() {
+            const cropList = document.getElementById('cropList');
+            cropList.innerHTML = '';
+            const cropTypes = await fetchCropTypes();
+
+            cropTypes.forEach(crop => {
+                const li = document.createElement('li');
+                li.id = crop.id;
+
+                const cropName = document.createElement('span');
+                cropName.textContent = crop.crop_type_name;
+
+                const buttonGroup = document.createElement('div');
+                buttonGroup.classList.add('button-group');
+
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.classList.add('edit-button');
+                editButton.onclick = () => openModal(true, crop.id, crop.crop_type_name);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('delete-button');
+                deleteButton.onclick = () => deleteCropType(crop.id);
+
+                buttonGroup.append(editButton, deleteButton);
+                li.append(cropName, buttonGroup);
+                cropList.appendChild(li);
+            });
+        }
+
+        async function openModal(edit = false, id = null, name = '') {
+            isEditMode = edit;
+            editCropId = id;
+            const modal = document.getElementById('modal');
+            const cropInput = document.getElementById('cropInput');
+            const cropNameSelect = document.getElementById('cropNameSelect');
+            cropNameSelect.innerHTML = '<option value="">Select Crop</option>';
+
+            const cropNames = await fetchCropNames();
+            cropNames.forEach(cropName => {
+                const option = document.createElement('option');
+                option.value = cropName;
+                option.textContent = cropName;
+                cropNameSelect.appendChild(option);
+            });
+
+            modal.style.display = 'flex';
+            cropInput.value = name;
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'none';
+            document.getElementById('cropInput').value = '';
+            document.getElementById('cropNameSelect').selectedIndex = 0;
+        }
+
+        async function saveCrop() {
+            const cropName = document.getElementById('cropInput').value;
+            const selectedCrop = document.getElementById('cropNameSelect').value;
+
+            if (!cropName || !selectedCrop) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            const cropsSnapshot = await getDocs(collection(db, "tb_crops"));
+            let cropId = null;
+            cropsSnapshot.forEach(doc => {
+                if (doc.data().crop_name === selectedCrop) {
+                    cropId = doc.data().crop_id;
+                }
+            });
+
+            if (!cropId) {
+                alert('Crop not found.');
+                return;
+            }
+
+            const cropTypeId = await getNextCropTypeId();
+
+            if (isEditMode) {
+                const cropRef = doc(db, "tb_crop_types", editCropId);
+                await updateDoc(cropRef, {
+                    crop_type_name: cropName,
+                    crop_name: selectedCrop,
+                    crop_type_id: cropTypeId,
+                    crop_id: cropId,
+                });
+                alert('Crop updated successfully!');
+            } else {
+                await addDoc(collection(db, "tb_crop_types"), {
+                    crop_type_name: cropName,
+                    crop_name: selectedCrop,
+                    crop_type_id: cropTypeId,
+                    crop_id: cropId,
+                });
+                alert('Crop added successfully!');
+            }
+
+            closeModal();
+            displayCropTypes();
+        }
+
+        async function deleteCropType(id) {
+            await deleteDoc(doc(db, "tb_crop_types", id));
+            alert('Crop deleted successfully.');
+            displayCropTypes();
+        }
+
+        document.getElementById('addNewCropButton').addEventListener('click', () => openModal());
+        document.getElementById('saveCropButton').addEventListener('click', saveCrop);
+        document.getElementById('closeModalButton').addEventListener('click', closeModal);
+
+        displayCropTypes();
+    </script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script type="module" src="src/auth/login.js" defer></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            /* Centers the container vertically */
+            height: 100vh;
+            background-color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            overflow: hidden;
+            /* Prevent any overflow */
+        }
+
+        .container {
+            background-color: transparent;
+            /* No background color */
+            padding: 30px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            text-align: left;
+            border: none;
+            /* No border around the container */
+            z-index: 2;
+            /* Ensure the form stays above the image */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Vertically align content inside the container */
+            height: 50%;
+            /* Set the height of the form */
+            margin-left: 100px;
+        }
+
+
+
+        h4 {
+            color: #333333;
+            margin-top: 5px;
+            font-size: 20px;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: transparent;
+            /* Make input fields transparent */
+            padding-left: 40px;
+            height: 30px;
+        }
+
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+
+        .input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-container img {
+            position: absolute;
+            right: 12px;
+            /* Align image to the right */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            /* Set image size */
+            height: 20px;
+            /* Set image size */
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .forgot-password a {
+            font-size: 12px;
+            text-decoration: underline;
+            color: #C3C3C3;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        .login-button {
+            background-color: #41A186;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            width: 40%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-button::after {
+            content: '\2192';
+            font-size: 20px;
+        }
+
+        .login-button:hover {
+            background-color: #41A186;
+        }
+
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-container .eye-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #7a7a7a;
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex: 1;
+            overflow: hidden;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 50%;
+            /* Image takes up 50% of the screen */
+            height: 100vh;
+            /* Set image container to fill entire height */
+            z-index: 1;
+            /* Place image behind the form */
+        }
+
+        .image-container img {
+            width: 170%;
+            height: 100%;
+            object-position: center;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+                flex-direction: row;
+                height: 100vh;
+                margin: 0;
+            }
+
+            .container {
+                width: 50%;
+                max-width: 400px;
+                background-color: transparent;
+                margin: 0;
+                padding: 20px;
+                text-align: left;
+                position: relative;
+                z-index: 2;
+                height: 50%;
+                /* Make sure the form fills the height */
+                justify-content: center;
+                /* Ensure equal space top and bottom */
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+            h4 {
+                color: #333333;
+                font-size: 12px;
+                margin-bottom: 20px;
+            }
+
+            input[type="email"],
+            input[type="password"] {
+                width: 100%;
+                margin: 8px 0;
+                padding: 10px;
+                font-size: 16px;
+                background-color: transparent;
+
+            }
+
+            .forgot-password {
+                margin-bottom: 15px;
+            }
+
+            .forgot-password a {
+                font-size: 12px;
+                color: #C3C3C3;
+                text-decoration: underline;
+            }
+
+            .login-button {
+                width: 45%;
+                padding: 10px;
+                font-size: 20px;
+            }
+
+            .image-container {
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 50%;
+                height: 100vh;
+                z-index: 1;
+            }
+
+            .image-container img {
+                width: 170%;
+                height: 100%;
+                object-position: center;
+            }
+        }
+
+        @media (min-width: 901px) {
+            body {
+                background-image: none;
+            }
+
+            .image-container {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-emerald-600 mb-1 text-4xl font-semibold">Sign In</h1>
+
+        <h4>Use your credentials to access your account.</h4>
+        <form id="login-form" method="post">
+            <div class="input-container">
+                <input type="email" id="email" name="email" placeholder="Email" required>
+                <img src="public/images/user.png" alt="User Icon">
+            </div>
+
+            <div class="password-container">
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <span class="eye-icon" id="toggle-password">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+
+            <div class="forgot-password">
+                <a href="forgot_password.html">Forgot Password?</a>
+            </div>
+            <button type="submit" class="login-button">Login</button>
+        </form>
+    </div>
+    <div class="image-container">
+        <img src="public/images/LOGIN.png" alt="Farmer Login Image">
+    </div>
+</body>
+
+</html>

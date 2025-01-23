@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organic Baras Harvest</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #F5F6FA;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      height: 60px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      position: relative;
+    }
+
+    .header-title {
+      font-size: 30px;
+      font-weight: bold;
+      color: #41A186;
+    }
+
+    .header-icons {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .header-icons img {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      background-color: #F7FAFC;
+      padding: 10px;
+      border-bottom: 2px solid #E2E8F0;
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #E2E8F0;
+      font-size: 14px;
+    }
+
+    .status {
+      font-weight: bold;
+      border-radius: 20px;
+      padding: 5px 10px;
+      display: inline-block;
+    }
+
+    .status.on-progress {
+      color: #3182CE;
+    }
+
+    .status.completed {
+      color: #38A169;
+      display: flex;
+      
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Account Panel Styles */
+    .account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px; /* Set a fixed height here */
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+
+
+    .account-panel.active {
+      display: block;
+    }
+
+    .account-panel ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .account-panel ul li {
+      padding: 10px;
+      border-bottom: 1px solid #E2E8F0;
+      cursor: pointer;
+    }
+
+    .account-panel ul li:hover {
+      background-color: #F7FAFC;
+    }
+
+    .account-panel ul li:last-child {
+      border-bottom: none;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
+      .header {
+        padding: 0 10px;
+      }
+
+      .header-title {
+        font-size: 1.25rem;
+      }
+
+      .header-icons img {
+        width: 20px;
+        height: 20px;
+      }
+
+      .main-content {
+        padding: 10px;
+      }
+
+      .table-container {
+        padding: 15px;
+      }
+
+      .header {
+        padding-left: 50px;
+      }
+
+      .account-panel {
+        width: 100%;
+        height: auto;
+        left: 0;
+        top: 80px;
+        padding: 20px;
+      }
+
+      table th,
+      table td {
+        padding: 8px;
+        font-size: 12px;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .header-title {
+        font-size: 1.1rem;
+      }
+
+      .header-icons img {
+        width: 18px;
+        height: 18px;
+      }
+
+      .main-content {
+        padding: 5px;
+      }
+
+      .table-container {
+        padding: 10px;
+      }
+
+      table th,
+      table td {
+        font-size: 11px;
+      }
+
+      .account-panel {
+        width: 100%;
+        height: 60%;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="header-title">Harvest</div>
+    <div class="header-icons">
+      <img src="images/Bell.png" alt="Notifications" />
+      <img id="account-icon" src="images/Union.png" alt="Account" />
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="table-container">
+      <h2 class="text-xl font-bold mb-4" style="color: #41A186; font-size: 35px;">Task List</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>PROJECT NAME</th>
+            <th>TASK NAME</th>
+            <th>LEAD FARMER</th>
+            <th>BARANGAY</th>
+            <th>CROPS</th>
+            <th>DURATION</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Go Green</td>
+            <td>Fertilizer</td>
+            <td>Winston Coleman</td>
+            <td>Mabini</td>
+            <td>Highland Vegetables</td>
+            <td>06-01-2024 - 28-02-2024</td>
+            <td><span class="status on-progress">On Progress</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Go Green</td>
+            <td>Planting</td>
+            <td>Winston Coleman</td>
+            <td>Mabini</td>
+            <td>Highland Vegetables</td>
+            <td>06-01-2024 - 28-02-2024</td>
+            <td><span class="status completed">Completed <span>✔</span></span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Go Green</td>
+            <td>Soil Preparation</td>
+            <td>Winston Coleman</td>
+            <td>Mabini</td>
+            <td>Highland Vegetables</td>
+            <td>06-01-2024 - 28-02-2024</td>
+            <td><span class="status completed">Completed <span>✔</span></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Account Panel with iframe to load external content -->
+  <div id="account-panel" class="account-panel">
+    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
+  </div>
+
+  <script>
+    const accountIcon = document.getElementById("account-icon");
+    const accountPanel = document.getElementById("account-panel");
+    const accountFrame = document.getElementById("account-frame");
+
+    // Load content when account icon is clicked
+    accountIcon.addEventListener("click", () => {
+      accountPanel.classList.toggle("active");
+
+      // Load external content in iframe
+      if (accountPanel.classList.contains("active")) {
+        accountFrame.src = "loginpanel.html"; // Change to the URL of your content page
+      } else {
+        accountFrame.src = ""; // Clear iframe content when panel is closed
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
+        accountPanel.classList.remove("active");
+        accountFrame.src = ""; // Clear iframe content when clicking outside
+      }
+    });
+  </script>
+</body>
+
+</html>
