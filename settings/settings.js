@@ -218,8 +218,8 @@ function openPopup(id) {
 async function addBarangay() {
     const barangayName = document.getElementById('barangay-name').value;
     const totalPlotSize = document.getElementById('total-plot-size').value;
-    const landArea = document.getElementById('land-area').value;
-    const plotSize = document.getElementById('plot-size').value;
+    const farmlandname = document.getElementById('farm-land-name').value;
+    const area = document.getElementById('area').value;
     const dateCreated = new Date().toISOString();
     
     // Get the next available barangay ID
@@ -229,8 +229,8 @@ async function addBarangay() {
             barangay_id: nextBrgyId,
             barangay_name: barangayName,
             total_plot_size: totalPlotSize,
-            land_area: landArea,
-            plot_area: plotSize,
+            farm_land_name: farmlandname,
+            area: area,
             dateCreated
         }).then(() => {
             alert('Barangay added successfully');
