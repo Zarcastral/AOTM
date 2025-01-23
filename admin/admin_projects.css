@@ -1,0 +1,143 @@
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: #F5F6FA;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    height: 60px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    position: relative;
+  }
+
+  .header-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #41A186;
+  }
+
+  .header-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .header-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+
+  .main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  .panel {
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 15px;
+  }
+
+  .search-status {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .search-status input, .search-status select {
+    padding: 0.5rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
+  }
+
+  .btn-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .btn-new-project {
+    background-color: #1ab394;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .btn-new-project:hover {
+    background-color: #18a076;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 4px solid #f0f0f0;
+  }
+
+  .progress-bar {
+    display: block;
+    width: 100%;
+    background-color: #eaeaea;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress {
+    height: 8px;
+    background-color: #1ab394;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+
+  .pagination span {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    color: #5c6b73;
+  }
+
+  @media screen and (max-width: 768px) {
+    .header {
+      padding: 0 10px;
+    }
+    .header-title {
+      font-size: 1.25rem;
+    }
+    .search-status {
+      flex-direction: column;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .header-title {
+      font-size: 1.1rem;
+    }
+    .search-status input, .search-status select {
+      width: 100%;
+    }
+  }

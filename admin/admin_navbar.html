@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sidebar Navigation with Iframe</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="admin_navbar.css">
+</head>
+
+<body>
+  <!-- Mobile Menu Button -->
+  <button id="mobile-menu-button" aria-label="Toggle Sidebar">☰</button>
+
+  <!-- Sidebar navigation -->
+  <div class="sidebar flex flex-col gap-y-2 px-4">
+    <div class="flex h-20 items-center justify-center pt-6 pb-4">
+      <img src="images/Logo.png" class="h-16 w-auto" alt="Company Logo" />
+    </div>
+
+    <nav class="flex flex-1 flex-col">
+      <ul class="flex flex-col gap-y-1">
+        <li>
+          <a href="admin_dash.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="dashboardfarm.php">
+            <img src="images/element-1.png" alt="Productivity" class="icon" />
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="admin_projects.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
+            <img src="images/graph.png" alt="My Harvest" class="icon" />
+            Projects
+          </a>
+        </li>
+        <li>
+          <a href="admin_harvest.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
+            <img src="images/bag.png" alt="My Harvest" class="icon" />
+            Harvest
+          </a>
+        </li>
+        <li>
+          <a href="admin_inventory.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
+            <img src="images/box.png" alt="My Harvest" class="icon" />
+            Inventory
+          </a>
+        </li>
+        <li>
+          <a href="admin_farmer.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
+            <img src="images/profile-2user.png" alt="My Harvest" class="icon" />
+            Farmers
+          </a>
+        </li>
+        <li>
+          <a href="admin_user.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
+            <img src="images/user.png" alt="My Harvest" class="icon" />
+            User
+          </a>
+        </li>
+        <!-- Tools Section -->
+        <li class="flex items-center p-2 rounded-md text-sm font-medium" style="font-size: 20px; color: #41A186;">
+          <span>Tools</span>
+        </li>
+        <li>
+          <a href="admin_reports.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
+            <img src="images/folder-2.png" alt="My Harvest" class="icon" />
+            Reports
+          </a>
+        </li>
+        <li>
+          <a href="admin_activitylog.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
+            <img src="images/archive.png" alt="My Harvest" class="icon" />
+            Activity Log
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Settings Section -->
+    <div class="settings-link">
+      <ul>
+        <li>
+          <a href="settings.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="settings.php">
+            <img src="images/setting-2.png" alt="Settings" class="icon" />
+            Settings
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Iframe content area -->
+  <div class="content">
+    <iframe id="content-frame" src="admin_dash.php"></iframe>
+  </div>
+
+  <script>
+    const links = document.querySelectorAll(".sidebar a");
+    const iframe = document.getElementById("content-frame");
+    const sidebar = document.querySelector(".sidebar");
+    const mobileMenuButton = document.getElementById("mobile-menu-button");
+
+    // Function to set active link
+    function setActiveLink(link) {
+      links.forEach((l) => {
+        l.classList.remove("selected");
+      });
+
+      link.classList.add("selected");
+    }
+
+    // Handle navigation
+    links.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        setActiveLink(link);
+        iframe.src = link.getAttribute("href");
+        sidebar.classList.remove("open"); // Close sidebar on mobile
+      });
+    });
+
+    // Mobile Menu Toggle
+    mobileMenuButton.addEventListener("click", () => {
+      sidebar.classList.toggle("open");
+    });
+
+    // Set default active link on load
+    document.addEventListener("DOMContentLoaded", () => {
+      const defaultLink = document.querySelector('[data-section="dashboardfarm.php"]');
+      setActiveLink(defaultLink);
+    });
+  </script>
+</body>
+
+</html>
