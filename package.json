@@ -1,5 +1,21 @@
 {
   "dependencies": {
     "firebase": "^11.2.0"
-  }
+  },
+  "devDependencies": {
+    "vite": "^6.0.11"
+  },
+  "name": "aotm",
+  "version": "1.0.0",
+  "main": "vite.config.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }
