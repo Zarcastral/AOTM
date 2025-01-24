@@ -26,10 +26,17 @@ export function redirectUser(userType) {
  * Show a loading indicator during async operations
  * @param {boolean} show - Whether to show or hide the loading indicator
  */
-export function toggleLoadingIndicator(show) {
-  const loader = document.getElementById("loading-indicator");
-  if (loader) {
-    loader.style.display = show ? "block" : "none";
+export function toggleLoadingIndicator(isLoading) {
+  const loadingIndicator = document.getElementById("loading-indicator");
+
+  if (loadingIndicator) {
+    if (isLoading) {
+      loadingIndicator.style.display = "flex"; // Show loading spinner
+    } else {
+      loadingIndicator.style.display = "none"; // Hide loading spinner
+    }
+  } else {
+    console.error("Loading indicator not found");
   }
 }
 
