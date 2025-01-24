@@ -1,0 +1,205 @@
+body {
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.sub-main {
+  display: flex !important;
+  flex-direction: column !important;
+  /* height: 100vh !important; */
+  gap: 20px !important;
+  align-items: flex-end !important;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.header {
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Account Panel Styles */
+.account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px; /* Set a fixed height here */
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+
+.account-panel.active {
+  display: block;
+}
+
+.panel-container {
+  background-color: #FFFFFF;
+  padding: 20px;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+  width: 30%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  margin-bottom: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse; /* Ensures borders do not double up */
+}
+
+th, td {
+  text-align: left; /* Aligns content to the left */
+  padding: 12px; /* Ensures equal padding on all table cells */
+  border-bottom: 1px solid #E2E8F0; /* Adds a bottom border for separation */
+  vertical-align: middle; /* Ensures content aligns vertically */
+  box-sizing: border-box; /* Ensures padding and borders are included in width */
+}
+
+th {
+  background-color: #F7FAFC; /* Adds a light background to the table header */
+  font-weight: bold; /* Makes the table header bold */
+  color: #4A5568; /* Text color */
+}
+
+td {
+  color: #4A5568; /* Text color for table data */
+}
+
+.view-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #4A5568;
+}
+
+.view-button:hover {
+  color: #2D3748;
+}
+
+/* Panel Button Styles */
+.panel-button {
+  background-color: #41A186;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px; /* Fully rounded buttons */
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  font-size: 16px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center; /* Center icon and text */
+  gap: 10px; /* Space between icon and text */
+  transition: background-color 0.3s ease;
+}
+
+.panel-button:hover {
+  background-color: #36976D;
+}
+
+/* Complete Button (Bottom Right) */
+#complete-button {
+  position: absolute;
+ }
+
+  /* Responsive Design */
+  @media screen and (max-width: 768px) {
+    .header {
+      padding: 0 10px;
+    }
+
+    .header-title {
+      font-size: 1.25rem;
+    }
+
+    .header-icons img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .main-content {
+      padding: 10px;
+    }
+
+    .header {
+      padding-left: 50px;
+    }
+
+    .account-panel {
+      width: 100%;
+      height: auto;
+      left: 0;
+      top: 80px;
+      padding: 20px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .header-title {
+      font-size: 1.1rem;
+    }
+
+    .header-icons img {
+      width: 18px;
+      height: 18px;
+    }
+
+    .main-content {
+      padding: 5px;
+    }
+
+    .account-panel {
+      width: 100%;
+      height: 60%;
+      padding: 15px;
+    }
+  }

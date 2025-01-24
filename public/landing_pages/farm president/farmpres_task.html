@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Organic Baras Productivity</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="farmpres_dash.css">
+  <link rel="stylesheet" href="farmpres_task.css">
 </head>
 
 <body>
@@ -17,9 +17,107 @@
       <img id="account-icon" src="images/Union.png" alt="Account" />
     </div>
   </div>
+
   <div class="main-content">
-    <!-- Table has been removed -->
-  </div>
+    <div class="task-panel">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Task</h2>
+            <button class="text-teal-600 font-semibold">+ Add Task</button>
+        </div>
+        <div class="mb-4">
+            <input type="text" placeholder="Search tasks..." >
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                    <tr>
+                        <th scope="col" class="px-4 py-2">Task Name</th>
+                        <th scope="col" class="px-4 py-2">No. of Subtask</th>
+                        <th scope="col" class="px-4 py-2">Start Date</th>
+                        <th scope="col" class="px-4 py-2">End Date</th>
+                        <th scope="col" class="px-4 py-2">Status</th>
+                        <th scope="col" class="px-4 py-2 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="bg-white border-b">
+                        <td class="px-4 py-2 font-medium text-gray-900">Planting</td>
+                        <td class="px-4 py-2">10</td>
+                        <td class="px-4 py-2">10/20/2023</td>
+                        <td class="px-4 py-2">10/27/2023</td>
+                        <td class="px-4 py-2 text-green-600">Completed</td>
+                        <td class="px-4 py-2 text-center">
+                            <button class="text-gray-500 hover:text-gray-700">
+                                <img src="images/eye.png" alt="View" class="w-4 h-4">
+                            </button>
+                            <button class="text-gray-500 hover:text-gray-700 mx-2">
+                                <img src="images/Edit.png" alt="Edit" class="w-4 h-4">
+                            </button>
+                            <button class="text-red-500 hover:text-red-700">
+                                <img src="images/Delete.png" alt="Delete" class="w-4 h-4">
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="bg-white border-b">
+                        <td class="px-4 py-2 font-medium text-gray-900">Fertilizer</td>
+                        <td class="px-4 py-2">10</td>
+                        <td class="px-4 py-2">10/29/2023</td>
+                        <td class="px-4 py-2">10/31/2023</td>
+                        <td class="px-4 py-2 text-purple-600">On going</td>
+                        <td class="px-4 py-2 text-center">
+                            <button class="text-gray-500 hover:text-gray-700">
+                                <img src="images/eye.png" alt="View" class="w-4 h-4">
+                            </button>
+                            <button class="text-gray-500 hover:text-gray-700 mx-2">
+                                <img src="images/Edit.png" alt="Edit" class="w-4 h-4">
+                            </button>
+                            <button class="text-red-500 hover:text-red-700">
+                                <img src="images/Delete.png" alt="Delete" class="w-4 h-4">
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="bg-white border-b">
+                        <td class="px-4 py-2 font-medium text-gray-900">Pest Control</td>
+                        <td class="px-4 py-2">10</td>
+                        <td class="px-4 py-2">--</td>
+                        <td class="px-4 py-2">--</td>
+                        <td class="px-4 py-2 text-gray-600">Pending</td>
+                        <td class="px-4 py-2 text-center">
+                            <button class="text-gray-500 hover:text-gray-700">
+                                <img src="images/eye.png" alt="View" class="w-4 h-4">
+                            </button>
+                            <button class="text-gray-500 hover:text-gray-700 mx-2">
+                                <img src="images/Edit.png" alt="Edit" class="w-4 h-4">
+                            </button>
+                            <button class="text-red-500 hover:text-red-700">
+                                <img src="images/Delete.png" alt="Delete" class="w-4 h-4">
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="bg-white border-b">
+                        <td class="px-4 py-2 font-medium text-gray-900">Fertilizer II</td>
+                        <td class="px-4 py-2">10</td>
+                        <td class="px-4 py-2">--</td>
+                        <td class="px-4 py-2">--</td>
+                        <td class="px-4 py-2 text-gray-600">Pending</td>
+                        <td class="px-4 py-2 text-center">
+                            <button class="text-gray-500 hover:text-gray-700">
+                                <img src="images/eye.png" alt="View" class="w-4 h-4">
+                            </button>
+                            <button class="text-gray-500 hover:text-gray-700 mx-2">
+                                <img src="images/Edit.png" alt="Edit" class="w-4 h-4">
+                            </button>
+                            <button class="text-red-500 hover:text-red-700">
+                                <img src="images/Delete.png" alt="Delete" class="w-4 h-4">
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div
+  
 
   <!-- Account Panel with iframe to load external content -->
   <div id="account-panel" class="account-panel">

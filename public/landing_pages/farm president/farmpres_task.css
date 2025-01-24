@@ -81,6 +81,112 @@ body {
     border-bottom: none;
   }
 
+  /* General Styles */
+.main-content {
+    padding: 20px;
+}
+
+/* Task Panel */
+.task-panel {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
+}
+
+/* Header Section */
+.task-panel .flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.task-panel h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0d9488;
+}
+
+.task-panel button {
+    color: #0d9488;
+    font-weight: 600;
+}
+
+/* Search Input */
+.task-panel input[type="text"] {
+    
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Table Styles */
+.task-panel table {
+    width: 100%;
+    font-size: 0.875rem;
+    text-align: left;
+    color: #6b7280;
+}
+
+.task-panel thead {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #374151;
+    background-color: #f3f4f6;
+}
+
+.task-panel thead th {
+    padding: 0.5rem;
+}
+
+.task-panel tbody tr {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.task-panel tbody td {
+    padding: 0.5rem;
+}
+
+.task-panel tbody td.font-medium {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+/* Status Colors */
+.task-panel .text-green-600 {
+    color: #16a34a;
+}
+
+.task-panel .text-purple-600 {
+    color: #9333ea;
+}
+
+.task-panel .text-yellow-600 {
+    color: #ca8a04;
+}
+
+/* Action Buttons */
+.task-panel tbody td.text-center {
+    text-align: center;
+}
+
+.task-panel button img {
+    width: 1rem;
+    height: 1rem;
+}
+
+.task-panel button.text-gray-500:hover {
+    color: #374151;
+}
+
+.task-panel button.text-red-500:hover {
+    color: #b91c1c;
+}
+
+
   /* Responsive Design */
   @media screen and (max-width: 768px) {
     .header {
