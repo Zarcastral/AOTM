@@ -23,12 +23,6 @@ body {
   transform: translate(-50%, -50%);
 }
 
-/* Logo Styling */
-.login-logo img {
-  max-width: 200px;
-  margin-bottom: 20px;
-}
-
 /* Form Styling */
 .form-group {
   margin-bottom: 20px;
@@ -72,69 +66,11 @@ button[type="submit"]:hover {
   color: #555;
 }
 
-@media (max-width: 600px) {
-  .login-panel {
-    padding: 10px;
-    width: 90%;
-    max-width: 90%;
-    left: 5%;
-    top: 30%;
-    transform: translate(0, 0);
-  }
-
-  input[type="email"] {
-    padding: 10px;
-    font-size: 0.9em;
-  }
-
-  button[type="submit"] {
-    padding: 10px;
-    font-size: 1em;
-  }
-
-  .info-text {
-    font-size: 0.8em;
-  }
+.link {
+  color: #4caf50;
+  text-decoration: none;
 }
 
-@media (min-width: 601px) and (max-width: 900px) {
-  .login-panel {
-    width: 80%;
-    max-width: 350px;
-  }
-}
-
-/* Loading Indicator Styling */
-#loading-indicator {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* semi-transparent background */
-  z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  display: none; /* Initially hidden */
-}
-
-/* Spinner styling */
-#loading-indicator div {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #fff;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* Keyframe for the spinning animation */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.link:hover {
+  text-decoration: underline;
 }

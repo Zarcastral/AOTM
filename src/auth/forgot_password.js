@@ -1,9 +1,6 @@
 // Import Firebase modules
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 
-// Import utility functions
-import { toggleLoadingIndicator } from "../auth/utils.js"; // Adjust the path as needed
-
 // Firebase configuration from firebase_config.js
 import app from "../config/firebase_config.js";
 
@@ -18,21 +15,17 @@ resetForm.addEventListener("submit", (e) => {
 
   const email = document.getElementById("email").value;
 
-  // Show loading indicator
-  toggleLoadingIndicator(true);
-
   // Send password reset email
   sendPasswordResetEmail(auth, email)
     .then(() => {
+      // Successfully sent password reset email
       alert("Password reset email sent!");
-      window.location.href = "index.html"; // Redirect to login page
+
+      // Redirect to login page after successful email send
+      window.location.href = "index.html";
     })
     .catch((error) => {
       const errorMessage = error.message;
       alert(`Error: ${errorMessage}`);
-    })
-    .finally(() => {
-      // Hide loading indicator after operation
-      toggleLoadingIndicator(false);
     });
 });
