@@ -2,7 +2,7 @@
 // Centralized utility functions for reuse across the project
 
 const userTypeRoutes = {
-  Admin: "../../public/landing_pages/admin/admin.html",
+  Admin: "../../public/landing_pages/admin/admin_navbar.html",
   Supervisor: "../../public/landing_pages/supervisor.html",
   "Farm President": "../../public/farm-president-dashboard.html",
   "Head Farmer": "../../public/head-farmer-dashboard.html",
