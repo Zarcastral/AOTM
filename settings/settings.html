@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Panels with Modals</title>
+    <title>Settings</title>
     <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <link rel="stylesheet" href="settings.css">
 </head>
+
 <body>
     <div class="header">
         <div class="header-title">Settings</div>
         <div class="header-icons">
-            <img src="images/Bell.png" alt="Notifications" />
-            <img id="account-icon" src="images/Union.png" alt="Account" />
+            <img src="../public/images/Bell.png" alt="Notifications" />
+            <img id="account-icon" src="../public/images/Union.png" alt="Account" />
         </div>
     </div>
 
@@ -56,44 +58,44 @@
     </div>
 
     <!-- Barangay Modal -->
-<!-- Barangay Modal -->
-<div id="add-barangay-popup" class="popup">
-    <div class="popup-content barangay-modal">
-        <h3>Add Barangay</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="barangay-name">Barangay</label>
-                <input type="text" id="barangay-name" required>
-            </div>
-            <div class="input-group area-group">
-                <label for="total-plot-size">Area</label>
-                <div class="area-input">
-                    <input type="number" id="total-plot-size" required>
-                    <span class="unit">hectars</span>
+    <!-- Barangay Modal -->
+    <div id="add-barangay-popup" class="popup">
+        <div class="popup-content barangay-modal">
+            <h3>Add Barangay</h3>
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="barangay-name">Barangay</label>
+                    <input type="text" id="barangay-name" required>
+                </div>
+                <div class="input-group area-group">
+                    <label for="total-plot-size">Area</label>
+                    <div class="area-input">
+                        <input type="number" id="total-plot-size" required>
+                        <span class="unit">hectars</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <hr>
-        <h4>Locations</h4>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="farm-land-name">Farm Land Name</label>
-                <input type="number" id="farm-land-name" required>
-            </div>
-            <div class="input-group area-group">
-                <label for="area">Area</label>
-                <div class="area-input">
-                    <input type="number" id="area" required>
-                    <span class="unit">hectars</span>
+            <hr>
+            <h4>Locations</h4>
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="farm-land-name">Farm Land Name</label>
+                    <input type="number" id="farm-land-name" required>
+                </div>
+                <div class="input-group area-group">
+                    <label for="area">Area</label>
+                    <div class="area-input">
+                        <input type="number" id="area" required>
+                        <span class="unit">hectars</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="button-group">
-            <button class="cancel-button" onclick="closePopup('add-barangay-popup')">Cancel</button>
-            <button class="save-button" onclick="addBarangay()">Save</button>
+            <div class="button-group">
+                <button class="cancel-button" onclick="closePopup('add-barangay-popup')">Cancel</button>
+                <button class="save-button" onclick="addBarangay()">Save</button>
+            </div>
         </div>
     </div>
-</div>
 
 
     <!-- Modal for Add Crop Type -->
@@ -129,68 +131,68 @@
 
     <!-- Equipment Modal -->
     <!-- Equipment Modal -->
-<div id="add-equipment-popup" class="popup">
-    <div class="popup-content barangay-modal">
-        <h3>Add Equipment</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="equipment-name">Equipment Name</label>
-                <input type="text" id="equipment-name" required>
+    <div id="add-equipment-popup" class="popup">
+        <div class="popup-content barangay-modal">
+            <h3>Add Equipment</h3>
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="equipment-name">Equipment Name</label>
+                    <input type="text" id="equipment-name" required>
+                </div>
+                <div class="input-group">
+                    <label for="equipment-category">Equipment Category</label>
+                    <select id="equipment-category"></select>
+                </div>
             </div>
-            <div class="input-group">
-                <label for="equipment-category">Equipment Category</label>
-                <select id="equipment-category"></select>
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="equipment-stock">Equipment Stock</label>
+                    <input type="number" id="equipment-stock" required>
+                </div>
+                <div class="input-group">
+                    <label for="equipment-unit">Equipment Unit</label>
+                    <input type="text" id="equipment-unit" required>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="equipment-stock">Equipment Stock</label>
-                <input type="number" id="equipment-stock" required>
+            <div class="button-group">
+                <button class="cancel-button" onclick="closePopup('add-equipment-popup')">Cancel</button>
+                <button class="save-button" onclick="addEquipment()">Save</button>
             </div>
-            <div class="input-group">
-                <label for="equipment-unit">Equipment Unit</label>
-                <input type="text" id="equipment-unit" required>
-            </div>
-        </div>
-        <div class="button-group">
-            <button class="cancel-button" onclick="closePopup('add-equipment-popup')">Cancel</button>
-            <button class="save-button" onclick="addEquipment()">Save</button>
         </div>
     </div>
-</div>
 
 
     <!-- Fertilizer Modal -->
- <!-- Fertilizer Modal -->
-<div id="add-fertilizer-popup" class="popup">
-    <div class="popup-content fertilizer-modal">
-        <h3>Add Fertilizer</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="fertilizer-name">Fertilizer Name</label>
-                <input type="text" id="fertilizer-name" required>
+    <!-- Fertilizer Modal -->
+    <div id="add-fertilizer-popup" class="popup">
+        <div class="popup-content fertilizer-modal">
+            <h3>Add Fertilizer</h3>
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="fertilizer-name">Fertilizer Name</label>
+                    <input type="text" id="fertilizer-name" required>
+                </div>
+                <div class="input-group">
+                    <label for="fertilizer-category">Fertilizer Category</label>
+                    <select id="fertilizer-category"></select>
+                </div>
             </div>
-            <div class="input-group">
-                <label for="fertilizer-category">Fertilizer Category</label>
-                <select id="fertilizer-category"></select>
+            <div class="form-group">
+                <div class="input-group">
+                    <label for="fertilizer-stock">Fertilizer Stock</label>
+                    <input type="number" id="fertilizer-stock" required>
+                </div>
+                <div class="input-group">
+                    <label for="fertilizer-unit">Fertilizer Unit</label>
+                    <input type="text" id="fertilizer-unit" required>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="fertilizer-stock">Fertilizer Stock</label>
-                <input type="number" id="fertilizer-stock" required>
+            <div class="button-group">
+                <button class="cancel-button" onclick="closePopup('add-fertilizer-popup')">Cancel</button>
+                <button class="save-button" onclick="addFertilizer()">Save</button>
             </div>
-            <div class="input-group">
-                <label for="fertilizer-unit">Fertilizer Unit</label>
-                <input type="text" id="fertilizer-unit" required>
-            </div>
-        </div>
-        <div class="button-group">
-            <button class="cancel-button" onclick="closePopup('add-fertilizer-popup')">Cancel</button>
-            <button class="save-button" onclick="addFertilizer()">Save</button>
         </div>
     </div>
-</div>
 
 
     <!-- Modal for Edit Item -->
@@ -220,4 +222,5 @@
     </div>
     <script src="settings.js"></script>
 </body>
+
 </html>
