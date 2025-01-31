@@ -5,7 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sidebar Navigation with Iframe</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="farmpres_navbar.css">
 </head>
 
@@ -14,60 +13,22 @@
   <button id="mobile-menu-button" aria-label="Toggle Sidebar">☰</button>
 
   <!-- Sidebar navigation -->
-  <div class="sidebar flex flex-col gap-y-2 px-4">
-    <div class="flex h-20 items-center justify-center pt-6 pb-4">
-      <img src="images/Logo.png" class="h-16 w-auto" alt="Company Logo" />
+  <div class="sidebar">
+    <div class="logo-container">
+      <img src="images/Logo (1).png" class="logo" alt="Company Logo" />
     </div>
 
-    <nav class="flex flex-1 flex-col">
-      <ul class="flex flex-col gap-y-1">
-        <li>
-          <a href="farmpres_dash.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="dashboardfarm.php">
-            <img src="images/element-1.png" alt="Productivity" class="icon" />
-            Dashboard
-          </a>
-        </li>
-        <li>
-          <a href="farmpres_project.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
-            <img src="images/graph.png" alt="My Harvest" class="icon" />
-            Projects
-          </a>
-        </li>
-        <li>
-          <a href="farmpres_task.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
-            <img src="images/flash.png" alt="My Harvest" class="icon" />
-            Task
-          </a>
-        </li>
-        <li>
-          <a href="farmpres_harvest.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
-            <img src="images/bag.png" alt="My Harvest" class="icon" />
-            Harvest
-          </a>
-        </li>
-        <!-- New Inventory Section -->
-        <li>
-          <a href="farmpres_inventory.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="inventory.php">
-            <img src="images/box.png" alt="Inventory" class="icon" />
-            Inventory
-          </a>
-        </li>
-        <li>
-          <a href="farmpres_farmer.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="farmers.php">
-            <img src="images/profile-2user.png" alt="Farmers" class="icon" />
-            Farmers
-          </a>
-        </li>
-        <!-- Updated "Tools" styling -->
-        <li class="flex items-center p-2 rounded-md text-sm font-medium" style="font-size: 20px; color: #41A186;">
-          <span>Tools</span>
-        </li>
-        <li>
-          <a href="farmpres_reprts.html" class="flex items-center p-2 rounded-md text-sm font-medium" data-section="harvest.php">
-            <img src="images/folder-2.png" alt="Reports" class="icon" />
-            Reports
-          </a>
-        </li>
+    <nav>
+      <ul>
+        <li><a href="farmpres_dash.html" ><img src="images/element-1.png" class="icon" alt="Dashboard" />Dashboard</a></li>
+        <li><a href="farmpres_project.html" ><img src="images/graph.png" class="icon" alt="Projects" />Projects</a></li>
+        <li><a href="farmpres_task.html" ><img src="images/bag.png" class="icon" alt="Harvest" />Task</a></li>
+        <li><a href="farmpres_harvest.html" ><img src="images/box.png" class="icon" alt="Inventory" />Harvest</a></li>
+        <li><a href="farmpres_inventory.html" data-section="harvest.php"><img src="images/profile-2user.png" class="icon" alt="Farmers" />Inventory</a></li>
+        <li><a href="farmpres_farmer.html" data-section="harvest.php"><img src="images/user.png" class="icon" alt="User" />Farmer</a></li>
+        <li class="tools-section">Tools</li>
+        <li><a href="farmpres_reprts.html" ><img src="images/folder-2.png" class="icon" alt="Reports" />Reports</a></li>
+
       </ul>
     </nav>
   </div>
@@ -76,6 +37,9 @@
   <div class="content">
     <iframe id="content-frame" src="farmpres_dash.html"></iframe>
   </div>
+</body>
+
+</html>
 
   <script>
     const links = document.querySelectorAll(".sidebar a");
@@ -109,7 +73,7 @@
 
     // Set default active link on load
     document.addEventListener("DOMContentLoaded", () => {
-      const defaultLink = document.querySelector('[data-section="farmpres_dash.html"]');
+      const defaultLink = document.querySelector('[data-section="admin_dash.html"]');
       setActiveLink(defaultLink);
     });
   </script>
