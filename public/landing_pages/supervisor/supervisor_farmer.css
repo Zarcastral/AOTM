@@ -1,0 +1,85 @@
+body {
+    background-color: #F5F6FA;
+    font-family: 'Inter', sans-serif;
+  }
+
+  th,
+  td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  /* Media Queries for Responsiveness */
+  @media (max-width: 768px) {
+    th,
+    td {
+      padding: 0.75rem;
+    }
+
+    table {
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    .text-right {
+      text-align: left;
+    }
+
+    /* Adjust header layout for small screens */
+    header {
+      flex-direction: row;
+      justify-content: space-between;
+      text-align: left;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+    }
+
+    .flex.items-center {
+      gap: 1rem;
+    }
+
+    .flex-grow {
+      margin-top: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .p-3 {
+      padding: 0.5rem;
+    }
+
+    .table-wrapper {
+      margin: 0;
+    }
+
+    header {
+      padding: 1rem;
+    }
+
+    table {
+      font-size: 0.875rem;
+    }
+
+    /* Make buttons and inputs full-width on very small screens */
+    input[type="text"],
+    select,
+    button {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    /* Adjust the action buttons in table */
+    td.text-center {
+      display: flex;
+      justify-content: space-around;
+    }
+  }
