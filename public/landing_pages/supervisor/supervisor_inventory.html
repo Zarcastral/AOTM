@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organic Baras Productivity</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="supervisor_inventory.css">
+</head>
+
+<body>
+  <div class="header">
+    <div class="header-title">Inventory</div>
+    <div class="header-icons">
+      <img src="images/Bell.png" alt="Notifications" />
+      <img id="account-icon" src="images/Union.png" alt="Account" />
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="panel">
+      <h2>Crops</h2>
+      <div class="search-bar">
+        <input type="text" placeholder="Search">
+        <select>
+          <option>crops </option>
+          <option>crops 1</option>
+          <option>crops 2</option>
+        </select>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="image-header"><img src="images/Delete.png" alt="Equipment Icon" /></th>
+            <th>#</th>
+            <th>Crop Name</th>
+            <th>Crop Type</th>
+            <th>Date Added</th>
+            <th>Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="checkbox"><input type="checkbox"></td>
+            <td>1</td>
+            <td>Rhandy Gian Baradas</td>
+            <td>Admin</td>
+            <td>add user</td>
+            <td>10-15-2024</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Farmers Activity Panel -->
+    <div class="panel">
+      <h2>Fertilizer</h2>
+      <div class="search-bar">
+        <input type="text" placeholder="Search">
+        <select>
+          <option>Fertilizer </option>
+          <option>Fertilizer 1</option>
+          <option>Fertilizer 2</option>
+        </select>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="image-header"><img src="images/Delete.png" alt="Equipment Icon" /></th>
+            <th>#</th>
+            <th>Fertilizer Name</th>
+            <th>Category</th>
+            <th>Date Added</th>
+            <th>stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="checkbox"><input type="checkbox"></td>
+            <td>1</td>
+            <td>Adrian Bernal</td>
+            <td>Planting</td>
+            <td>Completed</td>
+            <td>10-16-2024</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Equipment Status Panel -->
+    <div class="panel">
+      <h2>Equipment </h2>
+      <div class="search-bar">
+        <input type="text" placeholder="Search">
+        <select>
+          <option>Equipment Type</option>
+          <option>Tractor</option>
+          <option>Plow</option>
+        </select>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="image-header"><img src="images/Delete.png" alt="Equipment Icon" /></th>
+            <th>#</th>
+            <th>Equipment Name</th>
+            <th>Category</th>
+            <th>Date Added</th>
+            <th>stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="checkbox"><input type="checkbox"></td>
+            <td>1</td>
+            <td>John Deere Tractor</td>
+            <td>In Use</td>
+            <td>10-14-2024</td>
+            <td>Good</td>
+          </tr>
+        </tbody>
+        
+      </table>
+    </div>
+  </div>
+
+ 
+
+  <!-- Account Panel with iframe to load external content -->
+  <div id="account-panel" class="account-panel">
+    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
+  </div>
+
+  <script>
+    const accountIcon = document.getElementById("account-icon");
+    const accountPanel = document.getElementById("account-panel");
+    const accountFrame = document.getElementById("account-frame");
+
+    // Load content when account icon is clicked
+    accountIcon.addEventListener("click", () => {
+      accountPanel.classList.toggle("active");
+
+      // Load external content in iframe
+      if (accountPanel.classList.contains("active")) {
+        accountFrame.src = "logout.html"; // Change to the URL of your content page
+      } else {
+        accountFrame.src = ""; // Clear iframe content when panel is closed
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
+        accountPanel.classList.remove("active");
+        accountFrame.src = ""; // Clear iframe content when clicking outside
+      }
+    });
+  </script>
+</body>
+
+</html>
