@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organic Baras Productivity</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="headfarm_dash.css">
+</head>
+
+<body>
+  <div class="header">
+    <div class="header-title">Pojects</div>
+    <div class="header-icons">
+      <img src="images/Bell.png" alt="Notifications" />
+      <img id="account-icon" src="images/Union.png" alt="Account" />
+    </div>
+  </div>
+  <div class="main-content">
+    <!-- Table has been removed -->
+  </div>
+
+  <!-- Account Panel with iframe to load external content -->
+  <div id="account-panel" class="account-panel">
+    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
+  </div>
+
+  <script>
+    const accountIcon = document.getElementById("account-icon");
+    const accountPanel = document.getElementById("account-panel");
+    const accountFrame = document.getElementById("account-frame");
+
+    // Load content when account icon is clicked
+    accountIcon.addEventListener("click", () => {
+      accountPanel.classList.toggle("active");
+
+      // Load external content in iframe
+      if (accountPanel.classList.contains("active")) {
+        accountFrame.src = "logout.html"; // Change to the URL of your content page
+      } else {
+        accountFrame.src = ""; // Clear iframe content when panel is closed
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
+        accountPanel.classList.remove("active");
+        accountFrame.src = ""; // Clear iframe content when clicking outside
+      }
+    });
+  </script>
+</body>
+
+</html>
