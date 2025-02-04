@@ -1,4 +1,3 @@
-// In login.js, import Firebase services using npm package
 import {
   getAuth,
   onAuthStateChanged,
@@ -17,26 +16,37 @@ import {
   toggleLoadingIndicator,
 } from "./utils.js";
 
-// Firebase configuration from firebase_config.js
 import app from "../config/firebase_config.js"; // Path to firebase_config.js
 
-// Initialize Firebase app and get Firebase services
 const auth = getAuth(app);
 const firestore = getFirestore(app);
 
 // Ensure loading indicator is hidden initially
 document.addEventListener("DOMContentLoaded", () => {
   toggleLoadingIndicator(false);
+
+  // Add event listener to toggle password visibility
+  const togglePasswordButton = document.getElementById("toggle-password");
+  const passwordInput = document.getElementById("password");
+
+  togglePasswordButton.addEventListener("click", () => {
+    // Toggle password visibility
+    const type = passwordInput.type === "password" ? "text" : "password";
+    passwordInput.type = type;
+
+    // Toggle the eye icon (eye slash vs. eye)
+    const eyeIcon = togglePasswordButton.querySelector("i");
+    if (type === "password") {
+      eyeIcon.classList.remove("fa-eye-slash");
+      eyeIcon.classList.add("fa-eye");
+    } else {
+      eyeIcon.classList.remove("fa-eye");
+      eyeIcon.classList.add("fa-eye-slash");
+    }
+  });
 });
 
-// Check if the user is already logged in
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    console.log(`Already logged in: ${user.email}`);
-    sessionStorage.setItem("userEmail", user.email);
-  }
-});
-
+// Login logic
 const loginForm = document.getElementById("login-form");
 
 loginForm.addEventListener("submit", (e) => {
@@ -46,7 +56,6 @@ loginForm.addEventListener("submit", (e) => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  // Sign in with Firebase Authentication
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       const user = userCredential.user;
