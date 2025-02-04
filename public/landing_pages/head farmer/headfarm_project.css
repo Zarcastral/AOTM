@@ -1,86 +1,210 @@
 body {
-    margin: 0;
-    height: 100vh;
-    background-color: #F5F6FA;
-    font-family: 'Inter', sans-serif;
-    display: flex;
-    flex-direction: column;
-  }
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
 
-  .header {
-    height: 60px;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    position: relative;
-  }
+.header {
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
 
-  .header-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-  }
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
 
-  .header-icons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
 
-  .header-icons img {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-  }
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
 
-  .main-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-  }
 
-  /* Account Panel Styles */
-  .account-panel {
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    width: 300px;
-    height: 400px; /* Set a fixed height here */
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    padding: 10px;
-    display: none;
-    z-index: 10;
-  }
 
-  .account-panel.active {
-    display: block;
-  }
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
 
-  .account-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
+.project-panel, .team-panel, .feedback-panel {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+}
 
-  .account-panel ul li {
-    padding: 10px;
-    border-bottom: 1px solid #E2E8F0;
-    cursor: pointer;
-  }
+.project-panel h2, .team-panel h2, .feedback-panel h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
 
-  .account-panel ul li:hover {
-    background-color: #F7FAFC;
-  }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
 
-  .account-panel ul li:last-child {
-    border-bottom: none;
-  }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
 
+table th, table td {
+  padding: 12px;
+  border-bottom: 1px solid #E2E8F0; /* Keep only bottom border */
+  text-align: left;
+}
+
+/* Remove the vertical and top borders */
+table th {
+  border-left: none;
+  border-right: none;
+  border-top: none; /* Remove the border above the th */
+}
+
+table td {
+  border-left: none;
+  border-right: none;
+}
+.progress {
+  background-color: #E2E8F0;
+  border-radius: 8px;
+  height: 10px;
+  width: 100%;
+}
+
+.progress-bar {
+  background-color: #41A186;
+  height: 10px;
+  border-radius: 8px;
+}
+
+button {
+  background-color: #41A186;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #369170;
+}
+
+.feedback-log .feedback-item {
+  background-color: #F7FAFC;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #E2E8F0;
+}
+.feedback-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.feedback-header p {
+  margin: 0;
+}
+
+.timestamp {
+  font-size: 0.85rem;
+  color: #6B7280;
+}
+
+.status {
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.status.acknowledged {
+  color: #41A186;
+}
+
+.status.pending {
+  color: #FFA500;
+}
+
+.add-feedback {
+  background-color: transparent;
+  color: #41A186;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.add-feedback:hover {
+  color: #369170;
+}
+
+ /* Account Panel Styles */
+ .account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px; /* Set a fixed height here */
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+
+.account-panel.active {
+  display: block;
+}
+
+.account-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.account-panel ul li {
+  padding: 10px;
+  border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+}
+
+.account-panel ul li:hover {
+  background-color: #F7FAFC;
+}
+
+.account-panel ul li:last-child {
+  border-bottom: none;
+}
   /* Responsive Design */
   @media screen and (max-width: 768px) {
     .header {

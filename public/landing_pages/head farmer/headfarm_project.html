@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Organic Baras Productivity</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="headfarm_dash.css">
+  <link rel="stylesheet" href="headfarm_project.css">
 </head>
 
 <body>
@@ -17,8 +17,96 @@
       <img id="account-icon" src="images/Union.png" alt="Account" />
     </div>
   </div>
-  <div class="main-content">
-    <!-- Table has been removed -->
+ <div class="main-content">
+    <!-- Project Panel -->
+    <div class="project-panel">
+      <h2>Project</h2>
+      <div class="grid">
+        <div><strong>Project Name:</strong> Conception Go</div>
+        <div><strong>Start Date:</strong> 10/19/2023</div>
+        <div><strong>End Date:</strong> 11/28/2023</div>
+        <div><strong>Extended Date:</strong> --</div>
+        <div><strong>Status:</strong> Pending</div>
+        <div><strong>Crops:</strong> Highland Vegetables</div>
+        <div><strong>Crop Type:</strong> Ampalaya</div>
+        <div><strong>Equipment:</strong> None</div>
+        <div><strong>Barangay:</strong> Conception</div>
+        <div><strong>Farm President:</strong> George Wilson</div>
+      </div>
+    </div>
+
+    <!-- Team Panel -->
+    <div class="team-panel">
+      <h2>Team</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Team Name</th>
+            <th>Lead Farmer</th>
+            <th>No. of Tasks</th>
+            <th>No. of Farmers</th>
+            <th>Progress</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Group A</td>
+            <td>Charles Lawton</td>
+            <td>10</td>
+            <td>30</td>
+            <td><div class="progress"><div class="progress-bar" style="width: 80%;"></div></div></td>
+            <td><button>View</button></td>
+          </tr>
+          <tr>
+            <td>Group B</td>
+            <td>Caroline James</td>
+            <td>10</td>
+            <td>30</td>
+            <td><div class="progress"><div class="progress-bar" style="width: 50%;"></div></div></td>
+            <td><button>View</button></td>
+          </tr>
+          <tr>
+            <td>Group C</td>
+            <td>Adrian Bernal</td>
+            <td>10</td>
+            <td>30</td>
+            <td><div class="progress"><div class="progress-bar" style="width: 100%;"></div></div></td>
+            <td><button>View</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Feedback Log Panel -->
+    <div class="feedback-panel">
+      <div class="feedback-header-container">
+        <h2>Feedback Log</h2>
+        <button class="add-feedback">+ Add Feedback</button>
+      </div>
+      <div class="feedback-log">
+        <div class="feedback-item">
+          <div class="feedback-header">
+            <div>
+              <p><strong>Anya Forger</strong> - Head Farmer (Team A - Conception)</p>
+              <p class="timestamp">02-18-2024 | 8:40 AM</p>
+            </div>
+            <p class="status acknowledged">Report - Acknowledged</p>
+          </div>
+          <p>A significant pest infestation was observed...</p>
+        </div>
+        <div class="feedback-item">
+          <div class="feedback-header">
+            <div>
+              <p><strong>Gilbert Holmes</strong> - Farmer (Team C - Conception)</p>
+              <p class="timestamp">02-18-2024 | 8:40 AM</p>
+            </div>
+            <p class="status pending">Report - Pending</p>
+          </div>
+          <p>A significant pest infestation was observed...</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Account Panel with iframe to load external content -->
