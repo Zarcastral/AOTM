@@ -6,7 +6,7 @@
     width: 257px;
     background-color: white;
     z-index: 50;
-    overflow-y: auto;
+    
     transition: transform 0.3s ease-in-out;
   }
   
@@ -53,7 +53,7 @@
   .sidebar a:hover,
   .sidebar a.selected {
    
-    background-color: #e6f9ed;
+   
     color: #41a186;
     margin-left: 0; /* Remove margin to align full width */
     padding-left: 40px; /* Adjust padding to maintain alignment */

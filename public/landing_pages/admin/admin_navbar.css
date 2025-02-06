@@ -3,10 +3,8 @@
   top: 0;
   left: 0;
   height: 100%;
-  width: 257px;
   background-color: white;
   z-index: 50;
-  overflow-y: auto;
   transition: transform 0.3s ease-in-out;
 }
 
@@ -36,7 +34,7 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 20px;
+  padding: 8px 20px;
   text-decoration: none;
   color: #4a5568;
   font-size: 20px;
@@ -52,8 +50,6 @@
 
 .sidebar a:hover,
 .sidebar a.selected {
- 
-  background-color: #e6f9ed;
   color: #41a186;
   margin-left: 0; /* Remove margin to align full width */
   padding-left: 40px; /* Adjust padding to maintain alignment */
@@ -73,7 +69,7 @@
 
 /* Content area */
 .content {
-  margin-left: 250px;
+  margin-left: 235px;
   flex: 1;
   overflow-y: auto;
   transition: margin-left 0.3s ease-in-out;
