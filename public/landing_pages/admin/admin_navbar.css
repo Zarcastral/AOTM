@@ -1,3 +1,8 @@
+body {
+  font-family: 'Poppins';
+}
+
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -23,7 +28,7 @@
 
 .logo-text {
   position: relative;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   color: #4a5568;
   margin-left: -30px; /* Move text closer to or slightly overlapping the logo */
