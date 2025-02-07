@@ -11,17 +11,26 @@
   }
   
   .logo-container {
+    position: relative;
     display: flex;
-    height: 80px;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
-    margin-top: 20px;
+    justify-content: start;
+    height: 100px; /* Adjust height as needed */
   }
   
   .logo {
-    height: 100px;
-    width: auto;
+    margin-left: -17px;
+    width: 120px;
+  }
+  
+  .logo-text {
+    position: relative;
+    font-size: 24px;
+    font-weight: bold;
+    color: #4a5568;
+    margin-left: -30px; /* Move text closer to or slightly overlapping the logo */
+    z-index: 1; /* Ensure text stays on top of the logo */
+    pointer-events: none; /* Ensure text doesn't block interaction with logo */
   }
   
   .sidebar ul {
