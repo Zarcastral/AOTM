@@ -62,21 +62,171 @@ body {
     width: 20px;
   }
   
-  .sidebar a:hover,
-  .sidebar a.selected {
-   
-    background-color: #e6f9ed;
-    color: #41a186;
-    margin-left: 0; /* Remove margin to align full width */
-    padding-left: 40px; /* Adjust padding to maintain alignment */
-    border-radius: 0 25px 25px 0;
-  }
+.dash a:hover img,
+.dash a.selected img{
+ content: url(../admin/images/dashGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.dash a:hover,
+.dash a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.proj a:hover img,
+.proj a.selected img{
+ content: url(../admin/images/graphGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.proj a:hover,
+.proj a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.harv a:hover img,
+.harv a.selected img{
+ content: url(../admin/images/bagGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.harv a:hover,
+.harv a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.harv a:hover img,
+.harv a.selected img{
+ content: url(../admin/images/bagGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.harv a:hover,
+.harv a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.inv a:hover img,
+.inv a.selected img{
+ content: url(../admin/images/boxGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.inv a:hover,
+.inv a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.farm a:hover img,
+.farm a.selected img{
+ content: url(../admin/images/profileGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.farm a:hover,
+.farm a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.use a:hover img,
+.use a.selected img{
+ content: url(../admin/images/userGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.use a:hover,
+.use a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.rep a:hover img,
+.rep a.selected img{
+ content: url(../admin/images/folderGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.rep a:hover,
+.rep a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.act a:hover img,
+.act a.selected img{
+ content: url(../admin/images/archiveGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.act a:hover,
+.act a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+.sett a:hover img,
+.sett a.selected img{
+ content: url(../admin/images/settingGreen.png);
+ height: 20px;
+ width: 20px;
+}
+
+.sett a:hover,
+.sett a.selected {
+  /* Maintain the hover effect on the text */
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
   
   .tools-section {
     padding: 12px 20px;
-    font-size: 20px;
+    font-size: 18px;
     color: #41A186;
-    font-weight: bold;
+    font-weight: normal;
   }
   
   .settings-link {
