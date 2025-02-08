@@ -14,10 +14,11 @@ const firestore = getFirestore(app);
 // User type to redirect mapping
 const userTypeRoutes = {
   Admin: "../../public/landing_pages/admin/admin_navbar.html",
-  Supervisor: "../../public/landing_pages/supervisor.html",
-  "Farm President": "../../public/farm-president-dashboard.html",
+  Supervisor: "../../public/landing_pages/supervisor/supervisor_navbar.html",
+  "Farm President":
+    "../../public/landing_pages/farm_president/farmpres_navbar.html",
   "Head Farmer": "../../public/landing_pages/head_farmer/headfarm_nav.html",
-  Farmer: "../../public/landing_pages/farmer.html",
+  Farmer: "../../public/landing_pages/farmers/farmers_nav.html",
 };
 
 // Redirect user based on their role
