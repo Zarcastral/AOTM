@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module" src="../../../src/auth/admin_inventory.js "></script>
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
@@ -23,15 +24,14 @@
       <h2>Crops</h2>
       <div class="search-bar">
         <input type="text" placeholder="Search">
-        <select>
-          <option>crops </option>
-          <option>crops 1</option>
-          <option>crops 2</option>
+        <select class="crop_select">
+          <option value="">Select Crops </option>
         </select>
       </div>
-      <table>
-        <thead>
-          <tr>
+      <div class="crop_table">
+        <table>
+          <thead>
+            <tr>
             <th class="image-header"><img src="images/Delete.png" alt="Equipment Icon" /></th>
             <th>#</th>
             <th>Crop Name</th>
@@ -41,29 +41,22 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="checkbox"><input type="checkbox"></td>
-            <td>1</td>
-            <td>Rhandy Gian Baradas</td>
-            <td>Admin</td>
-            <td>add user</td>
-            <td>10-15-2024</td>
-          </tr>
+          <!-- Crops will be populated here -->
         </tbody>
       </table>
     </div>
+  </div>
 
     <!-- Farmers Activity Panel -->
     <div class="panel">
       <h2>Fertilizer</h2>
       <div class="search-bar">
         <input type="text" placeholder="Search">
-        <select>
-          <option>Fertilizer </option>
-          <option>Fertilizer 1</option>
-          <option>Fertilizer 2</option>
+        <select class="fertilizer_select">
+          <option value="">Select Fertilizer </option>
         </select>
       </div>
+      <div class="fertilizer_table">
       <table>
         <thead>
           <tr>
@@ -76,52 +69,40 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="checkbox"><input type="checkbox"></td>
-            <td>1</td>
-            <td>Adrian Bernal</td>
-            <td>Planting</td>
-            <td>Completed</td>
-            <td>10-16-2024</td>
-          </tr>
+          <!-- will be populated here -->
         </tbody>
       </table>
     </div>
+  </div>
 
     <!-- Equipment Status Panel -->
     <div class="panel">
       <h2>Equipment </h2>
       <div class="search-bar">
         <input type="text" placeholder="Search">
-        <select>
+        <select class="equipment_select">
           <option>Equipment Type</option>
           <option>Tractor</option>
           <option>Plow</option>
         </select>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th class="image-header"><img src="images/Delete.png" alt="Equipment Icon" /></th>
-            <th>#</th>
-            <th>Equipment Name</th>
-            <th>Category</th>
-            <th>Date Added</th>
-            <th>stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="checkbox"><input type="checkbox"></td>
-            <td>1</td>
-            <td>John Deere Tractor</td>
-            <td>In Use</td>
-            <td>10-14-2024</td>
-            <td>Good</td>
-          </tr>
-        </tbody>
-        
-      </table>
+      <div class="equipment_table"> 
+        <table>
+          <thead>
+            <tr>
+              <th class="image-header"><img src="images/Delete.png" alt="Equipment Icon" /></th>
+              <th>#</th>
+              <th>Equipment Name</th>
+              <th>Category</th>
+              <th>Date Added</th>
+              <th>stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- record will be put here -->
+          </tbody>    
+        </table>
+      </div>
     </div>
   </div>
 
