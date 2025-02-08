@@ -137,7 +137,7 @@ button.add-button {
 }
 
 button.add-button:hover {
-    background-color: #358e70;
+    background-color: #51a687;
 }
 
 /* Panel styling */
@@ -194,7 +194,7 @@ button.add-button:hover {
 }
 
 .barangay-modal h3 {
-    font-size: 24px;
+    font-size: 30px;
     font-weight: bold;
 }
 
@@ -255,7 +255,7 @@ button.add-button:hover {
 }
 
 .barangay-modal .save-button:hover {
-    background-color: #358e70;
+    background-color: #51a687;
 }
 
 .area-group .area-input {
@@ -338,7 +338,7 @@ button.add-button:hover {
 }
 
 .fertilizer-modal .save-button:hover {
-    background-color: #358e70;
+    background-color: #51a687;
 }
 
 .area-group .area-input {
@@ -373,12 +373,6 @@ button.add-button:hover {
     z-index: 10;
 }
 
-.header-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-    margin: 0;
-}
 
 .header-icons {
     display: flex;
