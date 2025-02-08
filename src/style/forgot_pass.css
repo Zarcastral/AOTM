@@ -32,7 +32,7 @@ body {
 label {
   display: block;
   margin-bottom: 8px;
-  color: #333;
+  color: #BABBBB;
   font-size: 0.9em;
 }
 
@@ -48,29 +48,47 @@ input[type="email"] {
 button[type="submit"] {
   width: 100%;
   padding: 12px;
-  background: #4caf50;
+  background: #41A186;
   color: #fff;
-  font-size: 1.1em;
+  font-size: 1.2em;
+  font-weight: bold;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
 button[type="submit"]:hover {
-  background: #45a049;
+  background: #51a687;
 }
 
 .info-text {
+  text-decoration: none;
   margin-top: 20px;
-  font-size: 0.9em;
-  color: #555;
+  font-size: 1.2em;
+  color: #BABBBB;
+  font-weight: bold;
 }
 
 .link {
-  color: #4caf50;
+  color: #41A186;
   text-decoration: none;
 }
 
 .link:hover {
-  text-decoration: underline;
+  color: #51a687;
+}
+
+h2 {
+  color: #41A186;
+  font-weight: bolder;
+  font-size: 30px;
+}
+
+h1 {
+  color: #BABBBB;
+  font-weight: normal;
+  font-size: 15px;
+  padding-bottom: 20px;
+  padding-left: 15px;
+  padding-right: 15px;
 }
