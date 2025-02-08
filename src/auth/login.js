@@ -27,7 +27,7 @@ function redirectUser(userType) {
   if (path) {
     window.location.href = path;
   } else {
-    alert("Unknown user type.");
+    showErrorModal("Unknown user type.");
   }
 }
 
@@ -53,9 +53,32 @@ function getAuthErrorMessage(code) {
   return errorMessages[code] || errorMessages.default;
 }
 
+// Show error modal only when needed
+function showErrorModal(message) {
+  const errorModal = document.getElementById("error-modal");
+  const errorMessageElement = document.getElementById("error-message");
+
+  if (errorModal && errorMessageElement) {
+    errorMessageElement.textContent = message;
+    errorModal.style.display = "flex"; // Show the modal when there's an error
+  }
+}
+
+// Hide error modal when clicking the close button
+document.getElementById("close-error-modal").addEventListener("click", () => {
+  const errorModal = document.getElementById("error-modal");
+  errorModal.style.display = "none"; // Hide the modal when closed
+});
+
 // Ensure loading indicator is hidden initially
 document.addEventListener("DOMContentLoaded", () => {
   toggleLoadingIndicator(false);
+
+  // Initially hide the error modal
+  const errorModal = document.getElementById("error-modal");
+  if (errorModal) {
+    errorModal.style.display = "none"; // Hide the modal by default
+  }
 
   // Password visibility toggle
   const togglePasswordButton = document.getElementById("toggle-password");
@@ -76,14 +99,14 @@ document.addEventListener("DOMContentLoaded", () => {
 const loginForm = document.getElementById("login-form");
 
 loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  toggleLoadingIndicator(true);
+  e.preventDefault(); // Prevent form default submission
+  toggleLoadingIndicator(true); // Show loading indicator during processing
 
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   try {
-    console.log("Authenticating user...");
+    // Perform authentication using Firebase
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
@@ -92,8 +115,6 @@ loginForm.addEventListener("submit", async (e) => {
     const user = userCredential.user;
     sessionStorage.setItem("userEmail", user.email);
 
-    console.log("Checking Firestore for user data...");
-
     // Step 1: Check in tb_farmers
     const farmersRef = collection(firestore, "tb_farmers");
     const farmersQuery = query(farmersRef, where("email", "==", email));
@@ -101,39 +122,42 @@ loginForm.addEventListener("submit", async (e) => {
 
     if (!farmersSnapshot.empty) {
       const farmerData = farmersSnapshot.docs[0].data();
-      console.log("User found in tb_farmers:", farmerData);
       if (farmerData.user_type) {
-        redirectUser(farmerData.user_type);
+        redirectUser(farmerData.user_type); // Redirect user based on their role
         return;
       }
     }
 
     // Step 2: Check in tb_users
-    console.log("User not found in tb_farmers. Checking tb_users...");
     const usersRef = collection(firestore, "tb_users");
     const usersQuery = query(usersRef, where("email", "==", email));
     const usersSnapshot = await getDocs(usersQuery);
 
     if (!usersSnapshot.empty) {
       const userData = usersSnapshot.docs[0].data();
-      console.log("User found in tb_users:", userData);
       if (userData.user_type) {
         redirectUser(userData.user_type);
         return;
       }
     }
 
-    // If user is not found in both collections
-    alert("User data not found.");
+    // If user is not found in both collections, show error modal
+    showErrorModal("Incorrect username or password.");
   } catch (error) {
-    alert(`Login failed: ${getAuthErrorMessage(error.code)}`);
+    // If Firebase authentication fails, show appropriate error modal
+    showErrorModal(getAuthErrorMessage(error.code));
   } finally {
-    toggleLoadingIndicator(false);
+    toggleLoadingIndicator(false); // Hide loading indicator after processing
   }
 });
 
-// Add loading indicator dynamically
-const loaderHtml = `
+// Add error modal and loading indicator dynamically
+const modalHtml = `
+  <div id="error-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background-color:#fff;padding:20px;box-shadow:0px 4px 8px rgba(0,0,0,0.1);z-index:10000;">
+    <h2>Login Error</h2>
+    <p id="error-message">Incorrect username or password.</p>
+    <button id="close-error-modal">Close</button>
+  </div>
   <div id="loading-indicator" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;">
     <div style="width:50px;height:50px;border:5px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
   </div>
@@ -144,4 +168,4 @@ const loaderHtml = `
     }
   </style>
 `;
-document.body.insertAdjacentHTML("beforeend", loaderHtml);
+document.body.insertAdjacentHTML("beforeend", modalHtml);
