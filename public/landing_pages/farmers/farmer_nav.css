@@ -1,139 +1,144 @@
 body {
   font-family: 'Poppins';
+  margin: 0;
+  padding: 0;
 }
+
 .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 257px;
-    background-color: white;
-    z-index: 50;
-    transition: transform 0.3s ease-in-out;
-  }
-  
-  .logo-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    height: 100px; /* Adjust height as needed */
-  }
-  
-  .logo {
-    margin-left: -17px;
-    width: 120px;
-  }
-  
-  .logo-text {
-    position: relative;
-    font-size: 24px;
-    font-weight: bold;
-    color: #4a5568;
-    margin-left: -30px; /* Move text closer to or slightly overlapping the logo */
-    z-index: 1; /* Ensure text stays on top of the logo */
-    pointer-events: none; /* Ensure text doesn't block interaction with logo */
-  }
-  
-  .sidebar ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    margin-top: 20px;
-  }
-  
-  .sidebar a {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 235px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  transition: transform 0.3s ease-in-out;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  height: 100px;
+}
+
+.logo {
+  width: 90px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: bold;
+  color: #4a5568;
+  margin-left: -10px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 20px;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 20px;
+  text-decoration: none;
+  color: #4a5568;
+  font-size: 20px;
+  font-weight: 500;
+  margin-left: 20px;
+}
+
+.sidebar a img.icon {
+  height: 20px;
+  width: 20px;
+}
+
+/* Hover and Selected Effects */
+.sidebar a:hover,
+.sidebar a.selected {
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
+
+/* Individual Hover Effects */
+.pro a:hover img,
+.pro a.selected img {
+  content: url(../../images/flashGreen.png);
+  height: 20px;
+  width: 20px;
+}
+
+.harv a:hover img,
+.harv a.selected img {
+  content: url(../../images/bagGreen.png);
+  height: 20px;
+  width: 20px;
+}
+
+
+
+/* Content area */
+.content {
+  margin-left: 235px;
+  flex: 1;
+  overflow-y: auto;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+iframe {
+  width: 100%;
+  height: 100vh;
+  border: none;
+}
+
+/* Mobile Menu Button */
+#mobile-menu-button {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 60;
+  background-color: #41A186;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  height: 50px;
+  width: 40px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
     width: 100%;
-    padding: 12px 20px;
-    text-decoration: none;
-    color: #4a5568;
-    font-size: 20px;
-    font-weight: 500;
-    transition: background-color 0.3s, color 0.3s;
-    margin-left: 20px;
   }
-  
-  .sidebar a img.icon {
-    height: 20px;
-    width: 20px;
+
+  .sidebar.open {
+    transform: translateX(0);
   }
-  
-  .sidebar a:hover,
-  .sidebar a.selected {
-   
-    color: #41a186;
-    margin-left: 0; /* Remove margin to align full width */
-    padding-left: 40px; /* Adjust padding to maintain alignment */
-    border-radius: 0 25px 25px 0;
-  }
-  
-  .tools-section {
-    padding: 12px 20px;
-    font-size: 20px;
-    color: #41A186;
-    font-weight: bold;
-  }
-  
-  .settings-link {
-    margin-top: auto;
-  }
-  
-  /* Content area */
+
   .content {
-    margin-left: 250px;
-    flex: 1;
-    overflow-y: auto;
-    transition: margin-left 0.3s ease-in-out;
-  }
-  
-  iframe {
+    margin-left: 0;
     width: 100%;
+  }
+
+  iframe {
     height: 100vh;
-    border: none;
+    width: 100%;
   }
-  
-  /* Mobile Menu Button */
+
   #mobile-menu-button {
-    display: none;
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 60;
-    background-color: #41A186;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    height: 50px;
-    width: 40px;
+    display: block;
   }
-  
-  /* Responsive Styles */
-  @media (max-width: 768px) {
-    .sidebar {
-      transform: translateX(-100%);
-      width: 100%;
-    }
-  
-    .sidebar.open {
-      transform: translateX(0);
-    }
-  
-    .content {
-      margin-left: 0;
-      width: 100%;
-    }
-  
-    iframe {
-      height: 100vh;
-      width: 100%;
-    }
-  
-    #mobile-menu-button {
-      display: block;
-    }
-  }
+}
