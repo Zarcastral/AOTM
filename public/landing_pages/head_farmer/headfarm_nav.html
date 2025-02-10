@@ -16,31 +16,46 @@
   <!-- Sidebar navigation -->
   <div class="sidebar">
     <div class="logo-container">
-      <img src="../../images/Logo (1).png" class="logo" alt="Company Logo" />
+      <img src="../../images/Logo.png" class="logo" alt="Company Logo" />
       <span class="logo-text">Organic Baras</span>
     </div>
 
     <nav>
       <ul>
-        <li><a href="headfarm_dash.html" ><img src="../../images/element-1.png" class="icon" alt="Dashboard" />Dashboard</a></li>
-        <li><a href="headfarm_project.html" ><img src="../../images/graph.png" class="icon" alt="Projects" />Projects</a></li>
-        <li><a href="headfarm_task.html" ><img src="../../images/bag.png" class="icon" alt="Harvest" />Task</a></li>
-        <li><a href="headfarm_harvest.html" ><img src="../../images/bag.png" class="icon" alt="Inventory" />Harvest</a></li>
-        <li><a href="headfarm_farmer.html" data-section="harvest.php"><img src="../../images/user.png" class="icon" alt="User" />Farmer</a></li>
-        <li class="tools-section">Tools</li>
-        <li><a href="headfarm_reports.html" ><img src="../../images/folder-2.png" class="icon" alt="Reports" />Reports</a></li>
+        <div class="dash"> 
+          <li><a href="headfarm_dash.html"><img src="../../images/element-1.png" class="icon" alt="Dashboard" />Dashboard</a></li>
+        </div>
 
+        <div class="proj">
+          <li><a href="headfarm_project.html"><img src="../../images/graph.png" class="icon" alt="Projects" />Projects</a></li>
+        </div>
+
+        <div class="task">
+          <li><a href="headfarm_task.html"><img src="../../images/flash.png" class="icon" alt="Projects" />Task</a></li>
+        </div>
+
+        <div class="harv">
+          <li><a href="headfarm_harvest.html"><img src="../../images/bag.png" class="icon" alt="Harvest" />Harvest</a></li>
+        </div>
+
+        <div class="farm">
+          <li><a href="headfarm_farmer.html"><img src="../../images/profile-2user.png" class="icon" alt="Farmers" />Farmers</a></li>
+        </div>
+        <li class="tools-section">Tools</li>
+        <div class="rep">
+          <li><a href="headfarm_reports.html"><img src="../../images/folder-2.png" class="icon" alt="Reports" />Reports</a></li>
+        </div>
+
+        
       </ul>
     </nav>
+
   </div>
 
   <!-- Iframe content area -->
   <div class="content">
     <iframe id="content-frame" src="headfarm_dash.html"></iframe>
   </div>
-</body>
-
-</html>
 
   <script>
     const links = document.querySelectorAll(".sidebar a");
@@ -53,7 +68,6 @@
       links.forEach((l) => {
         l.classList.remove("selected");
       });
-
       link.classList.add("selected");
     }
 
@@ -74,10 +88,12 @@
 
     // Set default active link on load
     document.addEventListener("DOMContentLoaded", () => {
-      const defaultLink = document.querySelector('[data-section="admin_dash.html"]');
-      setActiveLink(defaultLink);
-    });
+  const defaultLink = document.querySelector('.sidebar a[href="admin_dash.html"]');
+  if (defaultLink) {
+    setActiveLink(defaultLink);
+  }
+});
   </script>
-</body>
 
+</body>
 </html>
