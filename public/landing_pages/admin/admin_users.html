@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" src="../../../src/auth/admin_users.js"></script>
+    <title>USER LIST</title>
+    
+    <link rel="stylesheet" href="/src/style/admin_users.css">
+</head>
+<body>
+   <!-- Header Section -->
+   <div class="header">
+    <div class="header-title">    
+
+    </div>
+
+    <div class="header-icons">
+      <img src="../../images/Bell.png" alt="Notifications">
+      <img id="account-icon" src="../../images/Union.png" alt="Account">
+    </div>
+  </div>
+
+  <div class="main-content">
+      <!-- Button for New Project -->
+      <div class="btn-container">
+          <a href="create_account.html" class="add-user-btn">+ New User</a>
+        </div>
+    <div class="panel">
+        <div class="search-container">
+           <input type="text" id="search-bar" placeholder="Search" /> 
+            <select id="barangay-select">
+                <option value="">Select Barangay</option>
+                <!-- record will be dynamically added here -->
+            </select>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="checkbox-delete" > 
+                        <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+                    </th>
+                    <th>Account Name</th>
+                    <th>User's Name</th>
+                    <th>User Role</th>
+                    <th>Barangay</th>
+                    <th>Contact</th>
+                    <th>Action</th>
+                    
+                </tr>
+            </thead>
+            <tbody id="table_body">
+                <!-- Rows will be dynamically added here -->
+            </tbody>
+        </table>
+        <div class="pagination-container">
+          <button id="prev-page" class="pagination-btn" disabled>Prev</button>
+          <span id="page-number">Page 1</span>
+          <button id="next-page" class="pagination-btn">Next</button>
+      </div>
+    </div>
+    
+        <!-- Confirmation Message Panel -->
+    <div id="confirmation-panel" class="confirmation-panel">
+        <div class="confirmation-message">
+            <p>Are you sure you want to delete the record?</p>
+            <button id="confirm-delete" class="confirm-btn">Okay</button>
+            <button id="cancel-delete" class="cancel-btn">Cancel</button>
+        </div>
+    </div>
+    
+        <!-- Success Message Panel -->
+        <div id="delete-message" class="delete-message">
+            <p>Record has been successfully deleted!</p>
+        </div>
+
+    <div id="bulk-delete-panel" class="bulk-delete-panel">
+        <div class="confirm-bulk-delete-message">
+            <p>Are you sure you want to delete the selected records?</p>
+            <button id="confirm-bulk-delete" class="bulk-confirm-btn">Confirm</button>
+            <button id="cancel-bulk-delete" class="bulk-cancel-btn">Cancel</button>
+        </div>
+    </div>
+        
+    <!-- Bulk Delete Message Panel -->
+    <div id="bulk-delete-message" class="bulk-delete-message">
+        <p>All selected records has been successfully deleted!</p>
+    </div>
+
+</body>
+</html>
