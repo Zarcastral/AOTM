@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predefined Tasks</title>
+    <link rel="stylesheet" href="predefined_task.css">
+</head>
+
+<body>
+    <h1>Predefined Task Management</h1>
+
+    <!-- Task Creation Form -->
+    <form id="task-form">
+        <label for="task-name">Task Name:</label>
+        <input type="text" id="task-name" required>
+        <button type="submit">Add Task</button>
+    </form>
+
+    <!-- Task List -->
+    <h2>Task List</h2>
+    <ul id="task-list"></ul>
+
+    <!-- Edit Task Modal (Pop-up) -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Edit Task</h2>
+            <p id="edit-task-name"></p>
+
+            <h3>Subtasks</h3>
+            <ul id="subtask-list"></ul>
+
+            <!-- Add Subtask -->
+            <input type="text" id="new-subtask" placeholder="Enter subtask">
+            <button id="add-subtask-btn">Add Subtask</button>
+
+            <!-- Save Changes Button -->
+            <button id="save-changes-btn">Save Changes</button>
+        </div>
+    </div>
+
+    <script type="module" src="predefined_task.js"></script>
+</body>
+
+</html>

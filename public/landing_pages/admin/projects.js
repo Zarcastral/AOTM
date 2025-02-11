@@ -17,20 +17,20 @@ const db = getFirestore(app);
 
 
          window.loadFarmPresidents = async function() {
-            const querySnapshot = await getDocs(query(collection(db, "tb_users"), where("user_type", "==", "Farm President")));
+            const querySnapshot = await getDocs(query(collection(db, "tb_farmers"), where("user_type", "==", "Farm President")));
             const assignToSelect = document.getElementById('assign-to');
             assignToSelect.innerHTML = '<option value="">Select Farm President</option>';
             querySnapshot.forEach(doc => {
                 const option = document.createElement('option');
                 option.value = doc.id;
-                option.textContent = doc.data().user_name;
+                option.textContent = doc.data().first_name;
                 assignToSelect.appendChild(option);
             });
         }
 
          window.loadBarangay = async function(farmPresidentId) {
             if (!farmPresidentId) return;
-            const docRef = doc(db, "tb_users", farmPresidentId);
+            const docRef = doc(db, "tb_farmers", farmPresidentId);
             const docSnap = await getDoc(docRef);
             const barangayInput = document.getElementById('barangay');
             if (docSnap.exists()) {
@@ -146,32 +146,29 @@ window.saveProject = async function() {
         const farmlandId = await getFarmlandId(farmlandName);
 
         const cropTypeName = document.getElementById('crop-type').value;
-        const quantityCropType = document.getElementById('quantity-crop-type').value.trim();
+        let weightCropType = document.getElementById('weight-crop-type').value.trim();
         const fertilizerType = document.getElementById('fertilizer-type').value;
-        const quantityFertilizerType = document.getElementById('quantity-fertilizer-type').value.trim();
+        let weightFertilizerType = document.getElementById('weight-fertilizer-type').value.trim();
         const equipment = document.getElementById('equipment').value;
-        let unitCropType = document.getElementById('unit-crop-type').value.trim();
-        let unitFertilizerType = document.getElementById('unit-fertilizer-type').value.trim();
-
-        // Ensure "kg" is at the end of the unit
-        if (!unitCropType.toLowerCase().endsWith("kg")) {
-            unitCropType += " kg";
-        }
-        if (!unitFertilizerType.toLowerCase().endsWith("kg")) {
-            unitFertilizerType += " kg";
-        }
-
-
+        
         const startDate = document.getElementById('start-date').value;
         const endDate = document.getElementById('end-date').value;
 
         // ✅ **Check if required fields are empty**
         if (!projectName || !farmPresidentName || !cropName || !barangayName || 
-            !farmlandName || !cropTypeName || !quantityCropType || !unitCropType ||
-            !fertilizerType || !quantityFertilizerType || !unitFertilizerType ||
+            !farmlandName || !cropTypeName || !weightCropType ||
+            !fertilizerType || !weightFertilizerType ||
             !equipment || !startDate || !endDate) {
             alert("⚠️ Please fill out all required fields before saving.");
             return;
+        }
+
+        // Ensure weights end with 'kg'
+        if (!weightCropType.endsWith("kg")) {
+            weightCropType += "kg";
+        }
+        if (!weightFertilizerType.endsWith("kg")) {
+            weightFertilizerType += "kg";
         }
 
         const projectID = await getNextProjectID();
@@ -186,11 +183,9 @@ window.saveProject = async function() {
             farm_land: farmlandName,
             farmland_id: farmlandId,
             crop_type_name: cropTypeName,
-            quantity_crop_type: quantityCropType,
-            unit_crop_type: unitCropType,
+            weight_crop_type: weightCropType,
             fertilizer_type: fertilizerType,
-            quantity_fertilizer_type: quantityFertilizerType,
-            unit_fertilizer_type: unitFertilizerType,
+            weight_fertilizer_type: weightFertilizerType,
             equipment: equipment,
             start_date: startDate,
             end_date: endDate,
@@ -206,6 +201,7 @@ window.saveProject = async function() {
     }
 }
 
+
         //PAMBURA
         window.resetForm = function() {
             document.getElementById('project-name').value = "";
@@ -215,11 +211,9 @@ window.saveProject = async function() {
             document.getElementById('barangay').value = "";
             document.getElementById('farmland').innerHTML = '<option value="">Select Farmland</option>';
             document.getElementById('crop-type').innerHTML = '<option value="">Select Crop Type</option>';
-            document.getElementById('quantity-crop-type').value = "";
-            document.getElementById('unit-crop-type').value = "";
+            document.getElementById('weight-crop-type').value = "";
             document.getElementById('fertilizer-type').selectedIndex = 0;
-            document.getElementById('quantity-fertilizer-type').value = "";
-            document.getElementById('unit-fertilizer-type').value = "";
+            document.getElementById('weight-fertilizer-type').value = "";
             document.getElementById('equipment').selectedIndex = 0;
             document.getElementById('start-date').value = "";
             document.getElementById('end-date').value = "";
