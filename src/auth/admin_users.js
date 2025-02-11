@@ -264,9 +264,6 @@ async function viewUserAccount(user_name) {
     }
 }
 
-
-// <------------- DELETE CODES FUNCTION ------------->
-
 // <------------- DELETE BUTTON EVENT LISTENER ------------->
 tableBody.addEventListener("click", (event) => {
     const target = event.target;
@@ -379,10 +376,6 @@ async function fetch_barangays() {
         console.error("Error Fetching Barangays:", error);
     }
 }
-
-
-// <------------- FETCH DATA ONCE PAGE LOADS ------------->
-
 
 // <---------------------------- BULK DELETE CODE ---------------------------->
 

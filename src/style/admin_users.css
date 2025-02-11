@@ -37,10 +37,12 @@ body {
   }
   
   .main-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 50px; /* Padding around the panels */
+    overflow-y: auto; /* Enable vertical scrolling */
   }
+
 
 /* Panel container style */
 
@@ -75,6 +77,10 @@ th {
     gap: 1rem;
     margin-bottom: 1rem;
 }
+
+tbody tr:hover {
+    background-color: #F3F4F6;
+  }
 
 #search-bar, #barangay-select {
     padding: 8px;

@@ -4,12 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script type="module" src="../../../src/auth/admin_inventory_crops.js "></script>
-  <script type="module" src="../../../src/auth/admin_inventory_equipment.js "></script>
-  <script type="module" src="../../../src/auth/admin_inventory_fertilizer.js "></script>
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../src/style/admin_inventory.css">
+  <link rel="stylesheet" href="../../../src/style/admin_inventory_stock.css">
+  <script type="module" src="../../../src/auth/admin_inventory.js "></script>
 </head>
 
 <body>
@@ -38,26 +36,19 @@
         <table>
           <thead>
             <tr>
-              <tr>
-                <th class="crop-checkbox-bulk-delete" > 
-                  <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-              </th> 
-              <th>#</th>
-              <th>Crop Type</th>
-              <th>Crops</th>
-              <th>Date Added</th>
-              <th>Stock</th>
+            <th class="image-header"><img src="../../images/Delete.png" alt="Equipment Icon" /></th>
+            <th>#</th>
+            <th>Crop Name</th>
+            <th>Crop Type</th>
+            <th>Date Added</th>
+            <th>Stock</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
           <!-- Crops will be populated here -->
         </tbody>
       </table>
-      <div class="crops-pagination">
-        <button id="crop-prev-page" class="crop-pagination-btn" disabled>Prev</button>
-        <span id="crop-page-number">Page 1</span>
-        <button id="crop-next-page" class="crop-pagination-btn">Next</button>
-    </div>
     </div>
   </div>
 
@@ -74,25 +65,19 @@
       <table>
         <thead>
           <tr>
-              <th class="fertilizer-checkbox-bulk-delete" > 
-                <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-            </th>
+            <th class="image-header"><img src="../../images/Delete.png" alt="Equipment Icon" /></th>
             <th>#</th>
             <th>Fertilizer Name</th>
             <th>Category</th>
             <th>Date Added</th>
-            <th>Stock</th>
+            <th>stock</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
           <!-- will be populated here -->
         </tbody>
       </table>
-      <div class="fertilizer-pagination">
-        <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>Prev</button>
-        <span id="fertilizer-page-number">Page 1</span>
-        <button id="fertilizer-next-page" class="fertilizer-pagination-btn">Next</button>
-    </div>
     </div>
   </div>
 
@@ -102,21 +87,20 @@
       <div class="search-bar">
         <input type="text" placeholder="Search">
         <select class="equipment_select">
-          <option value="">Equipment Type</option>
+          <option>Equipment Type</option>
         </select>
       </div>
       <div class="equipment_table"> 
         <table>
           <thead>
-              <tr>
-                <th class="equipment-checkbox-bulk-delete" > 
-                  <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-                </th>              
-                <th>#</th>
-                <th>Equipment Name</th>
-                <th>Category</th>
-                <th>Date Added</th>
-                <th>Stock</th>
+            <tr>
+              <th class="image-header"><img src="../../images/Delete.png" alt="Equipment Icon" /></th>
+              <th>#</th>
+              <th>Equipment Name</th>
+              <th>Category</th>
+              <th>Date Added</th>
+              <th>stock</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -124,12 +108,7 @@
           </tbody>    
         </table>
       </div>
-          <div class="equipment-pagination">
-            <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>Prev</button>
-            <span id="equipment-page-number">Page 1</span>
-            <button id="equipment-next-page" class="equipment-pagination-btn">Next</button>
-        </div>
-      </div>
+    </div>
   </div>
 
  
@@ -163,33 +142,32 @@
       }
     });
   </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    const stockLinks = document.querySelectorAll(".stock-selector a");
-    
-    // Retrieve stored active link from localStorage
-    const activeLink = localStorage.getItem("activeStockLink");
-
-    stockLinks.forEach(link => {
-        // If the link matches the stored active link, keep it active
-        if (link.href === activeLink) {
-            link.classList.add("active");
-        }
-
-        link.addEventListener("click", function () {
-            // Remove active class from all links
-            stockLinks.forEach(link => link.classList.remove("active"));
-
-            // Add active class to clicked link
-            this.classList.add("active");
-
-            // Store the active link in localStorage
-            localStorage.setItem("activeStockLink", this.href);
-        });
-    });
-});
-
-  </script>
+    <script>
+          document.addEventListener("DOMContentLoaded", function () {
+          const stockLinks = document.querySelectorAll(".stock-selector a");
+          
+          // Retrieve stored active link from localStorage
+          const activeLink = localStorage.getItem("activeStockLink");
+      
+          stockLinks.forEach(link => {
+              // If the link matches the stored active link, keep it active
+              if (link.href === activeLink) {
+                  link.classList.add("active");
+              }
+      
+              link.addEventListener("click", function () {
+                  // Remove active class from all links
+                  stockLinks.forEach(link => link.classList.remove("active"));
+      
+                  // Add active class to clicked link
+                  this.classList.add("active");
+      
+                  // Store the active link in localStorage
+                  localStorage.setItem("activeStockLink", this.href);
+              });
+          });
+      });
+    </script>
 </body>
 
 </html>
