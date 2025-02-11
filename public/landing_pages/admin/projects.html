@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Project Form</title>
+    <link rel="stylesheet" href="projects.css">
+</head>
+<body>
+
+    <div class="panel">
+        <h2>New Project</h2>
+        <div class="form-group">
+            <label for="project-name">Project Name</label>
+            <input type="text" id="project-name" placeholder="Enter project name">
+        </div>
+        <div class="form-group">
+            <label for="assign-to">Assign To</label>
+            <select id="assign-to">
+                <option value="">Select Farm President</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" disabled>
+                <option value="pending">Pending</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="crops">Crops</label>
+            <select id="crops">
+                <option value="">Select Crop</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="barangay">Barangay</label>
+            <input type="text" id="barangay" disabled>
+        </div>
+        <div class="form-group">
+            <label for="farmland">Farmland</label>
+            <select id="farmland">
+                <option value="">Select Farmland</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Resources</h2>
+        <div class="form-group">
+            <label for="crop-type">Crop Type</label>
+            <select id="crop-type">
+                <option value="">Select Crop Type</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="quantity-crop-type">Quantity</label>
+            <input type="number" id="quantity-crop-type" placeholder="Enter quantity">
+        </div>
+        <div class="form-group">
+            <label for="unit-crop-type">Unit</label>
+            <input type="text" id="unit-crop-type" placeholder="Enter unit in kilograms(kg)">
+        </div>
+
+        <div class="form-group">
+            <label for="fertilizer-type">Fertilizer Type</label>
+            <select id="fertilizer-type">
+                <option value="">Select Fertilizer Type</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="quantity-fertilizer-type">Quantity</label>
+            <input type="number" id="quantity-fertilizer-type" placeholder="Enter quantity">
+        </div>
+        <div class="form-group">
+            <label for="unit-fertilizer-type">Unit</label>
+            <input type="text" id="unit-fertilizer-type" placeholder="Enter unit in kilograms(kg)">
+        </div>
+
+        <div class="form-group">
+            <label for="equipment">Equipment</label>
+            <select id="equipment">
+                <option value="">Select Equipment</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Date</h2>
+        <div class="form-group">
+            <label for="start-date">Start Date</label>
+            <input type="date" id="start-date">
+        </div>
+        <div class="form-group">
+            <label for="end-date">End Date</label>
+            <input type="date" id="end-date">
+        </div>
+    </div>
+
+    <div class="panel">
+        <button id="save-button">Save</button>
+        <button id="cancel-button">Cancel</button>
+    </div>
+<script type="module" src="projects.js"></script>
+</body>
+</html>
