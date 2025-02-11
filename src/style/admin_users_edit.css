@@ -1,0 +1,295 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+  }
+  label {
+    font-weight: bold;
+  }
+  .container {
+    width: 400px;
+    margin: 50px auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  .modify-buttons {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+button[type="submit"] {
+    flex: 1;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background-color: #38853c;
+  transition: background-color 0.3s ease;
+}
+
+#close-button {
+    flex: 1;
+    background-color: slategray;
+    color: white;
+    padding: 5px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#close-button:hover {
+    background-color:rgb(90, 101, 112);
+    transition: background-color 0.3s ease, opacity 0.3s ease; 
+
+}
+
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  input, select {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+  button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  
+
+   /* Remove spinner controls for Chrome, Edge, and Safari */
+   input[type="number"]::-webkit-inner-spin-button,
+   input[type="number"]::-webkit-outer-spin-button {
+       -webkit-appearance: none;
+       appearance: none;
+       margin: 0;
+   }
+
+/* Style for the floating confirmation panel */
+#confirmationPanel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  text-align: center;
+  
+}
+
+/* Style for the confirmation panel content */
+#confirmationPanel .confirmation-content {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#confirmationPanel p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+/* Container for the buttons to align them side by side */
+#confirmationPanel .button-container {
+  display: flex;
+  justify-content: space-between; /* Aligns the buttons side by side */
+  gap: 10px; /* Adds space between the buttons */
+  width: 100%; /* Ensures buttons take full width */
+}
+
+/* Style for the Yes and Cancel buttons */
+#confirmationPanel #confirmYes,
+#confirmationPanel #confirmCancel {
+  width: 48%; /* Buttons are equal width */
+  padding: 10px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 25px;
+}
+
+#confirmationPanel #confirmYes {
+  background-color: #45a049;
+  color: white;
+}
+
+#confirmationPanel #confirmCancel {
+  background-color: slategray;
+  color: white;
+}
+
+#confirmationPanel #confirmCancel:hover {
+  background-color:rgb(90, 101, 112);
+  transition: background-color 0.3s ease, opacity 0.3s ease; 
+
+}
+
+#confirmationPanel #confirmYes:hover {
+  background-color: #38853c;
+  transition: background-color 0.3s ease;
+
+}
+
+
+/* Style for the confirmation backdrop */
+#confirmationBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  z-index: 999; /* Lower than the confirmation panel */
+}
+
+/* Style for the floating error panel */
+#errorPanel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-align: left;
+  display: flex;
+  flex-direction: column; /* Stack content vertically */
+  justify-content: space-between; /* Align Button to the Bottom */
+  height: auto;
+}
+
+/* Style for error panel message */
+#errorPanel p {
+  color: maroon;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+#errorPanel button {
+  display: inline-flex;
+  padding: 10px 20px;
+  justify-content: center; /* Aligns button content to the center */
+  margin-top: 15px;
+  width: auto;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  background-color: slategray;
+  color: white;
+  align-self: flex-end; /* Aligns the button to the right */
+  margin-left: auto; 
+}
+
+#errorPanel button:hover {
+  background-color:rgb(90, 101, 112);
+  transition: background-color 0.3s ease, opacity 0.3s ease; 
+}
+
+#errorBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+#errorPanel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-align: center;
+}
+
+
+.profile-picture-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  
+  .profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #ccc;
+    object-fit: cover;
+  }
+  .remove-picture-btn {
+    background: red;
+    color: white;
+    font-size: 16px;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: none; /* Hide by default */
+}
+
+.change-picture-container:hover .remove-picture-btn {
+    display: inline-block;
+}
+
