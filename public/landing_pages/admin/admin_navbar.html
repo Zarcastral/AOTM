@@ -22,46 +22,53 @@
 
     <nav>
       <ul>
-        <div class="dash"> 
-          <li><a href="admin_dash.html"><img src="../../images/element-1.png" class="icon" alt="Dashboard" />Dashboard</a></li>
+        <div class="dash">
+          <li><a href="admin_dash.html"><img src="../../images/element-1.png" class="icon"
+                alt="Dashboard" />Dashboard</a></li>
         </div>
 
         <div class="proj">
           <li><a href="projects.html"><img src="../../images/graph.png" class="icon" alt="Projects" />Projects</a></li>
         </div>
         <div class="task">
-          <li><a href=""><img src="../../images/flash.png" class="icon" alt="Harvest" />Task</a></li>
+          <li><a href="predefined_task.html"><img src="../../images/flash.png" class="icon" alt="Harvest" />Task</a>
+          </li>
         </div>
         <div class="harv">
           <li><a href="admin_harvest.html"><img src="../../images/bag.png" class="icon" alt="Harvest" />Harvest</a></li>
         </div>
 
         <div class="inv">
-          <li><a href="admin_inventory.html"><img src="../../images/box.png" class="icon" alt="Inventory" />Inventory</a></li>
+          <li><a href="admin_inventory.html"><img src="../../images/box.png" class="icon"
+                alt="Inventory" />Inventory</a></li>
         </div>
 
-      <div class="farm">
-        <li><a href="admin_farmers.html" ><img src="../../images/profile-2user.png" class="icon" alt="Farmers" />Farmers</a></li>
-      </div>
+        <div class="farm">
+          <li><a href="admin_farmers.html"><img src="../../images/profile-2user.png" class="icon"
+                alt="Farmers" />Farmers</a></li>
+        </div>
 
-      <div class="use">
-        <li><a href="admin_users.html" ><img src="../../images/user.png" class="icon" alt="User" />User</a></li>
-      </div>
+        <div class="use">
+          <li><a href="admin_users.html"><img src="../../images/user.png" class="icon" alt="User" />User</a></li>
+        </div>
 
         <li class="tools-section">Tools</li>
         <div class="rep">
-          <li><a href="admin_reports.html"><img src="../../images/folder-2.png" class="icon" alt="Reports" />Reports</a></li>
+          <li><a href="admin_reports.html"><img src="../../images/folder-2.png" class="icon" alt="Reports" />Reports</a>
+          </li>
         </div>
 
         <div class="act">
-          <li><a href="admin_activitylog.html"><img src="../../images/archive.png" class="icon" alt="Activity Log" />Activity Log</a></li>
+          <li><a href="admin_activitylog.html"><img src="../../images/archive.png" class="icon"
+                alt="Activity Log" />Activity Log</a></li>
         </div>
       </ul>
     </nav>
 
     <!-- Move settings to the bottom -->
     <div class="sett">
-      <li><a href="settings.html" class="settings-link"><img src="../../images/setting-2.png" class="icon" alt="Settings" />Settings</a></li>
+      <li><a href="settings.html" class="settings-link"><img src="../../images/setting-2.png" class="icon"
+            alt="Settings" />Settings</a></li>
     </div>
   </div>
 
@@ -101,12 +108,13 @@
 
     // Set default active link on load
     document.addEventListener("DOMContentLoaded", () => {
-  const defaultLink = document.querySelector('.sidebar a[href="admin_dash.html"]');
-  if (defaultLink) {
-    setActiveLink(defaultLink);
-  }
-});
+      const defaultLink = document.querySelector('.sidebar a[href="admin_dash.html"]');
+      if (defaultLink) {
+        setActiveLink(defaultLink);
+      }
+    });
   </script>
 
 </body>
+
 </html>
