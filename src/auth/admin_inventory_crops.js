@@ -243,7 +243,7 @@ async function deleteSelectedCrops() {
 
     console.log("Deleted Crops:", selectedCrops);
     // Show success message
-    showDeleteMessage("Selected crops successfully deleted!", true);
+    showDeleteMessage("All selected Crop records successfully deleted!", true);
 
     // Clear selection and update the UI
     selectedCrops = [];
@@ -275,5 +275,5 @@ function showDeleteMessage(message, success) {
     setTimeout(() => {
       deleteMessage.style.display = 'none';
     }, 300);
-  }, 3000);
+  }, 4000);
 }

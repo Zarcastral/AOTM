@@ -238,7 +238,7 @@ async function deleteSelectedEquipments() {
 
     console.log("Deleted equipments:", selectedEquipments);
     // Show success message
-    showDeleteMessage("Selected equipments successfully deleted!", true);
+    showDeleteMessage("All selected Equipment records successfully deleted!", true);
 
     // Clear selection and update the UI
     selectedEquipments = [];
@@ -270,5 +270,5 @@ function showDeleteMessage(message, success) {
     setTimeout(() => {
       deleteMessage.style.display = 'none';
     }, 300);
-  }, 3000);
+  }, 4000);
 }

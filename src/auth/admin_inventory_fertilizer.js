@@ -239,7 +239,7 @@ async function deleteSelectedFertilizers() {
 
     console.log("Deleted fertilizers:", selectedFertilizers);
     // Show success message
-    showDeleteMessage("Selected fertilizers successfully deleted!", true);
+    showDeleteMessage("All selected Fertilizer records successfully deleted!", true);
 
     // Clear selection and update the UI
     selectedFertilizers = [];
@@ -271,5 +271,5 @@ function showDeleteMessage(message, success) {
     setTimeout(() => {
       deleteMessage.style.display = 'none';
     }, 300);
-  }, 3000);
+  }, 4000);
 }

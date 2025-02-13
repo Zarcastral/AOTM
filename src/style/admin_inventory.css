@@ -256,7 +256,7 @@ body {
 }
 
   #crop-bulk-delete, #fert-bulk-delete, 
-  #fert-bulk-delete {
+  #equip-bulk-delete {
     color: white;
     padding: 10px 10px;
     font-size: 10px;
