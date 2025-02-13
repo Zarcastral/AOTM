@@ -1,7 +1,11 @@
 import {
   collection,
   getDocs,
-  getFirestore
+  getFirestore,
+  query,
+  where,
+  deleteDoc,
+  doc
 } from "firebase/firestore";
 
 import app from "../config/firebase_config.js";
@@ -11,6 +15,7 @@ let equipmentsList = []; // Declare equipmentsList globally for filtering
 let filteredEquipments = equipmentsList; // Declare a variable for filtered equipments
 let currentPage = 1;
 const rowsPerPage = 5;
+let selectedEquipments = [];
 
 // Fetch equipments data (tb_equipment) from Firestore
 async function fetchEquipments() {
@@ -59,10 +64,11 @@ function displayEquipments(equipmentsList) {
   }
 
   // Render equipments list in the table
-  paginatedEquipments.forEach((equipment, index) => {
+  paginatedEquipments.forEach((equipment) => {
     const row = document.createElement("tr");
 
     const equipmentName = equipment.equipment_name || "Equipment Name not recorded";
+    const equipmentId = equipment.equipment_id || "Equipment Id not recorded";
     const equipmentType = equipment.equipment_category || "Equipment Category not recorded";
     const dateAdded = equipment.dateAdded
       ? (equipment.dateAdded.toDate ? equipment.dateAdded.toDate().toLocaleDateString() : new Date(equipment.dateAdded).toLocaleDateString())
@@ -72,7 +78,7 @@ function displayEquipments(equipmentsList) {
 
     row.innerHTML = `
         <td class="checkbox"><input type="checkbox"></td>
-        <td>${startIndex + index + 1}</td>
+        <td>${equipmentId}</td>
         <td>${equipmentName}</td>
         <td>${equipmentType}</td>
         <td>${dateAdded}</td>
@@ -81,8 +87,10 @@ function displayEquipments(equipmentsList) {
 
     tableBody.appendChild(row);
   });
-  
+  addCheckboxListeners();
   updatePagination();
+  toggleBulkDeleteButton();
+
 }
 
 // Update pagination display
@@ -160,3 +168,107 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchEquipmentNames();
   fetchEquipments();
 });
+
+// ---------------------------- equip BULK DELETE CODES ---------------------------- //
+const deletemessage = document.getElementById("equip-bulk-message"); // delete message panel
+// CHECKBOX
+function handleCheckboxChange(event) {
+  const row = event.target.closest("tr"); // Get the row of the checkbox
+  if (!row) return;
+
+  const equipmentTypeId = row.children[1]?.textContent.trim(); // Get equipment_type_name
+
+  if (event.target.checked) {
+    // Add to selected list if checked
+    if (!selectedEquipments.includes(equipmentTypeId)) {
+      selectedEquipments.push(equipmentTypeId);
+    }
+  } else {
+    // Remove from list if unchecked
+    selectedEquipments = selectedEquipments.filter(item => item !== equipmentTypeId);
+  }
+
+  console.log("Selected Equipments:", selectedEquipments);
+  toggleBulkDeleteButton();
+}
+// Enable/Disable the Bulk Delete button
+function toggleBulkDeleteButton() {
+  const bulkDeleteButton = document.getElementById("equip-bulk-delete");
+  bulkDeleteButton.disabled = selectedEquipments.length === 0;
+}
+// Attach event listener to checkboxes (after equipments are displayed)
+function addCheckboxListeners() {
+  document.querySelectorAll(".equipment_table input[type='checkbox']").forEach(checkbox => {
+    checkbox.addEventListener("change", handleCheckboxChange);
+  });
+}
+
+// Trigger Bulk Delete Confirmation Panel
+document.getElementById("equip-bulk-delete").addEventListener("click", () => {
+  if (selectedEquipments.length > 0) {
+    document.getElementById("equip-bulk-panel").style.display = "block"; // Show confirmation panel
+  } else {
+    alert("No Equipments selected for deletion."); // Prevent deletion if none are selected
+  }
+});
+
+// Close the Bulk Delete Panel
+document.getElementById("cancel-equip-delete").addEventListener("click", () => {
+  document.getElementById("equip-bulk-panel").style.display = "none";
+});
+
+// Function to delete selected Equipments from Firestore
+async function deleteSelectedEquipments() {
+  if (selectedEquipments.length === 0) {
+    return;
+  }
+
+  try {
+    const equipmentsCollection = collection(db, "tb_equipment");
+
+    // Loop through selected equipments and delete them
+    for (const equipmentTypeId of selectedEquipments) {
+      const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentTypeId)));
+      const querySnapshot = await getDocs(equipmentQuery);
+
+      querySnapshot.forEach(async (docSnapshot) => {
+        await deleteDoc(doc(db, "tb_equipment", docSnapshot.id));
+      });
+    }
+
+    console.log("Deleted equipments:", selectedEquipments);
+    // Show success message
+    showDeleteMessage("Selected equipments successfully deleted!", true);
+
+    // Clear selection and update the UI
+    selectedEquipments = [];
+    document.getElementById("equip-bulk-panel").style.display = "none"; // Hide confirmation panel
+    fetchEquipments(); // Refresh the table
+
+  } catch (error) {
+    console.error("Error deleting equipments:", error);
+    showDeleteMessage("Error deleting equipments!", false);
+  }
+}
+
+// Confirm Deletion and Call Delete Function
+document.getElementById("confirm-equip-delete").addEventListener("click", () => {
+  deleteSelectedEquipments();
+});
+
+// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
+const deleteMessage = document.getElementById("equip-bulk-message");
+
+function showDeleteMessage(message, success) {
+  deleteMessage.textContent = message;
+  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  deleteMessage.style.opacity = '1';
+  deleteMessage.style.display = 'block';
+
+  setTimeout(() => {
+    deleteMessage.style.opacity = '0';
+    setTimeout(() => {
+      deleteMessage.style.display = 'none';
+    }, 300);
+  }, 3000);
+}
