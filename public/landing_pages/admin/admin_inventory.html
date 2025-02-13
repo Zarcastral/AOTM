@@ -40,7 +40,7 @@
             <tr>
               <tr>
                 <th class="crop-checkbox-bulk-delete" > 
-                  <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+                  <button id="crop-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
               </th> 
               <th>#</th>
               <th>Crop Type</th>
@@ -59,6 +59,17 @@
         <button id="crop-next-page" class="crop-pagination-btn">Next</button>
     </div>
     </div>
+      <div id="crop-bulk-panel" class="crop-bulk-panel">
+        <div class="confirm-crop-bulk-message">
+            <p>Are you sure you want to delete the selected records?</p>
+            <button id="confirm-crop-delete" class="crop-bulk-confirm-btn">Confirm</button>
+            <button id="cancel-crop-delete" class="crop-bulk-cancel-btn">Cancel</button>
+        </div>
+    </div>
+      <!-- Bulk Delete Message Panel -->
+      <div id="crop-bulk-message" style="display: none;" class="crop-bulk-message">
+          <p>All selected records has been successfully deleted!</p>
+      </div>
   </div>
 
     <!-- Farmers Activity Panel -->
@@ -75,7 +86,7 @@
         <thead>
           <tr>
               <th class="fertilizer-checkbox-bulk-delete" > 
-                <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+                <button id="fert-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
             </th>
             <th>#</th>
             <th>Fertilizer Name</th>
@@ -88,12 +99,23 @@
           <!-- will be populated here -->
         </tbody>
       </table>
-      <div class="fertilizer-pagination">
-        <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>Prev</button>
-        <span id="fertilizer-page-number">Page 1</span>
-        <button id="fertilizer-next-page" class="fertilizer-pagination-btn">Next</button>
+        <div class="fertilizer-pagination">
+          <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>Prev</button>
+          <span id="fertilizer-page-number">Page 1</span>
+          <button id="fertilizer-next-page" class="fertilizer-pagination-btn">Next</button>
+      </div>
     </div>
+      <div id="fert-bulk-panel" class="fert-bulk-panel">
+        <div class="confirm-fert-bulk-message">
+            <p>Are you sure you want to delete the selected records?</p>
+            <button id="confirm-fert-delete" class="fert-bulk-confirm-btn">Confirm</button>
+            <button id="cancel-fert-delete" class="fert-bulk-cancel-btn">Cancel</button>
+        </div>
     </div>
+      <!-- Bulk Delete Message Panel -->
+      <div id="fert-bulk-message" style="display: none;" class="fert-bulk-message">
+          <p>All selected records has been successfully deleted!</p>
+      </div>
   </div>
 
     <!-- Equipment Status Panel -->
@@ -110,7 +132,7 @@
           <thead>
               <tr>
                 <th class="equipment-checkbox-bulk-delete" > 
-                  <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+                  <button id="equip-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
                 </th>              
                 <th>#</th>
                 <th>Equipment Name</th>
@@ -130,6 +152,17 @@
             <button id="equipment-next-page" class="equipment-pagination-btn">Next</button>
         </div>
       </div>
+        <div id="equip-bulk-panel" class="equip-bulk-panel">
+          <div class="confirm-equip-bulk-message">
+              <p>Are you sure you want to delete the selected records?</p>
+              <button id="confirm-equip-delete" class="equip-bulk-confirm-btn">Confirm</button>
+              <button id="cancel-equip-delete" class="equip-bulk-cancel-btn">Cancel</button>
+          </div>
+      </div>
+        <!-- Bulk Delete Message Panel -->
+        <div id="equip-bulk-message" style="display: none;" class="equip-bulk-message">
+            <p>All selected records has been successfully deleted!</p>
+        </div>
   </div>
 
  

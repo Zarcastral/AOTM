@@ -1,14 +1,30 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins';
     background-color: #f4f4f4;
     padding: 20px;
+}
+.container {
+    max-width: 600px;
+    margin: auto;
 }
 .panel {
     background-color: white;
     padding: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 50px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 800px; 
+    margin-left: -50px;
+}
+.panel2{
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 50px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 800px; 
+    margin-left: -50px;
+
 }
 .panel h2 {
     margin-bottom: 20px;
@@ -20,13 +36,133 @@ body {
     display: block;
     margin-bottom: 5px;
 }
-.form-group input, .form-group select {
+.form-group1 label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group3 select {
     width: 100%;
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
 }
+.form-group1 select {
+    width: 92.5%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.form-group1 input,
+.form-group input, .form-group select {
+    width: 90%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.form-group2 select {
+    width: 98%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.form-group2 input {
+    width: 156%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
 .form-group select:disabled, .form-group input:disabled {
     background-color: #f0f0f0;
+}
+.inline-group {
+    display: flex;
+    gap: 199px;
+    margin-left: 50px;
+}
+.inline-group4 {
+    gap: 210px;
+    margin-left: 50px;
+}
+.inline-group2 {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    margin-left: 50px;
+}
+
+.inline-group3 {
+    display: flex;
+    gap: 10px;
+    align-items: center; /* Ensures everything aligns in one line */
+    flex-wrap: nowrap; /* Prevents elements from moving to the next line */
+    width: 100%;
+    margin-left: 50px;
+}
+
+.form-group3 {
+    flex: 1.5; /* Gives Crop Type & Fertilizer Type more space */
+}
+
+.form-group4 {
+    flex: 1; /* Ensures Quantity & Unit stay aligned */
+    display: flex;
+    flex-direction: column; /* Keeps label above input */
+    margin-left: 10px;
+}
+
+.form-group5 {
+    flex: 1; /* Ensures Quantity & Unit stay aligned */
+    display: flex;
+    flex-direction: column; /* Keeps label above input */
+    margin-left: -80px;
+}
+.form-group3 select {
+    width: 100%; /* Prevents it from overflowing */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group4 input,
+.form-group5 select {
+    width: 55.5%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    
+}
+
+
+.inline-group .form-group {
+    flex: 1;
+}
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-left: 473px;
+
+}
+.cancel {
+    background-color: #ccc;
+    border: none;
+    padding: 10px 60px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.save {
+    background-color: #41A186;
+    color: white;
+    border: none;
+    padding: 10px 60px;
+    border-radius: 5px;
+    cursor: pointer;
 }

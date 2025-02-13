@@ -1,7 +1,11 @@
 import {
   collection,
   getDocs,
-  getFirestore
+  getFirestore,
+  query,
+  where,
+  deleteDoc,
+  doc
 } from "firebase/firestore";
 
 import app from "../config/firebase_config.js";
@@ -11,6 +15,7 @@ let fertilizersList = []; // Declare fertilizersList globally for filtering
 let filteredFertilizers = fertilizersList; // Declare a variable for filtered fertilizers
 let currentPage = 1;
 const rowsPerPage = 5;
+let selectedFertilizers = [];
 
 // Fetch fertilizers data (tb_fertilizer) from Firestore
 async function fetchFertilizers() {
@@ -63,6 +68,7 @@ function displayFertilizers(fertilizersList) {
     const row = document.createElement("tr");
 
     const fertilizerName = fertilizer.fertilizer_name || "Fertilizer Name not recorded";
+    const fertilizerId = fertilizer.fertilizer_id || "Fertilizer Id not recorded";
     const fertilizerType = fertilizer.fertilizer_category || "Fertilizer Category not recorded";
     const dateAdded = fertilizer.dateAdded
       ? (fertilizer.dateAdded.toDate ? fertilizer.dateAdded.toDate().toLocaleDateString() : new Date(fertilizer.dateAdded).toLocaleDateString())
@@ -72,7 +78,7 @@ function displayFertilizers(fertilizersList) {
 
     row.innerHTML = `
         <td class="checkbox"><input type="checkbox"></td>
-        <td>${startIndex + index + 1}</td>
+        <td>${fertilizerId}</td>
         <td>${fertilizerName}</td>
         <td>${fertilizerType}</td>
         <td>${dateAdded}</td>
@@ -81,8 +87,10 @@ function displayFertilizers(fertilizersList) {
 
     tableBody.appendChild(row);
   });
-  
+  addCheckboxListeners();
   updatePagination();
+  toggleBulkDeleteButton();
+
 }
 
 // Update pagination display
@@ -160,3 +168,108 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchFertilizerNames();
   fetchFertilizers();
 });
+
+
+// ---------------------------- fert BULK DELETE CODES ---------------------------- //
+const deletemessage = document.getElementById("fert-bulk-message"); // delete message panel
+// CHECKBOX
+function handleCheckboxChange(event) {
+  const row = event.target.closest("tr"); // Get the row of the checkbox
+  if (!row) return;
+
+  const fertilizerTypeId = row.children[1]?.textContent.trim(); // Get fertilizer_type_name
+
+  if (event.target.checked) {
+    // Add to selected list if checked
+    if (!selectedFertilizers.includes(fertilizerTypeId)) {
+      selectedFertilizers.push(fertilizerTypeId);
+    }
+  } else {
+    // Remove from list if unchecked
+    selectedFertilizers = selectedFertilizers.filter(item => item !== fertilizerTypeId);
+  }
+
+  console.log("Selected Fertilizers:", selectedFertilizers);
+  toggleBulkDeleteButton();
+}
+// Enable/Disable the Bulk Delete button
+function toggleBulkDeleteButton() {
+  const bulkDeleteButton = document.getElementById("fert-bulk-delete");
+  bulkDeleteButton.disabled = selectedFertilizers.length === 0;
+}
+// Attach event listener to checkboxes (after fertilizers are displayed)
+function addCheckboxListeners() {
+  document.querySelectorAll(".fertilizer_table input[type='checkbox']").forEach(checkbox => {
+    checkbox.addEventListener("change", handleCheckboxChange);
+  });
+}
+
+// Trigger Bulk Delete Confirmation Panel
+document.getElementById("fert-bulk-delete").addEventListener("click", () => {
+  if (selectedFertilizers.length > 0) {
+    document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
+  } else {
+    alert("No fertilizers selected for deletion."); // Prevent deletion if none are selected
+  }
+});
+
+// Close the Bulk Delete Panel
+document.getElementById("cancel-fert-delete").addEventListener("click", () => {
+  document.getElementById("fert-bulk-panel").style.display = "none";
+});
+
+// Function to delete selected fertilizers from Firestore
+async function deleteSelectedFertilizers() {
+  if (selectedFertilizers.length === 0) {
+    return;
+  }
+
+  try {
+    const fertilizersCollection = collection(db, "tb_fertilizer");
+
+    // Loop through selected fertilizers and delete them
+    for (const fertilizerTypeId of selectedFertilizers) {
+      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerTypeId)));
+      const querySnapshot = await getDocs(fertilizerQuery);
+
+      querySnapshot.forEach(async (docSnapshot) => {
+        await deleteDoc(doc(db, "tb_fertilizer", docSnapshot.id));
+      });
+    }
+
+    console.log("Deleted fertilizers:", selectedFertilizers);
+    // Show success message
+    showDeleteMessage("All selected Fertilizer records successfully deleted!", true);
+
+    // Clear selection and update the UI
+    selectedFertilizers = [];
+    document.getElementById("fert-bulk-panel").style.display = "none"; // Hide confirmation panel
+    fetchFertilizers(); // Refresh the table
+
+  } catch (error) {
+    console.error("Error deleting fertilizers:", error);
+    showDeleteMessage("Error deleting fertilizers!", false);
+  }
+}
+
+// Confirm Deletion and Call Delete Function
+document.getElementById("confirm-fert-delete").addEventListener("click", () => {
+  deleteSelectedFertilizers();
+});
+
+// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
+const deleteMessage = document.getElementById("fert-bulk-message");
+
+function showDeleteMessage(message, success) {
+  deleteMessage.textContent = message;
+  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  deleteMessage.style.opacity = '1';
+  deleteMessage.style.display = 'block';
+
+  setTimeout(() => {
+    deleteMessage.style.opacity = '0';
+    setTimeout(() => {
+      deleteMessage.style.display = 'none';
+    }, 300);
+  }, 4000);
+}

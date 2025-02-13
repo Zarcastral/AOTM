@@ -1,7 +1,11 @@
 import {
   collection,
   getDocs,
-  getFirestore
+  getFirestore,
+  query,
+  where,
+  deleteDoc,
+  doc
 } from "firebase/firestore";
 
 import app from "../config/firebase_config.js";
@@ -11,8 +15,8 @@ const db = getFirestore(app);
 let cropsList = []; // Declare cropsList globally for filtering
 let currentPage = 1;
 const rowsPerPage = 5;
-let filteredCrops = cropsList; // Declare a variable for filtered crops
-
+let filteredCrops = []; // Initialize filteredCrops with an empty array
+let selectedCrops = [];
 
 // Fetch crops data from Firestore
 async function fetchCrops() {
@@ -23,7 +27,8 @@ async function fetchCrops() {
     cropsList = cropsSnapshot.docs.map(doc => doc.data());
 
     console.log("Crops fetched:", cropsList); // Debugging
-    displayCrops(cropsList);
+    filteredCrops = [...cropsList]; // Initialize filteredCrops with all crops
+    displayCrops(filteredCrops);
   } catch (error) {
     console.error("Error fetching crops:", error);
   }
@@ -38,9 +43,12 @@ function displayCrops(cropsList) {
   }
 
   tableBody.innerHTML = ""; // Clear existing rows
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedCrops = cropsList.slice(startIndex, endIndex);
 
-  if (cropsList.length === 0) {
-    // Show "No records found" if cropsList is empty
+  if (paginatedCrops.length === 0) {
+    // Show "No records found" if CropsList is empty
     const messageRow = document.createElement("tr");
     messageRow.classList.add("no-records-message");
     messageRow.innerHTML = `
@@ -57,9 +65,10 @@ function displayCrops(cropsList) {
   }
 
   // Render crops list in the table
-  cropsList.forEach((crop, index) => {
+  paginatedCrops.forEach((crop, index) => {
     const row = document.createElement("tr");
 
+    const cropTypeId = crop.crop_type_id || "Crop Type Id not recorded";
     const cropName = crop.crop_name || "Crop Name not recorded";
     const cropType = crop.crop_type_name || "Crop Category not recorded.";
     const dateAdded = crop.dateAdded
@@ -70,7 +79,7 @@ function displayCrops(cropsList) {
 
     row.innerHTML = `
         <td class="checkbox"><input type="checkbox"></td>
-        <td>${index + 1}</td>
+        <td>${cropTypeId}</td>
         <td>${cropType}</td>
         <td>${cropName}</td>
         <td>${dateAdded}</td>
@@ -79,7 +88,9 @@ function displayCrops(cropsList) {
 
     tableBody.appendChild(row);
   });
+  addCheckboxListeners();
   updatePagination();
+  toggleBulkDeleteButton();
 }
 
 // Update pagination display
@@ -111,6 +122,7 @@ document.getElementById("crop-next-page").addEventListener("click", () => {
     updatePagination();
   }
 });
+
 // Fetch crop names for the dropdown
 async function fetchCropNames() {
   const cropsCollection = collection(db, "tb_crops");
@@ -143,11 +155,11 @@ function populateCropDropdown(cropNames) {
 document.querySelector(".crop_select").addEventListener("change", function () {
   const selectedCrop = this.value.toLowerCase();
   // Filter crops based on selected value
-    filteredCrops = selectedCrop
+  filteredCrops = selectedCrop
     ? cropsList.filter(crop => crop.crop_name?.toLowerCase() === selectedCrop)
     : cropsList; // If no selection, show all crops
 
-    currentPage = 1; // Reset to the first page when filter is applied
+  currentPage = 1; // Reset to the first page when filter is applied
   displayCrops(filteredCrops); // Update the table with filtered crops
 });
 
@@ -156,3 +168,112 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchCropNames();
   fetchCrops();
 });
+
+
+// ---------------------------- CROP BULK DELETE CODES ---------------------------- //
+const deletemessage = document.getElementById("crop-bulk-message"); // delete message panel
+// CHECKBOX
+
+
+function handleCheckboxChange(event) {
+  const row = event.target.closest("tr"); // Get the row of the checkbox
+  if (!row) return;
+
+  const cropTypeId = row.children[1]?.textContent.trim(); // Get crop_type_name
+
+  if (event.target.checked) {
+    // Add to selected list if checked
+    if (!selectedCrops.includes(cropTypeId)) {
+      selectedCrops.push(cropTypeId);
+    }
+  } else {
+    // Remove from list if unchecked
+    selectedCrops = selectedCrops.filter(item => item !== cropTypeId);
+  }
+
+  console.log("Selected Crops:", selectedCrops);
+  toggleBulkDeleteButton();
+}
+
+// Enable/Disable the Bulk Delete button
+function toggleBulkDeleteButton() {
+  const bulkDeleteButton = document.getElementById("crop-bulk-delete");
+  bulkDeleteButton.disabled = selectedCrops.length === 0;
+}
+
+// Attach event listener to checkboxes (after crops are displayed)
+function addCheckboxListeners() {
+  document.querySelectorAll(".crop_table input[type='checkbox']").forEach(checkbox => {
+    checkbox.addEventListener("change", handleCheckboxChange);
+  });
+}
+
+// Trigger Bulk Delete Confirmation Panel
+document.getElementById("crop-bulk-delete").addEventListener("click", () => {
+  if (selectedCrops.length > 0) {
+    document.getElementById("crop-bulk-panel").style.display = "block"; // Show confirmation panel
+  } else {
+    alert("No crops selected for deletion."); // Prevent deletion if none are selected
+  }
+});
+
+// Close the Bulk Delete Panel
+document.getElementById("cancel-crop-delete").addEventListener("click", () => {
+  document.getElementById("crop-bulk-panel").style.display = "none";
+});
+
+// Function to delete selected crops from Firestore
+async function deleteSelectedCrops() {
+  if (selectedCrops.length === 0) {
+    return;
+  }
+
+  try {
+    const cropsCollection = collection(db, "tb_crop_types");
+
+    // Loop through selected crops and delete them
+    for (const cropTypeId of selectedCrops) {
+      const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
+      const querySnapshot = await getDocs(cropQuery);
+
+      querySnapshot.forEach(async (docSnapshot) => {
+        await deleteDoc(doc(db, "tb_crop_types", docSnapshot.id));
+      });
+    }
+
+    console.log("Deleted Crops:", selectedCrops);
+    // Show success message
+    showDeleteMessage("All selected Crop records successfully deleted!", true);
+
+    // Clear selection and update the UI
+    selectedCrops = [];
+    document.getElementById("crop-bulk-panel").style.display = "none"; // Hide confirmation panel
+    fetchCrops(); // Refresh the table
+
+  } catch (error) {
+    console.error("Error deleting crops:", error);
+    showDeleteMessage("Error deleting crops!", false);
+  }
+}
+
+// Confirm Deletion and Call Delete Function
+document.getElementById("confirm-crop-delete").addEventListener("click", () => {
+  deleteSelectedCrops();
+});
+
+// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
+const deleteMessage = document.getElementById("crop-bulk-message");
+
+function showDeleteMessage(message, success) {
+  deleteMessage.textContent = message;
+  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  deleteMessage.style.opacity = '1';
+  deleteMessage.style.display = 'block';
+
+  setTimeout(() => {
+    deleteMessage.style.opacity = '0';
+    setTimeout(() => {
+      deleteMessage.style.display = 'none';
+    }, 300);
+  }, 4000);
+}

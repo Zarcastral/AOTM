@@ -59,12 +59,18 @@ async function fetch_farmer_accounts(filter = {}) {
             const farmerIdA = a.farmer_id;
             const farmerIdB = b.farmer_id;
         
-            // First, compare alphabetically if IDs are strings
-            if (isNaN(farmerIdA) && isNaN(farmerIdB)) {
-                return farmerIdA.localeCompare(farmerIdB, undefined, { numeric: true, sensitivity: 'base' });
+            // KAPAG WALA NITO MASISIRA YUNG CODE KAPAG NA DETECT NA WALANG FARMER ID YUNG KAHIT ISANG RECORD
+            if (farmerIdA === undefined || farmerIdB === undefined) {
+                console.error("Farmer ID is undefined for one or more entries:", a, b);
+                return 0; // or handle this case differently
             }
         
-            // If one or both IDs are numbers, do numeric comparison
+            // First, compare alphabetically if IDs are strings
+            if (isNaN(farmerIdA) && isNaN(farmerIdB)) {
+                return String(farmerIdA).localeCompare(String(farmerIdB), undefined, { numeric: true, sensitivity: 'base' });
+            }
+        
+            // If both IDs are numeric, do numeric comparison
             if (!isNaN(farmerIdA) && !isNaN(farmerIdB)) {
                 return Number(farmerIdA) - Number(farmerIdB);
             }
@@ -72,6 +78,7 @@ async function fetch_farmer_accounts(filter = {}) {
             // If one is numeric and the other is a string, place numbers before strings
             return isNaN(farmerIdA) ? 1 : -1;
         });
+        
         
 
         currentPage = 1; // *Reset to the first page when data is filtered*

@@ -255,7 +255,8 @@ body {
   cursor: pointer;
 }
 
-  #bulk-delete {
+  #crop-bulk-delete, #fert-bulk-delete, 
+  #equip-bulk-delete {
     color: white;
     padding: 10px 10px;
     font-size: 10px;
@@ -269,14 +270,107 @@ body {
     justify-content: center;
     align-items: center;
 }
-  #bulk-delete:focus {
+  #crop-bulk-delete:focus, #fert-bulk-delete:focus,
+  #equip-bulk-delete:focus{
     outline: none;
   }
 
-  #bulk-delete:disabled {
+  #crop-bulk-delete:disabled, #fert-bulk-delete:disabled,
+  #equip-bulk-delete:disabled {
     cursor: not-allowed;
   }
 
+/* Bulk Delete Panel Style */
+.crop-bulk-panel, .fert-bulk-panel,
+.equip-bulk-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.crop-bulk-panel.show, .fert-bulk-panel.show,
+.equip-bulk-panel.show {
+  display: flex;
+}
+
+/* Center the confirmation message */
+.confirm-crop-bulk-message,  
+.confirm-fert-bulk-message, 
+.confirm-equip-bulk-message {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 400px;
+  position: absolute; /* Center it inside the panel */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Perfect centering */
+  margin: 0; /* Remove any default margins */
+}
+
+/* Bulk Confirm and Cancel Button Styles */
+.crop-bulk-confirm-btn, .crop-bulk-cancel-btn, .fert-bulk-confirm-btn, .fert-bulk-cancel-btn,
+.equip-bulk-confirm-btn, .equip-bulk-cancel-btn{
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.crop-bulk-confirm-btn, .fert-bulk-confirm-btn,
+.equip-bulk-confirm-btn{
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+}
+
+.crop-bulk-confirm-btn:hover, .fert-bulk-confirm-btn:hover,
+.equip-bulk-confirm-btn:hover {
+  background-color: #38853c;
+  transition: background-color 0.3s ease;
+}
+
+.crop-bulk-cancel-btn, .fert-bulk-cancel-btn,
+.equip-bulk-cancel-btn{
+  background-color: slategrey;
+  color: white;
+  border: none;
+}
+
+.crop-bulk-cancel-btn:hover, .fert-bulk-cancel-btn:hover,
+.equip-bulk-cancel-btn:hover {
+  background-color:rgb(90, 101, 112);
+  transition: background-color 0.3s ease, opacity 0.3s ease; 
+}
+
+/* Bulk Delete Success Message Style */
+.crop-bulk-message, .fert-bulk-message,
+.equip-bulk-message  {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
 
   /* Responsive Design */
   @media screen and (max-width: 768px) {
