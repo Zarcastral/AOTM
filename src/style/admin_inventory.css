@@ -300,14 +300,21 @@ body {
   display: flex;
 }
 
-/* Confirmation Message Style for Bulk Delete */
-.confirm-crop-bulk-message, .confirm-fert-bulk-message,
+/* Center the confirmation message */
+.confirm-crop-bulk-message,  
+.confirm-fert-bulk-message, 
 .confirm-equip-bulk-message {
   background-color: white;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
+  width: 400px;
+  position: absolute; /* Center it inside the panel */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Perfect centering */
+  margin: 0; /* Remove any default margins */
 }
 
 /* Bulk Confirm and Cancel Button Styles */
