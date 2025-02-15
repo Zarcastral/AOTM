@@ -1,4 +1,5 @@
 import {
+  addDoc,
   collection,
   doc,
   getDocs,
@@ -52,6 +53,17 @@ let tasks = [];
 let editingTaskId = null;
 let initialSubtasks = [];
 
+// ✅ Duplicate Task Modal Handling
+const duplicateTaskMessage = document.getElementById("duplicate-task-message");
+closeDuplicateTaskModal.addEventListener("click", () => {
+  duplicateTaskModal.style.display = "none";
+});
+
+// ✅ No Changes Modal Handling
+closeNoChangesModal.addEventListener("click", () => {
+  noChangesModal.style.display = "none";
+});
+
 // ✅ Close Add Task Modal
 function closeAddTaskPopup() {
   addTaskModal.style.display = "none";
@@ -95,14 +107,6 @@ openAddTaskModalBtn.addEventListener("click", () => {
 
 closeAddTaskModalBtn.addEventListener("click", closeAddTaskPopup);
 closeEditTaskModalBtn.addEventListener("click", closeEditTaskPopup);
-closeDuplicateTaskModal.addEventListener(
-  "click",
-  () => (duplicateTaskModal.style.display = "none")
-);
-closeNoChangesModal.addEventListener(
-  "click",
-  () => (noChangesModal.style.display = "none")
-);
 closeDuplicateSubtaskModal.addEventListener(
   "click",
   () => (duplicateSubtaskModal.style.display = "none")
@@ -111,16 +115,36 @@ closeDuplicateSubtaskModal.addEventListener(
 // ✅ Disable 'Add Subtask' button when input is empty
 newSubtaskInput.addEventListener("input", checkSaveButtonState);
 
-// ✅ Add Task to List (Popup)
-addTaskBtn.addEventListener("click", () => {
+// ✅ Check for Duplicate Task Before Adding to the List
+addTaskBtn.addEventListener("click", async () => {
   const taskName = newTaskInput.value.trim();
-  if (taskName && !tasks.includes(taskName)) {
-    tasks.push(taskName);
-    const li = document.createElement("li");
-    li.innerHTML = `${taskName} <button class="delete-task-popup-btn">X</button>`;
-    newTaskList.appendChild(li);
-    newTaskInput.value = "";
+
+  if (!taskName) return;
+
+  // Check if task is already in the pop-up list
+  if (tasks.includes(taskName)) {
+    duplicateTaskMessage.textContent = `"${taskName}" is already in the list.`;
+    duplicateTaskModal.style.display = "flex";
+    return;
   }
+
+  // Check if task already exists in Firestore
+  const querySnapshot = await getDocs(
+    query(collection(db, "tb_pretask"), where("task_name", "==", taskName))
+  );
+
+  if (!querySnapshot.empty) {
+    duplicateTaskMessage.textContent = `"${taskName}" already exists in the database.`;
+    duplicateTaskModal.style.display = "flex";
+    return;
+  }
+
+  // Add task to the list if no duplicate is found
+  tasks.push(taskName);
+  const li = document.createElement("li");
+  li.innerHTML = `${taskName} <button class="delete-task-popup-btn">X</button>`;
+  newTaskList.appendChild(li);
+  newTaskInput.value = "";
   checkSaveButtonState();
 });
 
@@ -136,37 +160,22 @@ newTaskList.addEventListener("click", (e) => {
   }
 });
 
-// ✅ Add Subtask with Duplication Check
-addSubtaskBtn.addEventListener("click", () => {
-  const subtaskName = newSubtaskInput.value.trim();
-
-  if (!subtaskName) return; // Prevent empty input
-
-  const existingSubtasks = Array.from(subtaskList.children).map((li) =>
-    li.textContent.replace(" X", "").trim()
-  );
-
-  if (existingSubtasks.includes(subtaskName)) {
-    document.getElementById(
-      "duplicate-subtask-message"
-    ).textContent = `"${subtaskName}" is already registered.`;
-    duplicateSubtaskModal.style.display = "flex"; // ✅ Ensure modal is displayed
+// ✅ Save Tasks to Firestore
+saveTasksBtn.addEventListener("click", async () => {
+  if (tasks.length === 0) {
+    noChangesModal.style.display = "flex";
     return;
   }
 
-  const li = document.createElement("li");
-  li.innerHTML = `${subtaskName} <button class="delete-subtask-btn">X</button>`;
-  subtaskList.appendChild(li);
-  newSubtaskInput.value = "";
-  checkSaveButtonState();
-});
-
-// ✅ Delete Subtask from List in Edit Task Modal
-subtaskList.addEventListener("click", (e) => {
-  if (e.target.classList.contains("delete-subtask-btn")) {
-    e.target.parentElement.remove();
-    checkSaveButtonState();
+  for (const taskName of tasks) {
+    await addDoc(collection(db, "tb_pretask"), {
+      task_name: taskName,
+      subtasks: [],
+    });
   }
+
+  closeAddTaskPopup();
+  fetchTasks();
 });
 
 // ✅ Save Subtasks to Firestore
@@ -205,6 +214,53 @@ async function fetchTasks() {
     taskList.appendChild(taskItem);
   });
 }
+
+// ✅ Disable "Okay" button when input is empty
+function checkTaskInput() {
+  const taskName = newTaskInput.value.trim();
+  addTaskBtn.disabled = taskName === ""; // Disable if empty
+}
+
+// ✅ Listen for input changes in "Add Task" popup
+newTaskInput.addEventListener("input", checkTaskInput);
+
+// ✅ Ensure the "Okay" button is disabled on page load
+checkTaskInput();
+
+// ✅ Add Subtask in 'Edit Task' Pop-up
+addSubtaskBtn.addEventListener("click", () => {
+  const subtaskName = newSubtaskInput.value.trim();
+
+  if (!subtaskName) return;
+
+  // Check for duplicate subtask in UI
+  const existingSubtasks = Array.from(subtaskList.querySelectorAll("li")).map(
+    (li) => li.textContent.replace(" X", "").trim()
+  );
+
+  if (existingSubtasks.includes(subtaskName)) {
+    document.getElementById(
+      "duplicate-subtask-message"
+    ).textContent = `"${subtaskName}" is already in the list.`;
+    duplicateSubtaskModal.style.display = "flex";
+    return;
+  }
+
+  // Add new subtask to list
+  const li = document.createElement("li");
+  li.innerHTML = `${subtaskName} <button class="delete-subtask-btn">X</button>`;
+  subtaskList.appendChild(li);
+  newSubtaskInput.value = "";
+  checkSaveButtonState();
+});
+
+// ✅ Remove Subtask in 'Edit Task' Pop-up (Event Delegation)
+subtaskList.addEventListener("click", (e) => {
+  if (e.target.classList.contains("delete-subtask-btn")) {
+    e.target.parentElement.remove();
+    checkSaveButtonState();
+  }
+});
 
 // ✅ Open Edit Task Modal
 taskList.addEventListener("click", async (e) => {
