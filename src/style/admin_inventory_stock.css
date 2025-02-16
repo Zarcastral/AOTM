@@ -397,7 +397,8 @@ transition: opacity 0.3s ease;
 }
 
 /* Background overlay */
-.crop-overlay, .fert-overlay  {
+.crop-overlay, .fert-overlay,
+.equip-overlay  {
   position: fixed;
   top: 0;
   left: 0;
@@ -410,7 +411,8 @@ transition: opacity 0.3s ease;
 }
 
 /* Floating Panel */
-.crop-panel, .fert-panel {
+.crop-panel, .fert-panel,
+.equip-panel {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -429,7 +431,8 @@ transition: opacity 0.3s ease;
 }
 
 /* Content styles */
-.crop-content, .fert-content {
+.crop-content, .fert-content,
+.equip-content {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -440,7 +443,9 @@ transition: opacity 0.3s ease;
 .crop-input,
 .crop-select,
 .fert-input,
-.fert-select {
+.fert-select,
+.equip-input,
+.equip-select {
   border: 1px solid #ccc;
   border-radius: 10px;
   width: 100%;
@@ -451,8 +456,9 @@ transition: opacity 0.3s ease;
 }
 
 /* Title Styling */
-.crop-panel h3
-.fert-panel h3 {
+.crop-panel h3,
+.fert-panel h3,
+.equip-panel h3 {
   font-size: 38px; /* Adjust for responsiveness */
   font-weight: bold;
   text-align: left;
@@ -461,7 +467,8 @@ transition: opacity 0.3s ease;
 }
 
 /* Ensure the row layout is properly aligned */
-.crop-row, .fert-row {
+.crop-row, .fert-row,
+.equip-row {
   display: flex;
   align-items: flex-start;
   width: 100%;
@@ -469,26 +476,30 @@ transition: opacity 0.3s ease;
 }
 
 /* Adjust input widths */
-#crop_name, #fert_name {
+#crop_name, #fert_name,
+#equip_name {
   flex-grow: 2; /* Makes crop_name take up more space */
   min-width: 200px;
   max-width: 100%;
 }
 
-#crop_stock, #fert_stock {
+#crop_stock, #fert_stock,
+#equip_stock {
   flex-grow: 1;
   min-width: 80px;
   max-width: 100%;
 }
 
-#unit, #fert_unit {
+#unit, #fert_unit,
+#equip_unit{
   flex-grow: 0.5;
   min-width: 60px;
   max-width: 100%;
 }
 
 /* Ensure labels are above inputs */
-.crop-row > div, .fert-row > div {
+.crop-row > div, .fert-row > div,
+.equip-row > div {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -497,14 +508,16 @@ transition: opacity 0.3s ease;
 }
 
 /* Label Styling */
-.crop-row label, .fert-row label {
+.crop-row label, .fert-row label,
+.equip-row label {
   font-size: 20px; /* Increase label size */
   color: #333; /* Ensure good readability */
   margin-bottom: 5px;
 }
 
 /* Buttons */
-.crop-actions, .fert-actions {
+.crop-actions, .fert-actions,
+.equip-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -512,7 +525,8 @@ transition: opacity 0.3s ease;
 }
 
 /* Button Styles */
-.crop-btn, .fert-btn  {
+.crop-btn, .fert-btn,
+.equip-btn  {
   padding: 8px 30px;
   border: none;
   border-radius: 15px;
@@ -521,30 +535,35 @@ transition: opacity 0.3s ease;
 }
 
 
-.crop-save, .fert-save {
+.crop-save, .fert-save,
+.equip-save{
   background: #41A186;
   color: white;
 }
 
 .crop-save:hover,
-.fert-save:hover {
+.fert-save:hover,
+.equip-save:hover {
   background: #398e76;
   color: white;
 }
 
 .crop-cancel,
-.fert-cancel {
+.fert-cancel,
+.equip-cancel {
   background: #C4C4C4;
   color: white;
 }
 .crop-cancel:hover,
-.fert-cancel:hover {
+.fert-cancel:hover,
+.equip-cancel:hover{
   background: #989898;
   color: white;
 }
 
 .crop-stock-message,
-.fert-stock-message  {
+.fert-stock-message,
+.equip-stock-message{
 position: fixed;
 top: 20px;
 left: 50%;
