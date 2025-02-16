@@ -372,7 +372,8 @@ opacity: 0;
 transition: opacity 0.3s ease;
 }
 
-/* ================== Add Stock Button ================== */
+/*------------------------------- STOCK DESIGNS --------------------------------------*/
+
 .add-crop-stock-btn, .add-fert-stock-btn,
 .add-equip-stock-btn {
   background-color: #4CAF50;
@@ -395,8 +396,8 @@ transition: opacity 0.3s ease;
   transition: background-color 0.3s ease;
 }
 
-/* 🔲 Background overlay */
-.crop-overlay {
+/* Background overlay */
+.crop-overlay, .fert-overlay  {
   position: fixed;
   top: 0;
   left: 0;
@@ -408,8 +409,8 @@ transition: opacity 0.3s ease;
   pointer-events: auto;
 }
 
-/* 📌 Floating Panel */
-.crop-panel {
+/* Floating Panel */
+.crop-panel, .fert-panel {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -427,17 +428,19 @@ transition: opacity 0.3s ease;
   pointer-events: auto;
 }
 
-/* 🏗 Content styles */
-.crop-content {
+/* Content styles */
+.crop-content, .fert-content {
   display: flex;
   flex-direction: column;
   gap: 10px;
   box-sizing: border-box;
 }
 
-/* 🖋 Form Inputs */
+/* Form Inputs */
 .crop-input,
-.crop-select {
+.crop-select,
+.fert-input,
+.fert-select {
   border: 1px solid #ccc;
   border-radius: 10px;
   width: 100%;
@@ -447,8 +450,9 @@ transition: opacity 0.3s ease;
   box-sizing: border-box;
 }
 
-/* 🏷️ Title Styling */
-.crop-panel h3 {
+/* Title Styling */
+.crop-panel h3
+.fert-panel h3 {
   font-size: 38px; /* Adjust for responsiveness */
   font-weight: bold;
   text-align: left;
@@ -457,7 +461,7 @@ transition: opacity 0.3s ease;
 }
 
 /* Ensure the row layout is properly aligned */
-.crop-row {
+.crop-row, .fert-row {
   display: flex;
   align-items: flex-start;
   width: 100%;
@@ -465,26 +469,26 @@ transition: opacity 0.3s ease;
 }
 
 /* Adjust input widths */
-#crop_name {
+#crop_name, #fert_name {
   flex-grow: 2; /* Makes crop_name take up more space */
   min-width: 200px;
   max-width: 100%;
 }
 
-#crop_stock {
+#crop_stock, #fert_stock {
   flex-grow: 1;
   min-width: 80px;
   max-width: 100%;
 }
 
-#unit {
+#unit, #fert_unit {
   flex-grow: 0.5;
   min-width: 60px;
   max-width: 100%;
 }
 
 /* Ensure labels are above inputs */
-.crop-row > div {
+.crop-row > div, .fert-row > div {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -492,23 +496,23 @@ transition: opacity 0.3s ease;
   box-sizing: border-box;
 }
 
-/* 🏷️ Label Styling */
-.crop-row label {
+/* Label Styling */
+.crop-row label, .fert-row label {
   font-size: 20px; /* Increase label size */
   color: #333; /* Ensure good readability */
   margin-bottom: 5px;
 }
 
 /* Buttons */
-.crop-actions {
+.crop-actions, .fert-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 
 }
 
-/* 🚀 Button Styles */
-.crop-btn {
+/* Button Styles */
+.crop-btn, .fert-btn  {
   padding: 8px 30px;
   border: none;
   border-radius: 15px;
@@ -517,26 +521,30 @@ transition: opacity 0.3s ease;
 }
 
 
-.crop-save {
+.crop-save, .fert-save {
   background: #41A186;
   color: white;
 }
 
-.crop-save:hover {
+.crop-save:hover,
+.fert-save:hover {
   background: #398e76;
   color: white;
 }
 
-.crop-cancel {
+.crop-cancel,
+.fert-cancel {
   background: #C4C4C4;
   color: white;
 }
-.crop-cancel:hover {
+.crop-cancel:hover,
+.fert-cancel:hover {
   background: #989898;
   color: white;
 }
 
-.crop-stock-message {
+.crop-stock-message,
+.fert-stock-message  {
 position: fixed;
 top: 20px;
 left: 50%;

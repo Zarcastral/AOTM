@@ -167,6 +167,54 @@
       <div id="fert-bulk-message" style="display: none;" class="fert-bulk-message">
           <p>All selected records has been successfully deleted!</p>
       </div>
+      <!-- Background Overlay -->
+<div id="fert-overlay" class="fert-overlay"></div>
+
+<!-- Floating Panel -->
+<div id="fert-stock-panel" class="fert-panel">
+  <div class="fert-content">
+      <h3>Add Stock</h3>
+
+      <!-- First row with three inputs -->
+      <div class="fert-row">
+          <div>
+              <label for="fert_name">Fertilizer Name</label>
+              <input type="text" id="fert_name" class="fert-input" readonly>
+          </div>
+
+          <div>
+              <label for="fert_stock">Stock</label>
+              <input type="text" id="fert_stock" class="fert-input">
+          </div>
+
+          <div>
+              <label for="fert_unit">Unit</label>
+              <select id="fert_unit" class="fert-select" readonly>
+                  <option value="kg">kg</option>
+              </select>
+          </div>
+      </div>
+
+      <!-- Second row with fert input -->
+      <div class="fert-row">
+          <div>
+              <label for="fert_category">Category</label>
+              <input type="text" id="fert_category" class="fert-input" readonly>
+          </div>
+      </div>
+
+      <!-- Buttons aligned to the right -->
+      <div class="fert-actions">
+          <button id="fert-cancel-stock" class="fert-btn fert-cancel">Cancel</button>
+          <button id="fert-save-stock" class="fert-btn fert-save">Save</button>
+      </div>
+    </div>
+  </div>
+  <!-- fert Stock Success Message Panel -->
+<div id="fert-stock-message" style="display: none;" class="fert-stock-message">
+    <p>Stock has been added successfully!</p>
+</div>
+
   </div>
 
     <!-- Equipment Status Panel -->
