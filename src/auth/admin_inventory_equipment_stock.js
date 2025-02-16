@@ -5,7 +5,9 @@ import {
   query,
   where,
   deleteDoc,
-  doc
+  doc,
+  updateDoc,
+  Timestamp
 } from "firebase/firestore";
 
 import app from "../config/firebase_config.js";
@@ -274,3 +276,146 @@ function showDeleteMessage(message, success) {
     }, 300);
   }, 4000);
 }
+
+// <------------------ FUNCTION TO DISPLAY equipment STOCK MESSAGE ------------------------>
+const equipmentStockMessage = document.getElementById("equip-stock-message");
+
+function showEquipmentStockMessage(message, success) {
+  equipmentStockMessage.textContent = message;
+  equipmentStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  equipmentStockMessage.style.opacity = '1';
+  equipmentStockMessage.style.display = 'block';
+
+  setTimeout(() => {
+    equipmentStockMessage.style.opacity = '0';
+    setTimeout(() => {
+      equipmentStockMessage.style.display = 'none';
+    }, 300);
+  }, 4000);
+}
+// <------------------ FUNCTION TO DISPLAY ADD STOCK FLOATING PANEL ------------------------>
+
+document.addEventListener("DOMContentLoaded", () => {
+  const equipmentStockPanel = document.getElementById("equip-stock-panel");
+  const equipmentOverlay = document.getElementById("equip-overlay");
+  const cancelBtn = document.getElementById("equip-cancel-stock");
+  const saveBtn = document.getElementById("equip-save-stock");
+
+  document.querySelector(".equipment_table").addEventListener("click", async function (event) {
+    if (event.target.classList.contains("add-equip-stock-btn")) {
+      const row = event.target.closest("tr");
+      if (!row) return;
+
+      const equipmentTypeId = row.children[1].textContent.trim();
+
+      try {
+        const equipmentCollection = collection(db, "tb_equipment");
+        const equipmentQuery = query(equipmentCollection, where("equipment_id", "==", Number(equipmentTypeId)));
+        const querySnapshot = await getDocs(equipmentQuery);
+
+        let equipmentCategory = "No category was recorded";
+        let equipmentName = "No name was recorded";
+        let equipmentUnit = "No unit was recorded";
+
+        if (!querySnapshot.empty) {
+          const equipmentData = querySnapshot.docs[0].data();
+
+          // Assign values, ensuring defaults if undefined or empty
+          equipmentCategory = equipmentData.equipment_category?.trim() || "No category was recorded";
+          equipmentName = equipmentData.equipment_name?.trim() || "No name was recorded";
+          equipmentUnit = equipmentData.unit?.trim() || "No unit was recorded";
+
+          // Normalize 'machinery' to 'machineries'
+          if (equipmentUnit.toLowerCase() === "machinery") {
+            equipmentUnit = "machineries";
+          }
+
+          // Case-insensitive unit matching with dropdown options
+          const unitDropdown = document.getElementById("equip_unit");
+          const unitOptions = Array.from(unitDropdown.options).map(opt => opt.value.toLowerCase());
+
+          if (unitOptions.includes(equipmentUnit.toLowerCase())) {
+            unitDropdown.value = equipmentUnit; // Select matching unit
+          } else {
+            unitDropdown.value = ""; // Leave unselected
+          }
+        }
+
+        // Assign values to the inputs
+        document.getElementById("equip_category").value = equipmentCategory;
+        document.getElementById("equip_name").value = equipmentName;
+        document.getElementById("equip_unit_hidden").value = equipmentUnit; // Ensure this always gets saved
+
+        // Display the floating panel
+        equipmentStockPanel.style.display = "block";
+        equipmentOverlay.style.display = "block";
+        saveBtn.dataset.equipmentTypeId = equipmentTypeId;
+      } catch (error) {
+        console.error("Error fetching equipment details:", error);
+      }
+    }
+  });
+
+  function closeStockPanel() {
+    equipmentStockPanel.style.display = "none";
+    equipmentOverlay.style.display = "none";
+    document.getElementById("equip_category").value = "";
+    document.getElementById("equip_name").value = "";
+    document.getElementById("equip_stock").value = "";
+    document.getElementById("equip_unit_hidden").value = "";
+    fetchEquipments();
+  }
+
+  cancelBtn.addEventListener("click", closeStockPanel);
+  equipmentOverlay.addEventListener("click", closeStockPanel);
+
+  saveBtn.addEventListener("click", async function () {
+    const equipmentTypeId = saveBtn.dataset.equipmentTypeId;
+    const equipmentCategory = document.getElementById("equip_category").value;
+    const equipmentName = document.getElementById("equip_name").value;
+    const equipmentStock = document.getElementById("equip_stock").value;
+    const unitDropdown = document.getElementById("equip_unit");
+    let unit = unitDropdown.value.trim();
+
+    // Ensure "No unit was recorded" is saved if no valid selection was made
+    if (!unit) {
+      unit = "No unit was recorded";
+    }
+
+    // Update the hidden input to reflect the saved unit
+    document.getElementById("equip_unit_hidden").value = unit;
+
+    if (!equipmentStock || isNaN(equipmentStock) || equipmentStock <= 0) {
+      showEquipmentStockMessage("Please enter a valid equipment stock quantity.", false);
+      return;
+    }
+
+    try {
+      const equipmentsCollection = collection(db, "tb_equipment");
+      const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentTypeId)));
+      const querySnapshot = await getDocs(equipmentQuery);
+
+      if (!querySnapshot.empty) {
+        const docRef = querySnapshot.docs[0].ref;
+        const existingStock = querySnapshot.docs[0].data().current_stock || 0;
+        const newStock = existingStock + Number(equipmentStock);
+
+        await updateDoc(docRef, {
+          dateAdded: Timestamp.now(),
+          equipment_name: equipmentName,
+          equipmentcategory: equipmentCategory,
+          current_stock: newStock,
+          unit: unit // Ensures "No unit was recorded" gets saved if necessary
+        });
+
+        showEquipmentStockMessage("Equipment Stock has been added successfully!", true);
+        closeStockPanel();
+      } else {
+        showEquipmentStockMessage("Equipment Record not found!", false);
+      }
+    } catch (error) {
+      console.error("Error updating Equipment stock:", error);
+      showEquipmentStockMessage("An error occurred while updating Equipment stock.", false);
+    }
+  });
+});

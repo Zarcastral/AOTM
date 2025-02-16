@@ -167,6 +167,54 @@
       <div id="fert-bulk-message" style="display: none;" class="fert-bulk-message">
           <p>All selected records has been successfully deleted!</p>
       </div>
+      <!-- Background Overlay -->
+<div id="fert-overlay" class="fert-overlay"></div>
+
+<!-- Floating Panel -->
+<div id="fert-stock-panel" class="fert-panel">
+  <div class="fert-content">
+      <h3>Add Stock</h3>
+
+      <!-- First row with three inputs -->
+      <div class="fert-row">
+          <div>
+              <label for="fert_name">Fertilizer Name</label>
+              <input type="text" id="fert_name" class="fert-input" readonly>
+          </div>
+
+          <div>
+              <label for="fert_stock">Stock</label>
+              <input type="text" id="fert_stock" class="fert-input">
+          </div>
+
+          <div>
+              <label for="fert_unit">Unit</label>
+              <select id="fert_unit" class="fert-select" readonly>
+                  <option value="kg">kg</option>
+              </select>
+          </div>
+      </div>
+
+      <!-- Second row with fert input -->
+      <div class="fert-row">
+          <div>
+              <label for="fert_category">Category</label>
+              <input type="text" id="fert_category" class="fert-input" readonly>
+          </div>
+      </div>
+
+      <!-- Buttons aligned to the right -->
+      <div class="fert-actions">
+          <button id="fert-cancel-stock" class="fert-btn fert-cancel">Cancel</button>
+          <button id="fert-save-stock" class="fert-btn fert-save">Save</button>
+      </div>
+    </div>
+  </div>
+  <!-- fert Stock Success Message Panel -->
+<div id="fert-stock-message" style="display: none;" class="fert-stock-message">
+    <p>Stock has been added successfully!</p>
+</div>
+
   </div>
 
     <!-- Equipment Status Panel -->
@@ -214,6 +262,55 @@
         <!-- Bulk Delete Message Panel -->
         <div id="equip-bulk-message" style="display: none;" class="equip-bulk-message">
             <p>All selected records has been successfully deleted!</p>
+        </div>
+                      <!-- Background Overlay -->
+        <div id="equip-overlay" class="equip-overlay"></div>
+
+        <!-- Floating Panel -->
+        <div id="equip-stock-panel" class="equip-panel">
+          <div class="equip-content">
+              <h3>Add Stock</h3>
+
+              <!-- First row with three inputs -->
+              <div class="equip-row">
+                  <div>
+                      <label for="equip_name">Equipment Name</label>
+                      <input type="text" id="equip_name" class="equip-input" readonly>
+                  </div>
+
+                  <div>
+                      <label for="equip_stock">Stock</label>
+                      <input type="text" id="equip_stock" class="equip-input">
+                  </div>
+
+                  <div>
+                      <label for="equip_unit">Unit</label>
+                      <select id="equip_unit" class="equip-select" disabled>
+                          <option value="machinery">Machineries</option>
+                          <option value="tools">Tools</option>
+                      </select>
+                      <input type="hidden" name="equip_unit" id="equip_unit_hidden">
+                  </div>
+              </div>
+
+              <!-- Second row with equip input -->
+              <div class="equip-row">
+                  <div>
+                      <label for="equip_category">Category</label>
+                      <input type="text" id="equip_category" class="equip-input" readonly>
+                  </div>
+              </div>
+
+              <!-- Buttons aligned to the right -->
+              <div class="equip-actions">
+                  <button id="equip-cancel-stock" class="equip-btn equip-cancel">Cancel</button>
+                  <button id="equip-save-stock" class="equip-btn equip-save">Save</button>
+              </div>
+            </div>
+          </div>
+          <!-- equip Stock Success Message Panel -->
+        <div id="equip-stock-message" style="display: none;" class="equip-stock-message">
+            <p>Stock has been added successfully!</p>
         </div>
   </div>
 
