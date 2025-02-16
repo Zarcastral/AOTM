@@ -1,14 +1,12 @@
-import {
-  createUserWithEmailAndPassword,
-  fetchSignInMethodsForEmail,
-  getAuth,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import {
   collection,
   doc,
   getDocs,
   getFirestore,
+  query,
   setDoc,
+  where,
 } from "firebase/firestore";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import app from "../config/firebase_config.js";
@@ -20,17 +18,36 @@ const storage = getStorage(app);
 const userTypeSelect = document.getElementById("user_type");
 const farmerFields = document.getElementById("farmerFields");
 const adminFields = document.getElementById("adminFields");
+const passwordInput = document.getElementById("password");
+const confirmPasswordInput = document.getElementById("confirmPassword");
+const passwordMessage = document.getElementById("passwordMessage");
 
-// ✅ Fetch user roles from Firestore (`tb_user_type`)
+// 🚀 Pop-up Elements
+const errorPopup = document.getElementById("errorPopup");
+const popupMessage = document.getElementById("popupMessage");
+const closePopup = document.getElementById("closePopup");
+
+// ✅ Function to Show Pop-up Error
+function showPopup(message) {
+  popupMessage.textContent = message;
+  errorPopup.style.display = "block";
+}
+
+// ✅ Close the Pop-up when "Okay" is clicked
+closePopup.addEventListener("click", () => {
+  errorPopup.style.display = "none";
+});
+
+// ✅ Fetch user roles from Firestore
 async function fetchUserRoles() {
   try {
     const userTypesRef = collection(db, "tb_user_type");
     const snapshot = await getDocs(userTypesRef);
 
-    userTypeSelect.innerHTML = '<option value="">Select User Type</option>'; // Reset dropdown
+    userTypeSelect.innerHTML = '<option value="">Select User Type</option>';
 
     snapshot.forEach((doc) => {
-      const userType = doc.data().user_type; // Ensure correct field name
+      const userType = doc.data().user_type;
       const option = document.createElement("option");
       option.value = userType;
       option.textContent = userType;
@@ -41,30 +58,47 @@ async function fetchUserRoles() {
       userTypeSelect.innerHTML = '<option value="">No roles available</option>';
     }
   } catch (error) {
+    showPopup("Failed to load user roles.");
     console.error("Error fetching user roles:", error);
-    userTypeSelect.innerHTML = '<option value="">Failed to load roles</option>';
   }
 }
 
-// ✅ Update form fields dynamically based on `user_type` selection
+// ✅ Update form fields dynamically based on `user_type`
 export function updateFormFields() {
   const selectedType = userTypeSelect.value;
-
-  if (["Farmer", "Head Farmer", "Farm President"].includes(selectedType)) {
-    farmerFields.style.display = "block";
-    adminFields.style.display = "none";
-  } else if (["Admin", "Supervisor"].includes(selectedType)) {
-    farmerFields.style.display = "none";
-    adminFields.style.display = "block";
-  } else {
-    farmerFields.style.display = "none";
-    adminFields.style.display = "none";
-  }
+  farmerFields.style.display = [
+    "Farmer",
+    "Head Farmer",
+    "Farm President",
+  ].includes(selectedType)
+    ? "block"
+    : "none";
+  adminFields.style.display = ["Admin", "Supervisor"].includes(selectedType)
+    ? "block"
+    : "none";
 }
 
-// ✅ Load user roles on page load
-document.addEventListener("DOMContentLoaded", fetchUserRoles);
-userTypeSelect.addEventListener("change", updateFormFields);
+// ✅ Check for existing email, username, or farmer ID
+async function checkDuplicate(field, value, collectionName) {
+  const q = query(collection(db, collectionName), where(field, "==", value));
+  const querySnapshot = await getDocs(q);
+  return !querySnapshot.empty;
+}
+
+// ✅ Real-time Password Validation
+passwordInput.addEventListener("input", () => {
+  const password = passwordInput.value;
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+  if (!passwordRegex.test(password)) {
+    passwordMessage.style.color = "red";
+    passwordMessage.textContent =
+      "Password must be at least 8 characters long, contain one uppercase letter and one number.";
+  } else {
+    passwordMessage.style.color = "green";
+    passwordMessage.textContent = "Strong password.";
+  }
+});
 
 // ✅ Handle form submission
 document
@@ -72,13 +106,13 @@ document
   .addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Disable the submit button to prevent double submission
     const submitButton = document.querySelector("button[type='submit']");
     submitButton.disabled = true;
 
+    // Gather form values
     const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
     const profilePicture = document.getElementById("profilePicture").files[0];
     const firstName = document.getElementById("firstName").value.trim();
     const middleName = document.getElementById("middleName").value.trim();
@@ -90,27 +124,68 @@ document
     const barangay = document.getElementById("barangay").value.trim();
 
     let farmer_id = "";
+    let username = "";
 
     if (["Farmer", "Head Farmer", "Farm President"].includes(user_type)) {
       farmer_id = document.getElementById("farmer_id").value.trim();
+    } else if (["Admin", "Supervisor"].includes(user_type)) {
+      username = document.getElementById("userName").value.trim();
     }
 
+    // ✅ Validate inputs
+    if (!user_type) {
+      showPopup("Please select a user type.");
+      submitButton.disabled = false;
+      return;
+    }
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
-      submitButton.disabled = false; // Re-enable the button
+      passwordMessage.textContent = ""; // Remove inline message
+      showPopup("Passwords do not match."); // Show pop-up
+      submitButton.disabled = false;
       return;
     }
 
+    // ✅ Check for duplicate email, username, or farmer ID
     try {
-      // Check if the user already exists in Firebase Authentication using fetchSignInMethodsForEmail
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (methods.length > 0) {
-        alert("User with this email already exists.");
-        submitButton.disabled = false; // Re-enable the button
+      // 🔍 Check Firestore for email duplication
+      const emailExistsInUsers = await checkDuplicate(
+        "email",
+        email,
+        "tb_users"
+      );
+      const emailExistsInFarmers = await checkDuplicate(
+        "email",
+        email,
+        "tb_farmers"
+      );
+
+      if (emailExistsInUsers || emailExistsInFarmers) {
+        showPopup(
+          "This email is already registered. Please use a different email."
+        );
+        submitButton.disabled = false;
         return;
       }
 
-      // Create the user in Authentication
+      if (
+        username &&
+        (await checkDuplicate("username", username, "tb_users"))
+      ) {
+        showPopup("This username is already taken.");
+        submitButton.disabled = false;
+        return;
+      }
+
+      if (
+        farmer_id &&
+        (await checkDuplicate("farmer_id", farmer_id, "tb_farmers"))
+      ) {
+        showPopup("This Farmer ID is already registered.");
+        submitButton.disabled = false;
+        return;
+      }
+
+      // ✅ Create the user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -134,7 +209,6 @@ document
         ? "tb_farmers"
         : "tb_users";
 
-      const userDocRef = doc(collection(db, collectionName), userId);
       const userData = {
         user_picture: profilePictureURL,
         first_name: firstName,
@@ -148,19 +222,22 @@ document
         barangay,
       };
 
-      if (["Farmer", "Head Farmer", "Farm President"].includes(user_type)) {
-        userData.farmer_id = farmer_id; // Only add `farmer_id` for farmers
-      }
+      if (farmer_id) userData.farmer_id = farmer_id;
+      if (username) userData.username = username;
 
-      // Insert user data into Firestore
-      await setDoc(userDocRef, userData);
+      await setDoc(doc(collection(db, collectionName), userId), userData);
 
       alert("Account created successfully!");
       document.getElementById("createAccountForm").reset();
+      passwordMessage.textContent = "";
     } catch (error) {
       console.error("Error creating account:", error);
-      alert(error.message);
+      showPopup(error.message);
     } finally {
-      submitButton.disabled = false; // Re-enable the button
+      submitButton.disabled = false;
     }
   });
+
+// ✅ Load user roles on page load
+document.addEventListener("DOMContentLoaded", fetchUserRoles);
+userTypeSelect.addEventListener("change", updateFormFields);
