@@ -4,10 +4,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module" src="../../../src/auth/admin_inventory_crops_stock.js"></script>
+  <script type="module" src="../../../src/auth/admin_inventory_equipment_stock.js"></script>
+  <script type="module" src="../../../src/auth/admin_inventory_fertilizer_stock.js"></script>
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../src/style/admin_inventory_stock.css">
-  <script type="module" src="../../../src/auth/admin_inventory.js "></script>
 </head>
 
 <body>
@@ -36,20 +38,88 @@
         <table>
           <thead>
             <tr>
-            <th class="image-header"><img src="../../images/Delete.png" alt="Equipment Icon" /></th>
-            <th>#</th>
-            <th>Crop Name</th>
-            <th>Crop Type</th>
-            <th>Date Added</th>
-            <th>Stock</th>
-            <th>Action</th>
+              <tr>
+                <th class="crop-checkbox-bulk-delete" > 
+                  <button id="crop-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+              </th> 
+              <th>#</th>
+              <th>Crop Type</th>
+              <th>Crops</th>
+              <th>Date Added</th>
+              <th>Stock</th>
+              <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <!-- Crops will be populated here -->
         </tbody>
       </table>
+      <div class="crops-pagination">
+        <button id="crop-prev-page" class="crop-pagination-btn" disabled>Prev</button>
+        <span id="crop-page-number">Page 1</span>
+        <button id="crop-next-page" class="crop-pagination-btn">Next</button>
     </div>
+    </div>
+      <div id="crop-bulk-panel" class="crop-bulk-panel">
+        <div class="confirm-crop-bulk-message">
+            <p>Are you sure you want to delete the selected records?</p>
+            <button id="confirm-crop-delete" class="crop-bulk-confirm-btn">Confirm</button>
+            <button id="cancel-crop-delete" class="crop-bulk-cancel-btn">Cancel</button>
+        </div>
+    </div>
+      <!-- Bulk Delete Message Panel -->
+      <div id="crop-bulk-message" style="display: none;" class="crop-bulk-message">
+          <p>All selected records has been successfully deleted!</p>
+      </div>
+
+<!-- Background Overlay -->
+<div id="crop-overlay" class="crop-overlay"></div>
+
+<!-- Floating Panel -->
+<div id="crop-stock-panel" class="crop-panel">
+  <div class="crop-content">
+      <h3>Add Stock</h3>
+
+      <!-- First row with three inputs -->
+      <div class="crop-row">
+          <div>
+              <label for="crop_name">Crop Name</label>
+              <input type="text" id="crop_name" class="crop-input" readonly>
+          </div>
+
+          <div>
+              <label for="crop_stock">Stock</label>
+              <input type="text" id="crop_stock" class="crop-input">
+          </div>
+
+          <div>
+              <label for="unit">Unit</label>
+              <select id="unit" class="crop-select" readonly>
+                  <option value="kg">kg</option>
+              </select>
+          </div>
+      </div>
+
+      <!-- Second row with crops input -->
+      <div class="crop-row">
+          <div>
+              <label for="crops">Crops</label>
+              <input type="text" id="crops" class="crop-input" readonly>
+          </div>
+      </div>
+
+      <!-- Buttons aligned to the right -->
+      <div class="crop-actions">
+          <button id="crop-cancel-stock" class="crop-btn crop-cancel">Cancel</button>
+          <button id="crop-save-stock" class="crop-btn crop-save">Save</button>
+      </div>
+    </div>
+  </div>
+  <!-- Crop Stock Success Message Panel -->
+<div id="crop-stock-message" style="display: none;" class="crop-stock-message">
+    <p>Stock has been added successfully!</p>
+</div>
+
   </div>
 
     <!-- Farmers Activity Panel -->
@@ -65,20 +135,38 @@
       <table>
         <thead>
           <tr>
-            <th class="image-header"><img src="../../images/Delete.png" alt="Equipment Icon" /></th>
+              <th class="fertilizer-checkbox-bulk-delete" > 
+                <button id="fert-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+            </th>
             <th>#</th>
             <th>Fertilizer Name</th>
             <th>Category</th>
             <th>Date Added</th>
-            <th>stock</th>
-            <th>Action</th>
+            <th>Stock</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <!-- will be populated here -->
         </tbody>
       </table>
+        <div class="fertilizer-pagination">
+          <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>Prev</button>
+          <span id="fertilizer-page-number">Page 1</span>
+          <button id="fertilizer-next-page" class="fertilizer-pagination-btn">Next</button>
+      </div>
     </div>
+      <div id="fert-bulk-panel" class="fert-bulk-panel">
+        <div class="confirm-fert-bulk-message">
+            <p>Are you sure you want to delete the selected records?</p>
+            <button id="confirm-fert-delete" class="fert-bulk-confirm-btn">Confirm</button>
+            <button id="cancel-fert-delete" class="fert-bulk-cancel-btn">Cancel</button>
+        </div>
+    </div>
+      <!-- Bulk Delete Message Panel -->
+      <div id="fert-bulk-message" style="display: none;" class="fert-bulk-message">
+          <p>All selected records has been successfully deleted!</p>
+      </div>
   </div>
 
     <!-- Equipment Status Panel -->
@@ -87,20 +175,22 @@
       <div class="search-bar">
         <input type="text" placeholder="Search">
         <select class="equipment_select">
-          <option>Equipment Type</option>
+          <option value="">Equipment Type</option>
         </select>
       </div>
       <div class="equipment_table"> 
         <table>
           <thead>
-            <tr>
-              <th class="image-header"><img src="../../images/Delete.png" alt="Equipment Icon" /></th>
-              <th>#</th>
-              <th>Equipment Name</th>
-              <th>Category</th>
-              <th>Date Added</th>
-              <th>stock</th>
-              <th>Action</th>
+              <tr>
+                <th class="equipment-checkbox-bulk-delete" > 
+                  <button id="equip-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+                </th>              
+                <th>#</th>
+                <th>Equipment Name</th>
+                <th>Category</th>
+                <th>Date Added</th>
+                <th>Stock</th>
+                <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -108,7 +198,23 @@
           </tbody>    
         </table>
       </div>
-    </div>
+          <div class="equipment-pagination">
+            <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>Prev</button>
+            <span id="equipment-page-number">Page 1</span>
+            <button id="equipment-next-page" class="equipment-pagination-btn">Next</button>
+        </div>
+      </div>
+        <div id="equip-bulk-panel" class="equip-bulk-panel">
+          <div class="confirm-equip-bulk-message">
+              <p>Are you sure you want to delete the selected records?</p>
+              <button id="confirm-equip-delete" class="equip-bulk-confirm-btn">Confirm</button>
+              <button id="cancel-equip-delete" class="equip-bulk-cancel-btn">Cancel</button>
+          </div>
+      </div>
+        <!-- Bulk Delete Message Panel -->
+        <div id="equip-bulk-message" style="display: none;" class="equip-bulk-message">
+            <p>All selected records has been successfully deleted!</p>
+        </div>
   </div>
 
  
@@ -142,32 +248,33 @@
       }
     });
   </script>
-    <script>
-          document.addEventListener("DOMContentLoaded", function () {
-          const stockLinks = document.querySelectorAll(".stock-selector a");
-          
-          // Retrieve stored active link from localStorage
-          const activeLink = localStorage.getItem("activeStockLink");
-      
-          stockLinks.forEach(link => {
-              // If the link matches the stored active link, keep it active
-              if (link.href === activeLink) {
-                  link.classList.add("active");
-              }
-      
-              link.addEventListener("click", function () {
-                  // Remove active class from all links
-                  stockLinks.forEach(link => link.classList.remove("active"));
-      
-                  // Add active class to clicked link
-                  this.classList.add("active");
-      
-                  // Store the active link in localStorage
-                  localStorage.setItem("activeStockLink", this.href);
-              });
-          });
-      });
-    </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const stockLinks = document.querySelectorAll(".stock-selector a");
+    
+    // Retrieve stored active link from localStorage
+    const activeLink = localStorage.getItem("activeStockLink");
+
+    stockLinks.forEach(link => {
+        // If the link matches the stored active link, keep it active
+        if (link.href === activeLink) {
+            link.classList.add("active");
+        }
+
+        link.addEventListener("click", function () {
+            // Remove active class from all links
+            stockLinks.forEach(link => link.classList.remove("active"));
+
+            // Add active class to clicked link
+            this.classList.add("active");
+
+            // Store the active link in localStorage
+            localStorage.setItem("activeStockLink", this.href);
+        });
+    });
+});
+
+  </script>
 </body>
 
 </html>

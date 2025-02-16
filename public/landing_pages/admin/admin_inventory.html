@@ -197,31 +197,44 @@
     });
   </script>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    const stockLinks = document.querySelectorAll(".stock-selector a");
-    
-    // Retrieve stored active link from localStorage
-    const activeLink = localStorage.getItem("activeStockLink");
+      document.addEventListener("DOMContentLoaded", function () {
+          const stockLinks = document.querySelectorAll(".stock-selector a");
 
-    stockLinks.forEach(link => {
-        // If the link matches the stored active link, keep it active
-        if (link.href === activeLink) {
-            link.classList.add("active");
-        }
+          // Clear any active link state when the page is loaded
+          stockLinks.forEach(link => link.classList.remove("active"));
 
-        link.addEventListener("click", function () {
-            // Remove active class from all links
-            stockLinks.forEach(link => link.classList.remove("active"));
+          // Retrieve stored active link from localStorage
+          const activeLink = localStorage.getItem("activeStockLink");
 
-            // Add active class to clicked link
-            this.classList.add("active");
+          // Debugging: log the active link in localStorage
+          console.log("Stored active link:", activeLink);
 
-            // Store the active link in localStorage
-            localStorage.setItem("activeStockLink", this.href);
-        });
-    });
-});
+          // If no active link is stored or the stored link is incorrect, set default to "Inventory List"
+          if (!activeLink || activeLink !== stockLinks[0].href) {
+              stockLinks[0].classList.add("active");
+              localStorage.setItem("activeStockLink", stockLinks[0].href);
+          } else {
+              // If the stored link is valid, reapply the active class
+              stockLinks.forEach(link => {
+                  if (link.href === activeLink) {
+                      link.classList.add("active");
+                  }
+              });
+          }
 
+          stockLinks.forEach(link => {
+              link.addEventListener("click", function () {
+                  // Remove active class from all links
+                  stockLinks.forEach(link => link.classList.remove("active"));
+
+                  // Add active class to clicked link
+                  this.classList.add("active");
+
+                  // Store the active link in localStorage
+                  localStorage.setItem("activeStockLink", this.href);
+              });
+          });
+      });
   </script>
 </body>
 
