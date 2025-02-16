@@ -21,6 +21,7 @@ const adminFields = document.getElementById("adminFields");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const passwordMessage = document.getElementById("passwordMessage");
+const barangaySelect = document.getElementById("barangay"); // Get Barangay field
 
 // 🚀 Pop-up Elements
 const errorPopup = document.getElementById("errorPopup");
@@ -63,6 +64,32 @@ async function fetchUserRoles() {
   }
 }
 
+// ✅ Fetch Barangay Names from Firestore
+async function fetchBarangayList() {
+  try {
+    const barangayRef = collection(db, "tb_barangay");
+    const snapshot = await getDocs(barangayRef);
+
+    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+
+    snapshot.forEach((doc) => {
+      const barangayName = doc.data().barangay_name;
+      const option = document.createElement("option");
+      option.value = barangayName;
+      option.textContent = barangayName;
+      barangaySelect.appendChild(option);
+    });
+
+    if (barangaySelect.options.length === 1) {
+      barangaySelect.innerHTML =
+        '<option value="">No barangays available</option>';
+    }
+  } catch (error) {
+    showPopup("Failed to load barangays.");
+    console.error("Error fetching barangays:", error);
+  }
+}
+
 // ✅ Update form fields dynamically based on `user_type`
 export function updateFormFields() {
   const selectedType = userTypeSelect.value;
@@ -85,21 +112,6 @@ async function checkDuplicate(field, value, collectionName) {
   return !querySnapshot.empty;
 }
 
-// ✅ Real-time Password Validation
-passwordInput.addEventListener("input", () => {
-  const password = passwordInput.value;
-  const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
-
-  if (!passwordRegex.test(password)) {
-    passwordMessage.style.color = "red";
-    passwordMessage.textContent =
-      "Password must be at least 8 characters long, contain one uppercase letter and one number.";
-  } else {
-    passwordMessage.style.color = "green";
-    passwordMessage.textContent = "Strong password.";
-  }
-});
-
 // ✅ Handle form submission
 document
   .getElementById("createAccountForm")
@@ -121,7 +133,7 @@ document
     const birthday = document.getElementById("birthday").value;
     const sex = document.getElementById("sex").value;
     const user_type = userTypeSelect.value;
-    const barangay = document.getElementById("barangay").value.trim();
+    const barangay = barangaySelect.value;
 
     let farmer_id = "";
     let username = "";
@@ -238,6 +250,9 @@ document
     }
   });
 
-// ✅ Load user roles on page load
-document.addEventListener("DOMContentLoaded", fetchUserRoles);
+// ✅ Load user roles & barangays on page load
+document.addEventListener("DOMContentLoaded", () => {
+  fetchUserRoles();
+  fetchBarangayList();
+});
 userTypeSelect.addEventListener("change", updateFormFields);

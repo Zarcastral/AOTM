@@ -7,11 +7,11 @@ import {
   where,
 } from "firebase/firestore";
 import app from "../config/firebase_config.js"; // Firebase configuration
+import { toggleLoadingIndicator } from "./loading.js"; // Import loading.js
 
 const auth = getAuth(app);
 const firestore = getFirestore(app);
 
-// User type to redirect mapping
 const userTypeRoutes = {
   Admin: "../../public/landing_pages/admin/admin_navbar.html",
   Supervisor: "../../public/landing_pages/supervisor/supervisor_navbar.html",
@@ -21,92 +21,86 @@ const userTypeRoutes = {
   Farmer: "../../public/landing_pages/farmers/farmers_nav.html",
 };
 
-// Redirect user based on their role
 function redirectUser(userType) {
   const path = userTypeRoutes[userType];
   if (path) {
     window.location.href = path;
   } else {
-    showErrorModal("Unknown user type.");
+    showErrorModal("Incorrect username or password."); // Generic message
   }
 }
 
-// Display or hide the loading indicator
-function toggleLoadingIndicator(isLoading) {
-  const loadingIndicator = document.getElementById("loading-indicator");
-  if (loadingIndicator) {
-    loadingIndicator.style.display = isLoading ? "flex" : "none";
-  } else {
-    console.error("Loading indicator not found");
+// Always show the same error message to prevent revealing valid emails
+function showErrorModal() {
+  let errorModal = document.getElementById("error-modal");
+
+  if (!errorModal) {
+    errorModal = document.createElement("div");
+    errorModal.id = "error-modal";
+    errorModal.style.cssText = `
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.5);
+      z-index:9999;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    `;
+    errorModal.innerHTML = `
+      <div style="background-color:white;padding:20px;border-radius:10px;width:300px;text-align:center;">
+        <h2 style="color:red;">Login Error</h2>
+        <p>Incorrect username or password.</p>
+        <button id="close-error-modal" style="padding:10px 20px;background-color:red;color:white;border:none;border-radius:5px;cursor:pointer;">Close</button>
+      </div>
+    `;
+    document.body.appendChild(errorModal);
+
+    document
+      .getElementById("close-error-modal")
+      .addEventListener("click", () => {
+        errorModal.style.display = "none";
+      });
   }
+
+  errorModal.style.display = "flex";
 }
 
-// Firebase authentication error handler
-function getAuthErrorMessage(code) {
-  const errorMessages = {
-    "auth/user-not-found": "No user found with this email address.",
-    "auth/wrong-password": "Incorrect password. Please try again.",
-    "auth/too-many-requests":
-      "Too many failed login attempts. Please try again later.",
-    default: "An unexpected error occurred. Please try again.",
-  };
-  return errorMessages[code] || errorMessages.default;
-}
-
-// Show error modal only when needed
-function showErrorModal(message) {
-  const errorModal = document.getElementById("error-modal");
-  const errorMessageElement = document.getElementById("error-message");
-
-  if (errorModal && errorMessageElement) {
-    errorMessageElement.textContent = message;
-    errorModal.style.display = "flex"; // Show the modal when there's an error
-  }
-}
-
-// Hide error modal when clicking the close button
-document.getElementById("close-error-modal").addEventListener("click", () => {
-  const errorModal = document.getElementById("error-modal");
-  errorModal.style.display = "none"; // Hide the modal when closed
-});
-
-// Ensure loading indicator is hidden initially
 document.addEventListener("DOMContentLoaded", () => {
-  toggleLoadingIndicator(false);
-
-  // Initially hide the error modal
   const errorModal = document.getElementById("error-modal");
-  if (errorModal) {
-    errorModal.style.display = "none"; // Hide the modal by default
-  }
+  const loadingIndicator = document.getElementById("loading-indicator");
 
-  // Password visibility toggle
+  if (errorModal) errorModal.style.display = "none";
+  if (loadingIndicator) loadingIndicator.style.display = "none";
+
   const togglePasswordButton = document.getElementById("toggle-password");
   const passwordInput = document.getElementById("password");
 
-  togglePasswordButton.addEventListener("click", () => {
-    const type = passwordInput.type === "password" ? "text" : "password";
-    passwordInput.type = type;
+  if (togglePasswordButton && passwordInput) {
+    togglePasswordButton.addEventListener("click", () => {
+      const type = passwordInput.type === "password" ? "text" : "password";
+      passwordInput.type = type;
 
-    // Toggle eye icon
-    const eyeIcon = togglePasswordButton.querySelector("i");
-    eyeIcon.classList.toggle("fa-eye-slash", type === "text");
-    eyeIcon.classList.toggle("fa-eye", type === "password");
-  });
+      const eyeIcon = togglePasswordButton.querySelector("i");
+      eyeIcon.classList.toggle("fa-eye-slash", type === "text");
+      eyeIcon.classList.toggle("fa-eye", type === "password");
+    });
+  }
 });
 
-// Login form event listener
 const loginForm = document.getElementById("login-form");
 
 loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault(); // Prevent form default submission
-  toggleLoadingIndicator(true); // Show loading indicator during processing
+  e.preventDefault();
+  toggleLoadingIndicator(true); // Show loading indicator
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
 
   try {
-    // Perform authentication using Firebase
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
@@ -115,7 +109,6 @@ loginForm.addEventListener("submit", async (e) => {
     const user = userCredential.user;
     sessionStorage.setItem("userEmail", user.email);
 
-    // Step 1: Check in tb_farmers
     const farmersRef = collection(firestore, "tb_farmers");
     const farmersQuery = query(farmersRef, where("email", "==", email));
     const farmersSnapshot = await getDocs(farmersQuery);
@@ -123,12 +116,11 @@ loginForm.addEventListener("submit", async (e) => {
     if (!farmersSnapshot.empty) {
       const farmerData = farmersSnapshot.docs[0].data();
       if (farmerData.user_type) {
-        redirectUser(farmerData.user_type); // Redirect user based on their role
+        redirectUser(farmerData.user_type);
         return;
       }
     }
 
-    // Step 2: Check in tb_users
     const usersRef = collection(firestore, "tb_users");
     const usersQuery = query(usersRef, where("email", "==", email));
     const usersSnapshot = await getDocs(usersQuery);
@@ -141,31 +133,11 @@ loginForm.addEventListener("submit", async (e) => {
       }
     }
 
-    // If user is not found in both collections, show error modal
-    showErrorModal("Incorrect username or password.");
+    showErrorModal(); // Always show generic error
   } catch (error) {
-    // If Firebase authentication fails, show appropriate error modal
-    showErrorModal(getAuthErrorMessage(error.code));
+    console.error("Login error:", error);
+    showErrorModal(); // Always show generic error
   } finally {
-    toggleLoadingIndicator(false); // Hide loading indicator after processing
+    toggleLoadingIndicator(false); // Hide loading indicator
   }
 });
-
-// Add error modal and loading indicator dynamically
-const modalHtml = `
-  <div id="error-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background-color:#fff;padding:20px;box-shadow:0px 4px 8px rgba(0,0,0,0.1);z-index:10000;">
-    <h2>Login Error</h2>
-    <p id="error-message">Incorrect username or password.</p>
-    <button id="close-error-modal">Close</button>
-  </div>
-  <div id="loading-indicator" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;">
-    <div style="width:50px;height:50px;border:5px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
-  </div>
-  <style>
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-  </style>
-`;
-document.body.insertAdjacentHTML("beforeend", modalHtml);
