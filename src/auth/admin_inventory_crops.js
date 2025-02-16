@@ -17,6 +17,30 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let filteredCrops = []; // Initialize filteredCrops with an empty array
 let selectedCrops = [];
+// USE THIS TO SORT FOR CROP ID ASCENDING ORDER
+/*function sortCropsById() {
+  filteredCrops.sort((a, b) => Number(a.crop_type_id || 0) - Number(b.crop_type_id || 0));
+}*/
+
+// DIS ONE IS FOR DATES FROM LATEST TO OLDEST
+function sortCropsById() {
+  filteredCrops.sort((a, b) => {
+    const dateA = parseDate(a.dateAdded);
+    const dateB = parseDate(b.dateAdded);
+    return dateB - dateA; // Sort latest to oldest
+  });
+}
+
+function parseDate(dateValue) {
+  if (!dateValue) return new Date(0); // Default to epoch if no date
+  
+  // If Firestore Timestamp object, convert it
+  if (typeof dateValue.toDate === "function") {
+    return dateValue.toDate();
+  }
+  
+  return new Date(dateValue); // Convert string/ISO formats to Date
+}
 
 // Fetch crops data from Firestore
 async function fetchCrops() {
@@ -28,6 +52,7 @@ async function fetchCrops() {
 
     console.log("Crops fetched:", cropsList); // Debugging
     filteredCrops = [...cropsList]; // Initialize filteredCrops with all crops
+    sortCropsById();
     displayCrops(filteredCrops);
   } catch (error) {
     console.error("Error fetching crops:", error);
@@ -95,22 +120,22 @@ function displayCrops(cropsList) {
 
 // Update pagination display
 function updatePagination() {
-  document.getElementById("crop-page-number").textContent = `Page ${currentPage}`;
+  const totalPages = Math.ceil(filteredCrops.length / rowsPerPage) || 1;
+  document.getElementById("crop-page-number").textContent = `${currentPage} of ${totalPages}`;
   updatePaginationButtons();
 }
 
 // Enable or disable pagination buttons
 function updatePaginationButtons() {
   document.getElementById("crop-prev-page").disabled = currentPage === 1;
-  document.getElementById("crop-next-page").disabled = (currentPage * rowsPerPage) >= filteredCrops.length;
+  document.getElementById("crop-next-page").disabled = currentPage >= Math.ceil(filteredCrops.length / rowsPerPage);
 }
 
 // Event listener for "Previous" button
 document.getElementById("crop-prev-page").addEventListener("click", () => {
   if (currentPage > 1) {
     currentPage--;
-    displayCrops(filteredCrops); // Pass filteredCrops to displayCrops
-    updatePagination();
+    displayCrops(filteredCrops);
   }
 });
 
@@ -118,8 +143,7 @@ document.getElementById("crop-prev-page").addEventListener("click", () => {
 document.getElementById("crop-next-page").addEventListener("click", () => {
   if ((currentPage * rowsPerPage) < filteredCrops.length) {
     currentPage++;
-    displayCrops(filteredCrops); // Pass filteredCrops to displayCrops
-    updatePagination();
+    displayCrops(filteredCrops);
   }
 });
 
@@ -160,6 +184,7 @@ document.querySelector(".crop_select").addEventListener("change", function () {
     : cropsList; // If no selection, show all crops
 
   currentPage = 1; // Reset to the first page when filter is applied
+  sortCropsById();
   displayCrops(filteredCrops); // Update the table with filtered crops
 });
 
@@ -277,3 +302,20 @@ function showDeleteMessage(message, success) {
     }, 300);
   }, 4000);
 }
+// Search bar event listener for real-time filtering
+document.getElementById("crop-search-bar").addEventListener("input", function () {
+  const searchQuery = this.value.toLowerCase().trim();
+
+  // Filter crops based on searchQuery, excluding stock and date fields
+  filteredCrops = cropsList.filter(crop => {
+    return (
+      crop.crop_name?.toLowerCase().includes(searchQuery) ||
+      crop.crop_type_name?.toLowerCase().includes(searchQuery) ||
+      crop.crop_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
+    );
+  });
+
+  currentPage = 1; // Reset pagination
+  sortCropsById();
+  displayCrops(filteredCrops); // Update the table with filtered crops
+});

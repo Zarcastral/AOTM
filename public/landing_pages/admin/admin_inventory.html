@@ -28,8 +28,8 @@
       </div>
     <div class="panel">
       <h2>Crops</h2>
-      <div class="search-bar">
-        <input type="text" placeholder="Search">
+      <div class="crop-search-bar">
+        <input type="text" id="crop-search-bar" placeholder="Search">
         <select class="crop_select">
           <option value="">Select Crops </option>
         </select>
@@ -54,9 +54,9 @@
         </tbody>
       </table>
       <div class="crops-pagination">
-        <button id="crop-prev-page" class="crop-pagination-btn" disabled>Prev</button>
         <span id="crop-page-number">Page 1</span>
-        <button id="crop-next-page" class="crop-pagination-btn">Next</button>
+        <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
+        <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
     </div>
     </div>
       <div id="crop-bulk-panel" class="crop-bulk-panel">
@@ -75,8 +75,8 @@
     <!-- Farmers Activity Panel -->
     <div class="panel">
       <h2>Fertilizer</h2>
-      <div class="search-bar">
-        <input type="text" placeholder="Search">
+      <div class="fert-search-bar">
+        <input type="text" id="fert-search-bar" placeholder="Search">
         <select class="fertilizer_select">
           <option value="">Select Fertilizer </option>
         </select>
@@ -100,9 +100,9 @@
         </tbody>
       </table>
         <div class="fertilizer-pagination">
-          <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>Prev</button>
           <span id="fertilizer-page-number">Page 1</span>
-          <button id="fertilizer-next-page" class="fertilizer-pagination-btn">Next</button>
+          <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
+          <button id="fertilizer-next-page" class="fertilizer-pagination-btn">&gt;</button>
       </div>
     </div>
       <div id="fert-bulk-panel" class="fert-bulk-panel">
@@ -121,8 +121,8 @@
     <!-- Equipment Status Panel -->
     <div class="panel">
       <h2>Equipment </h2>
-      <div class="search-bar">
-        <input type="text" placeholder="Search">
+      <div class="equip-search-bar">
+        <input type="text"  id="equip-search-bar"  placeholder="Search">
         <select class="equipment_select">
           <option value="">Equipment Type</option>
         </select>
@@ -147,9 +147,9 @@
         </table>
       </div>
           <div class="equipment-pagination">
-            <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>Prev</button>
             <span id="equipment-page-number">Page 1</span>
-            <button id="equipment-next-page" class="equipment-pagination-btn">Next</button>
+            <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
+            <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
         </div>
       </div>
         <div id="equip-bulk-panel" class="equip-bulk-panel">

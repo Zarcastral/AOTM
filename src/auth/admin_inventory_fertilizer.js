@@ -16,7 +16,24 @@ let filteredFertilizers = fertilizersList; // Declare a variable for filtered fe
 let currentPage = 1;
 const rowsPerPage = 5;
 let selectedFertilizers = [];
+function sortFertilizersById() {
+   filteredFertilizers.sort((a, b) => {
+    const dateA = parseDate(a.dateAdded);
+    const dateB = parseDate(b.dateAdded);
+    return dateB - dateA; // Sort latest to oldest
+  });
+}
 
+function parseDate(dateValue) {
+  if (!dateValue) return new Date(0); // Default to epoch if no date
+  
+  // If Firestore Timestamp object, convert it
+  if (typeof dateValue.toDate === "function") {
+    return dateValue.toDate();
+  }
+  
+  return new Date(dateValue); // Convert string/ISO formats to Date
+}
 // Fetch fertilizers data (tb_fertilizer) from Firestore
 async function fetchFertilizers() {
   console.log("Fetching fertilizers..."); // Debugging
@@ -27,6 +44,7 @@ async function fetchFertilizers() {
 
     console.log("fertilizers fetched:", fertilizersList); // Debugging
     filteredFertilizers = fertilizersList; // Initialize filtered list
+    sortFertilizersById();
     displayFertilizers(filteredFertilizers);
   } catch (error) {
     console.error("Error fetching fertilizers:", error);
@@ -95,22 +113,22 @@ function displayFertilizers(fertilizersList) {
 
 // Update pagination display
 function updatePagination() {
-  document.getElementById("fertilizer-page-number").textContent = `Page ${currentPage}`;
+  const totalPages = Math.ceil(filteredFertilizers.length / rowsPerPage) || 1;
+  document.getElementById("fertilizer-page-number").textContent = `${currentPage} of ${totalPages}`;
   updatePaginationButtons();
 }
 
 // Enable or disable pagination buttons
 function updatePaginationButtons() {
   document.getElementById("fertilizer-prev-page").disabled = currentPage === 1;
-  document.getElementById("fertilizer-next-page").disabled = (currentPage * rowsPerPage) >= filteredFertilizers.length;
+  document.getElementById("fertilizer-next-page").disabled = currentPage >= Math.ceil(filteredFertilizers.length / rowsPerPage);
 }
 
 // Event listener for "Previous" button
 document.getElementById("fertilizer-prev-page").addEventListener("click", () => {
   if (currentPage > 1) {
     currentPage--;
-    displayFertilizers(filteredFertilizers); // Pass filteredFertilizers to displayFertilizers
-    updatePagination();
+    displayFertilizers(filteredFertilizers);
   }
 });
 
@@ -118,8 +136,7 @@ document.getElementById("fertilizer-prev-page").addEventListener("click", () => 
 document.getElementById("fertilizer-next-page").addEventListener("click", () => {
   if ((currentPage * rowsPerPage) < filteredFertilizers.length) {
     currentPage++;
-    displayFertilizers(filteredFertilizers); // Pass filteredFertilizers to displayFertilizers
-    updatePagination();
+    displayFertilizers(filteredFertilizers);
   }
 });
 
@@ -160,6 +177,7 @@ document.querySelector(".fertilizer_select").addEventListener("change", function
     : fertilizersList; // If no selection, show all fertilizers
 
   currentPage = 1; // Reset to the first page when filter is applied
+  sortFertilizersById();
   displayFertilizers(filteredFertilizers); // Update the table with filtered fertilizers
 });
 
@@ -273,3 +291,21 @@ function showDeleteMessage(message, success) {
     }, 300);
   }, 4000);
 }
+
+// Search bar event listener for real-time filtering
+document.getElementById("fert-search-bar").addEventListener("input", function () {
+  const searchQuery = this.value.toLowerCase().trim();
+
+  // Filter Fertilizers based on searchQuery, excluding stock and date fields
+  filteredFertilizers = fertilizersList.filter(fertilizer => {
+    return (
+      fertilizer.fertilizer_name?.toLowerCase().includes(searchQuery) ||
+      fertilizer.fertilizer_category?.toLowerCase().includes(searchQuery) ||
+      fertilizer.fertilizer_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
+    );
+  });
+
+  currentPage = 1; // Reset pagination
+  sortFertilizersById();
+  displayFertilizers(filteredFertilizers); // Update the table with filtered Fertilizers
+});

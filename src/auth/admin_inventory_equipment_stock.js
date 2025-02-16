@@ -18,7 +18,24 @@ let filteredEquipments = equipmentsList; // Declare a variable for filtered equi
 let currentPage = 1;
 const rowsPerPage = 5;
 let selectedEquipments = [];
+function sortEquipmentsById() {
+  filteredEquipments.sort((a, b) => {
+    const dateA = parseDate(a.dateAdded);
+    const dateB = parseDate(b.dateAdded);
+    return dateB - dateA; // Sort latest to oldest
+  });
+}
 
+function parseDate(dateValue) {
+  if (!dateValue) return new Date(0); // Default to epoch if no date
+  
+  // If Firestore Timestamp object, convert it
+  if (typeof dateValue.toDate === "function") {
+    return dateValue.toDate();
+  }
+  
+  return new Date(dateValue); // Convert string/ISO formats to Date
+}
 // Fetch equipments data (tb_equipment) from Firestore
 async function fetchEquipments() {
   console.log("Fetching equipments..."); // Debugging
@@ -29,6 +46,7 @@ async function fetchEquipments() {
 
     console.log("equipments fetched:", equipmentsList); // Debugging
     filteredEquipments = equipmentsList; // Initialize filtered list
+    sortEquipmentsById();
     displayEquipments(filteredEquipments);
   } catch (error) {
     console.error("Error fetching equipments:", error);
@@ -99,22 +117,22 @@ function displayEquipments(equipmentsList) {
 
 // Update pagination display
 function updatePagination() {
-  document.getElementById("equipment-page-number").textContent = `Page ${currentPage}`;
+  const totalPages = Math.ceil(filteredEquipments.length / rowsPerPage) || 1;
+  document.getElementById("equipment-page-number").textContent = `${currentPage} of ${totalPages}`;
   updatePaginationButtons();
 }
 
 // Enable or disable pagination buttons
 function updatePaginationButtons() {
   document.getElementById("equipment-prev-page").disabled = currentPage === 1;
-  document.getElementById("equipment-next-page").disabled = (currentPage * rowsPerPage) >= filteredEquipments.length;
+  document.getElementById("equipment-next-page").disabled = currentPage >= Math.ceil(filteredEquipments.length / rowsPerPage);
 }
 
 // Event listener for "Previous" button
 document.getElementById("equipment-prev-page").addEventListener("click", () => {
   if (currentPage > 1) {
     currentPage--;
-    displayEquipments(filteredEquipments); // Pass filteredEquipments to displayEquipments
-    updatePagination();
+    displayEquipments(filteredEquipments);
   }
 });
 
@@ -122,8 +140,7 @@ document.getElementById("equipment-prev-page").addEventListener("click", () => {
 document.getElementById("equipment-next-page").addEventListener("click", () => {
   if ((currentPage * rowsPerPage) < filteredEquipments.length) {
     currentPage++;
-    displayEquipments(filteredEquipments); // Pass filteredEquipments to displayEquipments
-    updatePagination();
+    displayEquipments(filteredEquipments);
   }
 });
 
@@ -164,6 +181,7 @@ document.querySelector(".equipment_select").addEventListener("change", function 
     : equipmentsList; // If no selection, show all equipments
 
   currentPage = 1; // Reset to the first page when filter is applied
+  sortEquipmentsById();
   displayEquipments(filteredEquipments); // Update the table with filtered Equipments
 });
 
@@ -276,6 +294,23 @@ function showDeleteMessage(message, success) {
     }, 300);
   }, 4000);
 }
+// Search bar event listener for real-time filtering
+document.getElementById("equip-search-bar").addEventListener("input", function () {
+  const searchQuery = this.value.toLowerCase().trim();
+
+  // Filter Equipments based on searchQuery, excluding stock and date fields
+  filteredEquipments = equipmentsList.filter(equipment => {
+    return (
+      equipment.equipment_name?.toLowerCase().includes(searchQuery) ||
+      equipment.equipment_category?.toLowerCase().includes(searchQuery) ||
+      equipment.equipment_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
+    );
+  });
+
+  currentPage = 1; // Reset pagination
+  sortEquipmentsById();
+  displayEquipments(filteredEquipments); // Update the table with filtered Equipments
+});
 
 // <------------------ FUNCTION TO DISPLAY equipment STOCK MESSAGE ------------------------>
 const equipmentStockMessage = document.getElementById("equip-stock-message");

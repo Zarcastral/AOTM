@@ -99,7 +99,8 @@ body {
   margin-top: 20px;
 }
 
-.search-bar {
+.crop-search-bar, .fert-search-bar
+.equp-search-bar {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
@@ -113,18 +114,21 @@ body {
   display: block; /* Makes the image block-level for better alignment */
   margin: 0 auto; /* Centers the image horizontally */
 }
-.search-bar input {
+.crop-search-bar input, .fert-search-bar input,
+.equip-search-bar input {
   width: 300px;
   padding: 8px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
 }
 
-.search-bar select {
+.crop-search-bar select, .fert-search-bar select,
+.equip-search-bar select  {
   padding: 8px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
 }
+
 .panel table th, .panel table td {
   text-align: left; /* This centers the text */
   vertical-align: middle;
@@ -197,7 +201,7 @@ tbody tr:hover {
 
 .stock-selector a {
   color: slategray;
-  text-decoration: none;
+
   transition: color 0.3s ease;
 }
 
@@ -206,35 +210,46 @@ tbody tr:hover {
   font-weight: bold;
 }
 
+
 /* Pagination styles */
 .crops-pagination,
 .fertilizer-pagination,
 .equipment-pagination {
-display: flex;
-justify-content: flex-end; /* Ensures alignment to the right */
-margin-top: 20px;
-width: 100%; /* Ensures it spans full width */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; /* Aligns vertically */
+  margin-top: 20px;
+  width: 100%;
+  gap: 10px; /* Adds spacing between elements */
+}
+
+#crop-page-number, #fertilizer-page-number, #equipment-page-number {
+  font-size: 17px;
+  color: #333;
 }
 
 .crop-pagination-btn, .fertilizer-pagination-btn,
 .equipment-pagination-btn {
-padding: 8px 12px;
-margin: 0 5px;
-font-size: 16px;
-border: 1px solid #ddd;
-border-radius: 10px;
-cursor: pointer;
-background-color: #f4f4f4;
-transition: background-color 0.3s;
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
 }
 
-.pagination-btn:hover {
-background-color: #ddd;
+.crop-pagination-btn:hover, .fertilizer-pagination-btn:hover,
+.equipment-pagination-btn:hover {
+  color: #41A186;
 }
 
-.pagination-btn:disabled {
-background-color: #e0e0e0;
-cursor: not-allowed;
+.crop-pagination-btn:disabled, .fertilizer-pagination-btn:disabled,
+.equipment-pagination-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
 }
 
 
