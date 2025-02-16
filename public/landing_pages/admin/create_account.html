@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Account</title>
+  <link rel="stylesheet" href="create_account.css">
   <script type="module" src="../../../src/auth/create_account.js" defer></script>
 </head>
 
@@ -40,7 +41,25 @@
       <div>
         <label for="password">Password:</label>
         <input type="password" id="password" required>
+        <small id="passwordMessage" style="color: red;">Password must be at least 8 characters, contain one uppercase
+          letter,
+          and one number.</small>
       </div>
+
+      <!-- Pop-up Modal for Errors -->
+      <div id="errorPopup" class="popup-container" style="display: none;">
+        <div class="popup-box">
+          <p id="popupMessage"></p>
+          <button id="closePopup">Okay</button>
+        </div>
+      </div>
+
+      <script type="module">
+        import { updateFormFields } from "../../../src/auth/create_account.js";
+        document.getElementById("user_type").addEventListener("change", updateFormFields);
+      </script>
+
+
       <div>
         <label for="confirmPassword">Confirm Password:</label>
         <input type="password" id="confirmPassword" required>
@@ -86,6 +105,7 @@
   </form>
 
   <p id="error-message" style="color: red; display: none;"></p>
+
 
   <script type="module">
     import { updateFormFields } from "../../../src/auth/create_account.js";
