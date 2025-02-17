@@ -25,6 +25,8 @@ const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
 const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
 let taskToDeleteId = null; // Store the task ID for deletion
 
+
+
 // ✅ Duplicate Subtask Modal
 const duplicateSubtaskModal = document.createElement("div");
 duplicateSubtaskModal.classList.add("modal");
@@ -327,3 +329,101 @@ taskList.addEventListener("click", async (e) => {
 });
 
 fetchTasks();
+
+// New Elements for Assigning Tasks to Crop Type
+const assignTaskModal = document.getElementById("assign-task-modal");
+const openAssignTaskModalBtn = document.getElementById("open-assign-task-modal");
+const closeAssignTaskModalBtn = document.getElementById("close-assign-task-modal");
+const assignTasksBtn = document.getElementById("assign-tasks-btn");
+const cropTypeSelect = document.getElementById("crop-type-select");
+const taskCheckboxesContainer = document.getElementById("task-checkboxes");
+
+let cropTypes = []; // Store crop types
+
+// Open Assign Task Modal and load data
+openAssignTaskModalBtn.addEventListener("click", () => {
+  assignTaskModal.style.display = "flex"; // Show the modal
+  loadCropTypes(); // Fetch and load crop types into dropdown
+  loadTasks(); // Fetch and load tasks into checkboxes
+});
+
+// Close the modal
+closeAssignTaskModalBtn.addEventListener("click", () => {
+  assignTaskModal.style.display = "none"; // Hide the modal
+});
+
+// Fetch and load crop types into dropdown
+async function loadCropTypes() {
+  try {
+    const querySnapshot = await getDocs(collection(db, "tb_crop_types"));
+    cropTypes = [];
+    cropTypeSelect.innerHTML = "<option value=''>Select a crop type</option>"; // Clear existing options
+
+    if (querySnapshot.empty) {
+      console.log("No crop types found in Firestore.");
+      return;
+    }
+
+    querySnapshot.forEach((doc) => {
+      const cropData = doc.data();
+
+      if (cropData && cropData.crop_type_name) {
+        cropTypes.push({ id: doc.id, name: cropData.crop_type_name });
+
+        const option = document.createElement("option");
+        option.value = doc.id;
+        option.textContent = cropData.crop_type_name; // Set the display text as crop_type_name
+        cropTypeSelect.appendChild(option);
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching crop types:", error);
+  }
+}
+
+// Fetch and load tasks into checkboxes
+async function loadTasks() {
+  const querySnapshot = await getDocs(collection(db, "tb_pretask"));
+  taskCheckboxesContainer.innerHTML = ""; // Clear previous checkboxes
+
+  // Loop through existing tasks and populate them as checkboxes
+  querySnapshot.forEach((doc) => {
+    const taskData = doc.data();
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = doc.id;
+    checkbox.name = "tasks";
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(taskData.task_name));
+    taskCheckboxesContainer.appendChild(label);
+    taskCheckboxesContainer.appendChild(document.createElement("br"));
+  });
+}
+
+// Assign tasks to selected crop type
+assignTasksBtn.addEventListener("click", async () => {
+  const selectedCropTypeId = cropTypeSelect.value;
+  const selectedTaskIds = Array.from(
+    document.querySelectorAll('input[name="tasks"]:checked')
+  ).map((checkbox) => checkbox.value);
+
+  if (!selectedCropTypeId || selectedTaskIds.length === 0) {
+    alert("Please select a crop type and at least one task.");
+    return;
+  }
+
+  // Assign tasks to crop type
+  for (const taskId of selectedTaskIds) {
+    await addDoc(collection(db, "tb_tasklist"), {
+      crop_type_id: selectedCropTypeId,
+      task_id: taskId,
+      assigned_on: new Date(),
+    });
+  }
+
+  alert("Tasks successfully assigned to the crop type!");
+  assignTaskModal.style.display = "none"; // Close modal after assignment
+});
+
+
