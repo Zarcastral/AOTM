@@ -6,6 +6,7 @@ import {
   getFirestore,
   query,
   updateDoc,
+  deleteDoc,
   where,
 } from "firebase/firestore";
 import app from "../../../src/config/firebase_config.js";
@@ -19,6 +20,10 @@ const closeAddTaskModalBtn = document.getElementById("close-add-task-modal");
 const closeEditTaskModalBtn = document.getElementById("close-edit-task-modal");
 const duplicateTaskModal = document.getElementById("duplicate-task-modal");
 const noChangesModal = document.getElementById("no-changes-modal");
+const deleteConfirmationModal = document.getElementById("delete-confirmation-modal");
+const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+let taskToDeleteId = null; // Store the task ID for deletion
 
 // ✅ Duplicate Subtask Modal
 const duplicateSubtaskModal = document.createElement("div");
@@ -199,7 +204,6 @@ saveSubtasksBtn.addEventListener("click", async () => {
   fetchTasks();
 });
 
-// ✅ Fetch Tasks from Firestore
 async function fetchTasks() {
   taskList.innerHTML = "";
   const querySnapshot = await getDocs(collection(db, "tb_pretask"));
@@ -213,7 +217,39 @@ async function fetchTasks() {
     `;
     taskList.appendChild(taskItem);
   });
+
+  // Add delete task functionality
+  const deleteButtons = document.querySelectorAll(".delete-task-btn");
+  deleteButtons.forEach(button => {
+    button.addEventListener("click", (e) => {
+      taskToDeleteId = e.target.dataset.id;
+      deleteConfirmationModal.style.display = "flex"; // Show the confirmation modal
+    });
+  });
 }
+
+// ✅ Handle Confirm Delete
+confirmDeleteBtn.addEventListener("click", async () => {
+  if (taskToDeleteId) {
+    // Delete from Firestore
+    await deleteDoc(doc(db, "tb_pretask", taskToDeleteId));
+
+    // Remove task from the UI
+    const taskItem = document.querySelector(`[data-id="${taskToDeleteId}"]`).closest("li");
+    taskItem.remove();
+
+    // Reset taskToDeleteId and hide the modal
+    taskToDeleteId = null;
+    deleteConfirmationModal.style.display = "none";
+  }
+});
+
+// ✅ Handle Cancel Delete
+cancelDeleteBtn.addEventListener("click", () => {
+  taskToDeleteId = null;
+  deleteConfirmationModal.style.display = "none"; // Hide the modal
+});
+
 
 // ✅ Disable "Okay" button when input is empty
 function checkTaskInput() {
