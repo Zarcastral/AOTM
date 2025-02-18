@@ -373,11 +373,10 @@ window.addBarangay = async function() {
 window.addEquipment = async function() {
     const equipmentName = document.getElementById('equipment-name').value;
     const category = document.getElementById('equipment-category').value;
-    const stock = document.getElementById('equipment-stock').value;
-    const unit = document.getElementById('equipment-unit').value;
+    const quantity = parseInt(document.getElementById('equipment-quantity').value, 10);
     const dateAdded = new Date().toISOString();
 
-    if (!equipmentName || !category || !stock || !unit) {
+    if (!equipmentName || !category || isNaN(quantity)) {
         alert('All fields are required!');
         return;
     }
@@ -400,8 +399,7 @@ window.addEquipment = async function() {
             equipment_id: nextEquipmentId,
             equipment_name: equipmentName,
             equipment_category: category,
-            current_stock: stock,
-            unit: unit,
+            current_quantity: quantity,
             dateAdded
         }).then(() => {
             alert('Equipment added successfully');
@@ -417,12 +415,12 @@ window.addEquipment = async function() {
 window.addFertilizer = async function() {
     const fertilizerName = document.getElementById('fertilizer-name').value;
     const category = document.getElementById('fertilizer-category').value;
-    const stock = document.getElementById('fertilizer-stock').value;
+    const quantity = parseInt(document.getElementById('fertilizer-stock').value, 10);
     const unit = document.getElementById('fertilizer-unit').value;
     const dateAdded = new Date().toISOString();
 
-    if (!fertilizerName || !category || !stock || !unit) {
-        alert('All fields are required!');
+    if (!fertilizerName || !category || isNaN(quantity) || !unit) {
+        alert('All fields are required and stock must be a valid number!');
         return;
     }
 
@@ -444,7 +442,7 @@ window.addFertilizer = async function() {
             fertilizer_id: nextFertilizerId,
             fertilizer_name: fertilizerName,
             fertilizer_category: category,
-            current_stock: stock,
+            quantity: quantity, // Now stored as an integer
             unit: unit,
             dateAdded
         }).then(() => {
@@ -456,6 +454,7 @@ window.addFertilizer = async function() {
         });
     }
 }
+
 
 window.loadFarmlandsForBarangay = async function () {
     const listContainer = document.getElementById('farmland-list');
