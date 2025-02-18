@@ -216,11 +216,12 @@ if (!form.dataset.listenerAdded) {
         barangay: barangay_name, // Previously barangay_name, keeping it consistent
       };
 
+      // Save username as user_name for Admin/Supervisor
       if (userType === "Admin" || userType === "Supervisor") {
-        userData.username = username;
+        userData.user_name = username;
         await setDoc(doc(db, "tb_users", userCredential.user.uid), userData);
       } else {
-        userData.farmerId = farmerId;
+        userData.farmer_id = farmerId;
         await setDoc(doc(db, "tb_farmers", userCredential.user.uid), userData);
       }
 
