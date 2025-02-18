@@ -123,111 +123,118 @@ const uploadProfilePicture = async (file, userId) => {
 };
 
 // **Form Submission**
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  console.log("Form submission triggered");
+// Ensure the event listener is attached only once
+if (!form.dataset.listenerAdded) {
+  form.dataset.listenerAdded = "true";
 
-  const submitButton = form.querySelector("button[type='submit']");
-  submitButton.disabled = true;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const userType = userTypeSelect.value;
-  const email = document.getElementById("email").value;
-  const password = passwordInput.value;
-  const confirmPassword = confirmPasswordInput.value;
-  const firstName = document.getElementById("firstName").value;
-  const middleName = document.getElementById("middleName").value;
-  const lastName = document.getElementById("lastName").value;
-  const contact = document.getElementById("contact").value;
-  const birthday = document.getElementById("birthday").value;
-  const sex = document.getElementById("sex").value;
-  const barangay = barangaySelect.value;
-  const profilePicture = profilePictureInput.files[0];
+    console.log("Form submission triggered");
 
-  let username = "";
-  let farmerId = "";
+    const submitButton = form.querySelector("button[type='submit']");
+    submitButton.disabled = true;
 
-  if (userType === "Admin" || userType === "Supervisor") {
-    username = usernameInput.value.trim();
-    if (!username) {
-      submitButton.disabled = false;
-      return showError("Username is required for Admins and Supervisors.");
-    }
-  } else {
-    farmerId = farmerIdInput.value.trim();
-    if (!farmerId) {
-      submitButton.disabled = false;
-      return showError(
-        "Farmer ID is required for Farmers, Farm Presidents, and Head Farmers."
-      );
-    }
-  }
+    const userType = userTypeSelect.value;
+    const email = document.getElementById("email").value;
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+    const firstName = document.getElementById("firstName").value;
+    const middleName = document.getElementById("middleName").value;
+    const lastName = document.getElementById("lastName").value;
+    const contact = document.getElementById("contact").value;
+    const birthday = document.getElementById("birthday").value;
+    const sex = document.getElementById("sex").value;
+    const barangay_name = barangaySelect.value;
+    const profilePicture = profilePictureInput.files[0];
 
-  if (password !== confirmPassword) {
-    submitButton.disabled = false;
-    return showError("Passwords do not match.");
-  }
-
-  try {
-    console.log("Checking for existing user...");
-    const userQuery = query(
-      collection(db, "tb_users"),
-      where("email", "==", email)
-    );
-    const querySnapshot = await getDocs(userQuery);
-
-    if (!querySnapshot.empty) {
-      submitButton.disabled = false;
-      return showError("Email is already registered.");
-    }
-
-    console.log("Creating user in Firebase Auth...");
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    const userId = userCredential.user.uid;
-    console.log("User created with UID:", userId);
-
-    let profilePictureUrl = "";
-    if (profilePicture) {
-      console.log("Uploading profile picture...");
-      profilePictureUrl = await uploadProfilePicture(profilePicture, userId);
-      console.log("Profile picture uploaded:", profilePictureUrl);
-    }
-
-    const userData = {
-      userId,
-      email,
-      firstName,
-      middleName,
-      lastName,
-      contact,
-      birthday,
-      sex,
-      barangay,
-      profilePicture: profilePictureUrl,
-      userType,
-    };
+    let username = "";
+    let farmerId = "";
 
     if (userType === "Admin" || userType === "Supervisor") {
-      userData.username = username;
-      await setDoc(doc(db, "tb_users", userId), userData);
+      username = usernameInput.value.trim();
+      if (!username) {
+        submitButton.disabled = false;
+        return showError("Username is required for Admins and Supervisors.");
+      }
     } else {
-      userData.farmerId = farmerId;
-      await setDoc(doc(db, "tb_farmers", userId), userData);
+      farmerId = farmerIdInput.value.trim();
+      if (!farmerId) {
+        submitButton.disabled = false;
+        return showError(
+          "Farmer ID is required for Farmers, Farm Presidents, and Head Farmers."
+        );
+      }
     }
 
-    console.log("Account created successfully!");
-    alert("Account created successfully!");
-    form.reset();
-  } catch (error) {
-    console.error("Error creating account:", error);
-    showError(error.message);
-  }
+    if (password !== confirmPassword) {
+      submitButton.disabled = false;
+      return showError("Passwords do not match.");
+    }
 
-  submitButton.disabled = false;
-});
+    try {
+      console.log("Checking for existing user...");
+      const userQuery = query(
+        collection(db, "tb_users"),
+        where("email", "==", email)
+      );
+      const querySnapshot = await getDocs(userQuery);
+
+      if (!querySnapshot.empty) {
+        submitButton.disabled = false;
+        return showError("Email is already registered.");
+      }
+
+      console.log("Creating user in Firebase Auth...");
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      console.log("User created with UID:", userCredential.user.uid);
+
+      let profilePictureUrl = "";
+      if (profilePicture) {
+        console.log("Uploading profile picture...");
+        profilePictureUrl = await uploadProfilePicture(
+          profilePicture,
+          userCredential.user.uid
+        );
+        console.log("Profile picture uploaded:", profilePictureUrl);
+      }
+
+      const userData = {
+        user_picture: profilePictureUrl,
+        first_name: firstName,
+        middle_name: middleName,
+        last_name: lastName,
+        contact,
+        email,
+        birthday,
+        sex,
+        user_type: userType,
+        barangay: barangay_name, // Previously barangay_name, keeping it consistent
+      };
+
+      if (userType === "Admin" || userType === "Supervisor") {
+        userData.username = username;
+        await setDoc(doc(db, "tb_users", userCredential.user.uid), userData);
+      } else {
+        userData.farmerId = farmerId;
+        await setDoc(doc(db, "tb_farmers", userCredential.user.uid), userData);
+      }
+
+      console.log("Account created successfully!");
+      alert("Account created successfully!");
+      form.reset();
+    } catch (error) {
+      console.error("Error creating account:", error);
+      showError(error.message);
+    }
+
+    submitButton.disabled = false;
+  });
+}
 
 // Initialize Data Fetching
 document.addEventListener("DOMContentLoaded", () => {
