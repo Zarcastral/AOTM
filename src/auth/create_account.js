@@ -15,244 +15,222 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+// Form Elements
+const form = document.getElementById("createAccountForm");
 const userTypeSelect = document.getElementById("user_type");
-const farmerFields = document.getElementById("farmerFields");
-const adminFields = document.getElementById("adminFields");
+const barangaySelect = document.getElementById("barangay");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirmPassword");
-const passwordMessage = document.getElementById("passwordMessage");
-const barangaySelect = document.getElementById("barangay"); // Get Barangay field
+const profilePictureInput = document.getElementById("profilePicture");
 
-// 🚀 Pop-up Elements
+// Role-based Fields
+const adminFields = document.getElementById("adminFields");
+const farmerFields = document.getElementById("farmerFields");
+const usernameInput = document.getElementById("userName");
+const farmerIdInput = document.getElementById("farmer_id");
+
+// Error Popup Elements
 const errorPopup = document.getElementById("errorPopup");
 const popupMessage = document.getElementById("popupMessage");
 const closePopup = document.getElementById("closePopup");
 
-// ✅ Function to Show Pop-up Error
-function showPopup(message) {
-  popupMessage.textContent = message;
-  errorPopup.style.display = "block";
-}
+// Password Validation UI
+const passwordChecks = {
+  lowercaseCheck: /[a-z]/,
+  uppercaseCheck: /[A-Z]/,
+  numberCheck: /\d/,
+  lengthCheck: /.{8,}/,
+};
 
-// ✅ Close the Pop-up when "Okay" is clicked
-closePopup.addEventListener("click", () => {
-  errorPopup.style.display = "none";
-});
+const updatePasswordValidation = () => {
+  Object.entries(passwordChecks).forEach(([id, regex]) => {
+    document.getElementById(id).style.color = regex.test(passwordInput.value)
+      ? "green"
+      : "red";
+  });
+};
 
-// ✅ Fetch user roles from Firestore
-async function fetchUserRoles() {
+passwordInput.addEventListener("input", updatePasswordValidation);
+
+// Fetch User Roles
+const fetchUserRoles = async () => {
+  userTypeSelect.innerHTML = `<option value="">Loading...</option>`;
   try {
-    const userTypesRef = collection(db, "tb_user_type");
-    const snapshot = await getDocs(userTypesRef);
-
-    userTypeSelect.innerHTML = '<option value="">Select User Type</option>';
-
-    snapshot.forEach((doc) => {
-      const userType = doc.data().user_type;
-      const option = document.createElement("option");
-      option.value = userType;
-      option.textContent = userType;
-      userTypeSelect.appendChild(option);
+    const rolesQuery = await getDocs(collection(db, "tb_user_type"));
+    userTypeSelect.innerHTML = `<option value="">Select User Type</option>`;
+    rolesQuery.forEach((doc) => {
+      const user_type = doc.data().user_type;
+      userTypeSelect.innerHTML += `<option value="${user_type}">${user_type}</option>`;
     });
-
-    if (userTypeSelect.options.length === 1) {
-      userTypeSelect.innerHTML = '<option value="">No roles available</option>';
-    }
   } catch (error) {
-    showPopup("Failed to load user roles.");
-    console.error("Error fetching user roles:", error);
+    console.error("Error fetching user user_types:", error);
   }
-}
+};
 
-// ✅ Fetch Barangay Names from Firestore
-async function fetchBarangayList() {
+// Fetch Barangays
+const fetchBarangayList = async () => {
   try {
-    const barangayRef = collection(db, "tb_barangay");
-    const snapshot = await getDocs(barangayRef);
-
-    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-
-    snapshot.forEach((doc) => {
-      const barangayName = doc.data().barangay_name;
-      const option = document.createElement("option");
-      option.value = barangayName;
-      option.textContent = barangayName;
-      barangaySelect.appendChild(option);
+    const barangayQuery = await getDocs(collection(db, "tb_barangay"));
+    barangaySelect.innerHTML = `<option value="">Select Barangay</option>`;
+    barangayQuery.forEach((doc) => {
+      const barangay_name = doc.data().barangay_name;
+      barangaySelect.innerHTML += `<option value="${barangay_name}">${barangay_name}</option>`;
     });
-
-    if (barangaySelect.options.length === 1) {
-      barangaySelect.innerHTML =
-        '<option value="">No barangays available</option>';
-    }
   } catch (error) {
-    showPopup("Failed to load barangays.");
     console.error("Error fetching barangays:", error);
   }
-}
+};
 
-// ✅ Update form fields dynamically based on `user_type`
+// Dynamic Form Update
 export function updateFormFields() {
-  const selectedType = userTypeSelect.value;
-  farmerFields.style.display = [
-    "Farmer",
-    "Head Farmer",
-    "Farm President",
-  ].includes(selectedType)
-    ? "block"
-    : "none";
-  adminFields.style.display = ["Admin", "Supervisor"].includes(selectedType)
-    ? "block"
-    : "none";
+  const userType = userTypeSelect.value;
+
+  adminFields.classList.add("hidden");
+  farmerFields.classList.add("hidden");
+
+  if (userType === "Admin" || userType === "Supervisor") {
+    adminFields.classList.remove("hidden");
+    farmerIdInput.required = false;
+    usernameInput.required = true;
+  } else if (
+    userType === "Farmer" ||
+    userType === "Farm President" ||
+    userType === "Head Farmer"
+  ) {
+    farmerFields.classList.remove("hidden");
+    farmerIdInput.required = true;
+    usernameInput.required = false;
+  }
 }
 
-// ✅ Check for existing email, username, or farmer ID
-async function checkDuplicate(field, value, collectionName) {
-  const q = query(collection(db, collectionName), where(field, "==", value));
-  const querySnapshot = await getDocs(q);
-  return !querySnapshot.empty;
-}
+userTypeSelect.addEventListener("change", updateFormFields);
 
-// ✅ Handle form submission
-document
-  .getElementById("createAccountForm")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
+// Show Error Popup
+const showError = (message) => {
+  popupMessage.textContent = message;
+  errorPopup.classList.remove("hidden");
+};
 
-    const submitButton = document.querySelector("button[type='submit']");
-    submitButton.disabled = true;
+closePopup.addEventListener("click", () => {
+  errorPopup.classList.add("hidden");
+});
 
-    // Gather form values
-    const email = document.getElementById("email").value.trim();
-    const password = passwordInput.value;
-    const confirmPassword = confirmPasswordInput.value;
-    const profilePicture = document.getElementById("profilePicture").files[0];
-    const firstName = document.getElementById("firstName").value.trim();
-    const middleName = document.getElementById("middleName").value.trim();
-    const lastName = document.getElementById("lastName").value.trim();
-    const contact = document.getElementById("contact").value.trim();
-    const birthday = document.getElementById("birthday").value;
-    const sex = document.getElementById("sex").value;
-    const user_type = userTypeSelect.value;
-    const barangay = barangaySelect.value;
+// Upload Profile Picture to Firebase Storage
+const uploadProfilePicture = async (file, userId) => {
+  const storageRef = ref(storage, `profile_pictures/${userId}`);
+  await uploadBytes(storageRef, file);
+  return getDownloadURL(storageRef);
+};
 
-    let farmer_id = "";
-    let username = "";
+// **Form Submission**
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  console.log("Form submission triggered");
 
-    if (["Farmer", "Head Farmer", "Farm President"].includes(user_type)) {
-      farmer_id = document.getElementById("farmer_id").value.trim();
-    } else if (["Admin", "Supervisor"].includes(user_type)) {
-      username = document.getElementById("userName").value.trim();
-    }
+  const submitButton = form.querySelector("button[type='submit']");
+  submitButton.disabled = true;
 
-    // ✅ Validate inputs
-    if (!user_type) {
-      showPopup("Please select a user type.");
+  const userType = userTypeSelect.value;
+  const email = document.getElementById("email").value;
+  const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+  const firstName = document.getElementById("firstName").value;
+  const middleName = document.getElementById("middleName").value;
+  const lastName = document.getElementById("lastName").value;
+  const contact = document.getElementById("contact").value;
+  const birthday = document.getElementById("birthday").value;
+  const sex = document.getElementById("sex").value;
+  const barangay = barangaySelect.value;
+  const profilePicture = profilePictureInput.files[0];
+
+  let username = "";
+  let farmerId = "";
+
+  if (userType === "Admin" || userType === "Supervisor") {
+    username = usernameInput.value.trim();
+    if (!username) {
       submitButton.disabled = false;
-      return;
+      return showError("Username is required for Admins and Supervisors.");
     }
-    if (password !== confirmPassword) {
-      passwordMessage.textContent = ""; // Remove inline message
-      showPopup("Passwords do not match."); // Show pop-up
+  } else {
+    farmerId = farmerIdInput.value.trim();
+    if (!farmerId) {
       submitButton.disabled = false;
-      return;
+      return showError(
+        "Farmer ID is required for Farmers, Farm Presidents, and Head Farmers."
+      );
     }
+  }
 
-    // ✅ Check for duplicate email, username, or farmer ID
-    try {
-      // 🔍 Check Firestore for email duplication
-      const emailExistsInUsers = await checkDuplicate(
-        "email",
-        email,
-        "tb_users"
-      );
-      const emailExistsInFarmers = await checkDuplicate(
-        "email",
-        email,
-        "tb_farmers"
-      );
+  if (password !== confirmPassword) {
+    submitButton.disabled = false;
+    return showError("Passwords do not match.");
+  }
 
-      if (emailExistsInUsers || emailExistsInFarmers) {
-        showPopup(
-          "This email is already registered. Please use a different email."
-        );
-        submitButton.disabled = false;
-        return;
-      }
+  try {
+    console.log("Checking for existing user...");
+    const userQuery = query(
+      collection(db, "tb_users"),
+      where("email", "==", email)
+    );
+    const querySnapshot = await getDocs(userQuery);
 
-      if (
-        username &&
-        (await checkDuplicate("username", username, "tb_users"))
-      ) {
-        showPopup("This username is already taken.");
-        submitButton.disabled = false;
-        return;
-      }
-
-      if (
-        farmer_id &&
-        (await checkDuplicate("farmer_id", farmer_id, "tb_farmers"))
-      ) {
-        showPopup("This Farmer ID is already registered.");
-        submitButton.disabled = false;
-        return;
-      }
-
-      // ✅ Create the user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-      const userId = user.uid;
-
-      let profilePictureURL = "";
-      if (profilePicture) {
-        const storageRef = ref(storage, `profile_pictures/${userId}`);
-        await uploadBytes(storageRef, profilePicture);
-        profilePictureURL = await getDownloadURL(storageRef);
-      }
-
-      const collectionName = [
-        "Farmer",
-        "Head Farmer",
-        "Farm President",
-      ].includes(user_type)
-        ? "tb_farmers"
-        : "tb_users";
-
-      const userData = {
-        user_picture: profilePictureURL,
-        first_name: firstName,
-        middle_name: middleName,
-        last_name: lastName,
-        contact,
-        email,
-        birthday,
-        sex,
-        user_type,
-        barangay,
-      };
-
-      if (farmer_id) userData.farmer_id = farmer_id;
-      if (username) userData.username = username;
-
-      await setDoc(doc(collection(db, collectionName), userId), userData);
-
-      alert("Account created successfully!");
-      document.getElementById("createAccountForm").reset();
-      passwordMessage.textContent = "";
-    } catch (error) {
-      console.error("Error creating account:", error);
-      showPopup(error.message);
-    } finally {
+    if (!querySnapshot.empty) {
       submitButton.disabled = false;
+      return showError("Email is already registered.");
     }
-  });
 
-// ✅ Load user roles & barangays on page load
+    console.log("Creating user in Firebase Auth...");
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const userId = userCredential.user.uid;
+    console.log("User created with UID:", userId);
+
+    let profilePictureUrl = "";
+    if (profilePicture) {
+      console.log("Uploading profile picture...");
+      profilePictureUrl = await uploadProfilePicture(profilePicture, userId);
+      console.log("Profile picture uploaded:", profilePictureUrl);
+    }
+
+    const userData = {
+      userId,
+      email,
+      firstName,
+      middleName,
+      lastName,
+      contact,
+      birthday,
+      sex,
+      barangay,
+      profilePicture: profilePictureUrl,
+      userType,
+    };
+
+    if (userType === "Admin" || userType === "Supervisor") {
+      userData.username = username;
+      await setDoc(doc(db, "tb_users", userId), userData);
+    } else {
+      userData.farmerId = farmerId;
+      await setDoc(doc(db, "tb_farmers", userId), userData);
+    }
+
+    console.log("Account created successfully!");
+    alert("Account created successfully!");
+    form.reset();
+  } catch (error) {
+    console.error("Error creating account:", error);
+    showError(error.message);
+  }
+
+  submitButton.disabled = false;
+});
+
+// Initialize Data Fetching
 document.addEventListener("DOMContentLoaded", () => {
   fetchUserRoles();
   fetchBarangayList();
 });
-userTypeSelect.addEventListener("change", updateFormFields);
