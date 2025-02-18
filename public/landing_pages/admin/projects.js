@@ -146,9 +146,9 @@ window.saveProject = async function() {
         const farmlandId = await getFarmlandId(farmlandName);
 
         const cropTypeName = document.getElementById('crop-type').value;
-        let weightCropType = document.getElementById('weight-crop-type').value.trim();
+        let quantityCropType = document.getElementById('quantity-crop-type').value.trim();
         const fertilizerType = document.getElementById('fertilizer-type').value;
-        let weightFertilizerType = document.getElementById('weight-fertilizer-type').value.trim();
+        let quantityFertilizerType = document.getElementById('quantity-fertilizer-type').value.trim();
         const equipment = document.getElementById('equipment').value;
         
         const startDate = document.getElementById('start-date').value;
@@ -156,19 +156,19 @@ window.saveProject = async function() {
 
         // ✅ **Check if required fields are empty**
         if (!projectName || !farmPresidentName || !cropName || !barangayName || 
-            !farmlandName || !cropTypeName || !weightCropType ||
-            !fertilizerType || !weightFertilizerType ||
+            !farmlandName || !cropTypeName || !quantityCropType ||
+            !fertilizerType || !quantityFertilizerType ||
             !equipment || !startDate || !endDate) {
             alert("⚠️ Please fill out all required fields before saving.");
             return;
         }
 
         // Ensure weights end with 'kg'
-        if (!weightCropType.endsWith("kg")) {
-            weightCropType += "kg";
+        if (!quantityCropType.endsWith("kg")) {
+            quantityCropType += "kg";
         }
-        if (!weightFertilizerType.endsWith("kg")) {
-            weightFertilizerType += "kg";
+        if (!quantityFertilizerType.endsWith("kg")) {
+            quantityFertilizerType += "kg";
         }
 
         const projectID = await getNextProjectID();
@@ -183,9 +183,9 @@ window.saveProject = async function() {
             farm_land: farmlandName,
             farmland_id: farmlandId,
             crop_type_name: cropTypeName,
-            weight_crop_type: weightCropType,
+            quantity_crop_type: quantityCropType,
             fertilizer_type: fertilizerType,
-            weight_fertilizer_type: weightFertilizerType,
+            quantity_fertilizer_type: quantityFertilizerType,
             equipment: equipment,
             start_date: startDate,
             end_date: endDate,
@@ -193,10 +193,10 @@ window.saveProject = async function() {
         };
 
         await addDoc(collection(db, "tb_projects"), projectData);
-        alert("✅ Project saved successfully!");
+        alert(" Project saved successfully!");
         resetForm();
     } catch (error) {
-        console.error("❌ Error saving project: ", error);
+        console.error(" Error saving project: ", error);
         alert("Failed to save project. Please try again.");
     }
 }
@@ -211,9 +211,9 @@ window.saveProject = async function() {
             document.getElementById('barangay').value = "";
             document.getElementById('farmland').innerHTML = '<option value="">Select Farmland</option>';
             document.getElementById('crop-type').innerHTML = '<option value="">Select Crop Type</option>';
-            document.getElementById('weight-crop-type').value = "";
+            document.getElementById('quantity-crop-type').value = "";
             document.getElementById('fertilizer-type').selectedIndex = 0;
-            document.getElementById('weight-fertilizer-type').value = "";
+            document.getElementById('quantity-fertilizer-type').value = "";
             document.getElementById('equipment').selectedIndex = 0;
             document.getElementById('start-date').value = "";
             document.getElementById('end-date').value = "";
