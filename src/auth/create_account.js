@@ -204,16 +204,16 @@ if (!form.dataset.listenerAdded) {
       }
 
       const userData = {
-        email,
-        firstName,
-        middleName,
-        lastName,
+        user_picture: profilePictureUrl,
+        first_name: firstName,
+        middle_name: middleName,
+        last_name: lastName,
         contact,
+        email,
         birthday,
         sex,
-        barangay_name,
-        profilePicture: profilePictureUrl,
         user_type: userType,
+        barangay: barangay_name, // Previously barangay_name, keeping it consistent
       };
 
       if (userType === "Admin" || userType === "Supervisor") {
