@@ -15,7 +15,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-
          window.loadFarmPresidents = async function() {
             const querySnapshot = await getDocs(query(collection(db, "tb_farmers"), where("user_type", "==", "Farm President")));
             const assignToSelect = document.getElementById('assign-to');
@@ -201,7 +200,6 @@ window.saveProject = async function() {
     }
 }
 
-
         //PAMBURA
         window.resetForm = function() {
             document.getElementById('project-name').value = "";
@@ -224,10 +222,6 @@ window.saveProject = async function() {
 
         document.getElementById('save-button').addEventListener('click', saveProject);
 
-        //CANCEL BUTTON NAKA COMMENT MUNA
-        /*document.getElementById('cancel-button').addEventListener('click', function() {
-            window.location.href = "index.html";
-        });*/
 
         // Event listeners for select elements
         document.getElementById('assign-to').addEventListener('change', function() {
@@ -237,11 +231,6 @@ window.saveProject = async function() {
         document.getElementById('crops').addEventListener('change', function() {
             loadCropTypes(this.value);
         });
-
-        // Save and Cancel button functionality
-        //document.getElementById('save-button').addEventListener('click', function() {
-            //alert("Form has been saved!");
-        //});
 
         document.getElementById('cancel-button').addEventListener('click', function() {
             window.location.href = "index.html"; // Redirect to the homepage or previous page

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three Panels</title>
+    <link rel="stylesheet" href="projectdash.css">
+</head>
+<body>
+    <div class="panel">
+        <h2 id="barangay_name">barangay_name</h2>
+        <h2>Projects</h2>
+        <div id="projects-content">Loading projects...</div>
+    </div>
+    <div class="panel">
+        <h2>Teams</h2>
+        <button class="new-team-btn">+ New Team</button>
+        <div id="teams-content">Loading teams...</div>
+    </div>
+    <div class="panel">
+    <h2>Feedback Log</h2>
+    <button class="add-feedback-btn">+ Add Feedback</button>
+    <div id="feedback-content">User feedback, complaints, and suggestions will be logged here.</div>
+</div>
+
+<!-- Feedback Popup -->
+<div class="popup" id="feedbackPopup">
+    <h2>Add Feedback</h2>
+    
+    <label>Type of Concern:</label>
+    <select id="feedbackType">
+        <option value="Suggestion">Suggestion</option>
+        <option value="Complaint">Complaint</option>
+        <option value="Request">Request</option>
+    </select>
+    <br><br>
+
+    <label>Status:</label>
+    <select id="feedbackStatus">
+        <option value="Pending">Pending</option>
+        <option value="Resolved">Resolved</option>
+    </select>
+    <br><br>
+
+    <label>Message:</label>
+    <textarea id="feedbackMessage" rows="5" style="width: 100%;"></textarea>
+    <br><br>
+
+    <button id="saveFeedbackBtn">Save Feedback</button>
+    <button id="closeFeedbackPopup">Close</button>
+</div>
+
+    <div class="popup" id="popup">
+        <h2>Create a New Team</h2>
+        <label>Team Name:</label>
+        <input type="text" id="teamName">
+        <br><br>
+        <label>Lead Farmer:</label>
+        <select id="leadFarmer"></select>
+        <br><br>
+        <label>Search Farmers:</label>
+        <input type="text" id="farmerSearch">
+        <div id="farmerBox" class="farmer-box"></div>
+        <label>Selected Farmers:</label>
+        <div id="selectedFarmers" class="farmer-box"></div>
+        <br>
+        <button id="saveTeamBtn">Save</button>
+        <button id="closePopup">Close</button>
+    </div>
+
+    <script type="module" src="projectdash.js"></script>
+
+</body>
+</html>
