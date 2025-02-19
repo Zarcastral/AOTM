@@ -8,8 +8,6 @@ import {
   doc,
   getDoc,
   addDoc,
-  updateDoc,
-  increment,
   setDoc
 } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
@@ -25,9 +23,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const selectedFarmers = new Map();
+const selectedFarmers = new Map(); // Declare globally
 
-// Get the logged-in user's barangay from sessionStorage (convert to lowercase for comparison)
+// Get the logged-in user's barangay (for filtering) in lowercase
 const loggedBarangay = sessionStorage.getItem("barangay_name")?.toLowerCase() || "";
 
 // ********************************************************
@@ -136,7 +134,7 @@ async function loadHeadFarmers() {
   const querySnapshot = await getDocs(farmersRef);
   const leadFarmerSelect = document.getElementById("leadFarmer");
 
-  let optionsHTML = "<option value=''>Select Lead Farmer</option>";
+  let optionsHTML = "<option value=''>Select Lead Farmer</option>"; // Default option
 
   querySnapshot.forEach((doc) => {
     const data = doc.data();
@@ -273,7 +271,6 @@ async function saveTeam() {
       newTeamId = counterSnap.data().count + 1;
     }
 
-    // Save new team along with the barangay of the logged-in user
     await addDoc(collection(db, "tb_teams"), {
       team_id: newTeamId,
       team_name: teamName,
@@ -282,7 +279,6 @@ async function saveTeam() {
       barangay_name: sessionStorage.getItem("barangay_name") || ""
     });
 
-    // Update counter
     await setDoc(counterRef, { count: newTeamId });
 
     alert("Team saved successfully!");
@@ -295,7 +291,7 @@ async function saveTeam() {
   }
 }
 
-// Clear the team creation form
+// Function to clear all inputs
 function clearForm() {
   document.getElementById("teamName").value = "";
   document.getElementById("leadFarmer").selectedIndex = 0;
@@ -334,17 +330,22 @@ async function saveFeedback() {
   try {
     const idCounterRef = doc(db, "tb_id_counters", "feedback_id_counter");
     const idCounterSnap = await getDoc(idCounterRef);
-
     let newFeedbackId = 1;
     if (idCounterSnap.exists()) {
       newFeedbackId = idCounterSnap.data().count + 1;
     }
+
+    // Get the user's full name and picture from sessionStorage for the feedback submission
+    const userFullName = sessionStorage.getItem("userFullName") || "";
+    const userPicture = sessionStorage.getItem("userPicture") || "";
 
     await addDoc(collection(db, "tb_feedbacks"), {
       feedback_id: newFeedbackId,
       concern: concern,
       status: status,
       feedback: feedback,
+      submitted_by: userFullName,
+      submitted_by_picture: userPicture,
       timestamp: new Date()
     });
 
@@ -352,12 +353,13 @@ async function saveFeedback() {
 
     alert("Feedback submitted successfully!");
 
+    // Clear form inputs
     document.getElementById("feedbackType").selectedIndex = 0;
     document.getElementById("feedbackStatus").selectedIndex = 0;
     document.getElementById("feedbackMessage").value = "";
 
     closeFeedbackPopup();
-    loadFeedback();
+    loadFeedback(); // Refresh feedback log
   } catch (error) {
     console.error("Error saving feedback:", error);
     alert("Failed to submit feedback.");
@@ -371,10 +373,20 @@ async function loadFeedback() {
 
   querySnapshot.forEach((doc) => {
     const data = doc.data();
+    console.log("Feedback Data:", data); // Debug: log each feedback document
+
     feedbackHTML += `
-      <li>
-        <strong>${data.concern}</strong> - ${data.status} <br>
-        ${data.feedback}
+      <li style="display:flex; align-items:center; gap:10px;">
+        ${
+          data.submitted_by_picture && data.submitted_by_picture.trim() !== ""
+            ? `<img src="${data.submitted_by_picture}" alt="User Picture" style="width:50px;height:50px;border-radius:50%;">`
+            : `<div style="width:50px;height:50px;border-radius:50%;background:#ccc;"></div>`
+        }
+        <div>
+          <strong>${data.concern}</strong> - ${data.status} <br>
+          ${data.feedback} <br>
+          <em>Submitted by: ${data.submitted_by || "Anonymous"}</em>
+        </div>
       </li>
       <hr>
     `;
@@ -384,18 +396,24 @@ async function loadFeedback() {
   document.getElementById("feedback-content").innerHTML = feedbackHTML;
 }
 
+
+// Load feedback on page load
 document.addEventListener("DOMContentLoaded", loadFeedback);
 
+// Also attach feedback event listeners on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".add-feedback-btn").addEventListener("click", openFeedbackPopup);
   document.getElementById("closeFeedbackPopup").addEventListener("click", closeFeedbackPopup);
   document.getElementById("saveFeedbackBtn").addEventListener("click", saveFeedback);
 });
 
-// ********************************************************
-// Event Listeners for Team and Farmer search
+// Attach the save function to the save button
 document.getElementById("saveTeamBtn").addEventListener("click", saveTeam);
+
+// Attach event listener to search input
 document.getElementById("farmerSearch").addEventListener("input", searchFarmers);
+
+// Ensure the dropdown is loaded when the popup opens
 document.querySelector(".new-team-btn").addEventListener("click", () => {
   loadHeadFarmers();
   openPopup();
