@@ -15,6 +15,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+const farmerIdError = document.getElementById("farmerIdError");
+const emailInput = document.getElementById("email");
+const emailError = document.getElementById("emailError"); // Add this element in HTML
+
 // Form Elements
 const form = document.getElementById("createAccountForm");
 const userTypeSelect = document.getElementById("user_type");
@@ -157,6 +161,10 @@ if (!form.dataset.listenerAdded) {
         submitButton.disabled = false;
         return showError("Username is required for Admins and Supervisors.");
       }
+      if (usernameError.textContent.includes("❌")) {
+        submitButton.disabled = false;
+        return showError("Username is already taken. Please choose another.");
+      }
     } else {
       farmerId = farmerIdInput.value.trim();
       if (!farmerId) {
@@ -213,7 +221,7 @@ if (!form.dataset.listenerAdded) {
         birthday,
         sex,
         user_type: userType,
-        barangay: barangay_name, // Previously barangay_name, keeping it consistent
+        barangay_name: barangay_name, // Previously barangay_name, keeping it consistent
       };
 
       // Save username as user_name for Admin/Supervisor
@@ -236,6 +244,233 @@ if (!form.dataset.listenerAdded) {
     submitButton.disabled = false;
   });
 }
+
+const confirmPasswordError = document.getElementById("confirmPasswordError");
+const passwordMatchMessage = document.getElementById("passwordMatchMessage");
+
+const validateConfirmPassword = () => {
+  const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+
+  if (confirmPassword === "") {
+    confirmPasswordError.style.display = "none";
+    passwordMatchMessage.style.display = "none";
+    confirmPasswordInput.setCustomValidity("");
+  } else if (password !== confirmPassword) {
+    confirmPasswordError.style.display = "block";
+    passwordMatchMessage.style.display = "none";
+    confirmPasswordInput.setCustomValidity("Passwords do not match");
+  } else {
+    confirmPasswordError.style.display = "none";
+    passwordMatchMessage.style.display = "block";
+    confirmPasswordInput.setCustomValidity("");
+  }
+
+  validateForm(); // Ensure submit button updates
+};
+
+passwordInput.addEventListener("input", validateConfirmPassword);
+confirmPasswordInput.addEventListener("input", validateConfirmPassword);
+
+// Debounce function to delay execution
+function debounce(func, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+}
+
+// Regular expression to validate email format
+// Regular expression to validate email format
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Validate email format before checking Firestore
+const validateEmailFormat = () => {
+  const email = emailInput.value.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailPattern.test(email)) {
+    console.log("Invalid email format detected.");
+    return false;
+  }
+
+  return true;
+};
+
+// Check if email exists in Firestore (only if format is valid)
+const checkEmailExists = debounce(async () => {
+  const email = emailInput.value.trim();
+
+  if (!validateEmailFormat()) {
+    console.log("Invalid email format. Skipping Firestore check.");
+    emailError.textContent = "";
+    validateForm();
+    return;
+  }
+
+  if (!email) {
+    console.log("Email field is empty. Clearing error message.");
+    emailError.textContent = "";
+    validateForm();
+    return;
+  }
+
+  console.log("Checking if email exists in Firestore...");
+
+  try {
+    const userQuery = query(
+      collection(db, "tb_users"),
+      where("email", "==", email)
+    );
+    const querySnapshot = await getDocs(userQuery);
+
+    if (!querySnapshot.empty) {
+      console.log("Email already in use.");
+      emailError.textContent = "❌ Email is already in use.";
+      emailError.style.color = "red";
+    } else {
+      console.log("Email is available to use.");
+      emailError.textContent = "✅ Email is available.";
+      emailError.style.color = "green";
+    }
+  } catch (error) {
+    console.error("Error checking email:", error);
+    emailError.textContent = "Error checking email.";
+    emailError.style.color = "red";
+  }
+
+  validateForm(); // Ensure submit button updates
+}, 500);
+
+// Attach event listener to validate format before checking Firestore
+emailInput.addEventListener("input", () => {
+  validateEmailFormat();
+  checkEmailExists(); // Only check Firestore if format is valid
+});
+
+// Check if username exists
+const checkUsernameExists = debounce(async () => {
+  const username = usernameInput.value.trim();
+
+  if (!username) {
+    usernameError.textContent = "";
+    validateForm();
+    return;
+  }
+
+  try {
+    const usernameQuery = query(
+      collection(db, "tb_users"),
+      where("user_name", "==", username)
+    );
+    const querySnapshot = await getDocs(usernameQuery);
+
+    if (!querySnapshot.empty) {
+      usernameError.textContent = "❌ Username is already taken.";
+      usernameError.style.color = "red";
+    } else {
+      usernameError.textContent = "✅ Username is available.";
+      usernameError.style.color = "green";
+    }
+  } catch (error) {
+    console.error("Error checking username:", error);
+    usernameError.textContent = "Error checking username.";
+    usernameError.style.color = "red";
+  }
+
+  validateForm(); // Ensure submit button updates
+}, 500);
+
+usernameInput.addEventListener("input", checkUsernameExists);
+
+// Check if farmer ID exists
+const checkFarmerIdExists = debounce(async () => {
+  const farmerId = farmerIdInput.value.trim();
+
+  if (!farmerId) {
+    farmerIdError.textContent = "";
+    validateForm();
+    return;
+  }
+
+  try {
+    const farmerQuery = query(
+      collection(db, "tb_farmers"),
+      where("farmer_id", "==", farmerId)
+    );
+    const querySnapshot = await getDocs(farmerQuery);
+
+    if (!querySnapshot.empty) {
+      farmerIdError.textContent = "❌ Farmer ID is already in use.";
+      farmerIdError.style.color = "red";
+    } else {
+      farmerIdError.textContent = "✅ Farmer ID is available.";
+      farmerIdError.style.color = "green";
+    }
+  } catch (error) {
+    console.error("Error checking Farmer ID:", error);
+    farmerIdError.textContent = "Error checking Farmer ID.";
+    farmerIdError.style.color = "red";
+  }
+
+  validateForm(); // Ensure submit button updates
+}, 500);
+
+farmerIdInput.addEventListener("input", checkFarmerIdExists);
+
+const submitButton = form.querySelector("button[type='submit']");
+
+// Function to check if the form is valid
+const validateForm = () => {
+  const userType = userTypeSelect.value;
+  const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+  const emailMessage = emailError.textContent;
+  const usernameMessage = usernameError.textContent;
+  const farmerIdMessage = farmerIdError.textContent;
+
+  const isPasswordValid = Object.values(passwordChecks).every((regex) =>
+    regex.test(password)
+  );
+  const isConfirmPasswordValid = password === confirmPassword;
+
+  let isUsernameValid = true;
+  let isFarmerIdValid = true;
+
+  if (userType === "Admin" || userType === "Supervisor") {
+    isUsernameValid = usernameMessage.includes("✅");
+  } else if (
+    userType === "Farmer" ||
+    userType === "Farm President" ||
+    userType === "Head Farmer"
+  ) {
+    isFarmerIdValid = farmerIdMessage.includes("✅");
+  }
+
+  const isEmailValid = validateEmailFormat() && emailMessage.includes("✅");
+
+  console.log("Email valid:", isEmailValid, "| Email message:", emailMessage);
+
+  submitButton.disabled = !(
+    isEmailValid &&
+    isUsernameValid &&
+    isFarmerIdValid &&
+    isPasswordValid &&
+    isConfirmPasswordValid
+  );
+};
+
+// Ensure email validation triggers the form validation
+emailInput.addEventListener("input", validateForm);
+
+// Add event listeners to input fields to validate form dynamically
+emailInput.addEventListener("input", validateForm);
+usernameInput.addEventListener("input", validateForm);
+farmerIdInput.addEventListener("input", validateForm);
+passwordInput.addEventListener("input", validateForm);
+confirmPasswordInput.addEventListener("input", validateForm);
+userTypeSelect.addEventListener("change", validateForm);
 
 // Initialize Data Fetching
 document.addEventListener("DOMContentLoaded", () => {
