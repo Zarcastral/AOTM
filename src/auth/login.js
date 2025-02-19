@@ -109,6 +109,7 @@ loginForm.addEventListener("submit", async (e) => {
     const user = userCredential.user;
     sessionStorage.setItem("userEmail", user.email);
 
+    // First, try to fetch the user's data from tb_farmers
     const farmersRef = collection(firestore, "tb_farmers");
     const farmersQuery = query(farmersRef, where("email", "==", email));
     const farmersSnapshot = await getDocs(farmersQuery);
@@ -116,11 +117,14 @@ loginForm.addEventListener("submit", async (e) => {
     if (!farmersSnapshot.empty) {
       const farmerData = farmersSnapshot.docs[0].data();
       if (farmerData.user_type) {
+        // Store the barangay_name in sessionStorage
+        sessionStorage.setItem("barangay_name", farmerData.barangay_name || "");
         redirectUser(farmerData.user_type);
         return;
       }
     }
 
+    // If not found in tb_farmers, try tb_users
     const usersRef = collection(firestore, "tb_users");
     const usersQuery = query(usersRef, where("email", "==", email));
     const usersSnapshot = await getDocs(usersQuery);
@@ -128,6 +132,8 @@ loginForm.addEventListener("submit", async (e) => {
     if (!usersSnapshot.empty) {
       const userData = usersSnapshot.docs[0].data();
       if (userData.user_type) {
+        // Store the barangay_name in sessionStorage
+        sessionStorage.setItem("barangay_name", userData.barangay_name || "");
         redirectUser(userData.user_type);
         return;
       }
