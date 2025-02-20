@@ -39,19 +39,31 @@ async function loadProjects() {
     const data = doc.data();
     // Only display projects that match the logged user's barangay
     if (data.barangay_name && data.barangay_name.toLowerCase() === loggedBarangay) {
-      projectsHTML += `
-        <div class="project-item">
-          <h3>${data.project_name}</h3>
-          <p><strong>Status:</strong> ${data.status}</p>
-          <p><strong>Start Date:</strong> ${data.start_date}</p>
-          <p><strong>End Date:</strong> ${data.end_date}</p>
-          <p><strong>Crop Name:</strong> ${data.crop_name}</p>
-          <p><strong>Crop Type:</strong> ${data.crop_type_name}</p>
-          <p><strong>Equipment:</strong> ${data.equipment}</p>
-          <p><strong>Barangay:</strong> ${data.barangay_name}</p>
-          <p><strong>Farm President:</strong> ${data.farm_president}</p>
-        </div>
-      `;
+      projectsHTML += 
+      `<div class="project-item">
+                <div class="project-details">
+                    <div>
+                        <p><strong>Project Name:</strong><br> ${data.project_name}</p>
+                        <p><strong>Status:</strong><br> ${data.status}</p>
+                    </div>
+                    <div>
+                        <p><strong>Start Date:</strong><br> ${data.start_date}</p>
+                        <p><strong>Crop Name:</strong><br> ${data.crop_name}</p>
+                    </div>
+                    <div>
+                        <p><strong>End Date:</strong><br> ${data.end_date}</p>
+                        <p><strong>Crop Type:</strong><br> ${data.crop_type_name}</p>
+                    </div>
+                    <div>
+                        <p><strong>Extend Date:</strong><br> ${data.extend_date || "N/A"}</p>
+                        <p><strong>Equipment:</strong><br> ${data.equipment}</p>
+                    </div>
+                    <div>
+                        <p><strong>Barangay:</strong><br> ${data.barangay_name}</p>
+                        <p><strong>Farm President:</strong><br> ${data.farm_president}</p>
+                    </div>
+                </div>
+            </div>`;
     }
   });
   document.getElementById("projects-content").innerHTML = projectsHTML;
@@ -62,23 +74,29 @@ async function loadProjects() {
 async function loadTeams() {
   const teamsRef = collection(db, "tb_teams");
   const querySnapshot = await getDocs(teamsRef);
-  let teamsHTML = "<table class='team-table'><thead><tr><th>Team Name</th><th>Lead Farmer</th><th>No. of Farmers</th></tr></thead><tbody>";
+  let teamsHTML = `
+      <table>
+          <thead>
+              <tr>
+                  <th>Team Name</th>
+                  <th>Lead Farmer</th>
+                  <th class="farmer-count">No. of Farmers</th>
+              </tr>
+          </thead>
+          <tbody>`;
 
   querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    // Only display teams that belong to the logged user's barangay
-    if (data.barangay_name && data.barangay_name.toLowerCase() === loggedBarangay) {
+      const data = doc.data();
       const farmerCount = data.farmer_name ? data.farmer_name.length : 0;
+
       teamsHTML += `
-        <tr>
-          <td>${data.team_name}</td>
-          <td>${data.lead_farmer}</td>
-          <td>${farmerCount}</td>
-        </tr>
-      `;
-    }
+          <tr>
+              <td>${data.team_name}</td>
+              <td>${data.lead_farmer}</td>
+              <td class="farmer-count">${farmerCount}</td>
+          </tr>`;
   });
-  teamsHTML += "</tbody></table>";
+
   document.getElementById("teams-content").innerHTML = teamsHTML;
 }
 
@@ -376,19 +394,18 @@ async function loadFeedback() {
     console.log("Feedback Data:", data); // Debug: log each feedback document
 
     feedbackHTML += `
-      <li style="display:flex; align-items:center; gap:10px;">
-        ${
-          data.submitted_by_picture && data.submitted_by_picture.trim() !== ""
-            ? `<img src="${data.submitted_by_picture}" alt="User Picture" style="width:50px;height:50px;border-radius:50%;">`
-            : `<div style="width:50px;height:50px;border-radius:50%;background:#ccc;"></div>`
-        }
-        <div>
-          <strong>${data.concern}</strong> - ${data.status} <br>
-          ${data.feedback} <br>
-          <em>Submitted by: ${data.submitted_by || "Anonymous"}</em>
-        </div>
-      </li>
-      <hr>
+      <div style="display:flex; align-items:center; gap:10px; padding:10px; border-bottom: 4px solid #f0f0f0;">
+    ${
+      data.submitted_by_picture && data.submitted_by_picture.trim() !== ""
+        ? `<img src="${data.submitted_by_picture}" alt="User Picture" style="width:50px;height:50px;border-radius:50%;">`
+        : `<div style="width:50px;height:50px;border-radius:50%;background:#ccc;"></div>`
+    }
+    <div>
+      <strong>${data.concern}</strong> - ${data.status} <br>
+      ${data.feedback} <br>
+      <em>Submitted by: ${data.submitted_by || "Anonymous"}</em>
+    </div>
+</div>
     `;
   });
 

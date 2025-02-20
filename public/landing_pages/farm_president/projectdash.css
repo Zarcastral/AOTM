@@ -1,11 +1,11 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins';
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
 }
 .panel {
-    width: 80%;
+    width: 60%;
     margin: 20px auto;
     padding: 20px;
     background: white;
@@ -15,15 +15,30 @@ body {
 h2 {
     display: inline-block;
     margin: 0;
+    font-size: 30px;
 }
 .new-team-btn {
     float: right;
-    background-color: #28a745;
-    color: white;
+    background: none;
+    color: #41A186; /* Keep the green text color */
     border: none;
     padding: 5px 10px;
     cursor: pointer;
-    border-radius: 5px;
+    font-size: 18px;
+}
+.add-feedback-btn{
+    float: right;
+    background: none;
+    color: #41A186; /* Keep the green text color */
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 18px;
+
+}
+.project-details p strong {
+    color: #41A186; /* Change to your preferred color */
+    font-size: 20px;
 }
 .popup {
     display: none;
@@ -42,3 +57,79 @@ h2 {
     min-height: 50px;
     margin-bottom: 10px;
 }
+
+.project-item {
+    padding: 10px 0;
+}
+
+.project-details {
+display: flex;
+flex-wrap: wrap;
+justify-content: center; /* Center items horizontally */
+align-items: center; /* Center items vertically */
+}
+
+.project-details > div {
+padding: 0 10px;
+box-sizing: border-box;
+flex: 1 1 20%; /* Adjust the flex properties to control the width of each div */
+max-width: 20%; /* Ensure each div doesn't exceed 20% of the container width */
+}
+
+.search-status {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.search-status input, .search-status select {
+    padding: 0.5rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: center; /* Centers both headers and fetched data */
+    border-bottom: 4px solid #f0f0f0;
+}
+td.farmer-count,th.farmer-count {
+    text-align: center;
+}
+
+.header {
+    height: 60px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    position: relative;
+  }
+
+  .header-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #41A186;
+  }
+
+  .header-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .header-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
