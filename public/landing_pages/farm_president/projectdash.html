@@ -52,30 +52,33 @@
     <br><br>
 
     <label>Message:</label>
-    <textarea id="feedbackMessage" rows="5" style="width: 100%;"></textarea>
+    <textarea id="feedbackMessage" rows="5" style="width: 98%;"></textarea>
     <br><br>
-
-    <button id="saveFeedbackBtn">Save Feedback</button>
-    <button id="closeFeedbackPopup">Close</button>
+<div class="button-container">
+    <button id="closeFeedbackPopup" class="btn btn-cancel1">Close</button>
+    <button id="saveFeedbackBtn" class="btn btn-save1" >Save Feedback</button>
+</div>
 </div>
 
-    <div class="popup" id="popup">
-        <h2>Create a New Team</h2>
-        <label>Team Name:</label>
-        <input type="text" id="teamName">
-        <br><br>
-        <label>Lead Farmer:</label>
-        <select id="leadFarmer"></select>
-        <br><br>
-        <label>Search Farmers:</label>
-        <input type="text" id="farmerSearch">
-        <div id="farmerBox" class="farmer-box"></div>
-        <label>Selected Farmers:</label>
-        <div id="selectedFarmers" class="farmer-box"></div>
-        <br>
-        <button id="saveTeamBtn">Save</button>
-        <button id="closePopup">Close</button>
+<div class="popup" id="popup">
+    <h2>Add Team</h2>
+    <label>Team Name</label>
+    <input type="text" id="teamName">
+
+    <label>Lead Farmer</label>
+    <select id="leadFarmer"></select>
+
+    <label>Search Farmers</label>
+    <input type="text" id="farmerSearch">
+
+    <label>Farmers</label>
+    <div id="farmerBox" class="farmer-box"></div>
+    
+    <div class="button-container">
+        <button id="closePopup" class="btn btn-cancel">Cancel</button>
+        <button id="saveTeamBtn" class="btn btn-save">Save</button>
     </div>
+</div>
 
     <script type="module" src="projectdash.js"></script>
 
