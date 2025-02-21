@@ -61,9 +61,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         await populateSelect(userTypeSelect, "tb_user_type", "user_type");
 
         // Automatically select the option fetched from data
-        const farmerData = localStorage.getItem("farmerData");
-        if (farmerData) {
-            const data = JSON.parse(farmerData);
+        const userData = localStorage.getItem("userData");
+        if (userData) {
+            const data = JSON.parse(userData);
            
             const username = data.user_name;
             if (username) {
@@ -105,11 +105,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         
                 if (!querySnapshot.empty) {
                     const userData = querySnapshot.docs[0].data();
-                    const profilePictureUrl = userData.profilePictureUrl;
+                    const user_picture = userData.user_picture;
         
-                    if (profilePictureUrl) {
-                        document.getElementById("profile-picture").src = profilePictureUrl;
-                        originalImageSrc = profilePictureUrl;
+                    if (user_picture) {
+                        document.getElementById("profile-picture").src = user_picture;
+                        originalImageSrc = user_picture;
                     }
                 } else {
                     console.log("No user found with the given user_name.");
@@ -295,7 +295,7 @@ async function saveProfilePicture(username) {
 
         if (!querySnapshot.empty) {
             const docRef = querySnapshot.docs[0].ref;
-            await updateDoc(docRef, { profilePictureUrl: downloadURL });
+            await updateDoc(docRef, { user_picture: downloadURL });
             console.log("Profile picture updated successfully.");
         } else {
             console.error("Username not found in Firestore.");

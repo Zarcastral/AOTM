@@ -9,6 +9,7 @@ body {
   }
   
   .header {
+    min-height: 60px;
     height: 60px;
     background-color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -71,7 +72,15 @@ th {
     background-color: white;
     color: #333;
 }
-
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #D1D5DB; /* Thin border */
+    border-radius: 4px; /* Optional: Slightly rounded corners */
+    outline: none;
+    background-color: white;
+    cursor: pointer;
+  }
 tbody tr:hover {
     background-color: #F3F4F6;
   }
@@ -142,30 +151,37 @@ tbody tr:hover {
 .pagination-container {
     display: flex;
     justify-content: flex-end;
+    align-items: center; /* Aligns vertically */
     margin-top: 20px;
-    position: relative;
-
-}
-
-.pagination-btn {
-    padding: 8px 12px;
-    margin: 0 5px;
-    font-size: 16px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
+    width: 100%;
+    gap: 10px; /* Adds spacing between elements */
+  
+  }
+  #page-number {
+      font-size: 17px;
+      color: #333;
+    }
+  
+  .pagination-btn {
+    padding: 10px 10px;
+    margin: 0;
+    font-size: 25px;
+    border: none;
+    border-radius: 0;
     cursor: pointer;
-    background-color: #f4f4f4;
-    transition: background-color 0.3s;
-}
-
-.pagination-btn:hover {
-    background-color: #ddd;
-}
-
-.pagination-btn:disabled {
-    background-color: #e0e0e0;
-    cursor: not-allowed;
-}
+    background: none;
+    transition: color 0.3s ease;
+    color: #333;
+  }
+  
+  .pagination-btn:hover {
+      color: #41A186;
+  }
+  
+  .pagination-btn:disabled {
+      color: #bbb;
+      cursor: not-allowed;
+  }
 
 
 /* Confirmation Panel Style */
@@ -231,10 +247,9 @@ tbody tr:hover {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #4CAF50;
     color: white;
     padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 20px;
     display: none;
     font-size: 18px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
