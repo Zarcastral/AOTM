@@ -27,7 +27,6 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let userAccounts = [];
 
-// Ensure pagination updates when data is fetched
 async function fetch_user_accounts(filter = {}) {
     try {
         const querySnapshot = await getDocs(collection(db, "tb_users"));
@@ -134,7 +133,6 @@ function updateTable() {
         const formattedName = formatName(data.first_name, data.middle_name, data.last_name);
         const formattedBarangay = formatBarangay(data.barangay_name);
         const formattedUserType = formatUserType(data.user_type);
-        //<td>${formattedName}</td>
         row.innerHTML = `
             <td><input type="checkbox" class="checkbox" data-user-name="${data.user_name}"></td>
             <td>${data.user_name || "Account name not recorded"}</td>
@@ -155,8 +153,6 @@ function updateTable() {
             </td>
         `;
         tableBody.appendChild(row);
-        
-        // Add event listener to the checkbox to toggle row highlight
         const checkbox = row.querySelector(".checkbox");
         checkbox.addEventListener("change", function() {
             if (checkbox.checked) {
@@ -175,8 +171,6 @@ function updateTable() {
 function toggleBulkDeleteButton() {
     const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
     const bulkDeleteBtn = document.getElementById("bulk-delete");
-
-    // Enable the bulk delete button if at least one checkbox is selected
     if (selectedCheckboxes.length > 0) {
         bulkDeleteBtn.disabled = false;
     } else {
@@ -191,29 +185,29 @@ tableBody.addEventListener("change", (event) => {
         toggleBulkDeleteButton();
         if (event.target.checked) {
             selectedUsername = username;
-            console.log("Selected username: ", username);  // Log when checkbox is checked
+            console.log("Selected username: ", username);
         } else {
             selectedUsername = null;
-            console.log("Selected username: ", "Username Unselected");  // Log when checkbox is unchecked
+            console.log("Selected username: ", "Username Unselected");
 
         }
     }
 });
-// Update pagination display
+
 function updatePagination() {
     const totalPages = Math.ceil(userAccounts.length / rowsPerPage) || 1;
     pageNumberSpan.textContent = `${currentPage} of ${totalPages}`;
     updatePaginationButtons();
 }
 
-// Enable or disable pagination buttons
+
 function updatePaginationButtons() {
     const totalPages = Math.ceil(userAccounts.length / rowsPerPage);
     prevPageBtn.disabled = currentPage === 1;
     nextPageBtn.disabled = currentPage >= totalPages;
 }
 
-// Function to change the page
+
 function changePage(direction) {
     const totalPages = Math.ceil(userAccounts.length / rowsPerPage);
     if (direction === "prev" && currentPage > 1) {
@@ -229,6 +223,21 @@ function changePage(direction) {
 prevPageBtn.addEventListener("click", () => changePage("prev"));
 nextPageBtn.addEventListener("click", () => changePage("next"));
 
+// <------------- BUTTON EVENT LISTENER FOR THE ACTION COLUMN ------------->
+tableBody.addEventListener("click", (event) => {
+    const target = event.target.closest("button");
+    if (!target) return;
+
+    const username = target.getAttribute("data-id");
+
+    if (target.classList.contains("edit-btn")) {
+        editUserAccount(username);
+    } else if (target.classList.contains("view-btn")) {
+        viewUserAccount(username);
+    } else if (target.classList.contains("delete-btn")) {
+        deleteUserAccount(username);
+    }
+});
 
 // <------------- EDIT BUTTON CODE ------------->
 async function editUserAccount(user_name) {
@@ -250,22 +259,6 @@ async function editUserAccount(user_name) {
     }
 }
 
-
-// <------------- BUTTON EVENT LISTENER FOR THE ACTION COLUMN ------------->
-tableBody.addEventListener("click", (event) => {
-    const target = event.target.closest("button"); // Ensure we're getting the button, not the image inside it
-    if (!target) return; // Exit if no button was clicked
-
-    const username = target.getAttribute("data-id");
-
-    if (target.classList.contains("edit-btn")) {
-        editUserAccount(username);
-    } else if (target.classList.contains("view-btn")) {
-        viewUserAccount(username);
-    } else if (target.classList.contains("delete-btn")) {
-        deleteUserAccount(username);
-    }
-});
 
 // <------------- VIEW BUTTON CODE ------------->
 async function viewUserAccount(user_name) {
@@ -309,46 +302,39 @@ async function deleteUserAccount(user_name) {
 const confirmationPanel = document.getElementById("confirmation-panel");
 const confirmDeleteButton = document.getElementById("confirm-delete");
 const cancelDeleteButton = document.getElementById("cancel-delete");
-let selectedRowId = null;  // To store the ID of the row to be deleted
-
-const deleteMessage = document.getElementById("delete-message");  // Reference to the success message
+let selectedRowId = null;
+const deleteMessage = document.getElementById("delete-message");
 
 confirmDeleteButton.addEventListener("click", async () => {
     if (selectedRowId) {
         try {
-            // Delete the record from Firestore
+
             const userDocRef = doc(db, "tb_users", selectedRowId);
             await deleteDoc(userDocRef);
             console.log("Record deleted successfully!");
 
-            // Refresh the table after deletion
             fetch_user_accounts();
 
-            // Show success message
             deleteMessage.style.display = "block";
             setTimeout(() => {
-                deleteMessage.style.opacity = "1";  // Fade in
-
-                // Hide the success message after 3 seconds
+                deleteMessage.style.opacity = "1";
                 setTimeout(() => {
-                    deleteMessage.style.opacity = "0";  // Fade out
+                    deleteMessage.style.opacity = "0";
                     setTimeout(() => {
-                        deleteMessage.style.display = "none";  // Hide it completely
-                    }, 300);  // Wait for the fade-out transition to finish
-                }, 3000);  // Wait for 3 seconds before hiding
+                        deleteMessage.style.display = "none";
+                    }, 300);
+                }, 3000);
             }, 0);
         } catch (error) {
             console.error("Error deleting record:", error);
         }
     }
 
-    // Close the confirmation panel and re-enable the form
     confirmationPanel.style.display = "none";
     editFormContainer.style.pointerEvents = "auto";
 });
 
 cancelDeleteButton.addEventListener("click", () => {
-    // Close the confirmation panel and re-enable the form
     confirmationPanel.style.display = "none";
     editFormContainer.style.pointerEvents = "auto";
 });
@@ -479,7 +465,7 @@ cancelDeleteBtn.addEventListener("click", () => {
     bulkDeletePanel.classList.remove("show"); 
 });
 
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
+// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE and ERROR MESSAGES ------------------------>
 function showDeleteMessage(message, success) {
     deleteMessage.textContent = message;
     deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";

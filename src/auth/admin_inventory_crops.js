@@ -103,7 +103,9 @@ function displayCrops(cropsList) {
     const unit = crop.unit || "Units";
 
     row.innerHTML = `
-        <td class="checkbox"><input type="checkbox"></td>
+        <td class="checkbox">
+            <input type="checkbox" data-crop-id="${cropTypeId}">
+        </td>
         <td>${cropTypeId}</td>
         <td>${cropType}</td>
         <td>${cropName}</td>
@@ -197,16 +199,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ---------------------------- CROP BULK DELETE CODES ---------------------------- //
 const deletemessage = document.getElementById("crop-bulk-message"); // delete message panel
-// CHECKBOX
 
-
+// CHECKBOX CHANGE EVENT HANDLER
 function handleCheckboxChange(event) {
-  const row = event.target.closest("tr"); // Get the row of the checkbox
+  const checkbox = event.target; // The checkbox that triggered the event
+  const row = checkbox.closest("tr"); // Get the row of the checkbox
   if (!row) return;
 
-  const cropTypeId = row.children[1]?.textContent.trim(); // Get crop_type_name
+  // Get cropType ID from the data attribute
+  const cropTypeId = checkbox.getAttribute("data-crop-id");
 
-  if (event.target.checked) {
+  if (checkbox.checked) {
     // Add to selected list if checked
     if (!selectedCrops.includes(cropTypeId)) {
       selectedCrops.push(cropTypeId);
@@ -233,12 +236,45 @@ function addCheckboxListeners() {
   });
 }
 
-// Trigger Bulk Delete Confirmation Panel
-document.getElementById("crop-bulk-delete").addEventListener("click", () => {
-  if (selectedCrops.length > 0) {
-    document.getElementById("crop-bulk-panel").style.display = "block"; // Show confirmation panel
+// <------------- BULK DELETE BUTTON CODE ---------------> //
+document.getElementById("crop-bulk-delete").addEventListener("click", async () => {
+  const selectedCheckboxes = document.querySelectorAll("input[type='checkbox']:checked");
+
+  let selectedCropTypeIds = [];
+  let hasInvalidId = false;
+
+  for (const checkbox of selectedCheckboxes) {
+      const cropTypeId = checkbox.getAttribute("data-crop-id");
+
+      // Validate cropTypeId (null, undefined, or empty string)
+      if (!cropTypeId || cropTypeId.trim() === "") {
+          hasInvalidId = true;
+          break;
+      }
+
+      /* Check if the cropType_id exists in the database */
+      try {
+          const q = query(collection(db, "tb_crop_types"), where("crop_type_id", "==", Number(cropTypeId)));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+              hasInvalidId = true;
+              console.error(`ERROR: Crop ID ${cropTypeId} does not exist in the database.`);
+              break;
+          }
+
+          selectedCropTypeIds.push(cropTypeId);
+      } catch (error) {
+          console.error("Error fetching crop records:", error);
+          hasInvalidId = true;
+          break;
+      }
+  }
+
+  if (hasInvalidId) {
+      showDeleteMessage("ERROR: Fertilizier ID of one or more selected records are invalid", false);
   } else {
-    alert("No crops selected for deletion."); // Prevent deletion if none are selected
+      document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
   }
 });
 
