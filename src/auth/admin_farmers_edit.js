@@ -108,8 +108,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const querySnapshot = await getDocs(q);
         
                 if (!querySnapshot.empty) {
-                    const userData = querySnapshot.docs[0].data();
-                    const user_picture = userData.user_picture;
+                    const farmerData = querySnapshot.docs[0].data();
+                    const user_picture = farmerData.user_picture;
         
                     if (user_picture) {
                         document.getElementById("profile-picture").src = user_picture;

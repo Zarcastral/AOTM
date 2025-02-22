@@ -12,28 +12,6 @@ import app from "../config/firebase_config.js";
 const db = getFirestore(app);
 
 /* ======================== CODE FOR POPULATING FIELDS BASED ON SELECTED FARMER ID ======================== */
-let originalImageSrc;
-async function fetchProfilePicture(farmerId) {
-    try {
-        const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            const userData = querySnapshot.docs[0].data();
-            const user_picture = userData.user_picture;
-
-            if (user_picture) {
-                document.getElementById("profile-picture").src = user_picture;
-                originalImageSrc = user_picture;
-            }
-        } else {
-            console.log("No user found with the given farmer_id.");
-        }
-    } catch (error) {
-        console.error("Error fetching profile picture:", error);
-    }
-
-}
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         // Populate Barangay combobox
@@ -60,12 +38,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         const farmerData = localStorage.getItem("farmerData");
         if (farmerData) {
             const data = JSON.parse(farmerData);
-            const farmerId = data.farmer_id;
-
+            const farmer_id = data.farmer_id;
             // <------------------------- POPULATE THE FIELDS ON READ ONLY ---------------------------->
-            const farmerIdField = document.getElementById("farmer_id");
-            farmerIdField.value = data.farmer_id || "";
-            farmerIdField.readOnly = true; 
+            const farmer_idField = document.getElementById("farmer_id");
+            farmer_idField.value = data.farmer_id || "";
+            farmer_idField.readOnly = true; 
 
             const firstNameField = document.getElementById("first_name");
             firstNameField.value = data.first_name || "";
@@ -119,7 +96,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                 userTypeSelect.disabled = true; // Disable combobox
             }
 
-            fetchProfilePicture(farmerId);
+            fetchProfilePicture(farmer_id);
+        }
+        async function fetchProfilePicture(farmerId) {
+            try {
+                const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const farmerData = querySnapshot.docs[0].data();
+                    const user_picture = farmerData.user_picture;
+
+                    if (user_picture) {
+                        document.getElementById("profile-picture").src = user_picture;
+                    }
+                } else {
+                    console.log("No user found with the given farmer_id.");
+                }
+            } catch (error) {
+                console.error("Error fetching profile picture:", error);
+            }
+
         }
 
     } catch (error) {

@@ -25,12 +25,13 @@ document.body.appendChild(editFormContainer);
 
 let currentPage = 1;
 const rowsPerPage = 5;
-let farmerAccounts = [];
+let userAccounts = [];
 
-async function fetch_farmer_accounts(filter = {}) {
+// Ensure pagination updates when data is fetched
+async function fetch_user_accounts(filter = {}) {
     try {
         const querySnapshot = await getDocs(collection(db, "tb_users"));
-        farmerAccounts = [];
+        userAccounts = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
@@ -45,27 +46,41 @@ async function fetch_farmer_accounts(filter = {}) {
                 : true;
 
             const matchesBarangay = filter.barangay_name
-                ? (data.barangay || "").toLowerCase() === filter.barangay_name.toLowerCase()
+                ? (data.barangay_name || "").toLowerCase() === filter.barangay_name.toLowerCase()
                 : true;
 
             if (matchesSearch && matchesBarangay) {
-                farmerAccounts.push({ id: doc.id, ...data });
+                userAccounts.push({ id: doc.id, ...data });
             }
-            
         });
 
-        // <------------- FETCHED DATA SORT BY FARMER ID ASCENSION (assuming is a string or number) ------------->
-        farmerAccounts.sort((a, b) => {
-            const userNameA = a.user_name || ''; // Default to an empty string if undefined
-            const userNameB = b.user_name || ''; // Default to an empty string if undefined
-            return userNameA.localeCompare(userNameB, undefined, { sensitivity: "base" });
-        });
+        const missingUsernames = []; // Array to store users with undefined IDs
+        // <------------- FETCHED DATA SORT BY USERNAME ASCENSION ------------->
+        userAccounts.sort((a, b) => {
+            const userNameA = a.user_name;
+            const userNameB = b.user_name;
+            const missName = formatName(a.first_name, a.middle_name, a.last_name);
         
+            if (userNameA === undefined) {
+                missingUsernames.push(missName);
+                return 0; /* Keeps the current order of undefined values kapag ginawang 1 mapupunta lahat ng
+                users na walang id sa pinaka dulo*/
+            }
+            // Alphabetical Comparison (A-Z)
+            if (isNaN(userNameA) && isNaN(userNameB)) {
+                return String(userNameA).localeCompare(String(userNameB), undefined, {numeric: true, sensitivity: 'base' });
+            }
+        });
+                // Log missing user IDs in bulk
+        if (missingUsernames.length > 0) {
+            console.log("Usernames are not retrieved for the following User Accounts: " + missingUsernames.join(", "));
+        }
 
-        currentPage = 1; // *Reset to the first page when data is filtered*
+        currentPage = 1;
         updateTable();
+        updatePagination();
     } catch (error) {
-        console.error("Error Fetching Farmer Accounts:", error);
+        console.error("Error Fetching User Accounts:", error);
     }
 }
 
@@ -106,7 +121,7 @@ let selectedUsername = null;
 function updateTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const end = currentPage * rowsPerPage;
-    const pageData = farmerAccounts.slice(start, end);
+    const pageData = userAccounts.slice(start, end);
 
     tableBody.innerHTML = "";
 
@@ -117,16 +132,16 @@ function updateTable() {
     pageData.forEach((data) => {
         const row = document.createElement("tr");
         const formattedName = formatName(data.first_name, data.middle_name, data.last_name);
-        const formattedBarangay = formatBarangay(data.barangay);
+        const formattedBarangay = formatBarangay(data.barangay_name);
         const formattedUserType = formatUserType(data.user_type);
         //<td>${formattedName}</td>
         row.innerHTML = `
             <td><input type="checkbox" class="checkbox" data-user-name="${data.user_name}"></td>
-            <td>${data.user_name || ""}</td>
-            <td>${formattedName || ""}</td>
-            <td>${formattedUserType || ""}</td>
-            <td>${formattedBarangay || ""}</td>
-            <td>${data.contact || ""}</td>
+            <td>${data.user_name || "Account name not recorded"}</td>
+            <td>${formattedName || "User's name not recorded"}</td>
+            <td>${formattedUserType || "User's role not recorded"}</td>
+            <td>${formattedBarangay || "Barangay not recorded"}</td>
+            <td>${data.contact || "Contact number not recorded"}</td>
             <td>
                 <button class="action-btn edit-btn" data-id="${data.user_name}" title="Edit">
                     <img src="../../images/edit.png" alt="Edit">
@@ -152,7 +167,7 @@ function updateTable() {
         });
     });
 
-    updatePaginationControls();
+    updatePagination();
     toggleBulkDeleteButton();
 }
 
@@ -176,33 +191,41 @@ tableBody.addEventListener("change", (event) => {
         toggleBulkDeleteButton();
         if (event.target.checked) {
             selectedUsername = username;
+            console.log("Selected username: ", username);  // Log when checkbox is checked
         } else {
             selectedUsername = null;
-        }
-        if (event.target.checked) {
-            console.log("Checkbox checked for username: ", username);  // Log when checkbox is checked
-        } else {
-            console.log("Checkbox unchecked for username: ", username);  // Log when checkbox is unchecked
+            console.log("Selected username: ", "Username Unselected");  // Log when checkbox is unchecked
+
         }
     }
 });
-
-// <------------- Update Pagination Controls ------------->
-function updatePaginationControls() {
-    pageNumberSpan.textContent = `Page ${currentPage}`;
-    prevPageBtn.disabled = currentPage === 1;
-    nextPageBtn.disabled = currentPage * rowsPerPage >= farmerAccounts.length;
+// Update pagination display
+function updatePagination() {
+    const totalPages = Math.ceil(userAccounts.length / rowsPerPage) || 1;
+    pageNumberSpan.textContent = `${currentPage} of ${totalPages}`;
+    updatePaginationButtons();
 }
 
+// Enable or disable pagination buttons
+function updatePaginationButtons() {
+    const totalPages = Math.ceil(userAccounts.length / rowsPerPage);
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage >= totalPages;
+}
+
+// Function to change the page
 function changePage(direction) {
+    const totalPages = Math.ceil(userAccounts.length / rowsPerPage);
     if (direction === "prev" && currentPage > 1) {
         currentPage--;
-    } else if (direction === "next" && currentPage * rowsPerPage < farmerAccounts.length) {
+    } else if (direction === "next" && currentPage < totalPages) {
         currentPage++;
     }
     updateTable();
+    updatePagination();
 }
 
+// Attach event listeners to pagination buttons
 prevPageBtn.addEventListener("click", () => changePage("prev"));
 nextPageBtn.addEventListener("click", () => changePage("next"));
 
@@ -215,15 +238,15 @@ async function editUserAccount(user_name) {
 
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
-                const farmerData = doc.data();
-                localStorage.setItem("farmerData", JSON.stringify(farmerData));
+                const userData = doc.data();
+                localStorage.setItem("userData", JSON.stringify(userData));
                 window.location.href = "admin_users_edit.html";
             });
         } else {
-            console.error("No matching document found for farmer with username:", user_name);
+            showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
         }
     } catch (error) {
-        console.error("Error fetching farmer data for edit:", error);
+        console.error("Error fetching user data for edit:", error);
     }
 }
 
@@ -240,7 +263,7 @@ tableBody.addEventListener("click", (event) => {
     } else if (target.classList.contains("view-btn")) {
         viewUserAccount(username);
     } else if (target.classList.contains("delete-btn")) {
-        confirmDelete(username);
+        deleteUserAccount(username);
     }
 });
 
@@ -252,35 +275,34 @@ async function viewUserAccount(user_name) {
 
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
-                const farmerData = doc.data();
-                localStorage.setItem("farmerData", JSON.stringify(farmerData));
+                const userData = doc.data();
+                localStorage.setItem("userData", JSON.stringify(userData));
                 window.location.href = "admin_users_view.html";
             });
         } else {
-            console.error("No matching document found for farmer with username:", user_name);
+            showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
         }
     } catch (error) {
-        console.error("Error fetching farmer data for edit:", error);
+        console.log("Error fetching user data for view:", error);
     }
 }
 
 // <------------- DELETE BUTTON EVENT LISTENER ------------->
-tableBody.addEventListener("click", (event) => {
-    const target = event.target;
-    if (target.classList.contains("delete-btn")) {
-        selectedRowId = target.getAttribute("data-id");
-        // Show confirmation panel
-        confirmationPanel.style.display = "flex";
-        // Disable the form
-        editFormContainer.style.pointerEvents = "none";
+async function deleteUserAccount(user_name) {
+    try {
+
+        const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            confirmationPanel.style.display = "flex";
+            editFormContainer.style.pointerEvents = "none";
+        } else {
+            showDeleteMessage("No Username is found, Unable to proceed with the deleting the record", false);
+        }
+    } catch (error) {
+        console.log("Error deleting User Account:", error);
     }
-});
-
-
-function confirmDelete(username) {
-    selectedRowId = username;
-    confirmationPanel.style.display = "flex";
-    editFormContainer.style.pointerEvents = "none";
 }
 
 // <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
@@ -295,12 +317,12 @@ confirmDeleteButton.addEventListener("click", async () => {
     if (selectedRowId) {
         try {
             // Delete the record from Firestore
-            const farmerDocRef = doc(db, "tb_users", selectedRowId);
-            await deleteDoc(farmerDocRef);
+            const userDocRef = doc(db, "tb_users", selectedRowId);
+            await deleteDoc(userDocRef);
             console.log("Record deleted successfully!");
 
             // Refresh the table after deletion
-            fetch_farmer_accounts();
+            fetch_user_accounts();
 
             // Show success message
             deleteMessage.style.display = "block";
@@ -333,14 +355,14 @@ cancelDeleteButton.addEventListener("click", () => {
 
 // EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
 searchBar.addEventListener("input", () => {
-    fetch_farmer_accounts({
+    fetch_user_accounts({
         search: searchBar.value,
         barangay_name: barangaySelect.value,
     });
 });
 
 barangaySelect.addEventListener("change", () => {
-    fetch_farmer_accounts({
+    fetch_user_accounts({
         search: searchBar.value,
         barangay_name: barangaySelect.value,
     });
@@ -385,22 +407,47 @@ const confirmDeleteBtn = document.getElementById("confirm-bulk-delete");
 const cancelDeleteBtn = document.getElementById("cancel-bulk-delete");
 let idsToDelete = [];
 
-deleteSelectedBtn.addEventListener("click", () => {
+
+deleteSelectedBtn.addEventListener("click", async () => {
     const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
 
     idsToDelete = [];
-    selectedCheckboxes.forEach((checkbox) => {
-        const username = checkbox.getAttribute("data-user-name");
-        if (username) {
-            idsToDelete.push(username);
-        }
-    });
+    let hasInvalidId = false;
 
-    if (idsToDelete.length > 0) {
-        // Show bulk delete panel
-        bulkDeletePanel.classList.add("show");
+    for (const checkbox of selectedCheckboxes) {
+        const user_name = checkbox.getAttribute("data-user-name");
+
+        // Validate usernmae (null, undefined, or empty string)
+        if (!user_name || user_name.trim() === "") {
+            hasInvalidId = true;
+            break;
+        }
+
+        /*  Check if the user_name exists in the database
+            kailangan to for error trapping kasi chine check nya muna kung yung na retrieve na farmer id
+            dun sa mga checkboxes is nag eexist talaga sa firestore database
+        */
+        try {
+            const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                hasInvalidId = true;
+                break;
+            }
+
+            idsToDelete.push(user_name);
+        } catch (error) {
+            console.error("Error fetching farmer records:", error);
+            hasInvalidId = true;
+            break;
+        }
+    }
+
+    if (hasInvalidId) {
+        showDeleteMessage("ERROR: Username of one or more selected records are invalid", false);
     } else {
-        showDeleteMessage("No farmers selected for deletion.", false);
+        bulkDeletePanel.classList.add("show");
     }
 });
 
@@ -417,11 +464,11 @@ confirmDeleteBtn.addEventListener("click", async () => {
             });
         }
         
-        showDeleteMessage("Selected farmers have been deleted.", true);
-        fetch_farmer_accounts();
+        showDeleteMessage("Selected users have been deleted.", true);
+        fetch_user_accounts();
     } catch (error) {
-        console.error("Error deleting farmers:", error);
-        showDeleteMessage("Error deleting farmers. Please try again.", false);
+        console.error("Error deleting users:", error);
+        showDeleteMessage("Error deleting users. Please try again.", false);
     }
 
     bulkDeletePanel.classList.remove("show"); 
@@ -443,10 +490,10 @@ function showDeleteMessage(message, success) {
         deleteMessage.style.opacity = '0';
         setTimeout(() => {
             deleteMessage.style.display = 'none'; 
-        }, 300);
-    }, 3000); 
+        }, 400);
+    }, 4000); 
 }
 
-fetch_farmer_accounts();
+fetch_user_accounts();
 fetch_barangays();
 
