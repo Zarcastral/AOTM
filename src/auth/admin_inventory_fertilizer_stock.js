@@ -5,6 +5,8 @@ import {
   query,
   where,
   deleteDoc,
+  updateDoc,
+  Timestamp,
   doc
 } from "firebase/firestore";
 
@@ -104,6 +106,9 @@ function displayFertilizers(fertilizersList) {
         <td>${fertilizerType}</td>
         <td>${dateAdded}</td>
         <td>${currentStock} ${unit}</td>
+        <td>
+          <button class="add-fert-stock-btn" id="add-crop-fert-btn" data-id="${fertilizer.cropTypeId}">+ Add Stock</button>
+        </td>
     `;
 
     tableBody.appendChild(row);
@@ -338,7 +343,22 @@ document.getElementById("fert-search-bar").addEventListener("input", function ()
   sortFertilizersById();
   displayFertilizers(filteredFertilizers); // Update the table with filtered Fertilizers
 });
+// <------------------ FUNCTION TO DISPLAY fertment STOCK MESSAGE ------------------------>
+const fertilizerStockMessage = document.getElementById("fert-stock-message");
 
+function showFertilizerStockMessage(message, success) {
+  fertilizerStockMessage.textContent = message;
+  fertilizerStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  fertilizerStockMessage.style.opacity = '1';
+  fertilizerStockMessage.style.display = 'block';
+
+  setTimeout(() => {
+    fertilizerStockMessage.style.opacity = '0';
+    setTimeout(() => {
+      fertilizerStockMessage.style.display = 'none';
+    }, 300);
+  }, 4000);
+}
 // <------------------ FUNCTION TO DISPLAY ADD STOCK FLOATING PANEL ------------------------>
 
 document.addEventListener("DOMContentLoaded", () => {

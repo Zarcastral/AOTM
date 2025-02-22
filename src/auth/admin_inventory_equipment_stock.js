@@ -5,6 +5,8 @@ import {
   query,
   where,
   deleteDoc,
+  updateDoc,
+  Timestamp,
   doc
 } from "firebase/firestore";
 
@@ -103,6 +105,9 @@ function displayEquipments(equipmentsList) {
         <td>${equipmentType}</td>
         <td>${dateAdded}</td>
         <td>${currentStock} ${unit}</td>
+        <td>
+          <button class="add-equip-stock-btn" id="add-equip-stock-btn" data-id="${equipment.cropTypeId}">+ Add Stock</button>
+        </td>
     `;
 
     tableBody.appendChild(row);
@@ -347,6 +352,23 @@ document.getElementById("equip-search-bar").addEventListener("input", function (
   sortEquipmentsById();
   displayEquipments(filteredEquipments); // Update the table with filtered Equipments
 });
+
+// <------------------ FUNCTION TO DISPLAY equipment STOCK MESSAGE ------------------------>
+const equipmentStockMessage = document.getElementById("equip-stock-message");
+
+function showEquipmentStockMessage(message, success) {
+  equipmentStockMessage.textContent = message;
+  equipmentStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  equipmentStockMessage.style.opacity = '1';
+  equipmentStockMessage.style.display = 'block';
+
+  setTimeout(() => {
+    equipmentStockMessage.style.opacity = '0';
+    setTimeout(() => {
+      equipmentStockMessage.style.display = 'none';
+    }, 300);
+  }, 4000);
+}
 
 // <------------------ FUNCTION TO DISPLAY ADD STOCK FLOATING PANEL ------------------------>
 document.addEventListener("DOMContentLoaded", () => {

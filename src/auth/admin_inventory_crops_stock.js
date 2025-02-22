@@ -5,6 +5,8 @@ import {
   query,
   where,
   deleteDoc,
+  updateDoc,
+  Timestamp,
   doc
 } from "firebase/firestore";
 
@@ -111,6 +113,9 @@ function displayCrops(cropsList) {
         <td>${cropName}</td>
         <td>${dateAdded}</td>
         <td>${currentStock} ${unit}</td>
+        <td>
+          <button class="add-crop-stock-btn" id="add-crop-stock-btn" data-id="${crop.cropTypeId}">+ Add Stock</button>
+        </td>
     `;
 
     tableBody.appendChild(row);
@@ -272,9 +277,9 @@ document.getElementById("crop-bulk-delete").addEventListener("click", async () =
   }
 
   if (hasInvalidId) {
-      showDeleteMessage("ERROR: Fertilizier ID of one or more selected records are invalid", false);
+      showDeleteMessage("ERROR: Crop ID of one or more selected records are invalid", false);
   } else {
-      document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
+      document.getElementById("crop-bulk-panel").style.display = "block"; // Show confirmation panel
   }
 });
 
@@ -355,6 +360,23 @@ document.getElementById("crop-search-bar").addEventListener("input", function ()
   sortCropsById();
   displayCrops(filteredCrops); // Update the table with filtered crops
 });
+
+// <------------------ FUNCTION TO DISPLAY crop STOCK MESSAGE ------------------------>
+const cropStockMessage = document.getElementById("crop-stock-message");
+
+function showCropStockMessage(message, success) {
+  cropStockMessage.textContent = message;
+  cropStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  cropStockMessage.style.opacity = '1';
+  cropStockMessage.style.display = 'block';
+
+  setTimeout(() => {
+    cropStockMessage.style.opacity = '0';
+    setTimeout(() => {
+      cropStockMessage.style.display = 'none';
+    }, 300);
+  }, 4000);
+}
 
 // <------------------ FUNCTION TO DISPLAY ADD STOCK FLOATING PANEL ------------------------>
 
