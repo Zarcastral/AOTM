@@ -229,7 +229,7 @@ function addCheckboxListeners() {
 }
 // <------------- BULK DELETE BUTTON CODE ---------------> //
 document.getElementById("equip-bulk-delete").addEventListener("click", async () => {
-  const selectedCheckboxes = document.querySelectorAll("input[type='checkbox']:checked");
+  const selectedCheckboxes = document.querySelectorAll(".equipment_table input[type='checkbox']:checked");
 
   let selectedEquipmentIds = [];
   let hasInvalidId = false;

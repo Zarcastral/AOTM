@@ -5,9 +5,7 @@ import {
   query,
   where,
   deleteDoc,
-  doc,
-  updateDoc,
-  Timestamp
+  doc
 } from "firebase/firestore";
 
 import app from "../config/firebase_config.js";
@@ -97,14 +95,14 @@ function displayEquipments(equipmentsList) {
     const unit = equipment.unit || "units";
 
     row.innerHTML = `
-        <td class="checkbox"><input type="checkbox"></td>
+        <td class="checkbox">
+            <input type="checkbox" data-equipment-id="${equipmentId}">
+        </td>
         <td>${equipmentId}</td>
         <td>${equipmentName}</td>
         <td>${equipmentType}</td>
         <td>${dateAdded}</td>
         <td>${currentStock} ${unit}</td>
-        <td><button class="add-equip-stock-btn">+ Add Stock</button></td>
-
     `;
 
     tableBody.appendChild(row);
@@ -193,26 +191,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ---------------------------- equip BULK DELETE CODES ---------------------------- //
 const deletemessage = document.getElementById("equip-bulk-message"); // delete message panel
-// CHECKBOX
+
+// CHECKBOX CHANGE EVENT HANDLER
 function handleCheckboxChange(event) {
-  const row = event.target.closest("tr"); // Get the row of the checkbox
+  const checkbox = event.target; // The checkbox that triggered the event
+  const row = checkbox.closest("tr"); // Get the row of the checkbox
   if (!row) return;
 
-  const equipmentTypeId = row.children[1]?.textContent.trim(); // Get equipment_type_name
+  // Get equipmentType ID from the data attribute
+  const equipmentId = checkbox.getAttribute("data-equipment-id");
 
-  if (event.target.checked) {
+  if (checkbox.checked) {
     // Add to selected list if checked
-    if (!selectedEquipments.includes(equipmentTypeId)) {
-      selectedEquipments.push(equipmentTypeId);
+    if (!selectedEquipments.includes(equipmentId)) {
+      selectedEquipments.push(equipmentId);
     }
   } else {
     // Remove from list if unchecked
-    selectedEquipments = selectedEquipments.filter(item => item !== equipmentTypeId);
+    selectedEquipments = selectedEquipments.filter(item => item !== equipmentId);
   }
 
   console.log("Selected Equipments:", selectedEquipments);
   toggleBulkDeleteButton();
 }
+
+
 // Enable/Disable the Bulk Delete button
 function toggleBulkDeleteButton() {
   const bulkDeleteButton = document.getElementById("equip-bulk-delete");
@@ -224,13 +227,45 @@ function addCheckboxListeners() {
     checkbox.addEventListener("change", handleCheckboxChange);
   });
 }
+// <------------- BULK DELETE BUTTON CODE ---------------> //
+document.getElementById("equip-bulk-delete").addEventListener("click", async () => {
+  const selectedCheckboxes = document.querySelectorAll(".equipment_table input[type='checkbox']:checked");
 
-// Trigger Bulk Delete Confirmation Panel
-document.getElementById("equip-bulk-delete").addEventListener("click", () => {
-  if (selectedEquipments.length > 0) {
-    document.getElementById("equip-bulk-panel").style.display = "block"; // Show confirmation panel
+  let selectedEquipmentIds = [];
+  let hasInvalidId = false;
+
+  for (const checkbox of selectedCheckboxes) {
+      const equipmentId = checkbox.getAttribute("data-equipment-id");
+
+      // Validate equipmentId (null, undefined, or empty string)
+      if (!equipmentId || equipmentId.trim() === "") {
+          hasInvalidId = true;
+          break;
+      }
+
+      /* Check if the equipment_id exists in the database */
+      try {
+          const q = query(collection(db, "tb_equipment"), where("equipment_id", "==", Number(equipmentId)));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+              hasInvalidId = true;
+              console.error(`ERROR: Equipment ID ${equipmentId} does not exist in the database.`);
+              break;
+          }
+
+          selectedEquipmentIds.push(equipmentId);
+      } catch (error) {
+          console.error("Error fetching Equipment records:", error);
+          hasInvalidId = true;
+          break;
+      }
+  }
+
+  if (hasInvalidId) {
+      showDeleteMessage("ERROR: Equipment ID of one or more selected records are invalid", false);
   } else {
-    alert("No Equipments selected for deletion."); // Prevent deletion if none are selected
+      document.getElementById("equip-bulk-panel").style.display = "block"; // Show confirmation panel
   }
 });
 
@@ -294,6 +329,7 @@ function showDeleteMessage(message, success) {
     }, 300);
   }, 4000);
 }
+
 // Search bar event listener for real-time filtering
 document.getElementById("equip-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
@@ -312,24 +348,7 @@ document.getElementById("equip-search-bar").addEventListener("input", function (
   displayEquipments(filteredEquipments); // Update the table with filtered Equipments
 });
 
-// <------------------ FUNCTION TO DISPLAY equipment STOCK MESSAGE ------------------------>
-const equipmentStockMessage = document.getElementById("equip-stock-message");
-
-function showEquipmentStockMessage(message, success) {
-  equipmentStockMessage.textContent = message;
-  equipmentStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  equipmentStockMessage.style.opacity = '1';
-  equipmentStockMessage.style.display = 'block';
-
-  setTimeout(() => {
-    equipmentStockMessage.style.opacity = '0';
-    setTimeout(() => {
-      equipmentStockMessage.style.display = 'none';
-    }, 300);
-  }, 4000);
-}
 // <------------------ FUNCTION TO DISPLAY ADD STOCK FLOATING PANEL ------------------------>
-
 document.addEventListener("DOMContentLoaded", () => {
   const equipmentStockPanel = document.getElementById("equip-stock-panel");
   const equipmentOverlay = document.getElementById("equip-overlay");
@@ -355,31 +374,47 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!querySnapshot.empty) {
           const equipmentData = querySnapshot.docs[0].data();
 
-          // Assign values, ensuring defaults if undefined or empty
           equipmentCategory = equipmentData.equipment_category?.trim() || "No category was recorded";
           equipmentName = equipmentData.equipment_name?.trim() || "No name was recorded";
           equipmentUnit = equipmentData.unit?.trim() || "No unit was recorded";
 
-          // Normalize 'machinery' to 'machineries'
-          if (equipmentUnit.toLowerCase() === "machinery") {
-            equipmentUnit = "machineries";
-          }
-
-          // Case-insensitive unit matching with dropdown options
+          // Unit Dropdown Validation
           const unitDropdown = document.getElementById("equip_unit");
+          unitDropdown.disabled = false; // Temporarily enable
+
           const unitOptions = Array.from(unitDropdown.options).map(opt => opt.value.toLowerCase());
 
-          if (unitOptions.includes(equipmentUnit.toLowerCase())) {
-            unitDropdown.value = equipmentUnit; // Select matching unit
+          if (!equipmentUnit || equipmentUnit === "No unit was recorded") {
+            // Ensure the dropdown has "Invalid Unit"
+            let invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
+            if (!invalidOption) {
+              invalidOption = new Option("Invalid Unit", "Invalid Unit");
+              unitDropdown.add(invalidOption);
+            }
+            unitDropdown.value = "Invalid Unit";
           } else {
-            unitDropdown.value = ""; // Leave unselected
-          }
+            // Check if the unit exists in the dropdown
+            if (unitOptions.includes(equipmentUnit.toLowerCase())) {
+              unitDropdown.value = equipmentUnit;
+            } else {
+              // Remove existing "Invalid Unit" option if any
+              const invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
+              if (invalidOption) invalidOption.remove();
+          
+              // Add "Invalid Unit" option and select it
+              const invalidOptionElement = new Option("Invalid Unit", "Invalid Unit");
+              unitDropdown.add(invalidOptionElement);
+              unitDropdown.value = "Invalid Unit";
+            }
+          }          
+
+          unitDropdown.disabled = true; // Disable it again
         }
 
         // Assign values to the inputs
         document.getElementById("equip_category").value = equipmentCategory;
         document.getElementById("equip_name").value = equipmentName;
-        document.getElementById("equip_unit_hidden").value = equipmentUnit; // Ensure this always gets saved
+        document.getElementById("equip_unit_hidden").value = equipmentUnit;
 
         // Display the floating panel
         equipmentStockPanel.style.display = "block";
@@ -412,12 +447,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const unitDropdown = document.getElementById("equip_unit");
     let unit = unitDropdown.value.trim();
 
-    // Ensure "No unit was recorded" is saved if no valid selection was made
-    if (!unit) {
+    if (!unit || unit === "Invalid Unit") {
       unit = "No unit was recorded";
     }
 
-    // Update the hidden input to reflect the saved unit
     document.getElementById("equip_unit_hidden").value = unit;
 
     if (!equipmentStock || isNaN(equipmentStock) || equipmentStock <= 0) {
@@ -440,13 +473,13 @@ document.addEventListener("DOMContentLoaded", () => {
           equipment_name: equipmentName,
           equipmentcategory: equipmentCategory,
           current_stock: newStock,
-          unit: unit // Ensures "No unit was recorded" gets saved if necessary
+          unit: unit
         });
 
         showEquipmentStockMessage("Equipment Stock has been added successfully!", true);
         closeStockPanel();
       } else {
-        showEquipmentStockMessage("Equipment Record not found!", false);
+        showEquipmentStockMessage("ERROR: Invalid Equipment Name unable to save data", false);
       }
     } catch (error) {
       console.error("Error updating Equipment stock:", error);

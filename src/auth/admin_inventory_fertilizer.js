@@ -233,7 +233,7 @@ document.getElementById("cancel-fert-delete").addEventListener("click", () => {
 
 // <------------- BULK DELETE BUTTON CODE ---------------> //
 document.getElementById("fert-bulk-delete").addEventListener("click", async () => {
-  const selectedCheckboxes = document.querySelectorAll("input[type='checkbox']:checked");
+  const selectedCheckboxes = document.querySelectorAll(".fertilizer_table input[type='checkbox']:checked");
 
   let selectedFertilizerIds = [];
   let hasInvalidId = false;
@@ -249,7 +249,7 @@ document.getElementById("fert-bulk-delete").addEventListener("click", async () =
 
       /* Check if the fertilizer_id exists in the database */
       try {
-          const q = query(collection(db, "tb_fertilizer"), where("fertilizer_id", "==", Number(fertilizerId)));
+          const q = query(collection(db, "tb_fertilizers"), where("fertilizer_id", "==", Number(fertilizerId)));
           const querySnapshot = await getDocs(q);
 
           if (querySnapshot.empty) {

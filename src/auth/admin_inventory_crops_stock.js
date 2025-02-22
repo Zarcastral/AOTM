@@ -5,9 +5,7 @@ import {
   query,
   where,
   deleteDoc,
-  doc,
-  updateDoc,
-  Timestamp
+  doc
 } from "firebase/firestore";
 
 import app from "../config/firebase_config.js";
@@ -19,6 +17,12 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let filteredCrops = []; // Initialize filteredCrops with an empty array
 let selectedCrops = [];
+// USE THIS TO SORT FOR CROP ID ASCENDING ORDER
+/*function sortCropsById() {
+  filteredCrops.sort((a, b) => Number(a.crop_type_id || 0) - Number(b.crop_type_id || 0));
+}*/
+
+// DIS ONE IS FOR DATES FROM LATEST TO OLDEST
 function sortCropsById() {
   filteredCrops.sort((a, b) => {
     const dateA = parseDate(a.dateAdded);
@@ -37,6 +41,7 @@ function parseDate(dateValue) {
   
   return new Date(dateValue); // Convert string/ISO formats to Date
 }
+
 // Fetch crops data from Firestore
 async function fetchCrops() {
   console.log("Fetching crops..."); // Debugging
@@ -98,13 +103,14 @@ function displayCrops(cropsList) {
     const unit = crop.unit || "Units";
 
     row.innerHTML = `
-        <td class="checkbox"><input type="checkbox"></td>
+        <td class="checkbox">
+            <input type="checkbox" data-crop-id="${cropTypeId}">
+        </td>
         <td>${cropTypeId}</td>
         <td>${cropType}</td>
         <td>${cropName}</td>
         <td>${dateAdded}</td>
         <td>${currentStock} ${unit}</td>
-        <td><button class="add-crop-stock-btn">+ Add Stock</button></td>
     `;
 
     tableBody.appendChild(row);
@@ -193,16 +199,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ---------------------------- CROP BULK DELETE CODES ---------------------------- //
 const deletemessage = document.getElementById("crop-bulk-message"); // delete message panel
-// CHECKBOX
 
-
+// CHECKBOX CHANGE EVENT HANDLER
 function handleCheckboxChange(event) {
-  const row = event.target.closest("tr"); // Get the row of the checkbox
+  const checkbox = event.target; // The checkbox that triggered the event
+  const row = checkbox.closest("tr"); // Get the row of the checkbox
   if (!row) return;
 
-  const cropTypeId = row.children[1]?.textContent.trim(); // Get crop_type_name
+  // Get cropType ID from the data attribute
+  const cropTypeId = checkbox.getAttribute("data-crop-id");
 
-  if (event.target.checked) {
+  if (checkbox.checked) {
     // Add to selected list if checked
     if (!selectedCrops.includes(cropTypeId)) {
       selectedCrops.push(cropTypeId);
@@ -229,12 +236,45 @@ function addCheckboxListeners() {
   });
 }
 
-// Trigger Bulk Delete Confirmation Panel
-document.getElementById("crop-bulk-delete").addEventListener("click", () => {
-  if (selectedCrops.length > 0) {
-    document.getElementById("crop-bulk-panel").style.display = "block"; // Show confirmation panel
+// <------------- BULK DELETE BUTTON CODE ---------------> //
+document.getElementById("crop-bulk-delete").addEventListener("click", async () => {
+  const selectedCheckboxes = document.querySelectorAll(".crop_table input[type='checkbox']:checked");
+
+  let selectedCropTypeIds = [];
+  let hasInvalidId = false;
+
+  for (const checkbox of selectedCheckboxes) {
+      const cropTypeId = checkbox.getAttribute("data-crop-id");
+
+      // Validate cropTypeId (null, undefined, or empty string)
+      if (!cropTypeId || cropTypeId.trim() === "") {
+          hasInvalidId = true;
+          break;
+      }
+
+      /* Check if the cropType_id exists in the database */
+      try {
+          const q = query(collection(db, "tb_crop_types"), where("crop_type_id", "==", Number(cropTypeId)));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+              hasInvalidId = true;
+              console.error(`ERROR: Crop ID ${cropTypeId} does not exist in the database.`);
+              break;
+          }
+
+          selectedCropTypeIds.push(cropTypeId);
+      } catch (error) {
+          console.error("Error fetching crop records:", error);
+          hasInvalidId = true;
+          break;
+      }
+  }
+
+  if (hasInvalidId) {
+      showDeleteMessage("ERROR: Fertilizier ID of one or more selected records are invalid", false);
   } else {
-    alert("No crops selected for deletion."); // Prevent deletion if none are selected
+      document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
   }
 });
 
@@ -281,6 +321,7 @@ async function deleteSelectedCrops() {
 document.getElementById("confirm-crop-delete").addEventListener("click", () => {
   deleteSelectedCrops();
 });
+
 // <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
 const deleteMessage = document.getElementById("crop-bulk-message");
 
@@ -297,24 +338,6 @@ function showDeleteMessage(message, success) {
     }, 300);
   }, 4000);
 }
-
-// <------------------ FUNCTION TO DISPLAY CROP STOCK MESSAGE ------------------------>
-const cropStockMessage = document.getElementById("crop-stock-message");
-
-function showCropStockMessage(message, success) {
-  cropStockMessage.textContent = message;
-  cropStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  cropStockMessage.style.opacity = '1';
-  cropStockMessage.style.display = 'block';
-
-  setTimeout(() => {
-    cropStockMessage.style.opacity = '0';
-    setTimeout(() => {
-      cropStockMessage.style.display = 'none';
-    }, 300);
-  }, 4000);
-}
-
 // Search bar event listener for real-time filtering
 document.getElementById("crop-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
@@ -353,11 +376,54 @@ document.addEventListener("DOMContentLoaded", () => {
         const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
         const querySnapshot = await getDocs(cropQuery);
 
+        let cropTypeName = "No category was recorded";
+        let cropName = "No name was recorded";
+        let cropUnit = "No unit was recorded";
+
         if (!querySnapshot.empty) {
           const cropData = querySnapshot.docs[0].data();
-          document.getElementById("crops").value = cropData.crop_name || "";
-          document.getElementById("crop_name").value = cropData.crop_type_name || "";
+
+          cropName = cropData.crop_name?.trim() || "No name was recorded";
+          cropTypeName = cropData.crop_type_name?.trim() || "No category was recorded";
+          cropUnit = cropData.unit?.trim() || "No unit was recorded";
+
+          // Unit Dropdown Validation
+          const unitDropdown = document.getElementById("crop_unit");
+          unitDropdown.disabled = false; // Temporarily enable
+
+          const unitOptions = Array.from(unitDropdown.options).map(opt => opt.value.toLowerCase());
+
+          if (!cropUnit || cropUnit === "No unit was recorded") {
+            // Ensure the dropdown has "Invalid Unit"
+            let invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
+            if (!invalidOption) {
+              invalidOption = new Option("Invalid Unit", "Invalid Unit");
+              unitDropdown.add(invalidOption);
+            }
+            unitDropdown.value = "Invalid Unit";
+          } else {
+            // Check if the unit exists in the dropdown
+            if (unitOptions.includes(cropUnit.toLowerCase())) {
+              unitDropdown.value = cropUnit;
+            } else {
+              // Remove existing "Invalid Unit" option if any
+              const invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
+              if (invalidOption) invalidOption.remove();
+          
+              // Add "Invalid Unit" option and select it
+              const invalidOptionElement = new Option("Invalid Unit", "Invalid Unit");
+              unitDropdown.add(invalidOptionElement);
+              unitDropdown.value = "Invalid Unit";
+            }
+          }          
+
+          unitDropdown.disabled = true; // Disable it again
         }
+
+        // Assign values to the inputs
+        document.getElementById("crops").value = cropName;
+        document.getElementById("crop_name").value = cropTypeName;
+        document.getElementById("crop_unit_hidden").value = cropUnit;
 
         cropStockPanel.style.display = "block";
         cropOverlay.style.display = "block";
@@ -374,6 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("crops").value = "";
     document.getElementById("crop_name").value = "";
     document.getElementById("crop_stock").value = "";
+    document.getElementById("crop_unit_hidden").value = "";
     fetchCrops();
   }
 
@@ -382,11 +449,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveBtn.addEventListener("click", async function () {
     const cropTypeId = saveBtn.dataset.cropTypeId;
-    const cropName = document.getElementById("crops").value;
     const cropTypeName = document.getElementById("crop_name").value;
+    const cropName = document.getElementById("crops").value;
     const cropStock = document.getElementById("crop_stock").value;
-    const unit = document.getElementById("unit").value;
-
+    const unit = document.getElementById("crop_unit").value;
+    
+    if (!unit || unit === "Invalid Unit") {
+      unit = "No unit was recorded";
+    }
+    
     if (!cropStock || isNaN(cropStock) || cropStock <= 0) {
       showCropStockMessage("Please enter a valid crop stock quantity.", false);
       return;
@@ -413,7 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showCropStockMessage("Crop Stock has been added successfully!", true);
         closeStockPanel();
       } else {
-        showCropStockMessage("Crop type not found.", false);
+        showCropStockMessage("ERROR: Invalid Crop Name unable to save data", false);
       }
     } catch (error) {
       console.error("Error updating crop stock:", error);

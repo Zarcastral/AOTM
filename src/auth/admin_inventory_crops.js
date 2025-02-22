@@ -238,7 +238,7 @@ function addCheckboxListeners() {
 
 // <------------- BULK DELETE BUTTON CODE ---------------> //
 document.getElementById("crop-bulk-delete").addEventListener("click", async () => {
-  const selectedCheckboxes = document.querySelectorAll("input[type='checkbox']:checked");
+  const selectedCheckboxes = document.querySelectorAll(".crop_table input[type='checkbox']:checked");
 
   let selectedCropTypeIds = [];
   let hasInvalidId = false;

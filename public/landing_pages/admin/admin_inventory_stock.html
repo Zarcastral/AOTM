@@ -83,8 +83,8 @@
       <!-- First row with three inputs -->
       <div class="crop-row">
           <div>
-              <label for="crop_name">Crop Name</label>
-              <input type="text" id="crop_name" class="crop-input" readonly>
+              <label for="crops">Crop Name</label>
+              <input type="text" id="crops" class="crop-input" readonly>
           </div>
 
           <div>
@@ -93,18 +93,19 @@
           </div>
 
           <div>
-              <label for="unit">Unit</label>
-              <select id="unit" class="crop-select" readonly>
+              <label for="crop_unit">Unit</label>
+              <select id="crop_unit" class="crop-select" disabled>
                   <option value="kg">kg</option>
               </select>
+              <input type="hidden" name="crop_unit" id="crop_unit_hidden">
           </div>
       </div>
 
       <!-- Second row with crops input -->
       <div class="crop-row">
           <div>
-              <label for="crops">Crops</label>
-              <input type="text" id="crops" class="crop-input" readonly>
+              <label for="crop_name">Crops</label>
+              <input type="text" id="crop_name" class="crop-input" readonly>
           </div>
       </div>
 
@@ -189,9 +190,10 @@
 
           <div>
               <label for="fert_unit">Unit</label>
-              <select id="fert_unit" class="fert-select" readonly>
+              <select id="fert_unit" class="fert-select" disabled>
                   <option value="kg">kg</option>
               </select>
+              <input type="hidden" name="fert_unit" id="fert_unit_hidden">
           </div>
       </div>
 
