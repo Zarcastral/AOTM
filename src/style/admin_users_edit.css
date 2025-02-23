@@ -32,7 +32,7 @@ body {
 
 button[type="submit"] {
     flex: 1;
-    background-color: #4CAF50;
+    background-color: #41A186;
     color: white;
     padding: 10px;
     border: none;
@@ -42,7 +42,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
-  background-color: #38853c;
+  background-color: #318a71;
   transition: background-color 0.3s ease;
 }
 
@@ -89,7 +89,7 @@ button[type="submit"]:hover {
   button {
     width: 100%;
     padding: 10px;
-    background-color: #4CAF50;
+    background-color: #41A186;
     color: white;
     border: none;
     border-radius: 4px;
@@ -98,7 +98,7 @@ button[type="submit"]:hover {
   }
   
   button:hover {
-    background-color: #45a049;
+    background-color: #41A186;
   }
   
 
@@ -159,7 +159,7 @@ button[type="submit"]:hover {
 }
 
 #confirmationPanel #confirmYes {
-  background-color: #45a049;
+  background-color: #41A186;
   color: white;
 }
 
@@ -175,7 +175,7 @@ button[type="submit"]:hover {
 }
 
 #confirmationPanel #confirmYes:hover {
-  background-color: #38853c;
+  background-color: #318a71;
   transition: background-color 0.3s ease;
 
 }

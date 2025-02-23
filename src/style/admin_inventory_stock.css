@@ -206,7 +206,7 @@ tbody tr:hover {
 }
 
 .stock-selector a.active {
-  color: #45a049;
+  color:  #41A186;
   font-weight: bold;
 }
 
@@ -344,14 +344,14 @@ cursor: pointer;
 
 .crop-bulk-confirm-btn, .fert-bulk-confirm-btn,
 .equip-bulk-confirm-btn{
-background-color: #4CAF50;
+background-color:  #41A186;
 color: white;
 border: none;
 }
 
 .crop-bulk-confirm-btn:hover, .fert-bulk-confirm-btn:hover,
 .equip-bulk-confirm-btn:hover {
-background-color: #38853c;
+background-color: #318a71;
 transition: background-color 0.3s ease;
 }
 
@@ -375,7 +375,7 @@ position: fixed;
 top: 20px;
 left: 50%;
 transform: translateX(-50%);
-background-color: #4CAF50;
+background-color:  #41A186;
 color: white;
 padding: 10px 20px;
 border-radius: 5px;
@@ -391,7 +391,7 @@ transition: opacity 0.3s ease;
 
 .add-crop-stock-btn, .add-fert-stock-btn,
 .add-equip-stock-btn {
-  background-color: #4CAF50;
+  background-color:  #41A186;
   color: white;
   padding: 12px 20px;
   font-size: 14px;
@@ -406,7 +406,7 @@ transition: opacity 0.3s ease;
 
 .add-crop-stock-btn:hover, .add-fert-stock-btn:hover
 , .add-equip-stock-btn:hover {
-  background-color: #38853c; 
+  background-color: #318a71; 
   text-decoration: none;
   transition: background-color 0.3s ease;
 }
@@ -583,7 +583,7 @@ position: fixed;
 top: 20px;
 left: 50%;
 transform: translateX(-50%);
-background-color: #4CAF50;
+background-color:  #41A186;
 color: white;
 padding: 10px 20px;
 border-radius: 5px;
