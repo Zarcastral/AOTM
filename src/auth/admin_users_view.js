@@ -35,9 +35,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         
         // Automatically select the option fetched from data
-        const farmerData = localStorage.getItem("farmerData");
-        if (farmerData) {
-            const data = JSON.parse(farmerData);
+        const userData = localStorage.getItem("userData");
+        if (userData) {
+            const data = JSON.parse(userData);
             const username = data.user_name;
             // <------------------------- POPULATE THE FIELDS ON READ ONLY ---------------------------->
             const usernameField = document.getElementById("user_name");
@@ -105,10 +105,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 if (!querySnapshot.empty) {
                     const userData = querySnapshot.docs[0].data();
-                    const profilePictureUrl = userData.profilePictureUrl;
+                    const user_picture = userData.user_picture;
 
-                    if (profilePictureUrl) {
-                        document.getElementById("profile-picture").src = profilePictureUrl;
+                    if (user_picture) {
+                        document.getElementById("profile-picture").src = user_picture;
                     }
                 } else {
                     console.log("No user found with the given user_name.");

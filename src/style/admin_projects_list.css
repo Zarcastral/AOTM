@@ -44,6 +44,7 @@ body {
     overflow-y: auto; /* Enable vertical scrolling */
   }
 
+
 /* Panel container style */
 
 .panel {
@@ -59,19 +60,31 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    border-spacing: 0;
 }
 
 th, td {
     padding: 1rem;
-    text-align: left; /* aligns only when th, td and th both have text-align: center; do not know why*/
+    text-align: left;
     border-bottom: 2px solid #f0f0f0;
+    width: auto;
 }
 
 th {
     background-color: white;
     color: #333;
 }
+tbody tr {
+    background-color: white;
+    border-bottom: 4px solid #f0f0f0;
+}
+tbody tr:hover {
+    background-color: #F3F4F6;
+  }
+/* Remove border from the last row */
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
 input[type="checkbox"] {
     width: 16px;
     height: 16px;
@@ -80,9 +93,6 @@ input[type="checkbox"] {
     outline: none;
     background-color: white;
     cursor: pointer;
-  }
-tbody tr:hover {
-    background-color: #F3F4F6;
   }
 
 .search-container {
@@ -127,8 +137,8 @@ tbody tr:hover {
 }
 
 /* New User Button */
-.add-user-btn {
-    background-color: #4CAF50;
+.add-project-btn {
+    background-color: #41A186;
     color: white;
     padding: 12px 20px;
     font-size: 18px;
@@ -141,47 +151,47 @@ tbody tr:hover {
     text-decoration: none;
 }
 
-.add-user-btn:hover {
-    background-color: #38853c; 
+.add-project-btn:hover {
+    background-color: #318a71; 
     text-decoration: none;
     transition: background-color 0.3s ease;
 }
 
 /* Pagination styles */
 .pagination-container {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center; /* Aligns vertically */
-    margin-top: 20px;
-    width: 100%;
-    gap: 10px; /* Adds spacing between elements */
-  
-  }
-  #page-number {
-      font-size: 17px;
-      color: #333;
-    }
-  
-  .pagination-btn {
-    padding: 10px 10px;
-    margin: 0;
-    font-size: 25px;
-    border: none;
-    border-radius: 0;
-    cursor: pointer;
-    background: none;
-    transition: color 0.3s ease;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; /* Aligns vertically */
+  margin-top: 20px;
+  width: 100%;
+  gap: 10px; /* Adds spacing between elements */
+
+}
+#page-number {
+    font-size: 17px;
     color: #333;
   }
-  
-  .pagination-btn:hover {
-      color: #41A186;
-  }
-  
-  .pagination-btn:disabled {
-      color: #bbb;
-      cursor: not-allowed;
-  }
+
+.pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.pagination-btn:hover {
+    color: #41A186;
+}
+
+.pagination-btn:disabled {
+    color: #bbb;
+    cursor: not-allowed;
+}
 
 
 /* Confirmation Panel Style */
@@ -247,6 +257,7 @@ tbody tr:hover {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
+    background-color: transparent; /* Remove the default green */
     color: white;
     padding: 10px 20px;
     border-radius: 20px;
@@ -273,13 +284,13 @@ tbody tr:hover {
     border: 1px solid #ccc;
     border-radius: 10px;
     outline: none;
-    width: 250px;
+    width: 400px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 
-/* Styling for the Barangay select dropdown */
-#barangay-select {
+/* Styling for the Status select dropdown */
+#status_select {
     padding: 10px;
     font-size: 16px;
     border: 1px solid #ccc;
@@ -290,7 +301,7 @@ tbody tr:hover {
 }
 
 /* Optional: Style for the placeholder option */
-#barangay-select option[value=""] {
+#status_select option[value=""] {
     color: #888;
     font-style: italic;
 }
@@ -300,7 +311,6 @@ tbody tr:hover {
     height: 25px;
     object-fit: contain;
 }
-
 
 .action-btn {
     padding: 8px;
@@ -397,7 +407,6 @@ tbody tr:hover {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #4CAF50;
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
@@ -407,6 +416,37 @@ tbody tr:hover {
     z-index: 1001;
     opacity: 0;
     transition: opacity 0.3s ease;
+}
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+}
+
+.modal-content {
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.modify-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
 
 /* Responsive styles */

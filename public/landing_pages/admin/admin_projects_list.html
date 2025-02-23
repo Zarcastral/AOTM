@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="../../../src/auth/admin_users.js"></script>
-    <title>USER LIST</title>
+    <script type="module" src="../../../src/auth/admin_projects_list.js"></script>
+    <title>PROJECTS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/src/style/admin_users.css">
+    <link rel="stylesheet" href="/src/style/admin_projects_list.css">
 </head>
 <body>
    <!-- Header Section -->
@@ -24,29 +24,27 @@
   <div class="main-content">
       <!-- Button for New Project -->
       <div class="btn-container">
-          <a href="create_account.html" class="add-user-btn">+ New User</a>
+          <a href="projects.html" class="add-project-btn">+ New Project</a>
         </div>
     <div class="panel">
         <div class="search-container">
            <input type="text" id="search-bar" placeholder="Search" /> 
-            <select id="barangay-select">
-                <option value="">Select Barangay</option>
+            <select id="status_select">
+                <option value="">Select Status</option>
                 <!-- record will be dynamically added here -->
             </select>
         </div>
         <table>
             <thead>
                 <tr>
-                    <th class="checkbox-delete" > 
-                        <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-                    </th>
-                    <th>ACCOUNT NAME</th>
-                    <th>USER'S NAME</th>
-                    <th>USER ROLE</th>
-                    <th>BARANGAY</th>
-                    <th>CONTACT</th>
-                    <th>ACTION</th>
-                    
+                    <th>PROJECT NAME</th>
+                    <th>FARM PRESIDENT</th>
+                    <th>START DATE</th>
+                    <th>END DATE</th>
+                    <th>CROP</th>
+                    <th>PROGRESS</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>  
                 </tr>
             </thead>
             <tbody id="table_body">
@@ -69,23 +67,9 @@
             <button id="cancel-delete" class="cancel-btn">Cancel</button>
         </div>
     </div>
-    
-        <!-- Success Message Panel -->
-        <div id="delete-message" class="delete-message">
-            <p>Record has been successfully deleted!</p>
-        </div>
-
-    <div id="bulk-delete-panel" class="bulk-delete-panel">
-        <div class="confirm-bulk-delete-message">
-            <p>Are you sure you want to delete the selected records?</p>
-            <button id="confirm-bulk-delete" class="bulk-confirm-btn">Confirm</button>
-            <button id="cancel-bulk-delete" class="bulk-cancel-btn">Cancel</button>
-        </div>
-    </div>
-        
-    <!-- Bulk Delete Message Panel -->
-    <div id="bulk-delete-message" class="bulk-delete-message">
-        <p>All selected records has been successfully deleted!</p>
+    <!-- Success Message Panel -->
+    <div id="delete-message" class="delete-message">
+        <p>Record has been successfully deleted!</p>
     </div>
 
 </body>

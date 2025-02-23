@@ -95,7 +95,9 @@ function displayEquipments(equipmentsList) {
     const unit = equipment.unit || "units";
 
     row.innerHTML = `
-        <td class="checkbox"><input type="checkbox"></td>
+        <td class="checkbox">
+            <input type="checkbox" data-equipment-id="${equipmentId}">
+        </td>
         <td>${equipmentId}</td>
         <td>${equipmentName}</td>
         <td>${equipmentType}</td>
@@ -189,26 +191,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ---------------------------- equip BULK DELETE CODES ---------------------------- //
 const deletemessage = document.getElementById("equip-bulk-message"); // delete message panel
-// CHECKBOX
+
+// CHECKBOX CHANGE EVENT HANDLER
 function handleCheckboxChange(event) {
-  const row = event.target.closest("tr"); // Get the row of the checkbox
+  const checkbox = event.target; // The checkbox that triggered the event
+  const row = checkbox.closest("tr"); // Get the row of the checkbox
   if (!row) return;
 
-  const equipmentTypeId = row.children[1]?.textContent.trim(); // Get equipment_type_name
+  // Get equipmentType ID from the data attribute
+  const equipmentId = checkbox.getAttribute("data-equipment-id");
 
-  if (event.target.checked) {
+  if (checkbox.checked) {
     // Add to selected list if checked
-    if (!selectedEquipments.includes(equipmentTypeId)) {
-      selectedEquipments.push(equipmentTypeId);
+    if (!selectedEquipments.includes(equipmentId)) {
+      selectedEquipments.push(equipmentId);
     }
   } else {
     // Remove from list if unchecked
-    selectedEquipments = selectedEquipments.filter(item => item !== equipmentTypeId);
+    selectedEquipments = selectedEquipments.filter(item => item !== equipmentId);
   }
 
   console.log("Selected Equipments:", selectedEquipments);
   toggleBulkDeleteButton();
 }
+
+
 // Enable/Disable the Bulk Delete button
 function toggleBulkDeleteButton() {
   const bulkDeleteButton = document.getElementById("equip-bulk-delete");
@@ -220,13 +227,45 @@ function addCheckboxListeners() {
     checkbox.addEventListener("change", handleCheckboxChange);
   });
 }
+// <------------- BULK DELETE BUTTON CODE ---------------> //
+document.getElementById("equip-bulk-delete").addEventListener("click", async () => {
+  const selectedCheckboxes = document.querySelectorAll(".equipment_table input[type='checkbox']:checked");
 
-// Trigger Bulk Delete Confirmation Panel
-document.getElementById("equip-bulk-delete").addEventListener("click", () => {
-  if (selectedEquipments.length > 0) {
-    document.getElementById("equip-bulk-panel").style.display = "block"; // Show confirmation panel
+  let selectedEquipmentIds = [];
+  let hasInvalidId = false;
+
+  for (const checkbox of selectedCheckboxes) {
+      const equipmentId = checkbox.getAttribute("data-equipment-id");
+
+      // Validate equipmentId (null, undefined, or empty string)
+      if (!equipmentId || equipmentId.trim() === "") {
+          hasInvalidId = true;
+          break;
+      }
+
+      /* Check if the equipment_id exists in the database */
+      try {
+          const q = query(collection(db, "tb_equipment"), where("equipment_id", "==", Number(equipmentId)));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+              hasInvalidId = true;
+              console.error(`ERROR: Equipment ID ${equipmentId} does not exist in the database.`);
+              break;
+          }
+
+          selectedEquipmentIds.push(equipmentId);
+      } catch (error) {
+          console.error("Error fetching Equipment records:", error);
+          hasInvalidId = true;
+          break;
+      }
+  }
+
+  if (hasInvalidId) {
+      showDeleteMessage("ERROR: Fertilizier ID of one or more selected records are invalid", false);
   } else {
-    alert("No Equipments selected for deletion."); // Prevent deletion if none are selected
+      document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
   }
 });
 
