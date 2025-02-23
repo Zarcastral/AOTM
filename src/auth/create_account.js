@@ -15,6 +15,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+const usernameError = document.getElementById("usernameError");
 const farmerIdError = document.getElementById("farmerIdError");
 const emailInput = document.getElementById("email");
 const emailError = document.getElementById("emailError"); // Add this element in HTML
@@ -236,6 +237,19 @@ if (!form.dataset.listenerAdded) {
       console.log("Account created successfully!");
       alert("Account created successfully!");
       form.reset();
+      // Clear error messages
+      usernameError.textContent = "";
+      farmerIdError.textContent = "";
+      emailError.textContent = "";
+      confirmPasswordError.style.display = "none";
+      passwordMatchMessage.style.display = "none";
+
+      // Reset password validation indicators
+      Object.entries(passwordChecks).forEach(([id]) => {
+        document.getElementById(id).style.color = ""; // Reset color
+      });
+      // Reset input fields
+      form.reset();
     } catch (error) {
       console.error("Error creating account:", error);
       showError(error.message);
@@ -281,42 +295,35 @@ function debounce(func, delay) {
   };
 }
 
-// Regular expression to validate email format
-// Regular expression to validate email format
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Validate email format before checking Firestore
-const validateEmailFormat = () => {
-  const email = emailInput.value.trim();
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function validateEmailFormat(email) {
+  if (!email || typeof email !== "string") {
+    emailError.textContent = ""; // Clear error if email is undefined
+    return false; // Skip validation
+  }
 
-  if (!emailPattern.test(email)) {
-    console.log("Invalid email format detected.");
+  if (email.trim() === "") {
+    emailError.textContent = ""; // Clear any previous message
+    return false; // Skip validation
+  }
+
+  if (!emailRegex.test(email)) {
+    emailError.textContent = "❌ Invalid email format.";
+    emailError.style.color = "red";
     return false;
   }
 
-  return true;
-};
+  emailError.textContent = ""; // Clear previous error message
+  return true; // No console messages when valid
+}
 
-// Check if email exists in Firestore (only if format is valid)
-const checkEmailExists = debounce(async () => {
-  const email = emailInput.value.trim();
-
-  if (!validateEmailFormat()) {
-    console.log("Invalid email format. Skipping Firestore check.");
-    emailError.textContent = "";
-    validateForm();
+// Function to check if the email exists in Firestore
+async function checkEmailExists(email) {
+  if (email.trim() === "") {
+    emailError.textContent = ""; // Clear error if empty
     return;
   }
-
-  if (!email) {
-    console.log("Email field is empty. Clearing error message.");
-    emailError.textContent = "";
-    validateForm();
-    return;
-  }
-
-  console.log("Checking if email exists in Firestore...");
 
   try {
     const userQuery = query(
@@ -326,27 +333,37 @@ const checkEmailExists = debounce(async () => {
     const querySnapshot = await getDocs(userQuery);
 
     if (!querySnapshot.empty) {
-      console.log("Email already in use.");
       emailError.textContent = "❌ Email is already in use.";
       emailError.style.color = "red";
     } else {
-      console.log("Email is available to use.");
-      emailError.textContent = "✅ Email is available.";
+      emailError.textContent = "✅ Email is available to use.";
       emailError.style.color = "green";
     }
   } catch (error) {
     console.error("Error checking email:", error);
-    emailError.textContent = "Error checking email.";
+    emailError.textContent = "❌ Error checking email.";
     emailError.style.color = "red";
   }
+}
 
-  validateForm(); // Ensure submit button updates
-}, 500);
+let emailCheckTimeout; // Timeout variable
 
-// Attach event listener to validate format before checking Firestore
 emailInput.addEventListener("input", () => {
-  validateEmailFormat();
-  checkEmailExists(); // Only check Firestore if format is valid
+  clearTimeout(emailCheckTimeout); // Clear any previous timeout
+
+  const email = emailInput.value.trim();
+
+  if (email === "") {
+    emailError.textContent = ""; // Clear message when empty
+    validateForm(); // Ensure form validation updates
+    return;
+  }
+
+  emailCheckTimeout = setTimeout(async () => {
+    if (validateEmailFormat(email)) {
+      await checkEmailExists(email);
+    }
+  }, 500);
 });
 
 // Check if username exists
@@ -422,55 +439,91 @@ farmerIdInput.addEventListener("input", checkFarmerIdExists);
 const submitButton = form.querySelector("button[type='submit']");
 
 // Function to check if the form is valid
-const validateForm = () => {
+function validateForm() {
   const userType = userTypeSelect.value;
+  const email = emailInput.value.trim();
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
-  const emailMessage = emailError.textContent;
-  const usernameMessage = usernameError.textContent;
-  const farmerIdMessage = farmerIdError.textContent;
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  const contact = document.getElementById("contact").value.trim();
+  const birthday = document.getElementById("birthday").value.trim();
+  const sex = document.getElementById("sex").value;
+  const barangay = barangaySelect.value;
+  const submitButton = form.querySelector("button[type='submit']");
 
-  const isPasswordValid = Object.values(passwordChecks).every((regex) =>
-    regex.test(password)
-  );
-  const isConfirmPasswordValid = password === confirmPassword;
+  let isValid = true;
 
-  let isUsernameValid = true;
-  let isFarmerIdValid = true;
-
-  if (userType === "Admin" || userType === "Supervisor") {
-    isUsernameValid = usernameMessage.includes("✅");
-  } else if (
-    userType === "Farmer" ||
-    userType === "Farm President" ||
-    userType === "Head Farmer"
+  // Check if required fields are filled
+  if (
+    !userType ||
+    !email ||
+    !password ||
+    !confirmPassword ||
+    !firstName ||
+    !lastName ||
+    !contact ||
+    !birthday ||
+    !sex ||
+    !barangay
   ) {
-    isFarmerIdValid = farmerIdMessage.includes("✅");
+    isValid = false;
   }
 
-  const isEmailValid = validateEmailFormat() && emailMessage.includes("✅");
+  // Role-specific validation
+  if (userType === "Admin" || userType === "Supervisor") {
+    if (
+      !usernameInput.value.trim() ||
+      usernameError.textContent.includes("❌")
+    ) {
+      isValid = false;
+    }
+  } else {
+    if (
+      !farmerIdInput.value.trim() ||
+      farmerIdError.textContent.includes("❌")
+    ) {
+      isValid = false;
+    }
+  }
 
-  console.log("Email valid:", isEmailValid, "| Email message:", emailMessage);
+  // Password validation
+  if (
+    password !== confirmPassword ||
+    confirmPasswordError.style.display === "block"
+  ) {
+    isValid = false;
+  }
 
-  submitButton.disabled = !(
-    isEmailValid &&
-    isUsernameValid &&
-    isFarmerIdValid &&
-    isPasswordValid &&
-    isConfirmPasswordValid
-  );
-};
+  // Email validation
+  if (emailError.textContent.includes("❌")) {
+    isValid = false;
+  }
 
-// Ensure email validation triggers the form validation
-emailInput.addEventListener("input", validateForm);
+  // Enable/Disable Submit Button
+  submitButton.disabled = !isValid;
+}
 
-// Add event listeners to input fields to validate form dynamically
 emailInput.addEventListener("input", validateForm);
 usernameInput.addEventListener("input", validateForm);
 farmerIdInput.addEventListener("input", validateForm);
 passwordInput.addEventListener("input", validateForm);
 confirmPasswordInput.addEventListener("input", validateForm);
+
 userTypeSelect.addEventListener("change", validateForm);
+barangaySelect.addEventListener("change", validateForm);
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (form.querySelector("button[type='submit']").disabled) {
+    return; // Prevent submission if validation fails
+  }
+
+  console.log("Form submission triggered");
+
+  // Continue with Firebase authentication and Firestore updates
+});
 
 // Initialize Data Fetching
 document.addEventListener("DOMContentLoaded", () => {
