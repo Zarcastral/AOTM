@@ -4,6 +4,36 @@ body {
     margin: 0;
     padding: 0;
   }
+    
+  .header {
+    min-height: 60px;
+    height: 60px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+  }
+  
+  .header-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #41A186;
+  }
+  
+  .header-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .header-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+  
   label {
     font-weight: bold;
   }
