@@ -250,12 +250,13 @@ if (!form.dataset.listenerAdded) {
       });
       // Reset input fields
       form.reset();
+      submitButton.disabled = true;
     } catch (error) {
       console.error("Error creating account:", error);
       showError(error.message);
     }
 
-    submitButton.disabled = false;
+    submitButton.disabled = true;
   });
 }
 
