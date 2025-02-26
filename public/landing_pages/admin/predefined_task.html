@@ -87,6 +87,35 @@
         </div>
     </div>
 
+    <h2>Assigned Tasks</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Crop Type</th>
+                <th>Task Name</th>
+                <th>Assigned On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="assigned-tasks-table-body"></tbody>
+    </table>
+
+    <div id="edit-task-modal" class="modal">
+        <div class="modal-content">
+            <span id="close-edit-task-modal" class="close-btn">&times;</span>
+            <h2>Edit Task</h2>
+            <p id="edit-task-name-display"></p> <!-- Display Task Name -->
+            <ul id="subtask-list"></ul>
+            <button id="save-subtasks-btn">Save Changes</button>
+        </div>
+    </div>
+    
+
+    
+
+    
+
+
     <script type="module" src="predefined_task.js"></script>
 
 </body>
