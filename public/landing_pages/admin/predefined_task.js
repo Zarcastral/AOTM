@@ -11,6 +11,8 @@ import {
   where,
 } from "firebase/firestore";
 import app from "../../../src/config/firebase_config.js";
+import { fetchAssignedTasks } from "./fetch_assigned_tasks.js";
+
 
 const db = getFirestore(app);
 const taskList = document.getElementById("task-list");
@@ -418,6 +420,7 @@ async function loadTasks() {
 // Assign tasks to selected crop type
 assignTasksBtn.addEventListener("click", async () => {
   const selectedCropTypeId = cropTypeSelect.value;
+  const selectedCropTypeName = cropTypeSelect.options[cropTypeSelect.selectedIndex].text;
   const selectedTaskIds = Array.from(
     document.querySelectorAll('input[name="tasks"]:checked')
   ).map((checkbox) => checkbox.value);
@@ -427,17 +430,24 @@ assignTasksBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Assign tasks to crop type
   for (const taskId of selectedTaskIds) {
-    await addDoc(collection(db, "tb_task_list"), {
-      crop_type_id: selectedCropTypeId,
-      task_id: taskId,
-      assigned_on: new Date(),
-    });
+    const taskRef = doc(db, "tb_pretask", taskId);
+    const taskSnap = await getDoc(taskRef);
+
+    if (taskSnap.exists()) {
+      const taskData = taskSnap.data();
+
+      await addDoc(collection(db, "tb_task_list"), {
+        crop_type_name: selectedCropTypeName, // Store crop type name instead of ID
+        task_name: taskData.task_name, // Store task name
+        subtasks: taskData.subtasks || [], // Store associated subtasks
+        assigned_on: new Date(),
+      });
+    }
   }
 
   alert("Tasks successfully assigned to the crop type!");
-  assignTaskModal.style.display = "none"; // Close modal after assignment
+  assignTaskModal.style.display = "none";
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -446,10 +456,18 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", function () {
       document.getElementById("add-task-modal").style.display = "flex"; // Change from "block" to "flex"
     });
-
+    
   document
     .getElementById("close-add-task-modal")
     .addEventListener("click", function () {
       document.getElementById("add-task-modal").style.display = "none";
     });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetchAssignedTasks();
+});
+
+
+
+
