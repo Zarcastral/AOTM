@@ -312,16 +312,16 @@ window.addBarangay = async function() {
     }
 };
 
-//add crop
- window.addCropType = async function() {
+// Add Crop
+window.addCropType = async function() {
     const cropTypeName = document.getElementById('crop-type-name').value;
     const cropName = document.getElementById('crop-name').value;
-    const stock = document.getElementById('crop-stock').value;
+    const stock = parseInt(document.getElementById('crop-stock').value, 10); // Convert to integer
     const unit = document.getElementById('crop-unit').value;
     const dateAdded = new Date().toISOString();
 
-    if (!cropTypeName || !cropName || !stock || !unit) {
-        alert('All fields are required!');
+    if (!cropTypeName || !cropName || isNaN(stock) || !unit) { // Check if stock is a valid number
+        alert('All fields are required, and stock must be a valid number!');
         return;
     }
 
@@ -356,7 +356,7 @@ window.addBarangay = async function() {
             crop_type_name: cropTypeName,
             crop_name: cropName,
             crop_name_id: cropNameId,
-            current_stock: stock,
+            current_stock: stock, // Now an integer
             unit: unit,
             dateAdded
         }).then(() => {
@@ -368,6 +368,7 @@ window.addBarangay = async function() {
         });
     }
 }
+
 
 //add equipment
 window.addEquipment = async function() {
@@ -411,15 +412,15 @@ window.addEquipment = async function() {
     }
 }
 
-//add fertilizer
+// Add fertilizer
 window.addFertilizer = async function() {
     const fertilizerName = document.getElementById('fertilizer-name').value;
-    const category = document.getElementById('fertilizer-category').value;
+    const fertilizerType = document.getElementById('fertilizer-category').value; // Changed variable name
     const quantity = parseInt(document.getElementById('fertilizer-stock').value, 10);
     const unit = document.getElementById('fertilizer-unit').value;
     const dateAdded = new Date().toISOString();
 
-    if (!fertilizerName || !category || isNaN(quantity) || !unit) {
+    if (!fertilizerName || !fertilizerType || isNaN(quantity) || !unit) {
         alert('All fields are required and stock must be a valid number!');
         return;
     }
@@ -427,7 +428,7 @@ window.addFertilizer = async function() {
     // Check if the fertilizer already exists
     const existingFertilizer = await db.collection('tb_fertilizer')
         .where('fertilizer_name', '==', fertilizerName)
-        .where('fertilizer_category', '==', category)
+        .where('fertilizer_type', '==', fertilizerType) // Updated field name
         .get();
 
     if (!existingFertilizer.empty) {
@@ -441,8 +442,8 @@ window.addFertilizer = async function() {
         db.collection('tb_fertilizer').add({
             fertilizer_id: nextFertilizerId,
             fertilizer_name: fertilizerName,
-            fertilizer_category: category,
-            quantity: quantity, // Now stored as an integer
+            fertilizer_type: fertilizerType, // Updated field name
+            quantity: quantity,
             unit: unit,
             dateAdded
         }).then(() => {
@@ -454,6 +455,7 @@ window.addFertilizer = async function() {
         });
     }
 }
+
 
 
 window.loadFarmlandsForBarangay = async function () {

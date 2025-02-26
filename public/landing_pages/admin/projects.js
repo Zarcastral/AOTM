@@ -79,17 +79,54 @@ const db = getFirestore(app);
             });
         }
 
-        window.loadFertilizers = async function() {
-            const querySnapshot = await getDocs(collection(db, "tb_fertilizer_types"));
+
+        window.fetchFertilizerTypes = async function () {
+            const fertilizerTypeDropdown = document.getElementById('fertilizer-category');
+        
+            try {
+                const querySnapshot = await getDocs(collection(db, 'tb_fertilizer_types'));
+        
+                // Clear existing options except the first one
+                fertilizerTypeDropdown.innerHTML = '<option value="">Select Fertilizer Type</option>';
+        
+                querySnapshot.forEach((doc) => {
+                    const fertilizerType = doc.data().fertilizer_type_name;
+                    const option = document.createElement('option');
+                    option.value = fertilizerType;
+                    option.textContent = fertilizerType;
+                    fertilizerTypeDropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching fertilizer types:', error);
+            }
+        };
+        
+        window.loadFertilizers = async function (selectedType = "") {
+            const querySnapshot = await getDocs(collection(db, "tb_fertilizer"));
             const fertilizerSelect = document.getElementById('fertilizer-type');
-            fertilizerSelect.innerHTML = '<option value="">Select Fertilizer Type</option>';
+            
+            // Clear previous options
+            fertilizerSelect.innerHTML = '<option value="">Select Fertilizer Name</option>';
+            
             querySnapshot.forEach(doc => {
-                const option = document.createElement('option');
-                option.value = doc.data().fertilizer_type_name;
-                option.textContent = doc.data().fertilizer_type_name;
-                fertilizerSelect.appendChild(option);
+                const fertilizerData = doc.data();
+                
+                // Check if the fertilizer matches the selected type
+                if (!selectedType || fertilizerData.fertilizer_type_name === selectedType) {
+                    const option = document.createElement('option');
+                    option.value = fertilizerData.fertilizer_name;
+                    option.textContent = fertilizerData.fertilizer_name;
+                    fertilizerSelect.appendChild(option);
+                }
             });
-        }
+        };
+        
+        // Event listener to update fertilizer names based on selected type
+        document.getElementById('fertilizer-category').addEventListener('change', function () {
+            const selectedType = this.value;
+            loadFertilizers(selectedType);
+        });
+        
 
         window.loadEquipment = async function() {
             const querySnapshot = await getDocs(collection(db, "tb_equipment_types"));
@@ -131,7 +168,7 @@ const db = getFirestore(app);
     return null;
 }
 
-window.saveProject = async function() {
+window.saveProject = async function () {
     try {
         // Get input values
         const projectName = document.getElementById('project-name').value.trim();
@@ -149,12 +186,11 @@ window.saveProject = async function() {
         const fertilizerType = document.getElementById('fertilizer-type').value;
         let quantityFertilizerType = document.getElementById('quantity-fertilizer-type').value.trim();
         const equipment = document.getElementById('equipment').value;
-        
         const startDate = document.getElementById('start-date').value;
         const endDate = document.getElementById('end-date').value;
 
-        // ✅ **Check if required fields are empty**
-        if (!projectName || !farmPresidentName || !cropName || !barangayName || 
+        // ✅ Check if required fields are empty
+        if (!projectName || !farmPresidentName || !cropName || !barangayName ||
             !farmlandName || !cropTypeName || !quantityCropType ||
             !fertilizerType || !quantityFertilizerType ||
             !equipment || !startDate || !endDate) {
@@ -170,10 +206,35 @@ window.saveProject = async function() {
             quantityFertilizerType += "kg";
         }
 
+        // ✅ Extract numeric values from quantity
+        const quantityCropValue = parseInt(quantityCropType.replace("kg", "").trim());
+
+        // 🔍 Fetch current stock of the selected crop type from tb_crop_types
+        const cropTypeRef = collection(db, "tb_crop_types");
+        const q = query(cropTypeRef, where("crop_type_name", "==", cropTypeName));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            alert(`❌ Crop type '${cropTypeName}' not found in inventory.`);
+            return;
+        }
+
+        const cropDoc = querySnapshot.docs[0];
+        const cropData = cropDoc.data();
+        const currentStock = parseInt(cropData.current_stock);
+
+        // ✅ Check if there is enough stock
+        if (quantityCropValue > currentStock) {
+            alert(`⚠️ Not enough stock for '${cropTypeName}'. Available: ${currentStock}kg, Required: ${quantityCropValue}kg.`);
+            return;
+        }
+
+        // Generate a new project ID
         const projectID = await getNextProjectID();
 
+        // Create project data object
         const projectData = {
-            project_id: projectID, 
+            project_id: projectID,
             project_name: projectName,
             farm_president: farmPresidentName,
             status: status,
@@ -191,14 +252,23 @@ window.saveProject = async function() {
             date_created: new Date()
         };
 
+        // ✅ Save project data to Firestore
         await addDoc(collection(db, "tb_projects"), projectData);
-        alert(" Project saved successfully!");
+
+        // ✅ Update the stock in tb_crop_types
+        const newStock = currentStock - quantityCropValue;
+        await updateDoc(doc(db, "tb_crop_types", cropDoc.id), {
+            current_stock: newStock
+        });
+
+        alert("✅ Project saved successfully! Stock updated.");
         resetForm();
     } catch (error) {
-        console.error(" Error saving project: ", error);
+        console.error("❌ Error saving project: ", error);
         alert("Failed to save project. Please try again.");
     }
-}
+};
+
 
         //PAMBURA
         window.resetForm = function() {
@@ -239,6 +309,8 @@ window.saveProject = async function() {
         window.onload = function() {
             loadFarmPresidents();
             loadCrops();
+            fetchFertilizerTypes();
             loadFertilizers();
             loadEquipment();
+            fetchFertilizerTypes();
         };
