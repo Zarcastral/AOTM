@@ -8,7 +8,8 @@ import {
   doc,
   getDoc,
   addDoc,
-  setDoc
+  setDoc,
+  updateDoc
 } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -72,6 +73,12 @@ async function loadProjects() {
 // ********************************************************
 // LOAD TEAMS (filtered by barangay)
 async function loadTeams() {
+  const loggedInBarangay = sessionStorage.getItem("barangay_name"); // Get the logged-in user's barangay
+  if (!loggedInBarangay) {
+    console.error("No barangay found for the logged-in user.");
+    return;
+  }
+
   const teamsRef = collection(db, "tb_teams");
   const querySnapshot = await getDocs(teamsRef);
   let teamsHTML = `
@@ -86,7 +93,10 @@ async function loadTeams() {
           <tbody>`;
 
   querySnapshot.forEach((doc) => {
-      const data = doc.data();
+    const data = doc.data();
+
+    // Filter teams based on barangay_name
+    if (data.barangay_name === loggedInBarangay) {
       const farmerCount = data.farmer_name ? data.farmer_name.length : 0;
 
       teamsHTML += `
@@ -95,10 +105,13 @@ async function loadTeams() {
               <td>${data.lead_farmer}</td>
               <td class="farmer-count">${farmerCount}</td>
           </tr>`;
+    }
   });
 
+  teamsHTML += `</tbody></table>`;
   document.getElementById("teams-content").innerHTML = teamsHTML;
 }
+
 
 // ********************************************************
 // Update dashboard header with barangay name and load projects/teams
@@ -353,9 +366,10 @@ async function saveFeedback() {
       newFeedbackId = idCounterSnap.data().count + 1;
     }
 
-    // Get the user's full name and picture from sessionStorage for the feedback submission
+    // Get user details from sessionStorage
     const userFullName = sessionStorage.getItem("userFullName") || "";
     const userPicture = sessionStorage.getItem("userPicture") || "";
+    const barangayName = sessionStorage.getItem("barangay_name") || "Unknown"; // Get barangay name
 
     await addDoc(collection(db, "tb_feedbacks"), {
       feedback_id: newFeedbackId,
@@ -364,7 +378,8 @@ async function saveFeedback() {
       feedback: feedback,
       submitted_by: userFullName,
       submitted_by_picture: userPicture,
-      timestamp: new Date()
+      barangay_name: barangayName, // Store barangay name
+      timestamp: new Date(),
     });
 
     await setDoc(idCounterRef, { count: newFeedbackId });
@@ -384,34 +399,53 @@ async function saveFeedback() {
   }
 }
 
+
 async function loadFeedback() {
   const feedbackRef = collection(db, "tb_feedbacks");
   const querySnapshot = await getDocs(feedbackRef);
-  let feedbackHTML = "<ul>";
+
+  const loggedInBarangay = sessionStorage.getItem("barangay_name") || "";
+  let acknowledgedFeedbacks = [];
+  let unacknowledgedFeedbacks = [];
 
   querySnapshot.forEach((doc) => {
     const data = doc.data();
-    console.log("Feedback Data:", data); // Debug: log each feedback document
+    console.log("Feedback Data:", data); // Debugging log
 
-    feedbackHTML += `
-      <div style="display:flex; align-items:center; gap:10px; padding:10px; border-bottom: 4px solid #f0f0f0;">
-    ${
-      data.submitted_by_picture && data.submitted_by_picture.trim() !== ""
-        ? `<img src="${data.submitted_by_picture}" alt="User Picture" style="width:50px;height:50px;border-radius:50%;">`
-        : `<div style="width:50px;height:50px;border-radius:50%;background:#ccc;"></div>`
+    if (data.barangay_name === loggedInBarangay) {
+      const timestamp = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "No timestamp available";
+      const feedbackHTML = `
+        <div style="display:flex; align-items:center; gap:10px; padding:10px; border-bottom: 4px solid #f0f0f0;">
+          ${
+            data.submitted_by_picture && data.submitted_by_picture.trim() !== ""
+              ? `<img src="${data.submitted_by_picture}" alt="User Picture" style="width:50px;height:50px;border-radius:50%;">`
+              : `<div style="width:50px;height:50px;border-radius:50%;background:#ccc;"></div>`
+          }
+          <div style="flex-grow:1;">
+            <strong>${data.concern}</strong> - <span id="status-${doc.id}">${data.status}</span> <br>
+            ${data.feedback} <br>
+            <em>Submitted by: ${data.submitted_by || "Anonymous"}</em> <br>
+            <em>Barangay: ${data.barangay_name}</em> <br>
+            <small>Submitted on: ${timestamp}</small>
+          </div>
+        </div>
+      `;
+
+      if (data.status === "Acknowledged") {
+        acknowledgedFeedbacks.push(feedbackHTML);
+      } else {
+        unacknowledgedFeedbacks.push(feedbackHTML);
+      }
     }
-    <div>
-      <strong>${data.concern}</strong> - ${data.status} <br>
-      ${data.feedback} <br>
-      <em>Submitted by: ${data.submitted_by || "Anonymous"}</em>
-    </div>
-</div>
-    `;
   });
 
-  feedbackHTML += "</ul>";
-  document.getElementById("feedback-content").innerHTML = feedbackHTML;
+  document.getElementById("feedback-content").innerHTML = `<ul>${unacknowledgedFeedbacks.join("")}${acknowledgedFeedbacks.join("")}</ul>`;
 }
+
+
+
+
+
 
 
 // Load feedback on page load
