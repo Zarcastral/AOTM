@@ -8,7 +8,8 @@ import {
   doc,
   getDoc,
   addDoc,
-  setDoc
+  setDoc,
+  updateDoc
 } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -404,35 +405,46 @@ async function loadFeedback() {
   const querySnapshot = await getDocs(feedbackRef);
 
   const loggedInBarangay = sessionStorage.getItem("barangay_name") || "";
-
-  let feedbackHTML = "<ul>";
+  let acknowledgedFeedbacks = [];
+  let unacknowledgedFeedbacks = [];
 
   querySnapshot.forEach((doc) => {
     const data = doc.data();
-    console.log("Feedback Data:", data); // Debug: log each feedback document
+    console.log("Feedback Data:", data); // Debugging log
 
-    // Display only feedback that matches the logged-in user's barangay
     if (data.barangay_name === loggedInBarangay) {
-      feedbackHTML += `
+      const timestamp = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "No timestamp available";
+      const feedbackHTML = `
         <div style="display:flex; align-items:center; gap:10px; padding:10px; border-bottom: 4px solid #f0f0f0;">
           ${
             data.submitted_by_picture && data.submitted_by_picture.trim() !== ""
               ? `<img src="${data.submitted_by_picture}" alt="User Picture" style="width:50px;height:50px;border-radius:50%;">`
               : `<div style="width:50px;height:50px;border-radius:50%;background:#ccc;"></div>`
           }
-          <div>
-            <strong>${data.concern}</strong> - ${data.status} <br>
+          <div style="flex-grow:1;">
+            <strong>${data.concern}</strong> - <span id="status-${doc.id}">${data.status}</span> <br>
             ${data.feedback} <br>
-            <em>Submitted by: ${data.submitted_by || "Anonymous"}</em>
+            <em>Submitted by: ${data.submitted_by || "Anonymous"}</em> <br>
+            <em>Barangay: ${data.barangay_name}</em> <br>
+            <small>Submitted on: ${timestamp}</small>
           </div>
         </div>
       `;
+
+      if (data.status === "Acknowledged") {
+        acknowledgedFeedbacks.push(feedbackHTML);
+      } else {
+        unacknowledgedFeedbacks.push(feedbackHTML);
+      }
     }
   });
 
-  feedbackHTML += "</ul>";
-  document.getElementById("feedback-content").innerHTML = feedbackHTML;
+  document.getElementById("feedback-content").innerHTML = `<ul>${unacknowledgedFeedbacks.join("")}${acknowledgedFeedbacks.join("")}</ul>`;
 }
+
+
+
+
 
 
 
