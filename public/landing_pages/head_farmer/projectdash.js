@@ -428,7 +428,6 @@ async function loadFeedback() {
             <em>Barangay: ${data.barangay_name}</em> <br>
             <small>Submitted on: ${timestamp}</small>
           </div>
-          ${data.status !== "Acknowledged" ? `<button onclick="acknowledgeFeedback('${doc.id}')" style="padding:5px 10px; background:green; color:white; border:none; border-radius:5px; cursor:pointer;">Acknowledge</button>` : ""}
         </div>
       `;
 
@@ -443,20 +442,6 @@ async function loadFeedback() {
   document.getElementById("feedback-content").innerHTML = `<ul>${unacknowledgedFeedbacks.join("")}${acknowledgedFeedbacks.join("")}</ul>`;
 }
 
-
-window.acknowledgeFeedback = async function (feedbackId) {
-  const feedbackDocRef = doc(db, "tb_feedbacks", feedbackId);
-  
-  try {
-    await updateDoc(feedbackDocRef, { status: "Acknowledged" });
-    document.getElementById(`status-${feedbackId}`).innerText = "Acknowledged";
-    alert("Feedback acknowledged successfully!");
-    loadFeedback(); // Refresh the feedback list
-  } catch (error) {
-    console.error("Error acknowledging feedback:", error);
-    alert("Failed to acknowledge feedback.");
-  }
-};
 
 
 
