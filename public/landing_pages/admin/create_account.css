@@ -31,15 +31,12 @@ label {
   margin-bottom: 5px;
 }
 
-input, select {
+ input, select {
   width: 95%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 14px;
-}
-#profilePicture {
-  border: none;
 }
 
 #sex, #user_type {
@@ -68,34 +65,7 @@ input, select {
   background-color: #41A186;
 }
 
-.file-input-container {
-  position: relative;
-  display: inline-block;
-}
 
-.file-input {
-  opacity: 0;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-}
-
-.custom-file-label {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #41A186;
-  color: white;
-  border-radius: 8px; /* Rounded corners */
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  width: 100%;
-}
-
-.custom-file-label:hover {
-  background-color: #41A186;
-}
 .popup-container {
   display: none; /* Ensure modal is hidden initially */
   position: fixed;
