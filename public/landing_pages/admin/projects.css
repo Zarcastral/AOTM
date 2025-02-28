@@ -131,8 +131,7 @@ body {
     font-size: 14px;
 }
 
-.form-group4 input,
-.form-group5 select {
+.form-group4 input {
     width: 55.5%;
     padding: 8px;
     border: 1px solid #ddd;
@@ -140,7 +139,14 @@ body {
     font-size: 14px;
     
 }
-
+.form-group5 input {
+    width: 50%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    
+}
 
 .inline-group .form-group {
     flex: 1;
