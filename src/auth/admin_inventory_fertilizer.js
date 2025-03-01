@@ -5,6 +5,7 @@ import {
   query,
   where,
   deleteDoc,
+  onSnapshot,
   doc
 } from "firebase/firestore";
 
@@ -21,6 +22,7 @@ let filteredFertilizers = fertilizersList; // Declare a variable for filtered fe
 let currentPage = 1;
 const rowsPerPage = 5;
 let selectedFertilizers = [];
+
 function sortFertilizersById() {
    filteredFertilizers.sort((a, b) => {
     const dateA = parseDate(a.dateAdded);
@@ -39,19 +41,18 @@ function parseDate(dateValue) {
 }
 // Fetch fertilizers data (tb_fertilizer) from Firestore
 async function fetchFertilizers() {
-  console.log("Fetching fertilizers..."); // Debugging
-  try {
-    const fertilizersCollection = collection(db, "tb_fertilizer");
-    const fertilizersSnapshot = await getDocs(fertilizersCollection);
-    fertilizersList = fertilizersSnapshot.docs.map(doc => doc.data());
+  const fertilizersCollection = collection(db, "tb_fertilizer");
+  const fertilizersQuery = query(fertilizersCollection);
 
-    console.log("fertilizers fetched:", fertilizersList); // Debugging
-    filteredFertilizers = fertilizersList;
-    sortFertilizersById();
-    displayFertilizers(filteredFertilizers);
-  } catch (error) {
-    console.error("Error fetching fertilizers:", error);
-  }
+  // Listen for real-time updates
+  onSnapshot(fertilizersQuery, (snapshot) => {
+    fertilizersList = snapshot.docs.map(doc => doc.data());
+    filteredFertilizers = [...fertilizersList];
+    sortFertilizersById();          // Sort Fertilizers by date (latest to oldest)
+    displayFertilizers(filteredFertilizers); // Update table display
+  }, (error) => {
+    console.error("Error listening to Fertilizers:", error);
+  });
 }
 
 function displayFertilizers(fertilizersList) {
@@ -249,7 +250,7 @@ document.getElementById("fert-bulk-delete").addEventListener("click", async () =
 
       /* Check if the fertilizer_id exists in the database */
       try {
-          const q = query(collection(db, "tb_fertilizers"), where("fertilizer_id", "==", Number(fertilizerId)));
+          const q = query(collection(db, "tb_fertilizer"), where("fertilizer_id", "==", Number(fertilizerId)));
           const querySnapshot = await getDocs(q);
 
           if (querySnapshot.empty) {
@@ -283,8 +284,8 @@ async function deleteSelectedFertilizers() {
     const fertilizersCollection = collection(db, "tb_fertilizer");
 
     // Loops through selected fertilizers and delete them
-    for (const fertilizerTypeId of selectedFertilizers) {
-      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerTypeId)));
+    for (const fertilizerId of selectedFertilizers) {
+      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
       const querySnapshot = await getDocs(fertilizerQuery);
 
       querySnapshot.forEach(async (docSnapshot) => {

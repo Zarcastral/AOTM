@@ -7,6 +7,7 @@ import {
   deleteDoc,
   updateDoc,
   Timestamp,
+  onSnapshot,
   doc
 } from "firebase/firestore";
 
@@ -46,19 +47,18 @@ function parseDate(dateValue) {
 
 // Fetch crops data from Firestore
 async function fetchCrops() {
-  console.log("Fetching crops..."); // Debugging
-  try {
-    const cropsCollection = collection(db, "tb_crop_types");
-    const cropsSnapshot = await getDocs(cropsCollection);
-    cropsList = cropsSnapshot.docs.map(doc => doc.data());
+  const cropsCollection = collection(db, "tb_crop_types");
+  const cropsQuery = query(cropsCollection);
 
-    console.log("Crops fetched:", cropsList); // Debugging
-    filteredCrops = [...cropsList]; // Initialize filteredCrops with all crops
-    sortCropsById();
-    displayCrops(filteredCrops);
-  } catch (error) {
-    console.error("Error fetching crops:", error);
-  }
+  // Listen for real-time updates
+  onSnapshot(cropsQuery, (snapshot) => {
+    cropsList = snapshot.docs.map(doc => doc.data());
+    filteredCrops = [...cropsList];
+    sortCropsById();          // Sort crops by date (latest to oldest)
+    displayCrops(filteredCrops); // Update table display
+  }, (error) => {
+    console.error("Error listening to crops:", error);
+  });
 }
 
 // Display crops in the table

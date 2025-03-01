@@ -7,6 +7,7 @@ import {
   deleteDoc,
   updateDoc,
   Timestamp,
+  onSnapshot,
   doc
 } from "firebase/firestore";
 
@@ -41,19 +42,18 @@ function parseDate(dateValue) {
 }
 // Fetch fertilizers data (tb_fertilizer) from Firestore
 async function fetchFertilizers() {
-  console.log("Fetching fertilizers..."); // Debugging
-  try {
-    const fertilizersCollection = collection(db, "tb_fertilizer");
-    const fertilizersSnapshot = await getDocs(fertilizersCollection);
-    fertilizersList = fertilizersSnapshot.docs.map(doc => doc.data());
+  const fertilizersCollection = collection(db, "tb_fertilizer");
+  const fertilizersQuery = query(fertilizersCollection);
 
-    console.log("fertilizers fetched:", fertilizersList); // Debugging
-    filteredFertilizers = fertilizersList;
-    sortFertilizersById();
-    displayFertilizers(filteredFertilizers);
-  } catch (error) {
-    console.error("Error fetching fertilizers:", error);
-  }
+  // Listen for real-time updates
+  onSnapshot(fertilizersQuery, (snapshot) => {
+    fertilizersList = snapshot.docs.map(doc => doc.data());
+    filteredFertilizers = [...fertilizersList];
+    sortFertilizersById();          // Sort Fertilizers by date (latest to oldest)
+    displayFertilizers(filteredFertilizers); // Update table display
+  }, (error) => {
+    console.error("Error listening to Fertilizers:", error);
+  });
 }
 
 function displayFertilizers(fertilizersList) {
@@ -107,7 +107,7 @@ function displayFertilizers(fertilizersList) {
         <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
         <td>
-          <button class="add-fert-stock-btn" id="add-crop-fert-btn" data-id="${fertilizer.cropTypeId}">+ Add Stock</button>
+          <button class="add-fert-stock-btn" id="add-fert-btn" data-id="${fertilizer.fertilizerId}">+ Add Stock</button>
         </td>
     `;
 
@@ -288,8 +288,8 @@ async function deleteSelectedFertilizers() {
     const fertilizersCollection = collection(db, "tb_fertilizer");
 
     // Loops through selected fertilizers and delete them
-    for (const fertilizerTypeId of selectedFertilizers) {
-      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerTypeId)));
+    for (const fertilizerId of selectedFertilizers) {
+      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
       const querySnapshot = await getDocs(fertilizerQuery);
 
       querySnapshot.forEach(async (docSnapshot) => {
@@ -372,11 +372,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = event.target.closest("tr");
       if (!row) return;
 
-      const fertilizerTypeId = row.children[1].textContent.trim();
+      const fertilizerId = row.children[1].textContent.trim();
 
       try {
         const fertilizerCollection = collection(db, "tb_fertilizer");
-        const fertilizerQuery = query(fertilizerCollection, where("fertilizer_id", "==", Number(fertilizerTypeId)));
+        const fertilizerQuery = query(fertilizerCollection, where("fertilizer_id", "==", Number(fertilizerId)));
         const querySnapshot = await getDocs(fertilizerQuery);
 
         let fertilizerTypeName = "No category was recorded";
@@ -430,7 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         fertilizerStockPanel.style.display = "block";
         fertilizerOverlay.style.display = "block";
-        saveBtn.dataset.fertilizerTypeId = fertilizerTypeId;
+        saveBtn.dataset.fertilizerId = fertilizerId;
       } catch (error) {
         console.error("Error fetching fertilizer details:", error);
       }
@@ -451,7 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fertilizerOverlay.addEventListener("click", closeStockPanel);
 
   saveBtn.addEventListener("click", async function () {
-    const fertilizerTypeId = saveBtn.dataset.fertilizerTypeId;
+    const fertilizerId = saveBtn.dataset.fertilizerId;
     const fertilizerTypeName = document.getElementById("fert_category").value;
     const fertilizerName = document.getElementById("fert_name").value;
     const fertilizerStock = document.getElementById("fert_stock").value;
@@ -468,7 +468,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const fertilizersCollection = collection(db, "tb_fertilizer");
-      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerTypeId)));
+      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
       const querySnapshot = await getDocs(fertilizerQuery);
 
       if (!querySnapshot.empty) {
