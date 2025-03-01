@@ -88,7 +88,7 @@ function displayFertilizers(fertilizersList) {
 
     const fertilizerName = fertilizer.fertilizer_name || "Fertilizer Name not recorded";
     const fertilizerId = fertilizer.fertilizer_id || "Fertilizer Id not recorded";
-    const fertilizerType = fertilizer.fertilizer_category || "Fertilizer Category not recorded";
+    const fertilizerType = fertilizer.fertilizer_type_name || "Fertilizer Category not recorded";
     const dateAdded = fertilizer.dateAdded
       ? (fertilizer.dateAdded.toDate ? fertilizer.dateAdded.toDate().toLocaleDateString() : new Date(fertilizer.dateAdded).toLocaleDateString())
       : "Date not recorded";
@@ -176,7 +176,7 @@ document.querySelector(".fertilizer_select").addEventListener("change", function
   const selectedFertilizer = this.value.toLowerCase();
   // Filter fertilizers based on selected value
   filteredFertilizers = selectedFertilizer
-    ? fertilizersList.filter(fertilizer => fertilizer.fertilizer_category?.toLowerCase() === selectedFertilizer)
+    ? fertilizersList.filter(fertilizer => fertilizer.fertilizer_type_name?.toLowerCase() === selectedFertilizer)
     : fertilizersList; // If no selection, show all fertilizers
 
   currentPage = 1; // Reset to the first page when filter is applied
@@ -329,7 +329,7 @@ document.getElementById("fert-search-bar").addEventListener("input", function ()
   filteredFertilizers = fertilizersList.filter(fertilizer => {
     return (
       fertilizer.fertilizer_name?.toLowerCase().includes(searchQuery) ||
-      fertilizer.fertilizer_category?.toLowerCase().includes(searchQuery) ||
+      fertilizer.fertilizer_type_name?.toLowerCase().includes(searchQuery) ||
       fertilizer.fertilizer_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
     );
   });

@@ -20,8 +20,8 @@ const rowsPerPage = 5;
 let selectedEquipments = [];
 function sortEquipmentsById() {
   filteredEquipments.sort((a, b) => {
-    const dateA = parseDate(a.dateAdded);
-    const dateB = parseDate(b.dateAdded);
+    const dateA = parseDate(a.stock_date);
+    const dateB = parseDate(b.stock_date);
     return dateB - dateA; // Sort latest to oldest
   });
 }
@@ -90,8 +90,8 @@ function displayEquipments(equipmentsList) {
     const equipmentName = equipment.equipment_name || "Equipment Name not recorded";
     const equipmentId = equipment.equipment_id || "Equipment Id not recorded";
     const equipmentType = equipment.equipment_category || "Equipment Category not recorded";
-    const dateAdded = equipment.dateAdded
-      ? (equipment.dateAdded.toDate ? equipment.dateAdded.toDate().toLocaleDateString() : new Date(equipment.dateAdded).toLocaleDateString())
+    const stock_date = equipment.stock_date
+      ? (equipment.stock_date.toDate ? equipment.stock_date.toDate().toLocaleDateString() : new Date(equipment.stock_date).toLocaleDateString())
       : "Date not recorded";
     const currentStock = equipment.current_stock || "0";
     const unit = equipment.unit || "units";
@@ -103,7 +103,7 @@ function displayEquipments(equipmentsList) {
         <td>${equipmentId}</td>
         <td>${equipmentName}</td>
         <td>${equipmentType}</td>
-        <td>${dateAdded}</td>
+        <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
         <td>
           <button class="add-equip-stock-btn" id="add-equip-stock-btn" data-id="${equipment.cropTypeId}">+ Add Stock</button>
@@ -491,7 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const newStock = existingStock + Number(equipmentStock);
 
         await updateDoc(docRef, {
-          dateAdded: Timestamp.now(),
+          stock_date: Timestamp.now(),
           equipment_name: equipmentName,
           equipmentcategory: equipmentCategory,
           current_stock: newStock,

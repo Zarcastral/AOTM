@@ -9,7 +9,7 @@ import {
     getFirestore
   } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getAuth, onAuthStateChanged } from "firebase/auth";  // Import getAuth and onAuthStateChanged
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import app from "../config/firebase_config.js";
 
 
@@ -88,8 +88,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (data.sex) {
                 setSelectValue(document.getElementById("sex"), data.sex);
             }
-            if (data.barangay) {
-                setSelectValue(document.getElementById("barangay"), data.barangay);
+            if (data.barangay_name) {
+                setSelectValue(document.getElementById("barangay"), data.barangay_name);
             }
             if (data.user_type) {
                 setSelectValue(document.getElementById("user_type"), data.user_type);
@@ -157,8 +157,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         validateUniqueFields();
         
     });
-
-
 
 });
 

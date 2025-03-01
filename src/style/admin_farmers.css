@@ -62,6 +62,11 @@ table {
     border-spacing: 0;
 }
 
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
 th, td {
     padding: 1rem;
     text-align: left; /* aligns only when th, td and th both have text-align: center; do not know why*/
@@ -413,57 +418,78 @@ tbody tr:hover {
 @media (max-width: 768px) {
     .panel {
         width: 95%;
-        height: auto;
         padding: 15px;
-    }
-
-    #search-bar {
-        width: 300px;
     }
 
     .search-container {
         flex-direction: column;
         align-items: flex-start;
+        gap: 5px; /* Reduce gap for smaller screens */
     }
 
-    .add-user-btn {
-        right: 10px;
-        top: 10px;
+    #search-bar, #barangay-select {
+        width: 100%;
     }
 
     table {
         font-size: 14px;
     }
 
+    .pagination-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
     .pagination-btn {
         font-size: 14px;
+        width: auto;
+    }
+
+    .add-user-btn {
+        width: 100%;
+        font-size: 16px;
+        padding: 10px;
+        text-align: center;
     }
 }
 
 @media (max-width: 480px) {
-    #search-bar {
+    .panel {
+        width: 100%;
+        padding: 10px;
+    }
+
+    #search-bar, #barangay-select {
         width: 100%;
     }
 
     .pagination-container {
         flex-direction: column;
+        align-items: center;
+        gap: 5px;
     }
 
     .pagination-btn {
         width: 100%;
         margin: 5px 0;
     }
-}
 
-/* Responsive design for small screens */
-@media (max-width: 768px) {
-    .search-container {
-        flex-direction: column;
-        align-items: flex-start; 
+    .header-title {
+        font-size: 24px;
     }
 
-    #search-bar, #barangay-select {
-        width: 100%; 
+    .header-icons img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .add-user-btn {
+        width: 100%;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    table {
+        font-size: 12px;
     }
 }
-

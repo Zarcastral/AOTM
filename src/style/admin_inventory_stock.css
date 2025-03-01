@@ -90,6 +90,13 @@ body {
 .account-panel ul li:last-child {
   border-bottom: none;
 }
+
+.crop_table, .fertilizer_table,
+.equipment_table {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .panel {
   background-color: white;
   width: 90%;
@@ -98,7 +105,6 @@ body {
   padding: 20px;
   margin-top: 20px;
 }
-
 .crop-search-bar, .fert-search-bar
 .equp-search-bar {
   justify-content: space-between;

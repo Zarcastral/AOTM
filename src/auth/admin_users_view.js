@@ -86,8 +86,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 sexSelect.disabled = true; // Disable combobox
             }
 
-            if (data.barangay) {
-                setSelectValue(barangaySelect, data.barangay);
+            if (data.barangay_name) {
+                setSelectValue(barangaySelect, data.barangay_name);
                 barangaySelect.disabled = true; // Disable combobox
             }
 

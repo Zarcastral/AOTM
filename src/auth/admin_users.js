@@ -283,20 +283,29 @@ async function viewUserAccount(user_name) {
 // <------------- DELETE BUTTON EVENT LISTENER ------------->
 async function deleteUserAccount(user_name) {
     try {
-
+        // Query Firestore to get the document ID based on user_name
         const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
+            // Assuming user_name is unique, get the first matched document
+            const userDoc = querySnapshot.docs[0];
+            const userDocId = userDoc.id;
+
+            // Show confirmation before deleting
             confirmationPanel.style.display = "flex";
             editFormContainer.style.pointerEvents = "none";
+
+            // Store the selected row ID
+            selectedRowId = userDocId;
         } else {
-            showDeleteMessage("No Username is found, Unable to proceed with the deleting the record", false);
+            showDeleteMessage("No matching record found, unable to delete.", false);
         }
     } catch (error) {
-        console.log("Error deleting User Account:", error);
+        console.error("Error deleting User Account:", error);
     }
 }
+
 
 // <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
 const confirmationPanel = document.getElementById("confirmation-panel");

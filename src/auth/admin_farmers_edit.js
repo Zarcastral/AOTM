@@ -90,8 +90,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (data.sex) {
                 setSelectValue(document.getElementById("sex"), data.sex);
             }
-            if (data.barangay) {
-                setSelectValue(document.getElementById("barangay"), data.barangay);
+            if (data.barangay_name) {
+                setSelectValue(document.getElementById("barangay"), data.barangay_name);
             }
             if (data.user_type) {
                 setSelectValue(document.getElementById("user_type"), data.user_type);

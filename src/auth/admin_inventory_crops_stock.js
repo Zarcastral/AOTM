@@ -27,8 +27,8 @@ let selectedCrops = [];
 // DIS ONE IS FOR DATES FROM LATEST TO OLDEST
 function sortCropsById() {
   filteredCrops.sort((a, b) => {
-    const dateA = parseDate(a.dateAdded);
-    const dateB = parseDate(b.dateAdded);
+    const dateA = parseDate(a.stock_date);
+    const dateB = parseDate(b.stock_date);
     return dateB - dateA; // Sort latest to oldest
   });
 }
@@ -98,9 +98,9 @@ function displayCrops(cropsList) {
     const cropTypeId = crop.crop_type_id || "Crop Type Id not recorded";
     const cropName = crop.crop_name || "Crop Name not recorded";
     const cropType = crop.crop_type_name || "Crop Category not recorded.";
-    const dateAdded = crop.dateAdded
-      ? (crop.dateAdded.toDate ? crop.dateAdded.toDate().toLocaleDateString() : new Date(crop.dateAdded).toLocaleDateString())
-      : "Date not recorded";
+    const stock_date = crop.stock_date
+      ? (crop.stock_date.toDate ? crop.stock_date.toDate().toLocaleDateString() : new Date(crop.stock_date).toLocaleDateString())
+      : "Stock has not been updated";
     const currentStock = crop.current_stock || "0";
     const unit = crop.unit || "Units";
 
@@ -111,7 +111,7 @@ function displayCrops(cropsList) {
         <td>${cropTypeId}</td>
         <td>${cropType}</td>
         <td>${cropName}</td>
-        <td>${dateAdded}</td>
+        <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
         <td>
           <button class="add-crop-stock-btn" id="add-crop-stock-btn" data-id="${crop.cropTypeId}">+ Add Stock</button>
@@ -496,7 +496,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const newStock = existingStock + Number(cropStock);
 
         await updateDoc(docRef, {
-          dateAdded: Timestamp.now(),
+          stock_date: Timestamp.now(),
           crop_name: cropName,
           crop_type_name: cropTypeName,
           current_stock: newStock,

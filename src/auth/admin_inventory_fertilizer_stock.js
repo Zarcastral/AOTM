@@ -25,8 +25,8 @@ const rowsPerPage = 5;
 let selectedFertilizers = [];
 function sortFertilizersById() {
    filteredFertilizers.sort((a, b) => {
-    const dateA = parseDate(a.dateAdded);
-    const dateB = parseDate(b.dateAdded);
+    const dateA = parseDate(a.stock_date);
+    const dateB = parseDate(b.stock_date);
     return dateB - dateA; // Sort latest to oldest
   });
 }
@@ -90,9 +90,9 @@ function displayFertilizers(fertilizersList) {
 
     const fertilizerName = fertilizer.fertilizer_name || "Fertilizer Name not recorded";
     const fertilizerId = fertilizer.fertilizer_id || "Fertilizer Id not recorded";
-    const fertilizerType = fertilizer.fertilizer_category || "Fertilizer Category not recorded";
-    const dateAdded = fertilizer.dateAdded
-      ? (fertilizer.dateAdded.toDate ? fertilizer.dateAdded.toDate().toLocaleDateString() : new Date(fertilizer.dateAdded).toLocaleDateString())
+    const fertilizerType = fertilizer.fertilizer_type_name || "Fertilizer Category not recorded";
+    const stock_date = fertilizer.stock_date
+      ? (fertilizer.stock_date.toDate ? fertilizer.stock_date.toDate().toLocaleDateString() : new Date(fertilizer.stock_date).toLocaleDateString())
       : "Date not recorded";
     const currentStock = fertilizer.current_stock || "0";
     const unit = fertilizer.unit || "units";
@@ -104,7 +104,7 @@ function displayFertilizers(fertilizersList) {
         <td>${fertilizerId}</td>
         <td>${fertilizerName}</td>
         <td>${fertilizerType}</td>
-        <td>${dateAdded}</td>
+        <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
         <td>
           <button class="add-fert-stock-btn" id="add-crop-fert-btn" data-id="${fertilizer.cropTypeId}">+ Add Stock</button>
@@ -181,7 +181,7 @@ document.querySelector(".fertilizer_select").addEventListener("change", function
   const selectedFertilizer = this.value.toLowerCase();
   // Filter fertilizers based on selected value
   filteredFertilizers = selectedFertilizer
-    ? fertilizersList.filter(fertilizer => fertilizer.fertilizer_category?.toLowerCase() === selectedFertilizer)
+    ? fertilizersList.filter(fertilizer => fertilizer.fertilizer_type_name?.toLowerCase() === selectedFertilizer)
     : fertilizersList; // If no selection, show all fertilizers
 
   currentPage = 1; // Reset to the first page when filter is applied
@@ -334,7 +334,7 @@ document.getElementById("fert-search-bar").addEventListener("input", function ()
   filteredFertilizers = fertilizersList.filter(fertilizer => {
     return (
       fertilizer.fertilizer_name?.toLowerCase().includes(searchQuery) ||
-      fertilizer.fertilizer_category?.toLowerCase().includes(searchQuery) ||
+      fertilizer.fertilizer_type_name?.toLowerCase().includes(searchQuery) ||
       fertilizer.fertilizer_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
     );
   });
@@ -379,14 +379,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const fertilizerQuery = query(fertilizerCollection, where("fertilizer_id", "==", Number(fertilizerTypeId)));
         const querySnapshot = await getDocs(fertilizerQuery);
 
-        let fertilizerCategory = "No category was recorded";
+        let fertilizerTypeName = "No category was recorded";
         let fertilizerName = "No name was recorded";
         let fertilizerUnit = "No unit was recorded";
 
         if (!querySnapshot.empty) {
           const fertilizerData = querySnapshot.docs[0].data();
 
-          fertilizerCategory = fertilizerData.fertilizer_category?.trim() || "No category was recorded";
+          fertilizerTypeName = fertilizerData.fertilizer_type_name?.trim() || "No category was recorded";
           fertilizerName = fertilizerData.fertilizer_name?.trim() || "No name was recorded";
           fertilizerUnit = fertilizerData.unit?.trim() || "No unit was recorded";
 
@@ -424,7 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Assign values to the inputs
-        document.getElementById("fert_category").value = fertilizerCategory;
+        document.getElementById("fert_category").value = fertilizerTypeName;
         document.getElementById("fert_name").value = fertilizerName;
         document.getElementById("fert_unit_hidden").value = fertilizerUnit;
 
@@ -452,7 +452,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveBtn.addEventListener("click", async function () {
     const fertilizerTypeId = saveBtn.dataset.fertilizerTypeId;
-    const fertilizerCategory = document.getElementById("fert_category").value;
+    const fertilizerTypeName = document.getElementById("fert_category").value;
     const fertilizerName = document.getElementById("fert_name").value;
     const fertilizerStock = document.getElementById("fert_stock").value;
     const unit = document.getElementById("fert_unit").value;
@@ -477,9 +477,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const newStock = existingStock + Number(fertilizerStock);
 
         await updateDoc(docRef, {
-          dateAdded: Timestamp.now(),
+          stock_date: Timestamp.now(),
           fertilizer_name: fertilizerName,
-          fertilizercategory: fertilizerCategory,
+          fertilizerTypeName: fertilizerTypeName,
           current_stock: newStock,
           unit: unit
         });
