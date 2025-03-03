@@ -13,7 +13,6 @@ import {
 import app from "../../../src/config/firebase_config.js";
 import { fetchAssignedTasks } from "./fetch_assigned_tasks.js";
 
-
 const db = getFirestore(app);
 const taskList = document.getElementById("task-list");
 const addTaskModal = document.getElementById("add-task-modal");
@@ -63,6 +62,9 @@ let tasks = [];
 let editingTaskId = null;
 let initialSubtasks = [];
 
+// ✅ Ensure the "Add Task" button is disabled by default
+addTaskBtn.disabled = true;
+
 // ✅ Duplicate Task Modal Handling
 const duplicateTaskMessage = document.getElementById("duplicate-task-message");
 closeDuplicateTaskModal.addEventListener("click", () => {
@@ -106,8 +108,10 @@ function checkSaveButtonState() {
   const noChangesMade =
     JSON.stringify(subtaskListItems) === JSON.stringify(initialSubtasks);
 
+  // ✅ Disable "Save Changes" button if the input is NOT empty
+  saveSubtasksBtn.disabled = noChangesMade || newSubtaskText !== "";
+
   saveTasksBtn.disabled = newTaskText === "" && !taskListNotEmpty;
-  saveSubtasksBtn.disabled = noChangesMade; // 🔴 Ensure disabled when opening edit modal
   addSubtaskBtn.disabled = newSubtaskText === "";
 }
 
@@ -126,7 +130,10 @@ addTaskBtn.addEventListener("click", async () => {
   console.log("Add Task button clicked!");
   let taskName = newTaskInput.value.trim();
 
-  if (!taskName) return;
+  if (!taskName) {
+    addTaskBtn.disabled = true; // 🔴 Prevent empty tasks
+    return;
+  }
 
   // Capitalize first letter
   taskName = taskName.charAt(0).toUpperCase() + taskName.slice(1);
@@ -149,12 +156,18 @@ addTaskBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Add task to the list if no duplicate is found
+  // ✅ Add task to the list if no duplicate is found
   tasks.push(taskName);
   const li = document.createElement("li");
   li.innerHTML = `${taskName} <button class="delete-task-popup-btn">X</button>`;
   newTaskList.appendChild(li);
+
+  // ✅ Clear input field
   newTaskInput.value = "";
+
+  // ✅ Disable button after adding task
+  checkTaskInput();
+
   checkSaveButtonState();
 });
 
@@ -185,6 +198,7 @@ saveTasksBtn.addEventListener("click", async () => {
   }
 
   closeAddTaskPopup();
+  addTaskBtn.disabled = true;
   fetchTasks();
 });
 
@@ -264,7 +278,7 @@ cancelDeleteBtn.addEventListener("click", () => {
 // ✅ Disable "Okay" button when input is empty
 function checkTaskInput() {
   const taskName = newTaskInput.value.trim();
-  addTaskBtn.disabled = taskName === ""; // Disable if empty
+  addTaskBtn.disabled = taskName === ""; // ✅ Disable if empty
 }
 
 // ✅ Ensure the "Add Task" button is updated on input changes
@@ -419,35 +433,112 @@ async function loadTasks() {
 
 // Assign tasks to selected crop type
 assignTasksBtn.addEventListener("click", async () => {
+  assignTasksBtn.disabled = true; // Disable button while saving
+
   const selectedCropTypeId = cropTypeSelect.value;
-  const selectedCropTypeName = cropTypeSelect.options[cropTypeSelect.selectedIndex].text;
+  const selectedCropTypeName =
+    cropTypeSelect.options[cropTypeSelect.selectedIndex].text;
   const selectedTaskIds = Array.from(
     document.querySelectorAll('input[name="tasks"]:checked')
   ).map((checkbox) => checkbox.value);
 
   if (!selectedCropTypeId || selectedTaskIds.length === 0) {
     alert("Please select a crop type and at least one task.");
+    assignTasksBtn.disabled = false;
     return;
   }
 
-  for (const taskId of selectedTaskIds) {
-    const taskRef = doc(db, "tb_pretask", taskId);
-    const taskSnap = await getDoc(taskRef);
+  try {
+    console.log("Fetching task_id_counter...");
+    const counterRef = doc(db, "tb_id_counters", "task_id_counter"); // Fixed collection name
+    let counterSnap = await getDoc(counterRef);
 
-    if (taskSnap.exists()) {
+    let taskCounter;
+    if (counterSnap.exists()) {
+      taskCounter = counterSnap.data().count; // Use 'count'
+      console.log("Current task_id_counter:", taskCounter);
+    } else {
+      console.warn("task_id_counter not found. Creating new counter...");
+      taskCounter = 1; // Start from 1 if missing
+      await setDoc(counterRef, { count: taskCounter });
+    }
+
+    let duplicateTasks = []; // Track duplicate task names
+
+    for (const taskId of selectedTaskIds) {
+      console.log("Processing task:", taskId);
+      const taskRef = doc(db, "tb_pretask", taskId);
+      const taskSnap = await getDoc(taskRef);
+
+      if (!taskSnap.exists()) {
+        console.warn(`Task with ID ${taskId} not found in tb_pretask.`);
+        continue;
+      }
+
       const taskData = taskSnap.data();
+      console.log("Task data:", taskData);
 
+      // ✅ Check for duplicate
+      const taskListQuery = query(
+        collection(db, "tb_task_list"),
+        where("crop_type_name", "==", selectedCropTypeName),
+        where("task_name", "==", taskData.task_name)
+      );
+      const taskListSnapshot = await getDocs(taskListQuery);
+
+      if (!taskListSnapshot.empty) {
+        duplicateTasks.push(taskData.task_name);
+        continue; // Skip adding duplicate task
+      }
+
+      // ✅ Save task to Firestore
+      console.log(
+        `Saving task "${taskData.task_name}" with task_id ${taskCounter}...`
+      );
       await addDoc(collection(db, "tb_task_list"), {
-        crop_type_name: selectedCropTypeName, // Store crop type name instead of ID
-        task_name: taskData.task_name, // Store task name
-        subtasks: taskData.subtasks || [], // Store associated subtasks
+        task_id: taskCounter, // Assign task_id from count
+        crop_type_name: selectedCropTypeName,
+        task_name: taskData.task_name,
+        subtasks: taskData.subtasks || [],
         assigned_on: new Date(),
       });
-    }
-  }
 
-  alert("Tasks successfully assigned to the crop type!");
-  assignTaskModal.style.display = "none";
+      taskCounter++; // Increment counter
+    }
+
+    // ✅ Update count in Firestore if new tasks were added
+    if (taskCounter !== counterSnap.data().count) {
+      console.log("Updating task_id_counter to:", taskCounter);
+      await updateDoc(counterRef, { count: taskCounter });
+    }
+
+    // ✅ Show duplicate message if any tasks were already assigned
+    if (duplicateTasks.length > 0) {
+      alert(
+        `The following tasks are already assigned to "${selectedCropTypeName}":\n\n` +
+          duplicateTasks.map((task) => `- ${task}`).join("\n")
+      );
+    }
+
+    // ✅ Clear form if at least one task was assigned
+    if (selectedTaskIds.length > duplicateTasks.length) {
+      cropTypeSelect.value = "";
+      document
+        .querySelectorAll('input[name="tasks"]:checked')
+        .forEach((checkbox) => (checkbox.checked = false));
+
+      if (typeof fetchAssignedTasks === "function") {
+        fetchAssignedTasks();
+      }
+
+      alert("Tasks assigned successfully!");
+    }
+  } catch (error) {
+    console.error("Error assigning tasks:", error);
+    alert("An error occurred while assigning tasks. Please try again.");
+  } finally {
+    assignTasksBtn.disabled = false;
+  }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -456,7 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", function () {
       document.getElementById("add-task-modal").style.display = "flex"; // Change from "block" to "flex"
     });
-    
+
   document
     .getElementById("close-add-task-modal")
     .addEventListener("click", function () {
@@ -467,7 +558,3 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
   fetchAssignedTasks();
 });
-
-
-
-

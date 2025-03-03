@@ -71,7 +71,7 @@
         <div class="modal-content">
             <span id="close-assign-task-modal" class="close-btn">&times;</span>
             <h2>Assign Tasks to Crop Type</h2>
-            
+
             <label for="crop-type-select">Select Crop Type</label>
             <select id="crop-type-select">
                 <option value="">Select a crop type</option>
@@ -91,29 +91,39 @@
     <table>
         <thead>
             <tr>
+                <th>Task ID</th> <!-- New column for Task ID -->
                 <th>Crop Type</th>
                 <th>Task Name</th>
                 <th>Assigned On</th>
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody id="assigned-tasks-table-body"></tbody>
+        <tbody id="assigned-tasks-table-body">
+            <!-- Task rows will be populated here -->
+        </tbody>
     </table>
 
-    <div id="edit-task-modal" class="modal">
+
+    <!-- Edit Task Modal -->
+    <div id="edit-subtasks-modal" class="modal">
         <div class="modal-content">
-            <span id="close-edit-task-modal" class="close-btn">&times;</span>
+            <span class="close" id="close-edit-task-modal">&times;</span>
             <h2>Edit Task</h2>
-            <p id="edit-task-name-display"></p> <!-- Display Task Name -->
+            <p id="edit-task-name-display"></p>
+
+            <!-- Subtask Input and Button inside Modal -->
+            <div class="subtask-container">
+                <input type="text" id="new-subtask-input" placeholder="Enter subtask..." />
+                <button id="add-subtask-btn">Add Subtask</button>
+            </div>
+
+            <!-- Subtask List (Dynamically Added Subtasks) -->
             <ul id="subtask-list"></ul>
-            <button id="save-subtasks-btn">Save Changes</button>
+
+            <button id="save-subtasks-btn" disabled>Save Changes</button>
         </div>
     </div>
-    
 
-    
-
-    
 
 
     <script type="module" src="predefined_task.js"></script>
