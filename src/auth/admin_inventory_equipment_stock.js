@@ -1,6 +1,8 @@
 import {
   collection,
   getDocs,
+  getDoc,
+  addDoc,
   getFirestore,
   query,
   where,
@@ -12,8 +14,70 @@ import {
 } from "firebase/firestore";
 
 import app from "../config/firebase_config.js";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const db = getFirestore(app);
+
+async function saveActivityLog(action) {
+  const auth = getAuth();
+
+  // Use onAuthStateChanged to wait for authentication status
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Fetch authenticated user's data from tb_users collection
+      const userDocRef = doc(db, "tb_users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        console.error("User data not found in tb_users.");
+        return;
+      }
+
+      const userData = userDocSnap.data();
+      const userName = userData.user_name || "Unknown User";
+      const userType = userData.user_type || "Unknown Type";
+
+      const currentTimestamp = Timestamp.now().toDate();
+      const date = currentTimestamp.toLocaleDateString("en-US");
+      const time = currentTimestamp.toLocaleTimeString("en-US");
+
+      const activityLogCollection = collection(db, "tb_activity_log");
+
+      try {
+        // Fetch and increment the activity_log_id_counter
+        const counterDocRef = doc(db, "tb_id_counters", "activity_log_id_counter");
+        const counterDocSnap = await getDoc(counterDocRef);
+
+        if (!counterDocSnap.exists()) {
+          console.error("Counter document not found.");
+          return;
+        }
+
+        let currentCounter = counterDocSnap.data().value || 0;
+        let newCounter = currentCounter + 1;
+
+        // Update the counter in the database
+        await updateDoc(counterDocRef, { value: newCounter });
+
+        // Use the incremented counter as activity_log_id
+        const docRef = await addDoc(activityLogCollection, {
+          activity_log_id: newCounter, // Use counter instead of a placeholder
+          username: userName,
+          user_type: userType,
+          activity: action,
+          date: date,
+          time: time
+        });
+
+        console.log("Activity log saved successfully with ID:", newCounter);
+      } catch (error) {
+        console.error("Error saving activity log:", error);
+      }
+    } else {
+      console.error("No authenticated user found.");
+    }
+  });
+}
 let equipmentsList = []; // Declare equipmentsList globally for filtering
 let filteredEquipments = equipmentsList; // Declare a variable for filtered equipments
 let currentPage = 1;
@@ -300,6 +364,7 @@ async function deleteSelectedEquipments() {
 
     console.log("Deleted equipments:", selectedEquipments);
     // Show success message
+    await saveActivityLog(`Deleted Equipments: ${equipmentName.join(", ")}`);
     showDeleteMessage("All selected Equipment records successfully deleted!", true);
 
     // Clear selection and update the UI
@@ -497,7 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
           current_stock: newStock,
           unit: unit
         });
-
+        await saveActivityLog(`Added Equipment Stock for ${equipmentName} with quantity of ${equipmentStock}`);
         showEquipmentStockMessage("Equipment Stock has been added successfully!", true);
         closeStockPanel();
       } else {

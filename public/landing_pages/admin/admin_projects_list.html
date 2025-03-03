@@ -26,7 +26,8 @@
       <div class="btn-container">
           <a href="projects.html" class="add-project-btn">+ New Project</a>
         </div>
-    <div class="panel">
+        <div class="panel">
+    <div class="table-wrapper">
         <div class="search-container">
            <input type="text" id="search-bar" placeholder="Search" /> 
             <select id="status_select">
@@ -34,28 +35,29 @@
                 <!-- record will be dynamically added here -->
             </select>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>PROJECT NAME</th>
-                    <th>FARM PRESIDENT</th>
-                    <th>START DATE</th>
-                    <th>END DATE</th>
-                    <th>CROP</th>
-                    <th>PROGRESS</th>
-                    <th>STATUS</th>
-                    <th>ACTION</th>  
-                </tr>
-            </thead>
-            <tbody id="table_body">
-                <!-- Rows will be dynamically added here -->
-            </tbody>
-        </table>
-        <div class="pagination-container">
-            <span id="page-number">Page 1</span>
-            <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
-            <button id="next-page" class="pagination-btn">&gt;</button>
-      </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PROJECT NAME</th>
+                            <th>FARM PRESIDENT</th>
+                            <th>START DATE</th>
+                            <th>END DATE</th>
+                            <th>CROP</th>
+                            <th>PROGRESS</th>
+                            <th>STATUS</th>
+                            <th>ACTION</th>  
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+                        <!-- Rows will be dynamically added here -->
+                    </tbody>
+                </table>    
+        </div>
+            <div class="pagination-container">
+                <span id="page-number">Page 1</span>
+                <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
+                <button id="next-page" class="pagination-btn">&gt;</button>
+        </div>
     </div>
   </div>
     

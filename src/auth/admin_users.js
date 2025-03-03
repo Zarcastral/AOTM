@@ -154,13 +154,6 @@ function updateTable() {
         `;
         tableBody.appendChild(row);
         const checkbox = row.querySelector(".checkbox");
-        checkbox.addEventListener("change", function() {
-            if (checkbox.checked) {
-                row.classList.add("highlight");
-            } else {
-                row.classList.remove("highlight");
-            }
-        });
     });
 
     updatePagination();
