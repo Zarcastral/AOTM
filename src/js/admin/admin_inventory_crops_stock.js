@@ -1,18 +1,82 @@
 import {
   collection,
   getDocs,
+  getDoc,
   getFirestore,
   query,
   where,
   deleteDoc,
   updateDoc,
   Timestamp,
+  onSnapshot,
+  addDoc,
   doc
 } from "firebase/firestore";
-
-import app from "../config/firebase_config.js";
+import app from "../../config/firebase_config.js";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const db = getFirestore(app);
+
+async function saveActivityLog(action) {
+  const auth = getAuth();
+
+  // Use onAuthStateChanged to wait for authentication status
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Fetch authenticated user's data from tb_users collection
+      const userDocRef = doc(db, "tb_users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        console.error("User data not found in tb_users.");
+        return;
+      }
+
+      const userData = userDocSnap.data();
+      const userName = userData.user_name || "Unknown User";
+      const userType = userData.user_type || "Unknown Type";
+
+      const currentTimestamp = Timestamp.now().toDate();
+      const date = currentTimestamp.toLocaleDateString("en-US");
+      const time = currentTimestamp.toLocaleTimeString("en-US");
+
+      const activityLogCollection = collection(db, "tb_activity_log");
+
+      try {
+        // Fetch and increment the activity_log_id_counter
+        const counterDocRef = doc(db, "tb_id_counters", "activity_log_id_counter");
+        const counterDocSnap = await getDoc(counterDocRef);
+
+        if (!counterDocSnap.exists()) {
+          console.error("Counter document not found.");
+          return;
+        }
+
+        let currentCounter = counterDocSnap.data().value || 0;
+        let newCounter = currentCounter + 1;
+
+        // Update the counter in the database
+        await updateDoc(counterDocRef, { value: newCounter });
+
+        // Use the incremented counter as activity_log_id
+        const docRef = await addDoc(activityLogCollection, {
+          activity_log_id: newCounter, // Use counter instead of a placeholder
+          username: userName,
+          user_type: userType,
+          activity: action,
+          date: date,
+          time: time
+        });
+
+        console.log("Activity log saved successfully with ID:", newCounter);
+      } catch (error) {
+        console.error("Error saving activity log:", error);
+      }
+    } else {
+      console.error("No authenticated user found.");
+    }
+  });
+}
 
 let cropsList = []; // Declare cropsList globally for filtering
 let currentPage = 1;
@@ -27,8 +91,8 @@ let selectedCrops = [];
 // DIS ONE IS FOR DATES FROM LATEST TO OLDEST
 function sortCropsById() {
   filteredCrops.sort((a, b) => {
-    const dateA = parseDate(a.dateAdded);
-    const dateB = parseDate(b.dateAdded);
+    const dateA = parseDate(a.stock_date);
+    const dateB = parseDate(b.stock_date);
     return dateB - dateA; // Sort latest to oldest
   });
 }
@@ -46,19 +110,18 @@ function parseDate(dateValue) {
 
 // Fetch crops data from Firestore
 async function fetchCrops() {
-  console.log("Fetching crops..."); // Debugging
-  try {
-    const cropsCollection = collection(db, "tb_crop_types");
-    const cropsSnapshot = await getDocs(cropsCollection);
-    cropsList = cropsSnapshot.docs.map(doc => doc.data());
+  const cropsCollection = collection(db, "tb_crop_types");
+  const cropsQuery = query(cropsCollection);
 
-    console.log("Crops fetched:", cropsList); // Debugging
-    filteredCrops = [...cropsList]; // Initialize filteredCrops with all crops
-    sortCropsById();
-    displayCrops(filteredCrops);
-  } catch (error) {
-    console.error("Error fetching crops:", error);
-  }
+  // Listen for real-time updates
+  onSnapshot(cropsQuery, (snapshot) => {
+    cropsList = snapshot.docs.map(doc => doc.data());
+    filteredCrops = [...cropsList];
+    sortCropsById();          // Sort crops by date (latest to oldest)
+    displayCrops(filteredCrops); // Update table display
+  }, (error) => {
+    console.error("Error listening to crops:", error);
+  });
 }
 
 // Display crops in the table
@@ -98,9 +161,9 @@ function displayCrops(cropsList) {
     const cropTypeId = crop.crop_type_id || "Crop Type Id not recorded";
     const cropName = crop.crop_name || "Crop Name not recorded";
     const cropType = crop.crop_type_name || "Crop Category not recorded.";
-    const dateAdded = crop.dateAdded
-      ? (crop.dateAdded.toDate ? crop.dateAdded.toDate().toLocaleDateString() : new Date(crop.dateAdded).toLocaleDateString())
-      : "Date not recorded";
+    const stock_date = crop.stock_date
+      ? (crop.stock_date.toDate ? crop.stock_date.toDate().toLocaleDateString() : new Date(crop.stock_date).toLocaleDateString())
+      : "Stock has not been updated";
     const currentStock = crop.current_stock || "0";
     const unit = crop.unit || "Units";
 
@@ -111,7 +174,7 @@ function displayCrops(cropsList) {
         <td>${cropTypeId}</td>
         <td>${cropType}</td>
         <td>${cropName}</td>
-        <td>${dateAdded}</td>
+        <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
         <td>
           <button class="add-crop-stock-btn" id="add-crop-stock-btn" data-id="${crop.cropTypeId}">+ Add Stock</button>
@@ -296,19 +359,22 @@ async function deleteSelectedCrops() {
 
   try {
     const cropsCollection = collection(db, "tb_crop_types");
+    let deletedCropNames = [];  // Array to store deleted crop names
 
     // Loop through selected crops and delete them
     for (const cropTypeId of selectedCrops) {
       const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
       const querySnapshot = await getDocs(cropQuery);
 
-      querySnapshot.forEach(async (docSnapshot) => {
+      for (const docSnapshot of querySnapshot.docs) {
+        const cropData = docSnapshot.data();
+        deletedCropNames.push(cropData.crop_type_name);  // Save crop name to array
         await deleteDoc(doc(db, "tb_crop_types", docSnapshot.id));
-      });
+      }
     }
 
-    console.log("Deleted Crops:", selectedCrops);
-    // Show success message
+    console.log("Deleted Crops:", deletedCropNames);
+    await saveActivityLog(`Deleted Crops: ${deletedCropNames.join(", ")}`);  // Log crop names instead of IDs
     showDeleteMessage("All selected Crop records successfully deleted!", true);
 
     // Clear selection and update the UI
@@ -321,6 +387,7 @@ async function deleteSelectedCrops() {
     showDeleteMessage("Error deleting crops!", false);
   }
 }
+
 
 // Confirm Deletion and Call Delete Function
 document.getElementById("confirm-crop-delete").addEventListener("click", () => {
@@ -496,13 +563,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const newStock = existingStock + Number(cropStock);
 
         await updateDoc(docRef, {
-          dateAdded: Timestamp.now(),
+          stock_date: Timestamp.now(),
           crop_name: cropName,
           crop_type_name: cropTypeName,
           current_stock: newStock,
           unit: unit
-        });
-
+        });  
+        await saveActivityLog(`Added Crop Stock for ${cropTypeName} with quantity of ${cropStock}`);
         showCropStockMessage("Crop Stock has been added successfully!", true);
         closeStockPanel();
       } else {

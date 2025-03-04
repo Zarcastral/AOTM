@@ -5,10 +5,11 @@ import {
   query,
   where,
   deleteDoc,
+  onSnapshot,
   doc
 } from "firebase/firestore";
 
-import app from "../config/firebase_config.js";
+import app from "../../config/firebase_config.js";
 
 const db = getFirestore(app);
 let equipmentsList = []; // Declare equipmentsList globally for filtering
@@ -36,19 +37,18 @@ function parseDate(dateValue) {
 }
 // Fetch equipments data (tb_equipment) from Firestore
 async function fetchEquipments() {
-  console.log("Fetching equipments..."); // Debugging
-  try {
-    const equipmentsCollection = collection(db, "tb_equipment");
-    const equipmentsSnapshot = await getDocs(equipmentsCollection);
-    equipmentsList = equipmentsSnapshot.docs.map(doc => doc.data());
+  const equipmentsCollection = collection(db, "tb_equipment");
+  const equipmentsQuery = query(equipmentsCollection);
 
-    console.log("equipments fetched:", equipmentsList); // Debugging
-    filteredEquipments = equipmentsList; // Initialize filtered list
-    sortEquipmentsById();
-    displayEquipments(filteredEquipments);
-  } catch (error) {
-    console.error("Error fetching equipments:", error);
-  }
+  // Listen for real-time updates
+  onSnapshot(equipmentsQuery, (snapshot) => {
+    equipmentsList = snapshot.docs.map(doc => doc.data());
+    filteredEquipments = [...equipmentsList];
+    sortEquipmentsById();          // Sort Equipments by date (latest to oldest)
+    displayEquipments(filteredEquipments); // Update table display
+  }, (error) => {
+    console.error("Error listening to Equipments:", error);
+  });
 }
 
 // Display equipments in the table with pagination
@@ -263,9 +263,9 @@ document.getElementById("equip-bulk-delete").addEventListener("click", async () 
   }
 
   if (hasInvalidId) {
-      showDeleteMessage("ERROR: Fertilizier ID of one or more selected records are invalid", false);
+      showDeleteMessage("ERROR: Equipment ID of one or more selected records are invalid", false);
   } else {
-      document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
+      document.getElementById("equip-bulk-panel").style.display = "block"; // Show confirmation panel
   }
 });
 

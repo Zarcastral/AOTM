@@ -44,7 +44,6 @@ body {
     overflow-y: auto; /* Enable vertical scrolling */
   }
 
-
 /* Panel container style */
 
 .panel {
@@ -60,31 +59,24 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
 }
 
 th, td {
     padding: 1rem;
-    text-align: left;
+    text-align: left; /* aligns only when th, td and th both have text-align: center; do not know why*/
     border-bottom: 2px solid #f0f0f0;
-    width: auto;
 }
 
 th {
     background-color: white;
     color: #333;
 }
-tbody tr {
-    background-color: white;
-    border-bottom: 4px solid #f0f0f0;
-}
-tbody tr:hover {
-    background-color: #F3F4F6;
-  }
-/* Remove border from the last row */
-tbody tr:last-child td {
-    border-bottom: none;
-}
-
 input[type="checkbox"] {
     width: 16px;
     height: 16px;
@@ -93,6 +85,9 @@ input[type="checkbox"] {
     outline: none;
     background-color: white;
     cursor: pointer;
+  }
+tbody tr:hover {
+    background-color: #F3F4F6;
   }
 
 .search-container {
@@ -159,39 +154,39 @@ input[type="checkbox"] {
 
 /* Pagination styles */
 .pagination-container {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center; /* Aligns vertically */
-  margin-top: 20px;
-  width: 100%;
-  gap: 10px; /* Adds spacing between elements */
-
-}
-#page-number {
-    font-size: 17px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center; /* Aligns vertically */
+    margin-top: 20px;
+    width: 100%;
+    gap: 10px; /* Adds spacing between elements */
+  
+  }
+  #page-number {
+      font-size: 17px;
+      color: #333;
+    }
+  
+  .pagination-btn {
+    padding: 10px 10px;
+    margin: 0;
+    font-size: 25px;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    background: none;
+    transition: color 0.3s ease;
     color: #333;
   }
-
-.pagination-btn {
-  padding: 10px 10px;
-  margin: 0;
-  font-size: 25px;
-  border: none;
-  border-radius: 0;
-  cursor: pointer;
-  background: none;
-  transition: color 0.3s ease;
-  color: #333;
-}
-
-.pagination-btn:hover {
-    color: #41A186;
-}
-
-.pagination-btn:disabled {
-    color: #bbb;
-    cursor: not-allowed;
-}
+  
+  .pagination-btn:hover {
+      color: #41A186;
+  }
+  
+  .pagination-btn:disabled {
+      color: #bbb;
+      cursor: not-allowed;
+  }
 
 
 /* Confirmation Panel Style */
@@ -257,7 +252,6 @@ input[type="checkbox"] {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: transparent; /* Remove the default green */
     color: white;
     padding: 10px 20px;
     border-radius: 20px;
@@ -284,7 +278,7 @@ input[type="checkbox"] {
     border: 1px solid #ccc;
     border-radius: 10px;
     outline: none;
-    width: 400px;
+    width: 250px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -408,6 +402,7 @@ input[type="checkbox"] {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
+    background-color: #4CAF50;
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
@@ -418,93 +413,83 @@ input[type="checkbox"] {
     opacity: 0;
     transition: opacity 0.3s ease;
 }
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 20px;
-}
-
-.modal-content {
-    position: relative;
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-.modify-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
 
 /* Responsive styles */
 @media (max-width: 768px) {
     .panel {
         width: 95%;
-        height: auto;
         padding: 15px;
-    }
-
-    #search-bar {
-        width: 300px;
     }
 
     .search-container {
         flex-direction: column;
         align-items: flex-start;
+        gap: 5px; /* Reduce gap for smaller screens */
     }
 
-    .add-user-btn {
-        right: 10px;
-        top: 10px;
+    #search-bar, #barangay-select {
+        width: 100%;
     }
 
     table {
         font-size: 14px;
     }
 
+    .pagination-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
     .pagination-btn {
         font-size: 14px;
+        width: auto;
+    }
+
+    .add-user-btn {
+        width: 100%;
+        font-size: 16px;
+        padding: 10px;
+        text-align: center;
     }
 }
 
 @media (max-width: 480px) {
-    #search-bar {
+    .panel {
+        width: 100%;
+        padding: 10px;
+    }
+
+    #search-bar, #barangay-select {
         width: 100%;
     }
 
     .pagination-container {
         flex-direction: column;
+        align-items: center;
+        gap: 5px;
     }
 
     .pagination-btn {
         width: 100%;
         margin: 5px 0;
     }
-}
 
-/* Responsive design for small screens */
-@media (max-width: 768px) {
-    .search-container {
-        flex-direction: column;
-        align-items: flex-start; 
+    .header-title {
+        font-size: 24px;
     }
 
-    #search-bar, #barangay-select {
-        width: 100%; 
+    .header-icons img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .add-user-btn {
+        width: 100%;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    table {
+        font-size: 12px;
     }
 }
-

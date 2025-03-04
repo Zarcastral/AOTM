@@ -5,10 +5,11 @@ import {
   query,
   where,
   deleteDoc,
+  onSnapshot,
   doc
 } from "firebase/firestore";
 
-import app from "../config/firebase_config.js";
+import app from "../../config/firebase_config.js";
 
 const db = getFirestore(app);
 
@@ -42,21 +43,20 @@ function parseDate(dateValue) {
   return new Date(dateValue); // Convert string/ISO formats to Date
 }
 
-// Fetch crops data from Firestore
-async function fetchCrops() {
-  console.log("Fetching crops..."); // Debugging
-  try {
-    const cropsCollection = collection(db, "tb_crop_types");
-    const cropsSnapshot = await getDocs(cropsCollection);
-    cropsList = cropsSnapshot.docs.map(doc => doc.data());
+// Real-time listener for crops collection
+function fetchCrops() {
+  const cropsCollection = collection(db, "tb_crop_types");
+  const cropsQuery = query(cropsCollection);
 
-    console.log("Crops fetched:", cropsList); // Debugging
-    filteredCrops = [...cropsList]; // Initialize filteredCrops with all crops
-    sortCropsById();
-    displayCrops(filteredCrops);
-  } catch (error) {
-    console.error("Error fetching crops:", error);
-  }
+  // Listen for real-time updates
+  onSnapshot(cropsQuery, (snapshot) => {
+    cropsList = snapshot.docs.map(doc => doc.data());
+    filteredCrops = [...cropsList];
+    sortCropsById();          // Sort crops by date (latest to oldest)
+    displayCrops(filteredCrops); // Update table display
+  }, (error) => {
+    console.error("Error listening to crops:", error);
+  });
 }
 
 // Display crops in the table
@@ -272,9 +272,9 @@ document.getElementById("crop-bulk-delete").addEventListener("click", async () =
   }
 
   if (hasInvalidId) {
-      showDeleteMessage("ERROR: Fertilizier ID of one or more selected records are invalid", false);
+      showDeleteMessage("ERROR: crop ID of one or more selected records are invalid", false);
   } else {
-      document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
+      document.getElementById("crop-bulk-panel").style.display = "block"; // Show confirmation panel
   }
 });
 
@@ -292,24 +292,25 @@ async function deleteSelectedCrops() {
   try {
     const cropsCollection = collection(db, "tb_crop_types");
 
-    // Loop through selected crops and delete them
     for (const cropTypeId of selectedCrops) {
       const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
       const querySnapshot = await getDocs(cropQuery);
 
-      querySnapshot.forEach(async (docSnapshot) => {
-        await deleteDoc(doc(db, "tb_crop_types", docSnapshot.id));
-      });
+      if (!querySnapshot.empty) {
+        for (const docSnapshot of querySnapshot.docs) {
+          console.log("Deleting document ID:", docSnapshot.id);
+          await deleteDoc(doc(db, "tb_crop_types", docSnapshot.id));
+        }
+      } else {
+        console.error(`ERROR: Crop ID ${cropTypeId} does not exist.`);
+      }
     }
 
     console.log("Deleted Crops:", selectedCrops);
-    // Show success message
     showDeleteMessage("All selected Crop records successfully deleted!", true);
-
-    // Clear selection and update the UI
-    selectedCrops = [];
-    document.getElementById("crop-bulk-panel").style.display = "none"; // Hide confirmation panel
-    fetchCrops(); // Refresh the table
+    selectedCrops = [];  // Clear selection AFTER successful deletion
+    document.getElementById("crop-bulk-panel").style.display = "none";
+    fetchCrops();  // Refresh the table
 
   } catch (error) {
     console.error("Error deleting crops:", error);

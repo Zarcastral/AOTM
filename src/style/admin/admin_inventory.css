@@ -170,7 +170,7 @@ body {
   }
 
   .btn-new-project {
-    background-color: #1ab394;
+    background-color: #41A186;;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -183,7 +183,7 @@ body {
   }
 
   .btn-new-project:hover {
-    background-color: #18a076;
+    background-color: #318a71;
   }
 
   .button-container {
@@ -205,7 +205,7 @@ body {
 }
 
 .stock-selector a.active {
-    color: #45a049;
+    color: #41A186;
     font-weight: bold;
 }
 
@@ -341,14 +341,14 @@ body {
 
 .crop-bulk-confirm-btn, .fert-bulk-confirm-btn,
 .equip-bulk-confirm-btn{
-  background-color: #4CAF50;
+  background-color: #41A186;
   color: white;
   border: none;
 }
 
 .crop-bulk-confirm-btn:hover, .fert-bulk-confirm-btn:hover,
 .equip-bulk-confirm-btn:hover {
-  background-color: #38853c;
+  background-color: #318a71;
   transition: background-color 0.3s ease;
 }
 
@@ -372,7 +372,7 @@ body {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #4CAF50;
+  background-color: #41A186;
   color: white;
   padding: 10px 20px;
   border-radius: 5px;

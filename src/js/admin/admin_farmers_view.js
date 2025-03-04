@@ -7,7 +7,7 @@ import {
     where,
     getFirestore
 } from "firebase/firestore";
-import app from "../config/firebase_config.js";
+import app from "../../config/firebase_config.js";
 
 const db = getFirestore(app);
 
@@ -35,14 +35,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         
         // Automatically select the option fetched from data
-        const userData = localStorage.getItem("userData");
-        if (userData) {
-            const data = JSON.parse(userData);
-            const username = data.user_name;
+        const farmerData = localStorage.getItem("farmerData");
+        if (farmerData) {
+            const data = JSON.parse(farmerData);
+            const farmer_id = data.farmer_id;
             // <------------------------- POPULATE THE FIELDS ON READ ONLY ---------------------------->
-            const usernameField = document.getElementById("user_name");
-            usernameField.value = data.user_name || "";
-            usernameField.readOnly = true; 
+            const farmer_idField = document.getElementById("farmer_id");
+            farmer_idField.value = data.farmer_id || "";
+            farmer_idField.readOnly = true; 
 
             const firstNameField = document.getElementById("first_name");
             firstNameField.value = data.first_name || "";
@@ -86,8 +86,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 sexSelect.disabled = true; // Disable combobox
             }
 
-            if (data.barangay) {
-                setSelectValue(barangaySelect, data.barangay);
+            if (data.barangay_name) {
+                setSelectValue(barangaySelect, data.barangay_name);
                 barangaySelect.disabled = true; // Disable combobox
             }
 
@@ -96,22 +96,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                 userTypeSelect.disabled = true; // Disable combobox
             }
 
-            fetchProfilePicture(username);
+            fetchProfilePicture(farmer_id);
         }
-        async function fetchProfilePicture(username) {
+        async function fetchProfilePicture(farmerId) {
             try {
-                const q = query(collection(db, "tb_users"), where("user_name", "==", username));
+                const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
-                    const userData = querySnapshot.docs[0].data();
-                    const user_picture = userData.user_picture;
+                    const farmerData = querySnapshot.docs[0].data();
+                    const user_picture = farmerData.user_picture;
 
                     if (user_picture) {
                         document.getElementById("profile-picture").src = user_picture;
                     }
                 } else {
-                    console.log("No user found with the given user_name.");
+                    console.log("No user found with the given farmer_id.");
                 }
             } catch (error) {
                 console.error("Error fetching profile picture:", error);
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Close button functionality
     const closeButton = document.getElementById("close-button");
     closeButton.addEventListener("click", () => {
-        window.location.href = "admin_users.html";
+        window.location.href = "admin_farmers.html";
     });
 });
 

@@ -9,7 +9,7 @@ import {
     getFirestore
   } from "firebase/firestore";
 
-import app from "../config/firebase_config.js";
+import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 
 const tableBody = document.getElementById("table_body");
@@ -35,7 +35,7 @@ async function fetch_projects(filter = {}) {
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const projectId = data.project_id; // Store project_id in a variable
+            const projectId = String(data.project_id || ""); // Convert to string
             projectIdList.push(projectId); // Push to projectIdList
 
             const searchTerm = filter.search?.toLowerCase();
@@ -57,20 +57,20 @@ async function fetch_projects(filter = {}) {
             }
         });
 
-        // Sort by start_date, then by end_date if start_date is the same
+        // Sort by start_date in descending order, then by end_date in descending order if start_date is the same
         projectList.sort((a, b) => {
             const startA = a.start_date ? new Date(a.start_date) : new Date(0);
             const startB = b.start_date ? new Date(b.start_date) : new Date(0);
             const endA = a.end_date ? new Date(a.end_date) : new Date(0);
             const endB = b.end_date ? new Date(b.end_date) : new Date(0);
 
-            // First, sort by start_date
-            if (startA - startB !== 0) {
-                return startA - startB;
+            // First, sort by start_date in descending order
+            if (startB - startA !== 0) {  // Reversed subtraction for descending order
+                return startB - startA;    // Latest start_date first
             }
 
-            // If start_date is the same, sort by end_date
-            return endA - endB;
+            // If start_date is the same, sort by end_date in descending order
+            return endB - endA;            // Latest end_date first
         });
 
         console.log("Project IDs:", projectIdList); // Debugging: Log all project IDs
@@ -185,6 +185,7 @@ tableBody.addEventListener("click", (event) => {
     if (!target) return;
 
     const project_id = target.getAttribute("data-id");
+    console.log("Clicked Edit Button - Project ID:", project_id); // Debugging
 
     if (target.classList.contains("edit-btn")) {
         editUserAccount(project_id);
@@ -198,13 +199,13 @@ tableBody.addEventListener("click", (event) => {
 // <------------- EDIT BUTTON CODE ------------->
 async function editUserAccount(project_id) {
     try {
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", project_id));
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                localStorage.setItem("userData", JSON.stringify(userData));
+                const projectData = doc.data();
+                localStorage.setItem("projectData", JSON.stringify(projectData));
                 window.location.href = "admin_projects_edit.html";
             });
         } else {
@@ -218,13 +219,13 @@ async function editUserAccount(project_id) {
 // <------------- VIEW BUTTON CODE ------------->
 /*async function viewUserAccount(project_id) {
     try {
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", project_id));
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                localStorage.setItem("userData", JSON.stringify(userData));
+                const projectData = doc.data();
+                localStorage.setItem("projectData", JSON.stringify(projectData));
                 window.location.href = "admin_users_view.html";
             });
         } else {
@@ -247,7 +248,7 @@ function viewUserAccount(projectId) {
 async function deleteUserAccount(project_id) {
     try {
 
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", project_id));
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
