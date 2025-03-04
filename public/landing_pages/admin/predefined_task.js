@@ -387,7 +387,7 @@ async function loadCropTypes() {
   try {
     const querySnapshot = await getDocs(collection(db, "tb_crop_types"));
     cropTypes = [];
-    cropTypeSelect.innerHTML = "<option value=''>Select a crop type</option>"; // Clear existing options
+    cropTypeSelect.innerHTML = "<option value=''>Select a crop type</option>"; // Default option
 
     if (querySnapshot.empty) {
       console.log("No crop types found in Firestore.");
@@ -396,15 +396,20 @@ async function loadCropTypes() {
 
     querySnapshot.forEach((doc) => {
       const cropData = doc.data();
-
       if (cropData && cropData.crop_type_name) {
         cropTypes.push({ id: doc.id, name: cropData.crop_type_name });
-
-        const option = document.createElement("option");
-        option.value = doc.id;
-        option.textContent = cropData.crop_type_name; // Set the display text as crop_type_name
-        cropTypeSelect.appendChild(option);
       }
+    });
+
+    // ✅ Sort crop types alphabetically by name
+    cropTypes.sort((a, b) => a.name.localeCompare(b.name));
+
+    // ✅ Populate dropdown after sorting
+    cropTypes.forEach((crop) => {
+      const option = document.createElement("option");
+      option.value = crop.id;
+      option.textContent = crop.name;
+      cropTypeSelect.appendChild(option);
     });
   } catch (error) {
     console.error("Error fetching crop types:", error);
