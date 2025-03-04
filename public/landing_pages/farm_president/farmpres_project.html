@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Organic Baras Productivity</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="farmpres_project.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="../../../src/js/farm_president/farmpres_projects_list.js"></script>
+    <title>PROJECTS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../src/style/farm_president/farmpres_projects_list.css">
 </head>
-
 <body>
-  <div class="header">
-    <div class="header-title">Projects</div>
+   <!-- Header Section -->
+   <div class="header">
+    <div class="header-title">    
+
+    </div>
+
     <div class="header-icons">
       <img src="../../images/Bell.png" alt="Notifications">
       <img id="account-icon" src="../../images/Union.png" alt="Account">
@@ -20,68 +22,56 @@
   </div>
 
   <div class="main-content">
-    <h1>Current Projects</h1>
-    <div class="panel">
-      <div class="search-status">
-        <input type="text" placeholder="Search">
-        <select>
-          <option>Status</option>
-          <option>Ongoing</option>
-          <option>Pending</option>
-        </select>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Project Name</th>
-            <th>Farm President</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Crop</th>
-            <th>Progress</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Yes Green</td>
-            <td>Charles Lawton</td>
-            <td>09/13/2024</td>
-            <td>09/13/2024</td>
-            <td>Ampalaya</td>
-            <td>
-              <span class="progress-bar">
-                <span class="progress" style="width: 60%;"></span>
-              </span>
-            </td>
-            <td>Ongoing</td>
-            <td class="actions"> 👁️</td>
-          </tr>
-          <tr>
-            <td>Pakoy Month</td>
-            <td>Caroline James</td>
-            <td>09/13/2024</td>
-            <td>09/13/2024</td>
-            <td>Okra</td>
-            <td>
-              <span class="progress-bar">
-                <span class="progress" style="width: 30%;"></span>
-              </span>
-            </td>
-            <td>Pending</td>
-            <td class="actions"> 👁️</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="pagination">
-        <span>&lt;</span>
-        <span>1 of 1</span>
-        <span>&gt;</span>
-      </div>
+    <div class="title-project">
+      <span>CURRENT PROJECTS</span>
+    </div>
+        <div class="panel">
+    <div class="table-wrapper">
+        <div class="search-container">
+           <input type="text" id="search-bar" placeholder="Search" /> 
+            <select id="status_select">
+                <option value="">Select Status</option>
+                <!-- record will be dynamically added here -->
+            </select>
+        </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PROJECT NAME</th>
+                            <th>FARM PRESIDENT</th>
+                            <th>START DATE</th>
+                            <th>END DATE</th>
+                            <th>CROP</th>
+                            <th>PROGRESS</th>
+                            <th>STATUS</th>
+                            <th>ACTION</th>  
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+                        <!-- Rows will be dynamically added here -->
+                    </tbody>
+                </table>    
+        </div>
+            <div class="pagination-container">
+                <span id="page-number">Page 1</span>
+                <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
+                <button id="next-page" class="pagination-btn">&gt;</button>
+        </div>
     </div>
   </div>
+    
+        <!-- Confirmation Message Panel -->
+    <div id="confirmation-panel" class="confirmation-panel">
+        <div class="confirmation-message">
+            <p>Are you sure you want to delete the record?</p>
+            <button id="confirm-delete" class="confirm-btn">Okay</button>
+            <button id="cancel-delete" class="cancel-btn">Cancel</button>
+        </div>
+    </div>
+    <!-- Success Message Panel -->
+    <div id="delete-message" class="delete-message">
+        <p>Record has been successfully deleted!</p>
+    </div>
+
 </body>
 </html>
