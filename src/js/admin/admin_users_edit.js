@@ -8,14 +8,14 @@ import {
     query,
     getFirestore
   } from "firebase/firestore";
-import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { getAuth, onAuthStateChanged } from "firebase/auth";  // Import getAuth and onAuthStateChanged
-import app from "../config/firebase_config.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import app from "../../config/firebase_config.js";
+
 
 const db = getFirestore(app);
-
 document.addEventListener("DOMContentLoaded", async () => {
-
+    
     const auth = getAuth();
     // Check if the user is logged in when the page is loaded
     onAuthStateChanged(auth, (user) => {
@@ -51,7 +51,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
     
-
     try {
         // Populate Barangay combobox
         const barangaySelect = document.getElementById("barangay");
@@ -62,22 +61,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         await populateSelect(userTypeSelect, "tb_user_type", "user_type");
 
         // Automatically select the option fetched from data
-        const farmerData = localStorage.getItem("farmerData");
-        if (farmerData) {
-            const data = JSON.parse(farmerData);
-
-            // Ensure farmerId is defined before calling the function
-            const farmerId = data.farmer_id;
-            if (farmerId) {
-                fetchProfilePicture(farmerId);
+        const userData = localStorage.getItem("userData");
+        if (userData) {
+            const data = JSON.parse(userData);
+           
+            const username = data.user_name;
+            if (username) {
+                fetchProfilePicture(username);
+                saveProfilePicture(username); 
             } else {
-                console.error("Farmer ID is missing");
+                console.error("Username is missing");
             }
 
             // Populate text fields
-            const farmerIdField = document.getElementById("farmer_id");
-            farmerIdField.value = data.farmer_id || "";
-            farmerIdField.readOnly = true; // Make Farmer ID non-editable
+            const usernameField = document.getElementById("user_name");
+            usernameField.value = data.user_name || "";
 
             document.getElementById("first_name").value = data.first_name || "";
             document.getElementById("middle_name").value = data.middle_name || "";
@@ -85,8 +83,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("contact").value = data.contact || "";
             document.getElementById("email").value = data.email || "";
             document.getElementById("birthday").value = data.birthday || "";
+            document.getElementById("user_name").value = data.user_name || "";
 
-            // Automatically select the value for the 'sex' combobox
             if (data.sex) {
                 setSelectValue(document.getElementById("sex"), data.sex);
             }
@@ -96,27 +94,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (data.user_type) {
                 setSelectValue(document.getElementById("user_type"), data.user_type);
             }
-            
 
-
-            fetchProfilePicture(farmerId);
+            fetchProfilePicture(username);
         }
         let originalImageSrc;
-        async function fetchProfilePicture(farmerId) {
+        async function fetchProfilePicture(username) {
             try {
-                const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
+                const q = query(collection(db, "tb_users"), where("user_name", "==", username));
                 const querySnapshot = await getDocs(q);
         
                 if (!querySnapshot.empty) {
-                    const farmerData = querySnapshot.docs[0].data();
-                    const user_picture = farmerData.user_picture;
+                    const userData = querySnapshot.docs[0].data();
+                    const user_picture = userData.user_picture;
         
                     if (user_picture) {
                         document.getElementById("profile-picture").src = user_picture;
                         originalImageSrc = user_picture;
                     }
                 } else {
-                    console.log("No user found with the given farmer_id.");
+                    console.log("No user found with the given user_name.");
                 }
             } catch (error) {
                 console.error("Error fetching profile picture:", error);
@@ -152,27 +148,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const closeButton = document.getElementById("close-button");
     closeButton.addEventListener("click", () => {
-        window.location.href = "admin_farmers.html";
+        window.location.href = "admin_users.html"; // Redirect to users_list.html
     });
 
     // Add event listener for the save button
-    document.getElementById("admin_farmers_edit").addEventListener("submit", (event) => {
+    document.getElementById("admin_users_edit").addEventListener("submit", (event) => {
         event.preventDefault(); // Prevent the default form submission
         validateUniqueFields();
         
     });
 
-
-
 });
 
-/* ================ Validates if contact, email are unique before saving changes ================ */
+/* ================ Validates if contact, email, and user_name are unique before saving changes ================ */
 async function validateUniqueFields() {
-    const colRef = collection(db, "tb_farmers"); // Use collection() properly
+    const colRef = collection(db, "tb_users"); // Use collection() properly
     const snapshot = await getDocs(colRef);
-    const farmerId = document.getElementById("farmer_id").value;
+    const username = document.getElementById("user_name").value;
     const contact = document.getElementById("contact").value;
     const email = document.getElementById("email").value;
+    const userName = document.getElementById("user_name").value;
 
     try {
         let errors = [];
@@ -180,10 +175,10 @@ async function validateUniqueFields() {
         snapshot.forEach(doc => {
             const data = doc.data();
 
-            // Skip checking if the farmer_id matches (meaning this is the currently edited user)
-            if (data.farmer_id !== farmerId) {
+            if (data.user_name !== username) {
                 if (data.contact === contact) errors.push("Contact is already in use");
                 if (data.email === email) errors.push("Email is already in use");
+                if (data.user_name === userName) errors.push("Username is already in use");
             }
         });
 
@@ -263,13 +258,9 @@ function showConfirmationPanel() {
         document.body.removeChild(confirmationPanel);
     });
 }
-
-
-/* ================ Saves changes to the Firebase database ================ */
-
-async function saveProfilePicture(farmerId) {
-    if (!farmerId) {
-        console.error("farmerId is undefined or empty");
+async function saveProfilePicture(username) {
+    if (!username) {
+        console.error("Username is undefined or empty");
         return;
     }
     const auth = getAuth();
@@ -278,6 +269,7 @@ async function saveProfilePicture(farmerId) {
         console.error("User is not authenticated!");
         return;
     }
+    
     const db = getFirestore(app);
     const storage = getStorage(app);
     const fileInput = document.getElementById("profile_picture");
@@ -290,12 +282,13 @@ async function saveProfilePicture(farmerId) {
 
     try {
         const userId = user.uid;
+
         const storageRef = ref(storage, `profile_pictures/${userId}`);
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         
         // Update Firestore with the image URL
-        const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
+        const q = query(collection(db, "tb_users"), where("user_name", "==", username));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
@@ -303,7 +296,7 @@ async function saveProfilePicture(farmerId) {
             await updateDoc(docRef, { user_picture: downloadURL });
             console.log("Profile picture updated successfully.");
         } else {
-            console.error("Farmer ID not found in Firestore.");
+            console.error("Username not found in Firestore.");
         }
     } catch (error) {
         console.error("Error uploading profile picture:", error);
@@ -311,12 +304,15 @@ async function saveProfilePicture(farmerId) {
 }
 
 async function saveChanges() {
-    const farmerId = document.getElementById("farmer_id").value.trim();
-    if (!farmerId) {
-        console.error("Farmer ID is missing.");
+    const username = (document.getElementById("user_name").value);
+    console.log("Searching for user_name:", username, "Type:", typeof username);
+
+    if (!username) {
+        alert("Please provide a valid username.");
         return;
     }
 
+    // Get all form data
     const updatedData = {
         first_name: document.getElementById("first_name").value,
         middle_name: document.getElementById("middle_name").value,
@@ -327,26 +323,23 @@ async function saveChanges() {
         sex: document.getElementById("sex").value,
         user_type: document.getElementById("user_type").value,
         barangay: document.getElementById("barangay").value,
+        user_name: document.getElementById("user_name").value,
     };
 
-    const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
-    const querySnapshot = await getDocs(q);
+    const colRef = collection(db, "tb_users");
+    const q = query(colRef, where("user_name", "==", username)); 
 
+    const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
         const docRef = querySnapshot.docs[0].ref;
-        await saveProfilePicture(farmerId);
+        
+        await saveProfilePicture(username);  // Ensure picture is uploaded first
         await updateDoc(docRef, updatedData);
-        console.log("User details updated successfully.");
-        
-        // Save profile picture if a new file was selected
-        
         alert("Changes saved successfully!");
-        window.location.href = "admin_farmers.html";
+        window.location.href = "admin_users.html"; 
     } else {
-        alert("Account with this Farmer ID does not exist.");
+        alert("Account with this username does not exist.");
     }
-
-
 
     // Remove confirmation panel
     const confirmationPanel = document.getElementById("confirmationPanel");
@@ -354,3 +347,4 @@ async function saveChanges() {
         document.body.removeChild(confirmationPanel);
     }
 }
+

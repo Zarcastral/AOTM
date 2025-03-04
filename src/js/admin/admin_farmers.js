@@ -2,14 +2,14 @@ import {
     collection,
     getDocs,
     doc,
-    deleteDoc,
     getDoc,
-    query,
+    deleteDoc,
     where,
+    query,
     getFirestore
   } from "firebase/firestore";
 
-import app from "../config/firebase_config.js";
+import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 
 const tableBody = document.getElementById("table_body");
@@ -25,12 +25,12 @@ document.body.appendChild(editFormContainer);
 
 let currentPage = 1;
 const rowsPerPage = 5;
-let userAccounts = [];
+let farmerAccounts = [];
 
-async function fetch_user_accounts(filter = {}) {
+async function fetch_farmer_accounts(filter = {}) {
     try {
-        const querySnapshot = await getDocs(collection(db, "tb_users"));
-        userAccounts = [];
+        const querySnapshot = await getDocs(collection(db, "tb_farmers"));
+        farmerAccounts = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
@@ -39,9 +39,9 @@ async function fetch_user_accounts(filter = {}) {
                 ? `${data.first_name || ""} ${data.middle_name || ""} ${data.last_name || ""}`
                       .toLowerCase()
                       .includes(searchTerm) ||
-                  (data.email || "").toLowerCase().includes(searchTerm) ||
-                  (data.user_name || "").toLowerCase().includes(searchTerm) ||
-                  (data.user_type || "").toLowerCase().includes(searchTerm)
+                  (data.farmer_id || "").toLowerCase().includes(searchTerm) ||
+                  (data.user_type || "").toLowerCase().includes(searchTerm) ||
+                  (data.user_name || "").toLowerCase().includes(searchTerm)
                 : true;
 
             const matchesBarangay = filter.barangay_name
@@ -49,37 +49,47 @@ async function fetch_user_accounts(filter = {}) {
                 : true;
 
             if (matchesSearch && matchesBarangay) {
-                userAccounts.push({ id: doc.id, ...data });
+                farmerAccounts.push({ id: doc.id, ...data });
             }
-        });
-
-        const missingUsernames = []; // Array to store users with undefined IDs
-        // <------------- FETCHED DATA SORT BY USERNAME ASCENSION ------------->
-        userAccounts.sort((a, b) => {
-            const userNameA = a.user_name;
-            const userNameB = b.user_name;
-            const missName = formatName(a.first_name, a.middle_name, a.last_name);
+            
+        });  
         
-            if (userNameA === undefined) {
-                missingUsernames.push(missName);
+        const missingFarmerIds = []; // Array to store farmers with undefined IDs
+        // <------------- FETCHED DATA SORT BY FARMER ID ASCENSION (assuming farmer_id is a string or number) ------------->
+        farmerAccounts.sort((a, b) => {
+            const farmerIdA = a.farmer_id;
+            const farmerIdB = b.farmer_id;
+            const farmerNameA = formatName(a.first_name, a.middle_name, a.last_name);
+        
+            if (farmerIdA === undefined) {
+                missingFarmerIds.push(farmerNameA);
                 return 0; /* Keeps the current order of undefined values kapag ginawang 1 mapupunta lahat ng
-                users na walang id sa pinaka dulo*/
+                farmers na walang id sa pinaka dulo*/
             }
             // Alphabetical Comparison (A-Z)
-            if (isNaN(userNameA) && isNaN(userNameB)) {
-                return String(userNameA).localeCompare(String(userNameB), undefined, {numeric: true, sensitivity: 'base' });
+            if (isNaN(farmerIdA) && isNaN(farmerIdB)) {
+                return String(farmerIdA).localeCompare(String(farmerIdB), undefined, { numeric: true, sensitivity: 'base' });
             }
+        
+            // Numeric Comparison (low to high)
+            if (!isNaN(farmerIdA) && !isNaN(farmerIdB)) {
+                return Number(farmerIdA) - Number(farmerIdB);
+            }
+        
+            /* Pina prioritize yung number only, kapag may string yung farmer id matic ma pupunta sa dulo
+             at ma so sort kasama dun sa mga kaparehas nyang may string yung farmer id*/
+            return isNaN(farmerIdA) ? 1 : -1;
+            
         });
-                // Log missing user IDs in bulk
-        if (missingUsernames.length > 0) {
-            console.log("Usernames are not retrieved for the following User Accounts: " + missingUsernames.join(", "));
+                // Log missing farmer IDs at once
+        if (missingFarmerIds.length > 0) {
+            console.log("Farmer ID's are not retrieved for the following farmers: " + missingFarmerIds.join(", "));
         }
 
-        currentPage = 1;
+        currentPage = 1; // *Reset to the first page when data is filtered*
         updateTable();
-        updatePagination();
     } catch (error) {
-        console.error("Error Fetching User Accounts:", error);
+        console.error("Error Fetching Farmer Accounts:", error);
     }
 }
 
@@ -115,12 +125,12 @@ function formatName(firstName, middleName, lastName) {
 }
 
 //  <----------- TABLE DISPLAY AND UPDATE -------------> 
-let selectedUsername = null;
+let selectedFarmerId = null;
 
 function updateTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const end = currentPage * rowsPerPage;
-    const pageData = userAccounts.slice(start, end);
+    const pageData = farmerAccounts.slice(start, end);
 
     tableBody.innerHTML = "";
 
@@ -134,75 +144,69 @@ function updateTable() {
         const formattedBarangay = formatBarangay(data.barangay_name);
         const formattedUserType = formatUserType(data.user_type);
         row.innerHTML = `
-            <td><input type="checkbox" class="checkbox" data-user-name="${data.user_name}"></td>
-            <td>${data.user_name || "Account name not recorded"}</td>
+            <td><input type="checkbox" class="checkbox" data-farmer-id="${data.farmer_id}"></td>
+            <td>${data.farmer_id || "Farmer ID not recorded"}</td>
             <td>${formattedName || "User's name not recorded"}</td>
             <td>${formattedUserType || "User's role not recorded"}</td>
             <td>${formattedBarangay || "Barangay not recorded"}</td>
-            <td>${data.contact || "Contact number not recorded"}</td>
+            <td>${data.contact || "Contact Number not recorded"}</td>
             <td>
-                <button class="action-btn edit-btn" data-id="${data.user_name}" title="Edit">
+                <button class="action-btn edit-btn" data-id="${data.farmer_id}" title="Edit">
                     <img src="../../images/edit.png" alt="Edit">
                 </button>
-                <button class="action-btn view-btn" data-id="${data.user_name}" title="View">
+                <button class="action-btn view-btn" data-id="${data.farmer_id}" title="View">
                     <img src="../../images/eye.png" alt="View">
                 </button>
-                <button class="action-btn delete-btn" data-id="${data.user_name}" title="Delete">
+                <button class="action-btn delete-btn" data-id="${data.farmer_id}" title="Delete">
                     <img src="../../images/Delete.png" alt="Delete">
                 </button>
             </td>
         `;
         tableBody.appendChild(row);
         const checkbox = row.querySelector(".checkbox");
+        checkbox.addEventListener("change", function() {
+            if (checkbox.checked) {
+                row.classList.add("highlight");
+            } else {
+                row.classList.remove("highlight");
+            }
+        });
     });
 
     updatePagination();
     toggleBulkDeleteButton();
 }
 
-// <------------- Toggle Bulk Delete Button -------------> 
-function toggleBulkDeleteButton() {
-    const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
-    const bulkDeleteBtn = document.getElementById("bulk-delete");
-    if (selectedCheckboxes.length > 0) {
-        bulkDeleteBtn.disabled = false;
-    } else {
-        bulkDeleteBtn.disabled = true;
-    }
-}
-
 // <------------- Checkbox Change Event Listener -------------> 
 tableBody.addEventListener("change", (event) => {
     if (event.target.classList.contains("checkbox")) {
-        const username = event.target.getAttribute("data-user-name");
+        const farmerId = event.target.getAttribute("data-farmer-id");
         toggleBulkDeleteButton();
         if (event.target.checked) {
-            selectedUsername = username;
-            console.log("Selected username: ", username);
+            selectedFarmerId = farmerId;
+            console.log("Selected Farmer ID: ", selectedFarmerId);
         } else {
-            selectedUsername = null;
-            console.log("Selected username: ", "Username Unselected");
+            selectedFarmerId = null;
+            console.log("Selected Farmer ID: ", "Farmer ID Unselected");
 
         }
+       
     }
 });
-
 function updatePagination() {
-    const totalPages = Math.ceil(userAccounts.length / rowsPerPage) || 1;
+    const totalPages = Math.ceil(farmerAccounts.length / rowsPerPage) || 1;
     pageNumberSpan.textContent = `${currentPage} of ${totalPages}`;
     updatePaginationButtons();
 }
 
-
 function updatePaginationButtons() {
-    const totalPages = Math.ceil(userAccounts.length / rowsPerPage);
+    const totalPages = Math.ceil(farmerAccounts.length / rowsPerPage);
     prevPageBtn.disabled = currentPage === 1;
     nextPageBtn.disabled = currentPage >= totalPages;
 }
 
-
 function changePage(direction) {
-    const totalPages = Math.ceil(userAccounts.length / rowsPerPage);
+    const totalPages = Math.ceil(farmerAccounts.length / rowsPerPage);
     if (direction === "prev" && currentPage > 1) {
         currentPage--;
     } else if (direction === "next" && currentPage < totalPages) {
@@ -221,49 +225,48 @@ tableBody.addEventListener("click", (event) => {
     const target = event.target.closest("button");
     if (!target) return;
 
-    const username = target.getAttribute("data-id");
+    const farmerId = target.getAttribute("data-id");
 
     if (target.classList.contains("edit-btn")) {
-        editUserAccount(username);
+        editFarmerAccount(farmerId);
     } else if (target.classList.contains("view-btn")) {
-        viewUserAccount(username);
+        viewFarmerAccount(farmerId);
     } else if (target.classList.contains("delete-btn")) {
-        deleteUserAccount(username);
+        deleteFarmerAccount(farmerId);
     }
 });
 
 // <------------- EDIT BUTTON CODE ------------->
-async function editUserAccount(user_name) {
+async function editFarmerAccount(farmerId) {
     try {
-        const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
+        const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                localStorage.setItem("userData", JSON.stringify(userData));
-                window.location.href = "admin_users_edit.html";
+                const farmerData = doc.data();
+                localStorage.setItem("farmerData", JSON.stringify(farmerData));
+                window.location.href = "admin_farmers_edit.html";
             });
         } else {
             showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
         }
     } catch (error) {
-        console.error("Error fetching user data for edit:", error);
+        console.error("Error fetching Farmer data for edit:", error);
     }
 }
 
-
 // <------------- VIEW BUTTON CODE ------------->
-async function viewUserAccount(user_name) {
+async function viewFarmerAccount(farmerId) {
     try {
-        const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
+        const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                localStorage.setItem("userData", JSON.stringify(userData));
-                window.location.href = "admin_users_view.html";
+                const farmerData = doc.data();
+                localStorage.setItem("farmerData", JSON.stringify(farmerData));
+                window.location.href = "admin_farmers_view.html";
             });
         } else {
             showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
@@ -273,34 +276,26 @@ async function viewUserAccount(user_name) {
     }
 }
 
-// <------------- DELETE BUTTON EVENT LISTENER ------------->
-async function deleteUserAccount(user_name) {
+// <------------- DELETE BUTTON EVENT LISTENER ------------->  
+async function deleteFarmerAccount(farmer_id) {
     try {
-        // Query Firestore to get the document ID based on user_name
-        const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
+
+        const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmer_id));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            // Assuming user_name is unique, get the first matched document
-            const userDoc = querySnapshot.docs[0];
-            const userDocId = userDoc.id;
-
-            // Show confirmation before deleting
             confirmationPanel.style.display = "flex";
             editFormContainer.style.pointerEvents = "none";
-
-            // Store the selected row ID
-            selectedRowId = userDocId;
         } else {
-            showDeleteMessage("No matching record found, unable to delete.", false);
+            showDeleteMessage("No Farmer ID found, Unable to proceed with the deleting the record", false);
         }
     } catch (error) {
-        console.error("Error deleting User Account:", error);
+        console.log("Error deleting farmer account:", error);
     }
 }
 
 
-// <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
+// <------------- DELETE A ROW AND REFRESH THE TABLE CODE ------------->
 const confirmationPanel = document.getElementById("confirmation-panel");
 const confirmDeleteButton = document.getElementById("confirm-delete");
 const cancelDeleteButton = document.getElementById("cancel-delete");
@@ -310,12 +305,11 @@ const deleteMessage = document.getElementById("delete-message");
 confirmDeleteButton.addEventListener("click", async () => {
     if (selectedRowId) {
         try {
-
-            const userDocRef = doc(db, "tb_users", selectedRowId);
-            await deleteDoc(userDocRef);
+            const farmerDocRef = doc(db, "tb_farmers", selectedRowId);
+            await deleteDoc(farmerDocRef);
             console.log("Record deleted successfully!");
 
-            fetch_user_accounts();
+            fetch_farmer_accounts();
 
             deleteMessage.style.display = "block";
             setTimeout(() => {
@@ -323,7 +317,7 @@ confirmDeleteButton.addEventListener("click", async () => {
                 setTimeout(() => {
                     deleteMessage.style.opacity = "0";
                     setTimeout(() => {
-                        deleteMessage.style.display = "none";
+                        deleteMessage.style.display = "none"
                     }, 300);
                 }, 3000);
             }, 0);
@@ -341,16 +335,15 @@ cancelDeleteButton.addEventListener("click", () => {
     editFormContainer.style.pointerEvents = "auto";
 });
 
-// EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
 searchBar.addEventListener("input", () => {
-    fetch_user_accounts({
+    fetch_farmer_accounts({
         search: searchBar.value,
         barangay_name: barangaySelect.value,
     });
 });
 
 barangaySelect.addEventListener("change", () => {
-    fetch_user_accounts({
+    fetch_farmer_accounts({
         search: searchBar.value,
         barangay_name: barangaySelect.value,
     });
@@ -365,7 +358,7 @@ async function fetch_barangays() {
     try {
         const querySnapshot = await getDocs(collection(db, "tb_barangay"));
 
-        // Create an array to track barangay names that have already been added
+        // Array to track barangay names that have already been added
         let addedBarangays = [];
 
         querySnapshot.forEach((doc) => {
@@ -386,15 +379,24 @@ async function fetch_barangays() {
         console.error("Error Fetching Barangays:", error);
     }
 }
-
 // <---------------------------- BULK DELETE CODE ---------------------------->
+
+// <------------- Toggle Bulk Delete Button -------------> 
+function toggleBulkDeleteButton() {
+    const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
+    const bulkDeleteBtn = document.getElementById("bulk-delete");
+    if (selectedCheckboxes.length > 0) {
+        bulkDeleteBtn.disabled = false;
+    } else {
+        bulkDeleteBtn.disabled = true;
+    }
+}
 
 const deleteSelectedBtn = document.getElementById("bulk-delete");
 const bulkDeletePanel = document.getElementById("bulk-delete-panel");
 const confirmDeleteBtn = document.getElementById("confirm-bulk-delete");
 const cancelDeleteBtn = document.getElementById("cancel-bulk-delete");
 let idsToDelete = [];
-
 
 deleteSelectedBtn.addEventListener("click", async () => {
     const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
@@ -403,20 +405,20 @@ deleteSelectedBtn.addEventListener("click", async () => {
     let hasInvalidId = false;
 
     for (const checkbox of selectedCheckboxes) {
-        const user_name = checkbox.getAttribute("data-user-name");
+        const farmerId = checkbox.getAttribute("data-farmer-id");
 
-        // Validate usernmae (null, undefined, or empty string)
-        if (!user_name || user_name.trim() === "") {
+        // Validate farmerId (null, undefined, or empty string)
+        if (!farmerId || farmerId.trim() === "") {
             hasInvalidId = true;
             break;
         }
 
-        /*  Check if the user_name exists in the database
+        /*  Check if the farmer_id exists in the database
             kailangan to for error trapping kasi chine check nya muna kung yung na retrieve na farmer id
             dun sa mga checkboxes is nag eexist talaga sa firestore database
         */
         try {
-            const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
+            const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
@@ -424,7 +426,7 @@ deleteSelectedBtn.addEventListener("click", async () => {
                 break;
             }
 
-            idsToDelete.push(user_name);
+            idsToDelete.push(farmerId);
         } catch (error) {
             console.error("Error fetching farmer records:", error);
             hasInvalidId = true;
@@ -433,30 +435,31 @@ deleteSelectedBtn.addEventListener("click", async () => {
     }
 
     if (hasInvalidId) {
-        showDeleteMessage("ERROR: Username of one or more selected records are invalid", false);
+        showDeleteMessage("ERROR: Farmer ID of one or more selected records are invalid", false);
     } else {
         bulkDeletePanel.classList.add("show");
     }
 });
 
+
 confirmDeleteBtn.addEventListener("click", async () => {
     try {
-        for (const username of idsToDelete) {
-            const q = query(collection(db, "tb_users"), where("user_name", "==", username));
+        for (const farmerId of idsToDelete) {
+            const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
             const querySnapshot = await getDocs(q);
 
             querySnapshot.forEach(async (docSnapshot) => {
-                const docRef = doc(db, "tb_users", docSnapshot.id);
+                const docRef = doc(db, "tb_farmers", docSnapshot.id);
                 await deleteDoc(docRef);
-                console.log(`Account with Username of ${username} deleted.`);
+                console.log(`Farmer with ID ${farmerId} deleted.`);
             });
         }
         
-        showDeleteMessage("Selected users have been deleted.", true);
-        fetch_user_accounts();
+        showDeleteMessage("Selected farmers have been deleted.", true);
+        fetch_farmer_accounts();
     } catch (error) {
-        console.error("Error deleting users:", error);
-        showDeleteMessage("Error deleting users. Please try again.", false);
+        console.error("Error deleting farmers:", error);
+        showDeleteMessage("Error deleting farmers. Please try again.", false);
     }
 
     bulkDeletePanel.classList.remove("show"); 
@@ -467,7 +470,7 @@ cancelDeleteBtn.addEventListener("click", () => {
     bulkDeletePanel.classList.remove("show"); 
 });
 
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE and ERROR MESSAGES ------------------------>
+// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
 function showDeleteMessage(message, success) {
     deleteMessage.textContent = message;
     deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
@@ -482,6 +485,6 @@ function showDeleteMessage(message, success) {
     }, 4000); 
 }
 
-fetch_user_accounts();
+fetch_farmer_accounts();
 fetch_barangays();
 

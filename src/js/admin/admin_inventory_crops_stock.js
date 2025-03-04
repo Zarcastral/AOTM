@@ -12,7 +12,7 @@ import {
   addDoc,
   doc
 } from "firebase/firestore";
-import app from "../config/firebase_config.js";
+import app from "../../config/firebase_config.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const db = getFirestore(app);
