@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script type="module" src="../../../src/auth/admin_inventory_crops_stock.js"></script>
-  <script type="module" src="../../../src/auth/admin_inventory_equipment_stock.js"></script>
-  <script type="module" src="../../../src/auth/admin_inventory_fertilizer_stock.js"></script>
+  <script type="module" src="../../../src/js/admin/admin_inventory_crops_stock.js"></script>
+  <script type="module" src="../../../src/js/admin/admin_inventory_equipment_stock.js"></script>
+  <script type="module" src="../../../src/js/admin/admin_inventory_fertilizer_stock.js"></script>
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../src/style/admin_inventory_stock.css">
+  <link rel="stylesheet" href="../../../src/style/admin/admin_inventory_stock.css">
 </head>
 
 <body>
@@ -54,11 +54,11 @@
           <!-- Crops will be populated here -->
         </tbody>
       </table>
-      <div class="crops-pagination">
-        <span id="crop-page-number">Page 1</span>
-        <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
-        <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
-    </div>
+        <div class="crops-pagination">
+          <span id="crop-page-number">Page 1</span>
+          <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
+          <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
+      </div>
     </div>
       <div id="crop-bulk-panel" class="crop-bulk-panel">
         <div class="confirm-crop-bulk-message">

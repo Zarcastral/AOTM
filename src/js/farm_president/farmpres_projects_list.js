@@ -9,8 +9,11 @@ import {
     getFirestore
   } from "firebase/firestore";
 
-import app from "../config/firebase_config.js";
+import app from "../../config/firebase_config.js";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 const db = getFirestore(app);
+const auth = getAuth();
+
 
 const tableBody = document.getElementById("table_body");
 const statusSelect = document.getElementById("status_select");
@@ -27,16 +30,51 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let projectList = [];
 
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        console.log("User is authenticated:", user.email);
+        fetch_projects();  // Run this ONLY after authentication is confirmed
+    } else {
+        console.error("User not authenticated.");
+        // Redirect to login page or prompt for sign-in
+    }
+});
+
+
 async function fetch_projects(filter = {}) {
     try {
+        const user = auth.currentUser;  // Ensure user is passed correctly
+
+        if (!user) {
+            console.error("User not authenticated.");
+            return;
+        }
+
+        const farmerDocRef = doc(db, "tb_farmers", user.uid);
+        const farmerDocSnap = await getDoc(farmerDocRef);
+
+        if (!farmerDocSnap.exists()) {
+            console.error("Farmer document not found.");
+            return;
+        }
+
+        const farmerData = farmerDocSnap.data();
+        const farmerFirstName = farmerData.first_name || "";
+
         const querySnapshot = await getDocs(collection(db, "tb_projects"));
         projectList = [];
-        let projectIdList = []; // Store project IDs separately
+        let projectIdList = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const projectId = data.project_id; // Store project_id in a variable
-            projectIdList.push(projectId); // Push to projectIdList
+            const projectId = String(data.project_id || "");
+
+            if ((data.farm_president || "").toLowerCase() !== farmerFirstName.toLowerCase()) {
+                return;
+            }
+
+            projectIdList.push(projectId);
 
             const searchTerm = filter.search?.toLowerCase();
             const matchesSearch = searchTerm
@@ -57,29 +95,24 @@ async function fetch_projects(filter = {}) {
             }
         });
 
-        // Sort by start_date, then by end_date if start_date is the same
         projectList.sort((a, b) => {
             const startA = a.start_date ? new Date(a.start_date) : new Date(0);
             const startB = b.start_date ? new Date(b.start_date) : new Date(0);
             const endA = a.end_date ? new Date(a.end_date) : new Date(0);
             const endB = b.end_date ? new Date(b.end_date) : new Date(0);
 
-            // First, sort by start_date
-            if (startA - startB !== 0) {
-                return startA - startB;
+            if (startB - startA !== 0) {
+                return startB - startA;
             }
-
-            // If start_date is the same, sort by end_date
-            return endA - endB;
+            return endB - endA;
         });
 
-        console.log("Project IDs:", projectIdList); // Debugging: Log all project IDs
-
+        console.log("Project IDs:", projectIdList);
         currentPage = 1;
         updateTable();
         updatePagination();
     } catch (error) {
-        console.error("Error Fetching User Accounts:", error);
+        console.error("Error Fetching Projects:", error);
     }
 }
 
@@ -185,6 +218,7 @@ tableBody.addEventListener("click", (event) => {
     if (!target) return;
 
     const project_id = target.getAttribute("data-id");
+    console.log("Clicked Edit Button - Project ID:", project_id); // Debugging
 
     if (target.classList.contains("edit-btn")) {
         editUserAccount(project_id);
@@ -198,13 +232,13 @@ tableBody.addEventListener("click", (event) => {
 // <------------- EDIT BUTTON CODE ------------->
 async function editUserAccount(project_id) {
     try {
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", project_id));
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                localStorage.setItem("userData", JSON.stringify(userData));
+                const projectData = doc.data();
+                localStorage.setItem("projectData", JSON.stringify(projectData));
                 window.location.href = "admin_projects_edit.html";
             });
         } else {
@@ -216,15 +250,15 @@ async function editUserAccount(project_id) {
 }
 
 // <------------- VIEW BUTTON CODE ------------->
-async function viewUserAccount(project_id) {
+/*async function viewUserAccount(project_id) {
     try {
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", project_id));
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                localStorage.setItem("userData", JSON.stringify(userData));
+                const projectData = doc.data();
+                localStorage.setItem("projectData", JSON.stringify(projectData));
                 window.location.href = "admin_users_view.html";
             });
         } else {
@@ -233,13 +267,18 @@ async function viewUserAccount(project_id) {
     } catch (error) {
         console.log("Error fetching user data for view:", error);
     }
+}*/
+
+function viewUserAccount(projectId) {
+    sessionStorage.setItem("selectedProjectId", parseInt(projectId, 10)); // Convert to integer
+    window.location.href = "viewproject.html"; // Redirect to viewproject.html
 }
 
 // <------------- DELETE BUTTON EVENT LISTENER ------------->
 async function deleteUserAccount(project_id) {
     try {
 
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", project_id));
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
@@ -354,5 +393,4 @@ function showDeleteMessage(message, success) {
     }, 4000); 
 }
 
-fetch_projects();
 fetch_status();

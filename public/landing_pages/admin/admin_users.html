@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="../../../src/auth/admin_users.js"></script>
+    <script type="module" src="../../../src/js/admin/admin_users.js"></script>
     <title>USER LIST</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/src/style/admin_users.css">
+    <link rel="stylesheet" href="/src/style/admin/admin_users.css">
 </head>
 <body>
    <!-- Header Section -->
@@ -24,35 +24,37 @@
   <div class="main-content">
       <!-- Button for New Project -->
       <div class="btn-container">
-          <a href="create_account.html" class="add-user-btn">+ New User</a>
+          <a href="create_account.html" class="add-user-btn">+ Add New User</a>
         </div>
     <div class="panel">
-        <div class="search-container">
-           <input type="text" id="search-bar" placeholder="Search" /> 
-            <select id="barangay-select">
-                <option value="">Select Barangay</option>
-                <!-- record will be dynamically added here -->
-            </select>
+        <div class="table-wrapper">
+            <div class="search-container">
+            <input type="text" id="search-bar" placeholder="Search" /> 
+                <select id="barangay-select">
+                    <option value="">Select Barangay</option>
+                    <!-- record will be dynamically added here -->
+                </select>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="checkbox-delete" > 
+                            <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+                        </th>
+                        <th>ACCOUNT NAME</th>
+                        <th>USER'S NAME</th>
+                        <th>USER ROLE</th>
+                        <th>BARANGAY</th>
+                        <th>CONTACT</th>
+                        <th>ACTION</th>
+                        
+                    </tr>
+                </thead>
+                <tbody id="table_body">
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>              
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th class="checkbox-delete" > 
-                        <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-                    </th>
-                    <th>ACCOUNT NAME</th>
-                    <th>USER'S NAME</th>
-                    <th>USER ROLE</th>
-                    <th>BARANGAY</th>
-                    <th>CONTACT</th>
-                    <th>ACTION</th>
-                    
-                </tr>
-            </thead>
-            <tbody id="table_body">
-                <!-- Rows will be dynamically added here -->
-            </tbody>
-        </table>
         <div class="pagination-container">
             <span id="page-number">Page 1</span>
             <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
