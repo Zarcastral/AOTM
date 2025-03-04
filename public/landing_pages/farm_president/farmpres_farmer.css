@@ -1,176 +1,275 @@
 body {
-    margin: 0;
-    height: 100vh;
-    background-color: #F5F6FA;
-    font-family: 'Poppins';
-    display: flex;
-    flex-direction: column;
-  }
-  
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Poppins';
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.team-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #41A186;
+  padding-bottom: 10px;
+}
+
+.add-team {
+  color: #41A186;
+  text-decoration: none;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+.team-table th, .team-table td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.team-table td img.edit-img {
+  display: block;
+  margin: 0 auto;
+}
+
+.account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+
+.account-panel.active {
+  display: block;
+}
+
+.account-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.account-panel ul li {
+  padding: 10px;
+  border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+}
+
+.account-panel ul li:hover {
+  background-color: #F7FAFC;
+}
+
+.account-panel ul li:last-child {
+  border-bottom: none;
+}
+
+/* Popup Styles */
+.popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  width: 350px;
+}
+
+.popup.active {
+  display: block;
+}
+
+.popup h2 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  text-align: center;
+  color: #333;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+#farmerBox {
+  height: 120px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  margin-top: 5px;
+  background: #f9f9f9;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  width: 48%;
+}
+
+.btn-cancel {
+  background-color: #ccc;
+}
+
+.btn-save {
+  background-color: #41A186;
+  color: white;
+}
+
+
+.search-results {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+  width: 100%;
+  z-index: 10;
+}
+
+.search-item {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.search-item:hover {
+  background-color: #f0f0f0;
+}
+
+
+
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
   .header {
-    height: 60px;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    position: relative;
+    padding: 0 10px;
   }
-  
+
   .header-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
+    font-size: 1.25rem;
   }
-  
-  .header-icons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-  
+
   .header-icons img {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
+    width: 20px;
+    height: 20px;
   }
-  
+
   .main-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-  }
-  
-  .team-panel {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-  }
-  
-  .panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 20px;
-    font-weight: bold;
-    color: #41A186;
-    padding-bottom: 10px;
-  }
-  
-  .add-team {
-    color: #41A186;
-    text-decoration: none;
-    font-weight: normal;
-  }
-  
-  .team-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0 auto;
-  }
-  
-  .team-table th, .team-table td {
     padding: 10px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
   }
-  
-  .team-table td img.edit-img {
-    display: block;
-    margin: 0 auto;
+
+  .header {
+    padding-left: 50px;
   }
 
   .account-panel {
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    width: 300px;
-    height: 400px; /* Set a fixed height here */
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    padding: 10px;
-    display: none;
-    z-index: 10;
+    width: 100%;
+    height: auto;
+    left: 0;
+    top: 80px;
+    padding: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .header-title {
+    font-size: 1.1rem;
   }
 
-  .account-panel.active {
-    display: block;
+  .header-icons img {
+    width: 18px;
+    height: 18px;
   }
 
-  .account-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  .main-content {
+    padding: 5px;
   }
 
-  .account-panel ul li {
-    padding: 10px;
-    border-bottom: 1px solid #E2E8F0;
-    cursor: pointer;
+  .account-panel {
+    width: 100%;
+    height: 60%;
+    padding: 15px;
   }
-
-  .account-panel ul li:hover {
-    background-color: #F7FAFC;
-  }
-
-  .account-panel ul li:last-child {
-    border-bottom: none;
-  }
-
-  /* Responsive Design */
-  @media screen and (max-width: 768px) {
-    .header {
-      padding: 0 10px;
-    }
-
-    .header-title {
-      font-size: 1.25rem;
-    }
-
-    .header-icons img {
-      width: 20px;
-      height: 20px;
-    }
-
-    .main-content {
-      padding: 10px;
-    }
-
-    .header {
-      padding-left: 50px;
-    }
-
-    .account-panel {
-      width: 100%;
-      height: auto;
-      left: 0;
-      top: 80px;
-      padding: 20px;
-    }
-  }
-
-  @media screen and (max-width: 480px) {
-    .header-title {
-      font-size: 1.1rem;
-    }
-
-    .header-icons img {
-      width: 18px;
-      height: 18px;
-    }
-
-    .main-content {
-      padding: 5px;
-    }
-
-    .account-panel {
-      width: 100%;
-      height: 60%;
-      padding: 15px;
-    }
-  }
-  
+}
