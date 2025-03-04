@@ -216,7 +216,7 @@ async function editUserAccount(project_id) {
 }
 
 // <------------- VIEW BUTTON CODE ------------->
-async function viewUserAccount(project_id) {
+/*async function viewUserAccount(project_id) {
     try {
         const q = query(collection(db, "tb_projects"), where("project_id", "==", project_id));
         const querySnapshot = await getDocs(q);
@@ -233,7 +233,15 @@ async function viewUserAccount(project_id) {
     } catch (error) {
         console.log("Error fetching user data for view:", error);
     }
+}*/
+
+function viewUserAccount(projectId) {
+    sessionStorage.setItem("selectedProjectId", parseInt(projectId, 10)); // Convert to integer
+    window.location.href = "viewproject.html"; // Redirect to viewproject.html
 }
+
+
+
 
 // <------------- DELETE BUTTON EVENT LISTENER ------------->
 async function deleteUserAccount(project_id) {
