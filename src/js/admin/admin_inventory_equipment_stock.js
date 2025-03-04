@@ -558,7 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await updateDoc(docRef, {
           stock_date: Timestamp.now(),
           equipment_name: equipmentName,
-          equipmentcategory: equipmentCategory,
+          equipment_category: equipmentCategory,
           current_stock: newStock,
           unit: unit
         });
