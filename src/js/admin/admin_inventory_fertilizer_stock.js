@@ -479,7 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await updateDoc(docRef, {
           stock_date: Timestamp.now(),
           fertilizer_name: fertilizerName,
-          fertilizerTypeName: fertilizerTypeName,
+          fertilizer_type_name: fertilizerTypeName,
           current_stock: newStock,
           unit: unit
         });
