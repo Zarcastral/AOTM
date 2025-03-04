@@ -14,19 +14,71 @@ import {
   } from "firebase/firestore";
   
 // Firebase Config
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
+  const firebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const teamPanel = document.getElementById("team-panel").querySelector("tbody");
+
+  // Get the barangay name from sessionStorage
+  const barangayName = sessionStorage.getItem("barangay_name");
+
+  try {
+    // Fetch teams from Firestore
+    const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
+    teamsSnapshot.forEach((doc, index) => {
+      const teamData = doc.data();
+
+      // Filter teams based on barangay_name matching the sessionStorage value
+      if (teamData.barangay_name === barangayName) {
+        // Create a new row for each team
+        const row = document.createElement("tr");
+
+        const teamNameCell = document.createElement("td");
+        teamNameCell.textContent = teamData.team_name || "N/A";
+        row.appendChild(teamNameCell);
+
+        const leadFarmerCell = document.createElement("td");
+        leadFarmerCell.textContent = teamData.lead_farmer || "N/A";
+        row.appendChild(leadFarmerCell);
+
+        // Fetch the team members (assuming members are stored as an array of farmer names)
+        const membersCount = teamData.farmer_name ? teamData.farmer_name.length : 0;
+        const membersCell = document.createElement("td");
+        membersCell.textContent = membersCount;
+        row.appendChild(membersCell);
+
+        const actionCell = document.createElement("td");
+        const editLink = document.createElement("a");
+        editLink.href = "#";
+        const editImg = document.createElement("img");
+        editImg.src = "../../images/27.png";
+        editImg.alt = "Edit";
+        editImg.classList.add("edit-img");
+        editLink.appendChild(editImg);
+        actionCell.appendChild(editLink);
+        row.appendChild(actionCell);
+
+        // Append the row to the table
+        teamPanel.appendChild(row);
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching team data: ", error);
+  }
+});
 
 // Retrieve barangay name from session storage
 const loggedBarangay = (sessionStorage.getItem("barangay_name") || "").toLowerCase();
