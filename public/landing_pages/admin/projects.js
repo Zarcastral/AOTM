@@ -261,6 +261,19 @@ window.saveProject = async function () {
         const equipmentDoc = equipmentQuerySnapshot.docs[0];
         const equipmentCategory = equipmentDoc.data().equipment_category || "Unknown";
 
+        // Fetch the email of the selected farm president from tb_farmers collection using first_name
+        const farmersRef = collection(db, "tb_farmers");
+        const farmersQuery = query(farmersRef, where("first_name", "==", farmPresidentName));
+        const farmersQuerySnapshot = await getDocs(farmersQuery);
+
+        if (farmersQuerySnapshot.empty) {
+            alert(`❌ Farm President '${farmPresidentName}' not found in the database.`);
+            return;
+        }
+
+        const farmPresidentDoc = farmersQuerySnapshot.docs[0];
+        const farmPresidentEmail = farmPresidentDoc.data().email;
+
         // Generate a new project ID
         const projectID = await getNextProjectID();
 
@@ -284,7 +297,8 @@ window.saveProject = async function () {
             equipment_category: equipmentCategory, // ✅ New field added
             start_date: startDate,
             end_date: endDate,
-            date_created: new Date()
+            date_created: new Date(),
+            email: farmPresidentEmail // Use the email of the selected farm president
         };
 
         // ✅ Save project data to Firestore
@@ -309,7 +323,6 @@ window.saveProject = async function () {
         alert("Failed to save project. Please try again.");
     }
 };
-
 
 
 
