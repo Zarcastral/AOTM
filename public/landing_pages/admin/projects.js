@@ -188,33 +188,25 @@ window.saveProject = async function () {
         const farmlandId = await getFarmlandId(farmlandName);
 
         const cropTypeName = document.getElementById('crop-type').value;
-        let quantityCropType = document.getElementById('quantity-crop-type').value.trim();
+        const quantityCropType = parseInt(document.getElementById('quantity-crop-type').value.trim());
+        const cropUnit = document.getElementById('crop-unit').value.trim();
+
         const fertilizerType = document.getElementById('fertilizer-type').value;
-        let quantityFertilizerType = document.getElementById('quantity-fertilizer-type').value.trim();
+        const quantityFertilizerType = parseInt(document.getElementById('quantity-fertilizer-type').value.trim());
+        const fertilizerUnit = document.getElementById('fertilizer-unit').value.trim();
+
         const equipment = document.getElementById('equipment').value;
         const startDate = document.getElementById('start-date').value;
         const endDate = document.getElementById('end-date').value;
 
         // ✅ Check if required fields are empty
         if (!projectName || !farmPresidentName || !cropName || !barangayName ||
-            !farmlandName || !cropTypeName || !quantityCropType ||
-            !fertilizerType || !quantityFertilizerType ||
+            !farmlandName || !cropTypeName || isNaN(quantityCropType) || !cropUnit ||
+            !fertilizerType || isNaN(quantityFertilizerType) || !fertilizerUnit ||
             !equipment || !startDate || !endDate) {
             alert("⚠️ Please fill out all required fields before saving.");
             return;
         }
-
-        // Ensure weights end with 'kg'
-        if (!quantityCropType.endsWith("kg")) {
-            quantityCropType += "kg";
-        }
-        if (!quantityFertilizerType.endsWith("kg")) {
-            quantityFertilizerType += "kg";
-        }
-
-        // ✅ Extract numeric values from quantities
-        const quantityCropValue = parseInt(quantityCropType.replace("kg", "").trim());
-        const quantityFertilizerValue = parseInt(quantityFertilizerType.replace("kg", "").trim());
 
         // 🔍 Fetch current stock of the selected crop type from tb_crop_types
         const cropTypeRef = collection(db, "tb_crop_types");
@@ -231,8 +223,8 @@ window.saveProject = async function () {
         const currentCropStock = parseInt(cropData.current_stock);
 
         // ✅ Check if there is enough crop stock
-        if (quantityCropValue > currentCropStock) {
-            alert(`⚠️ Not enough stock for '${cropTypeName}'. Available: ${currentCropStock}kg, Required: ${quantityCropValue}kg.`);
+        if (quantityCropType > currentCropStock) {
+            alert(`⚠️ Not enough stock for '${cropTypeName}'. Available: ${currentCropStock}${cropUnit}, Required: ${quantityCropType}${cropUnit}.`);
             return;
         }
 
@@ -251,8 +243,8 @@ window.saveProject = async function () {
         const currentFertilizerStock = parseInt(fertilizerData.current_stock);
 
         // ✅ Check if there is enough fertilizer stock
-        if (quantityFertilizerValue > currentFertilizerStock) {
-            alert(`⚠️ Not enough stock for '${fertilizerType}'. Available: ${currentFertilizerStock}kg, Required: ${quantityFertilizerValue}kg.`);
+        if (quantityFertilizerType > currentFertilizerStock) {
+            alert(`⚠️ Not enough stock for '${fertilizerType}'. Available: ${currentFertilizerStock}${fertilizerUnit}, Required: ${quantityFertilizerType}${fertilizerUnit}.`);
             return;
         }
 
@@ -270,9 +262,11 @@ window.saveProject = async function () {
             farm_land: farmlandName,
             farmland_id: farmlandId,
             crop_type_name: cropTypeName,
-            quantity_crop_type: quantityCropType,
+            quantity_crop_type: quantityCropType, // Stored as an integer
+            crop_unit: cropUnit, // Stored separately
             fertilizer_type: fertilizerType,
-            quantity_fertilizer_type: quantityFertilizerType,
+            quantity_fertilizer_type: quantityFertilizerType, // Stored as an integer
+            fertilizer_unit: fertilizerUnit, // Stored separately
             equipment: equipment,
             start_date: startDate,
             end_date: endDate,
@@ -283,13 +277,13 @@ window.saveProject = async function () {
         await addDoc(collection(db, "tb_projects"), projectData);
 
         // ✅ Update the stock in tb_crop_types
-        const newCropStock = currentCropStock - quantityCropValue;
+        const newCropStock = currentCropStock - quantityCropType;
         await updateDoc(doc(db, "tb_crop_types", cropDoc.id), {
             current_stock: newCropStock
         });
 
         // ✅ Update the stock in tb_fertilizer
-        const newFertilizerStock = currentFertilizerStock - quantityFertilizerValue;
+        const newFertilizerStock = currentFertilizerStock - quantityFertilizerType;
         await updateDoc(doc(db, "tb_fertilizer", fertilizerDoc.id), {
             current_stock: newFertilizerStock
         });
@@ -301,6 +295,7 @@ window.saveProject = async function () {
         alert("Failed to save project. Please try again.");
     }
 };
+
 
 
 
