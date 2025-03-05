@@ -559,7 +559,3 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("add-task-modal").style.display = "none";
     });
 });
-
-document.addEventListener("DOMContentLoaded", () => {
-  fetchAssignedTasks();
-});

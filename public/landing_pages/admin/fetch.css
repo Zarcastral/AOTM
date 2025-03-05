@@ -95,13 +95,18 @@
 }
 
 #add-subtask-btn-subtasks {
-  padding: 8px 15px;
-  border-radius: 4px;
-  background-color: #4caf50;
+  background-color: #45a049; /* Normal state (blue) */
   color: white;
   border: none;
+  padding: 10px 15px;
   cursor: pointer;
-  width: 25%; /* Adjust the width of the button */
+  transition: 0.3s;
+}
+
+/* Disabled button styles */
+#add-subtask-btn-subtasks.disabled-btn {
+  background-color: #ccc; /* Gray when disabled */
+  cursor: not-allowed;
 }
 
 #add-subtask-btn-subtasks:hover {
