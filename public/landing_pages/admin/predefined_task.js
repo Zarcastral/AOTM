@@ -396,8 +396,12 @@ async function loadCropTypes() {
 
     querySnapshot.forEach((doc) => {
       const cropData = doc.data();
-      if (cropData && cropData.crop_type_name) {
-        cropTypes.push({ id: doc.id, name: cropData.crop_type_name });
+      if (cropData && cropData.crop_type_name && cropData.crop_name) {
+        cropTypes.push({
+          id: doc.id,
+          name: cropData.crop_type_name,
+          cropName: cropData.crop_name, // Store crop_name for later use
+        });
       }
     });
 
@@ -409,6 +413,7 @@ async function loadCropTypes() {
       const option = document.createElement("option");
       option.value = crop.id;
       option.textContent = crop.name;
+      option.dataset.cropName = crop.cropName; // Store crop_name in dataset
       cropTypeSelect.appendChild(option);
     });
   } catch (error) {
@@ -454,6 +459,21 @@ assignTasksBtn.addEventListener("click", async () => {
   }
 
   try {
+    console.log("Fetching crop_name...");
+    const cropRef = doc(db, "tb_crop_types", selectedCropTypeId);
+    const cropSnap = await getDoc(cropRef);
+
+    if (!cropSnap.exists()) {
+      console.error("Crop type not found in tb_crop_types.");
+      alert("Error: Crop type not found.");
+      assignTasksBtn.disabled = false;
+      return;
+    }
+
+    const cropData = cropSnap.data();
+    const cropName = cropData.crop_name; // ✅ Get crop_name from Firestore
+    console.log("Found crop_name:", cropName);
+
     console.log("Fetching task_id_counter...");
     const counterRef = doc(db, "tb_id_counters", "task_id_counter"); // Fixed collection name
     let counterSnap = await getDoc(counterRef);
@@ -483,7 +503,7 @@ assignTasksBtn.addEventListener("click", async () => {
       const taskData = taskSnap.data();
       console.log("Task data:", taskData);
 
-      // ✅ Check for duplicate
+      // ✅ Check for duplicate task name in tb_task_list
       const taskListQuery = query(
         collection(db, "tb_task_list"),
         where("crop_type_name", "==", selectedCropTypeName),
@@ -496,13 +516,14 @@ assignTasksBtn.addEventListener("click", async () => {
         continue; // Skip adding duplicate task
       }
 
-      // ✅ Save task to Firestore
+      // ✅ Save task to Firestore (without crop_type_id)
       console.log(
         `Saving task "${taskData.task_name}" with task_id ${taskCounter}...`
       );
       await addDoc(collection(db, "tb_task_list"), {
         task_id: taskCounter, // Assign task_id from count
         crop_type_name: selectedCropTypeName,
+        crop_name: cropName, // ✅ Save crop_name
         task_name: taskData.task_name,
         subtasks: taskData.subtasks || [],
         assigned_on: new Date(),

@@ -37,7 +37,8 @@ export async function fetchAssignedTasks() {
     querySnapshot.forEach((taskDoc) => {
       const taskData = taskDoc.data();
       const taskId = taskData.task_id || "N/A";
-      const cropTypeName = taskData.crop_type_name || "N/A";
+      const cropName = taskData.crop_name || "N/A"; // Fetch crop_name
+      const cropTypeName = taskData.crop_type_name || "N/A"; // Fetch crop_type_name
       const taskName = taskData.task_name || "N/A";
       let assignedOn = "N/A";
 
@@ -53,12 +54,13 @@ export async function fetchAssignedTasks() {
       const row = document.createElement("tr");
       row.innerHTML = `  
         <td>${taskId}</td>
-        <td>${cropTypeName}</td>
+        <td>${cropName}</td>  <!-- Displays crop_name -->
+        <td>${cropTypeName}</td>  <!-- Displays crop_type_name -->
         <td>${taskName}</td>
         <td>${assignedOn}</td>
         <td>
           <button class="edit-btn" data-id="${taskId}" data-task="${taskName}">Edit</button>
-          <button class="delete-btn" data-id="${taskId}" data-task="${taskName}" data-crop="${cropTypeName}">Delete</button>
+          <button class="delete-btn" data-id="${taskId}" data-task="${taskName}" data-crop="${cropName}" data-crop-type="${cropTypeName}">Delete</button>
         </td>
       `;
       taskListTable.appendChild(row);
@@ -76,8 +78,9 @@ export async function fetchAssignedTasks() {
       button.addEventListener("click", (event) => {
         const taskId = event.target.getAttribute("data-id");
         const taskName = event.target.getAttribute("data-task");
-        const cropTypeName = event.target.getAttribute("data-crop");
-        showDeleteConfirmationModal(taskId, taskName, cropTypeName);
+        const cropName = event.target.getAttribute("data-crop");
+        const cropTypeName = event.target.getAttribute("data-crop-type");
+        showDeleteConfirmationModal(taskId, taskName, cropName, cropTypeName);
       });
     });
   } catch (error) {
