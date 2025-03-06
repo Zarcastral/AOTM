@@ -439,7 +439,14 @@ button.add-button:hover {
 
 
 
-
+.cancel-button {
+    background-color: #e0e0e0;
+    color: black;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
 
 
 

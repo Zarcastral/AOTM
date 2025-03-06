@@ -240,8 +240,8 @@
             <input type="hidden" id="edit-item-collection">
             <label for="edit-item-name">Name:</label>
             <input type="text" id="edit-item-name" required><br><br>
-            <button onclick="saveEditedItem()">Save</button>
-            <button onclick="closePopup('edit-item-popup')">Cancel</button>
+            <button class="add-button" onclick="saveEditedItem()">Save</button>
+            <button class="cancel-button" onclick="closePopup('edit-item-popup')">Cancel</button>
         </div>
     </div>
 
@@ -250,8 +250,8 @@
         <div class="popup-content">
             <h3>Confirm Delete</h3>
             <p>Are you sure you want to delete this item?</p>
-            <button id="confirm-delete-button">Yes</button>
-            <button onclick="closePopup('delete-confirm-popup')">No</button>
+            <button class="add-button" id="confirm-delete-button">Yes</button>
+            <button class="cancel-button" onclick="closePopup('delete-confirm-popup')">No</button>
         </div>
     </div>
     <div id="account-panel" class="account-panel">
