@@ -6,7 +6,8 @@ import {
     getDoc,
     query,
     where,
-    getFirestore
+    getFirestore,
+    updateDoc
   } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
@@ -221,33 +222,170 @@ tableBody.addEventListener("click", (event) => {
     console.log("Clicked Edit Button - Project ID:", project_id); // Debugging
 
     if (target.classList.contains("edit-btn")) {
-        editUserAccount(project_id);
+        teamAssign(project_id);
     } else if (target.classList.contains("view-btn")) {
-        viewUserAccount(project_id);
+        viewProject(project_id);
     } else if (target.classList.contains("delete-btn")) {
         deleteUserAccount(project_id);
     }
 });
 
-// <------------- EDIT BUTTON CODE ------------->
-async function editUserAccount(project_id) {
+
+
+
+//TEAM ASSIGN
+async function teamAssign(project_id) {
+    // Show the confirmation popup
+    const panel = document.getElementById("team-assign-confirmation-panel");
+    if (!panel) {
+        console.error("Error: Confirmation panel not found!");
+        return;
+    }
+    panel.style.display = "flex";
+
     try {
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
+        const userBarangay = sessionStorage.getItem("barangay_name");
+        const q = query(collection(db, "tb_teams"), where("barangay_name", "==", userBarangay));
         const querySnapshot = await getDocs(q);
 
-        if (!querySnapshot.empty) {
-            querySnapshot.forEach((doc) => {
-                const projectData = doc.data();
-                localStorage.setItem("projectData", JSON.stringify(projectData));
-                window.location.href = "admin_projects_edit.html";
-            });
-        } else {
-            showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
-        }
+        let teamListHtml = `<div class="team-assign-box">
+                                <h3>Available Teams</h3>
+                                <div class="team-list-container">`;
+
+        querySnapshot.forEach((doc) => {
+            const teamData = doc.data();
+            const teamName = teamData.team_name;
+            const leadFarmer = teamData.lead_farmer;
+            const totalFarmers = teamData.farmer_name ? teamData.farmer_name.length : 0;
+            const teamId = teamData.team_id; // Fetch actual team_id from Firestore
+
+            teamListHtml += `<div class="team-item" 
+                                data-team-id="${teamId}"  // Use actual team_id instead of doc.id
+                                data-team-name="${teamName}" 
+                                data-lead-farmer="${leadFarmer}" 
+                                data-farmers='${JSON.stringify(teamData.farmer_name || [])}'>
+                                <strong>${teamName}</strong><br>
+                                Lead: ${leadFarmer}<br>
+                                Total Farmers: ${totalFarmers}
+                             </div>`;
+        });
+
+        teamListHtml += "</div></div>";
+        document.getElementById("team-assign-list").innerHTML = teamListHtml;
     } catch (error) {
-        console.error("Error fetching user data for edit:", error);
+        console.error("Error fetching team data:", error);
     }
+
+    let selectedTeam = null;
+
+    // Event delegation for selecting a team
+    document.getElementById("team-assign-list").addEventListener("click", function (event) {
+        let selectedElement = event.target.closest(".team-item");
+        if (!selectedElement) return;
+
+        document.querySelectorAll(".team-item").forEach(item => {
+            item.style.backgroundColor = "";
+            item.style.color = "";
+        });
+
+        selectedElement.style.backgroundColor = "#4CAF50";
+        selectedElement.style.color = "white";
+
+        // Store selected team details
+        selectedTeam = {
+            team_id: selectedElement.getAttribute("data-team-id"), // Actual team_id
+            team_name: selectedElement.getAttribute("data-team-name"),
+            lead_farmer: selectedElement.getAttribute("data-lead-farmer"),
+            farmer_name: JSON.parse(selectedElement.getAttribute("data-farmers"))
+        };
+    });
+
+    // Ensure confirm button exists before adding event listener
+    setTimeout(() => {
+        const confirmBtn = document.getElementById("confirm-team-assign");
+        if (confirmBtn) {
+            confirmBtn.onclick = async function () {
+                if (!selectedTeam) {
+                    alert("Please select a team first.");
+                    return;
+                }
+
+                try {
+                    const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        querySnapshot.forEach(async (doc) => {
+                            const projectRef = doc.ref;
+                            await updateDoc(projectRef, {
+                                team_id: selectedTeam.team_id,  // Now correctly saving the actual team_id
+                                team_name: selectedTeam.team_name,
+                                lead_farmer: selectedTeam.lead_farmer,
+                                farmer_name: selectedTeam.farmer_name
+                            });
+
+                            localStorage.setItem("projectData", JSON.stringify({
+                                ...doc.data(),
+                                team_id: selectedTeam.team_id,
+                                team_name: selectedTeam.team_name,
+                                lead_farmer: selectedTeam.lead_farmer,
+                                farmer_name: selectedTeam.farmer_name
+                            }));
+
+                            alert(`Team "${selectedTeam.team_name}" has been successfully assigned!`);
+                            
+                            // Redirect to farmpres_project.html after successful save
+                            window.location.href = "farmpres_project.html";
+                        });
+                    } else {
+                        alert("No matching project found. Unable to proceed.");
+                    }
+                } catch (error) {
+                    console.error("Error updating project with team assignment:", error);
+                    alert("An error occurred while assigning the team. Please try again.");
+                }
+
+                // Close popup
+                panel.style.display = "none";
+            };
+        } else {
+            console.error("Error: Confirm button (confirm-team-assign) not found!");
+        }
+    }, 100);
+
+    // Function to reset selection
+    function resetTeamSelection() {
+        panel.style.display = "none";
+        selectedTeam = null;
+    }
+
+    // Cancel button event listeners
+    setTimeout(() => {
+        const cancelTeamAssign = document.getElementById("cancel-team-assign");
+        if (cancelTeamAssign) cancelTeamAssign.addEventListener("click", resetTeamSelection);
+    }, 100);
 }
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // <------------- VIEW BUTTON CODE ------------->
 /*async function viewUserAccount(project_id) {
@@ -269,7 +407,7 @@ async function editUserAccount(project_id) {
     }
 }*/
 
-function viewUserAccount(projectId) {
+function viewProject(projectId) {
     sessionStorage.setItem("selectedProjectId", parseInt(projectId, 10)); // Convert to integer
     window.location.href = "viewproject.html"; // Redirect to viewproject.html
 }
