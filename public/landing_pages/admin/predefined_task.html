@@ -86,12 +86,18 @@
             <button id="assign-tasks-btn">Assign Tasks</button>
         </div>
     </div>
+    <!-- Add Crop Filter Dropdown Above the Assigned Tasks Table -->
+    <label for="crop-filter">Filter by Crop Name:</label>
+    <select id="crop-filter">
+        <option value="">All Crops</option> <!-- Default option to show all tasks -->
+    </select>
 
     <h2>Assigned Tasks</h2>
     <table>
         <thead>
             <tr>
-                <th>Task ID</th> <!-- New column for Task ID -->
+                <th>Task ID</th>
+                <th>Crop Name</th>
                 <th>Crop Type</th>
                 <th>Task Name</th>
                 <th>Assigned On</th>
@@ -99,9 +105,11 @@
             </tr>
         </thead>
         <tbody id="assigned-tasks-table-body">
-            <!-- Task rows will be populated here -->
+            <!-- Task rows will be populated dynamically -->
         </tbody>
     </table>
+
+
 
 
     <!-- Edit Subtasks Modal -->

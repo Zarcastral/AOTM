@@ -160,9 +160,9 @@ window.fetchData = async function(collection, listId, field) {
                 <span>${data[field] || ''}</span>
                 <div class="actions">
                     <!-- Edit Button as Image -->
-                    <img src="images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('${collection}', '${doc.id}', '${data[field]}')">
+                    <img src="../../images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('${collection}', '${doc.id}', '${data[field]}')">
                     <!-- Delete Button as Image -->
-                    <img src="images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('${collection}', '${doc.id}')">
+                    <img src="../../images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('${collection}', '${doc.id}')">
                 </div>
             `;
             listContainer.appendChild(itemDiv);
@@ -488,8 +488,8 @@ window.loadFarmlandsForBarangay = async function () {
             itemDiv.innerHTML = `
                 <span>${data.farmland_name || 'Unnamed Farmland'}</span>
                 <div class="actions">
-                    <img src="images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('tb_farmland', '${doc.id}', '${data.farmland_name}')">
-                    <img src="images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('tb_farmland', '${doc.id}')">
+                    <img src="../../images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('tb_farmland', '${doc.id}', '${data.farmland_name}')">
+                    <img src="../../images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('tb_farmland', '${doc.id}')">
                 </div>
             `;
             listContainer.appendChild(itemDiv);
@@ -616,8 +616,8 @@ function displayNewFarmland(farmland) {
         <span><strong>${farmland.farmland_name}</strong> - ${farmland.land_area} hectares 
         <span>(${farmland.barangay_name})</span></span>
         <div class="actions">
-            <button class="edit-button"><img src="edit-icon.png" class="action-icon" alt="Edit"></button>
-            <button class="delete-button"><img src="delete-icon.png" class="action-icon" alt="Delete"></button>
+            <button class="edit-button"><img src="../../images/Edit.png" class="action-icon" alt="Edit"></button>
+            <button class="delete-button"><img src="../../images/Delete.png" class="action-icon" alt="Delete"></button>
         </div>
     `;
 

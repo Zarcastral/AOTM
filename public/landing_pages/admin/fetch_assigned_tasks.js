@@ -22,69 +22,6 @@ function capitalizeFirstLetter(str) {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-// Fetch assigned tasks and populate the table
-export async function fetchAssignedTasks() {
-  try {
-    const taskListTable = document.getElementById("assigned-tasks-table-body");
-    if (!taskListTable) {
-      console.error("Table body element not found.");
-      return;
-    }
-
-    taskListTable.innerHTML = "";
-
-    const querySnapshot = await getDocs(collection(db, "tb_task_list"));
-    querySnapshot.forEach((taskDoc) => {
-      const taskData = taskDoc.data();
-      const taskId = taskData.task_id || "N/A";
-      const cropTypeName = taskData.crop_type_name || "N/A";
-      const taskName = taskData.task_name || "N/A";
-      let assignedOn = "N/A";
-
-      if (taskData.assigned_on?.seconds) {
-        const date = new Date(taskData.assigned_on.seconds * 1000);
-        assignedOn = date.toLocaleString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
-      }
-
-      const row = document.createElement("tr");
-      row.innerHTML = `  
-        <td>${taskId}</td>
-        <td>${cropTypeName}</td>
-        <td>${taskName}</td>
-        <td>${assignedOn}</td>
-        <td>
-          <button class="edit-btn" data-id="${taskId}" data-task="${taskName}">Edit</button>
-          <button class="delete-btn" data-id="${taskId}" data-task="${taskName}" data-crop="${cropTypeName}">Delete</button>
-        </td>
-      `;
-      taskListTable.appendChild(row);
-    });
-
-    document.querySelectorAll(".edit-btn").forEach((button) => {
-      button.addEventListener("click", async (event) => {
-        const taskId = event.target.getAttribute("data-id");
-        const taskName = event.target.getAttribute("data-task");
-        openEditSubModal(taskId, taskName);
-      });
-    });
-
-    document.querySelectorAll(".delete-btn").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        const taskId = event.target.getAttribute("data-id");
-        const taskName = event.target.getAttribute("data-task");
-        const cropTypeName = event.target.getAttribute("data-crop");
-        showDeleteConfirmationModal(taskId, taskName, cropTypeName);
-      });
-    });
-  } catch (error) {
-    console.error("Error fetching assigned tasks:", error);
-  }
-}
-
 // Function to show delete confirmation modal
 function showDeleteConfirmationModal(taskId, taskName, cropTypeName) {
   const confirmDelete = confirm(
@@ -211,9 +148,6 @@ document
       alert("Please enter a valid subtask.");
     }
   });
-
-// Fetch tasks on page load
-document.addEventListener("DOMContentLoaded", fetchAssignedTasks);
 
 // Function to enable/disable the "Add Subtask" button and update its style
 function toggleAddSubtaskButton() {
@@ -409,3 +343,110 @@ document
   .addEventListener("click", () => {
     document.getElementById("save-subtasks-btn-subtasks").disabled = true;
   });
+
+// Function to populate the crop name dropdown
+async function populateCropDropdown() {
+  try {
+    const cropDropdown = document.getElementById("crop-filter");
+    if (!cropDropdown) {
+      console.error("Crop dropdown not found.");
+      return;
+    }
+
+    cropDropdown.innerHTML = `<option value="">All Crops</option>`; // Default option
+
+    const cropsSnapshot = await getDocs(collection(db, "tb_crops"));
+    cropsSnapshot.forEach((cropDoc) => {
+      const cropData = cropDoc.data();
+      const cropName = cropData.crop_name || "Unknown Crop";
+
+      const option = document.createElement("option");
+      option.value = cropName;
+      option.textContent = cropName;
+      cropDropdown.appendChild(option);
+    });
+
+    // Add event listener to filter tasks when crop is selected
+    cropDropdown.addEventListener("change", fetchAssignedTasks);
+  } catch (error) {
+    console.error("Error fetching crop names:", error);
+  }
+}
+
+// Function to fetch and display assigned tasks
+export async function fetchAssignedTasks() {
+  try {
+    const taskListTable = document.getElementById("assigned-tasks-table-body");
+    if (!taskListTable) {
+      console.error("Table body element not found.");
+      return;
+    }
+
+    taskListTable.innerHTML = "";
+    const selectedCrop = document.getElementById("crop-filter")?.value || ""; // Get selected crop
+
+    let taskQuery = collection(db, "tb_task_list");
+    if (selectedCrop) {
+      taskQuery = query(taskQuery, where("crop_name", "==", selectedCrop));
+    }
+
+    const querySnapshot = await getDocs(taskQuery);
+    querySnapshot.forEach((taskDoc) => {
+      const taskData = taskDoc.data();
+      const taskId = taskData.task_id || "N/A";
+      const cropName = taskData.crop_name || "N/A";
+      const cropTypeName = taskData.crop_type_name || "N/A";
+      const taskName = taskData.task_name || "N/A";
+      let assignedOn = "N/A";
+
+      if (taskData.assigned_on?.seconds) {
+        const date = new Date(taskData.assigned_on.seconds * 1000);
+        assignedOn = date.toLocaleString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+
+      const row = document.createElement("tr");
+      row.innerHTML = `  
+        <td>${taskId}</td>
+        <td>${cropName}</td>
+        <td>${cropTypeName}</td>
+        <td>${taskName}</td>
+        <td>${assignedOn}</td>
+        <td>
+          <button class="edit-btn" data-id="${taskId}" data-task="${taskName}">Edit</button>
+          <button class="delete-btn" data-id="${taskId}" data-task="${taskName}" data-crop="${cropName}" data-crop-type="${cropTypeName}">Delete</button>
+        </td>
+      `;
+      taskListTable.appendChild(row);
+    });
+
+    document.querySelectorAll(".edit-btn").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const taskId = event.target.getAttribute("data-id");
+        const taskName = event.target.getAttribute("data-task");
+        openEditSubModal(taskId, taskName);
+      });
+    });
+
+    document.querySelectorAll(".delete-btn").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const taskId = event.target.getAttribute("data-id");
+        const taskName = event.target.getAttribute("data-task");
+        const cropName = event.target.getAttribute("data-crop");
+        const cropTypeName = event.target.getAttribute("data-crop-type");
+        showDeleteConfirmationModal(taskId, taskName, cropName, cropTypeName);
+      });
+    });
+  } catch (error) {
+    console.error("Error fetching assigned tasks:", error);
+  }
+}
+
+// Initialize page with crop dropdown and task list
+document.addEventListener("DOMContentLoaded", async () => {
+  await populateCropDropdown();
+  fetchAssignedTasks();
+});

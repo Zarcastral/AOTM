@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const editLink = document.createElement("a");
         editLink.href = "#";
         const editImg = document.createElement("img");
-        editImg.src = "../../images/27.png";
+        editImg.src = "../../images/image 27.png";
         editImg.alt = "Edit";
         editImg.classList.add("edit-img");
         editLink.appendChild(editImg);
