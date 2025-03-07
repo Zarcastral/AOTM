@@ -245,22 +245,49 @@ async function teamAssign(project_id) {
 
     try {
         const userBarangay = sessionStorage.getItem("barangay_name");
-        const q = query(collection(db, "tb_teams"), where("barangay_name", "==", userBarangay));
-        const querySnapshot = await getDocs(q);
 
+        // Fetch all active projects in the barangay
+        const projectQuery = query(collection(db, "tb_projects"), where("barangay_name", "==", userBarangay));
+        const projectSnapshot = await getDocs(projectQuery);
+        const assignedTeamIds = new Set();
+
+        // Collect team_ids that are already assigned to active projects (convert to integer)
+        projectSnapshot.forEach((doc) => {
+            const projectData = doc.data();
+            if (projectData.team_id) {
+                assignedTeamIds.add(parseInt(projectData.team_id, 10)); // Ensure it's an integer
+            }
+        });
+
+        console.log("Assigned Team IDs:", Array.from(assignedTeamIds)); // Debugging
+
+        // Fetch available teams
+        const teamQuery = query(collection(db, "tb_teams"), where("barangay_name", "==", userBarangay));
+        const teamSnapshot = await getDocs(teamQuery);
+
+        let displayedTeamIds = []; // Store displayed team IDs
         let teamListHtml = `<div class="team-assign-box">
                                 <h3>Available Teams</h3>
                                 <div class="team-list-container">`;
 
-        querySnapshot.forEach((doc) => {
+        teamSnapshot.forEach((doc) => {
             const teamData = doc.data();
+            const teamId = parseInt(teamData.team_id, 10); // Ensure it's an integer
+
+            console.log(`Checking team: ${teamId} (Is assigned? ${assignedTeamIds.has(teamId)})`); // Debugging
+
+            // 🚀 **NEW FIX: Skip teams that are already assigned**
+            if (assignedTeamIds.has(teamId)) {
+                return; // This team is already assigned, so we don't display it
+            }
+
+            displayedTeamIds.push(teamId); // Add to displayed teams list
             const teamName = teamData.team_name;
             const leadFarmer = teamData.lead_farmer;
             const totalFarmers = teamData.farmer_name ? teamData.farmer_name.length : 0;
-            const teamId = teamData.team_id; // Fetch actual team_id from Firestore
 
             teamListHtml += `<div class="team-item" 
-                                data-team-id="${teamId}"  // Use actual team_id instead of doc.id
+                                data-team-id="${teamId}" 
                                 data-team-name="${teamName}" 
                                 data-lead-farmer="${leadFarmer}" 
                                 data-farmers='${JSON.stringify(teamData.farmer_name || [])}'>
@@ -269,6 +296,8 @@ async function teamAssign(project_id) {
                                 Total Farmers: ${totalFarmers}
                              </div>`;
         });
+
+        console.log("Displayed Team IDs (After Filtering):", displayedTeamIds); // Debugging
 
         teamListHtml += "</div></div>";
         document.getElementById("team-assign-list").innerHTML = teamListHtml;
@@ -293,7 +322,7 @@ async function teamAssign(project_id) {
 
         // Store selected team details
         selectedTeam = {
-            team_id: selectedElement.getAttribute("data-team-id"), // Actual team_id
+            team_id: parseInt(selectedElement.getAttribute("data-team-id"), 10),
             team_name: selectedElement.getAttribute("data-team-name"),
             lead_farmer: selectedElement.getAttribute("data-lead-farmer"),
             farmer_name: JSON.parse(selectedElement.getAttribute("data-farmers"))
@@ -318,7 +347,7 @@ async function teamAssign(project_id) {
                         querySnapshot.forEach(async (doc) => {
                             const projectRef = doc.ref;
                             await updateDoc(projectRef, {
-                                team_id: selectedTeam.team_id,  // Now correctly saving the actual team_id
+                                team_id: selectedTeam.team_id, // Store as integer
                                 team_name: selectedTeam.team_name,
                                 lead_farmer: selectedTeam.lead_farmer,
                                 farmer_name: selectedTeam.farmer_name
@@ -365,6 +394,10 @@ async function teamAssign(project_id) {
         if (cancelTeamAssign) cancelTeamAssign.addEventListener("click", resetTeamSelection);
     }, 100);
 }
+
+
+
+
 
 
 
