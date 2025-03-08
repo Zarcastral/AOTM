@@ -89,8 +89,8 @@ async function fetchFertilizers() {
       return;
     }
 
-    // Get user_name from the fetched user document
-    const userName = userSnapshot.docs[0].data().user_name;
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
 
     const fertilizersCollection = collection(db, "tb_fertilizer");
     const fertilizersQuery = query(fertilizersCollection);
@@ -116,18 +116,18 @@ async function fetchFertilizers() {
             return stockData.stocks || []; // Access the nested stocks array if available
           });
 
-          // Filter stock data for the authenticated user
-          const userStockData = stockDataArray.filter(stock => stock.owned_by === userName);
+          // Filter stock data for the user type
+          const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
 
           if (userStockData.length > 0) {
-            fertilizer.stocks = userStockData;  // Save user-specific stock data as an array
+            fertilizer.stocks = userStockData;  // Save user-type-specific stock data as an array
           } else {
-            // No stock for the authenticated user
+            // No stock for the user type
             fertilizer.stocks = [{
               stock_date: null,
               current_stock: "",
               unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for the current user"
+              owned_by: "No stock record found for the current user type"
             }];
           }
         } else {
@@ -136,7 +136,7 @@ async function fetchFertilizers() {
             stock_date: null,
             current_stock: "",
             unit: "Stock has not been updated yet",
-            owned_by: "No stock record found for any user"
+            owned_by: "No stock record found for any user type"
           }];
         }
 

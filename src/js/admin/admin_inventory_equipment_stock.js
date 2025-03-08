@@ -18,7 +18,12 @@ import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth();
-
+// Initialize fetches when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  fetchEquipmentNames();
+  getAuthenticatedUser();
+  fetchEquipments();
+});
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, (user) => {
@@ -143,8 +148,8 @@ async function fetchEquipments() {
       return;
     }
 
-    // Get user_name from the fetched user document
-    const userName = userSnapshot.docs[0].data().user_name;
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
 
     const equipmentsCollection = collection(db, "tb_equipment");
     const equipmentsQuery = query(equipmentsCollection);
@@ -154,10 +159,6 @@ async function fetchEquipments() {
       const equipmentsData = await Promise.all(snapshot.docs.map(async (doc) => {
         const equipment = doc.data();
         const equipmentId = equipment.equipment_id;
-
-        // Log equipment data for debugging
-        console.log("Equipment data:", equipment);
-        console.log("Equipment ID:", equipmentId);
 
         // Check if equipmentId is defined
         if (equipmentId) {
@@ -175,18 +176,18 @@ async function fetchEquipments() {
               return stockData.stocks || []; // Access the nested stocks array if available
             });
 
-            // Filter stock data for the authenticated user
-            const userStockData = stockDataArray.filter(stock => stock.owned_by === userName);
+            // Filter stock data based on user_type
+            const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
 
             if (userStockData.length > 0) {
               equipment.stocks = userStockData;  // Save user-specific stock data as an array
             } else {
-              // No stock for the authenticated user
+              // No stock for the specific user_type
               equipment.stocks = [{
                 stock_date: null,
                 current_stock: "",
                 unit: "Stock has not been updated yet",
-                owned_by: "No stock record found for the current user"
+                owned_by: "No stock record found for the current user type"
               }];
             }
           } else {
@@ -195,7 +196,7 @@ async function fetchEquipments() {
               stock_date: null,
               current_stock: "",
               unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for any user"
+              owned_by: "No stock record found for any user type"
             }];
           }
         } else {
@@ -363,11 +364,7 @@ document.querySelector(".equipment_select").addEventListener("change", function 
   displayEquipments(filteredEquipments); // Update the table with filtered Equipments
 });
 
-// Initialize fetches when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  fetchEquipmentNames();
-  fetchEquipments();
-});
+
 
 const deletemessage = document.getElementById("equip-bulk-message"); // delete message panel
 
@@ -403,7 +400,6 @@ function addCheckboxListeners() {
     checkbox.addEventListener("change", handleCheckboxChange);
   });
 }
-
 // <------------- BULK DELETE BUTTON CODE ---------------> //
 document.getElementById("equip-bulk-delete").addEventListener("click", async () => {
   const selectedCheckboxes = document.querySelectorAll(".equipment_table input[type='checkbox']:checked");
@@ -456,10 +452,10 @@ async function deleteSelectedEquipments() {
   }
 
   try {
-    // Get the current authenticated user's user_name
+    // Get the current authenticated user's user_type
     const user = auth.currentUser;
     const userDoc = await getDoc(doc(db, "tb_users", user.uid));
-    const userName = userDoc.data().user_name;
+    const userType = userDoc.data().user_type;  // Fetch user_type instead of user_name
 
     const stockCollection = collection(db, "tb_equipment_stock");
     let deletedEquipmentNames = [];
@@ -472,8 +468,8 @@ async function deleteSelectedEquipments() {
         const stockData = docSnapshot.data();
         const docRef = doc(db, "tb_equipment_stock", docSnapshot.id);
 
-        // Filter stocks to get only those matching the user_name
-        const stocksToRemove = stockData.stocks.filter(stock => stock.owned_by === userName);
+        // Filter stocks to get only those matching the user_type -> owned_by
+        const stocksToRemove = stockData.stocks.filter(stock => stock.owned_by === userType);
 
         if (stocksToRemove.length > 0) {
           for (const stock of stocksToRemove) {
@@ -614,114 +610,115 @@ document.addEventListener("DOMContentLoaded", () => {
   equipmentOverlay.addEventListener("click", closeStockPanel);
 
 // <--------------------------------> FUNCTION TO SAVE <-------------------------------->
-  saveBtn.addEventListener("click", async function () {
-    const equipmentId = saveBtn.dataset.equipmentId;
-    const equipmentCategory = document.getElementById("equip_category").value;  // Still needed for activity log
-    const equipmentName = document.getElementById("equip_name").value;           // Still needed for activity log
-    const equipmentStock = document.getElementById("equip_stock").value;
-    let unit = document.getElementById("equip_unit").value;
+saveBtn.addEventListener("click", async function () {
+  const equipmentId = saveBtn.dataset.equipmentId;
+  const equipmentCategory = document.getElementById("equip_category").value;  // Still needed for activity log
+  const equipmentName = document.getElementById("equip_name").value;           // Still needed for activity log
+  const equipmentStock = document.getElementById("equip_stock").value;
+  let unit = document.getElementById("equip_unit").value;
 
-    if (!unit || unit === "Invalid Unit") {
-      unit = "No unit was recorded";
-    }
+  if (!unit || unit === "Invalid Unit") {
+    unit = "No unit was recorded";
+  }
 
-    if (!equipmentStock || isNaN(equipmentStock) || equipmentStock <= 0) {
-      showEquipmentStockMessage("Please enter a valid Equipment stock quantity.", false);
+  if (!equipmentStock || isNaN(equipmentStock) || equipmentStock <= 0) {
+    showEquipmentStockMessage("Please enter a valid Equipment stock quantity.", false);
+    return;
+  }
+
+  try {
+    // Get the authenticated user
+    const user = await getAuthenticatedUser().catch((error) => {
+      showEquipmentStockMessage(error, false);
+      throw new Error(error);
+    });
+
+    // Fetch user_type from tb_users based on the authenticated email
+    const usersCollection = collection(db, "tb_users");
+    const userQuery = query(usersCollection, where("email", "==", user.email));
+    const userSnapshot = await getDocs(userQuery);
+
+    if (userSnapshot.empty) {
+      showEquipmentStockMessage("User not found in the database.", false);
       return;
     }
 
-    try {
-      // Get the authenticated user
-      const user = await getAuthenticatedUser().catch((error) => {
-        showEquipmentStockMessage(error, false);
-        throw new Error(error);
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
+
+    // Fetch Equipment data from tb_Equipment
+    const equipmentsCollection = collection(db, "tb_equipment");
+    const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentId)));
+    const querySnapshot = await getDocs(equipmentQuery);
+
+    if (!querySnapshot.empty) {
+      const docRef = querySnapshot.docs[0].ref;
+      const existingStock = querySnapshot.docs[0].data().current_stock || 0;
+      const newStock = existingStock + Number(equipmentStock);
+
+      // Update stock in tb_equipment_types
+      await updateDoc(docRef, {
+        stock_date: Timestamp.now(),
+        current_stock: newStock,
+        unit: unit
       });
 
-      // Fetch user_name from tb_users based on the authenticated email
-      const usersCollection = collection(db, "tb_users");
-      const userQuery = query(usersCollection, where("email", "==", user.email));
-      const userSnapshot = await getDocs(userQuery);
+      // Check if record already exists in tb_equipment_stock for the same equipment_type_id
+      const inventoryCollection = collection(db, "tb_equipment_stock");
+      const inventoryQuery = query(inventoryCollection, where("equipment_id", "==", Number(equipmentId)));
+      const inventorySnapshot = await getDocs(inventoryQuery);
 
-      if (userSnapshot.empty) {
-        showEquipmentStockMessage("User not found in the database.", false);
-        return;
-      }
+      if (!inventorySnapshot.empty) {
+        // Record exists, update the stocks array
+        const inventoryDocRef = inventorySnapshot.docs[0].ref;
+        const inventoryData = inventorySnapshot.docs[0].data();
+        const stocks = inventoryData.stocks || [];
 
-      // Get user_name from the fetched user document
-      const userName = userSnapshot.docs[0].data().user_name;
+        // Check if owned_by already exists in the stocks array
+        const userStockIndex = stocks.findIndex(stock => stock.owned_by === userType);
 
-      // Fetch Equipment data from tb_Equipment
-      const equipmentsCollection = collection(db, "tb_equipment");
-      const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentId)));
-      const querySnapshot = await getDocs(equipmentQuery);
-
-      if (!querySnapshot.empty) {
-        const docRef = querySnapshot.docs[0].ref;
-        const existingStock = querySnapshot.docs[0].data().current_stock || 0;
-        const newStock = existingStock + Number(equipmentStock);
-
-        // Update stock in tb_equipment_types
-        await updateDoc(docRef, {
-          stock_date: Timestamp.now(),
-          current_stock: newStock,
-          unit: unit
-        });
-
-        // Check if record already exists in tb_equipment_stock for the same equipment_type_id
-        const inventoryCollection = collection(db, "tb_equipment_stock");
-        const inventoryQuery = query(inventoryCollection, where("equipment_id", "==", Number(equipmentId)));
-        const inventorySnapshot = await getDocs(inventoryQuery);
-
-        if (!inventorySnapshot.empty) {
-          // Record exists, update the stocks array
-          const inventoryDocRef = inventorySnapshot.docs[0].ref;
-          const inventoryData = inventorySnapshot.docs[0].data();
-          const stocks = inventoryData.stocks || [];
-
-          // Check if owned_by already exists in the stocks array
-          const userStockIndex = stocks.findIndex(stock => stock.owned_by === userName);
-
-          if (userStockIndex !== -1) {
-            // Update existing stock for this user
-            stocks[userStockIndex].current_stock += Number(equipmentStock);
-            stocks[userStockIndex].stock_date = Timestamp.now();
-            stocks[userStockIndex].unit = unit;
-          } else {
-            // Add a new stock entry for this user
-            stocks.push({
-              owned_by: userName,
-              current_stock: Number(equipmentStock),
-              stock_date: Timestamp.now(),
-              unit: unit
-            });
-          }
-
-          // Update the document with the modified stocks array
-          await updateDoc(inventoryDocRef, { stocks: stocks });
+        if (userStockIndex !== -1) {
+          // Update existing stock for this user_type
+          stocks[userStockIndex].current_stock += Number(equipmentStock);
+          stocks[userStockIndex].stock_date = Timestamp.now();
+          stocks[userStockIndex].unit = unit;
         } else {
-          // Record does not exist, create a new document with stocks array
-          await addDoc(inventoryCollection, {
-            equipment_id: Number(equipmentId),
-            stocks: [
-              {
-                owned_by: userName,
-                current_stock: Number(equipmentStock),
-                stock_date: Timestamp.now(),
-                unit: unit
-              }
-            ]
+          // Add a new stock entry for this user_type
+          stocks.push({
+            owned_by: userType,
+            current_stock: Number(equipmentStock),
+            stock_date: Timestamp.now(),
+            unit: unit
           });
         }
 
-        await saveActivityLog(`Added Equipment Stock for ${equipmentName} with quantity of ${equipmentStock}`);
-        showEquipmentStockMessage("Equipment Stock has been added successfully!", true);
-        closeStockPanel();
+        // Update the document with the modified stocks array
+        await updateDoc(inventoryDocRef, { stocks: stocks });
       } else {
-        showEquipmentStockMessage("ERROR: Invalid Equipment Name unable to save data", false);
+        // Record does not exist, create a new document with stocks array
+        await addDoc(inventoryCollection, {
+          equipment_id: Number(equipmentId),
+          stocks: [
+            {
+              owned_by: userType,
+              current_stock: Number(equipmentStock),
+              stock_date: Timestamp.now(),
+              unit: unit
+            }
+          ]
+        });
       }
-    } catch (error) {
-      console.error("Error updating Equipment stock:", error);
-      showEquipmentStockMessage("An error occurred while updating Equipment stock.", false);
+
+      await saveActivityLog(`Added Equipment Stock for ${equipmentName} with quantity of ${equipmentStock}`);
+      showEquipmentStockMessage("Equipment Stock has been added successfully!", true);
+      closeStockPanel();
+    } else {
+      showEquipmentStockMessage("ERROR: Invalid Equipment Name unable to save data", false);
     }
-  });
+  } catch (error) {
+    console.error("Error updating Equipment stock:", error);
+    showEquipmentStockMessage("An error occurred while updating Equipment stock.", false);
+  }
+});
+
 });

@@ -144,8 +144,8 @@ async function fetchFertilizers() {
       return;
     }
 
-    // Get user_name from the fetched user document
-    const userName = userSnapshot.docs[0].data().user_name;
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
 
     const fertilizersCollection = collection(db, "tb_fertilizer");
     const fertilizersQuery = query(fertilizersCollection);
@@ -171,18 +171,18 @@ async function fetchFertilizers() {
             return stockData.stocks || []; // Access the nested stocks array if available
           });
 
-          // Filter stock data for the authenticated user
-          const userStockData = stockDataArray.filter(stock => stock.owned_by === userName);
+          // Filter stock data for the user type
+          const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
 
           if (userStockData.length > 0) {
-            fertilizer.stocks = userStockData;  // Save user-specific stock data as an array
+            fertilizer.stocks = userStockData;  // Save user-type-specific stock data as an array
           } else {
-            // No stock for the authenticated user
+            // No stock for the user type
             fertilizer.stocks = [{
               stock_date: null,
               current_stock: "",
               unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for the current user"
+              owned_by: "No stock record found for the current user type"
             }];
           }
         } else {
@@ -191,7 +191,7 @@ async function fetchFertilizers() {
             stock_date: null,
             current_stock: "",
             unit: "Stock has not been updated yet",
-            owned_by: "No stock record found for any user"
+            owned_by: "No stock record found for any user type"
           }];
         }
 
@@ -438,10 +438,10 @@ async function deleteSelectedFertilizers() {
   }
 
   try {
-    // Get the current authenticated user's user_name
+    // Get the current authenticated user's user_type
     const user = auth.currentUser;
     const userDoc = await getDoc(doc(db, "tb_users", user.uid));
-    const userName = userDoc.data().user_name;
+    const userType = userDoc.data().user_type;
 
     const stockCollection = collection(db, "tb_fertilizer_stock");
     let deletedFertilizerNames = [];
@@ -454,8 +454,8 @@ async function deleteSelectedFertilizers() {
         const stockData = docSnapshot.data();
         const docRef = doc(db, "tb_fertilizer_stock", docSnapshot.id);
 
-        // Filter stocks to get only those matching the user_name
-        const stocksToRemove = stockData.stocks.filter(stock => stock.owned_by === userName);
+        // Filter stocks to get only those matching the user_type
+        const stocksToRemove = stockData.stocks.filter(stock => stock.owned_by === userType);
 
         if (stocksToRemove.length > 0) {
           for (const stock of stocksToRemove) {
@@ -628,114 +628,114 @@ document.addEventListener("DOMContentLoaded", () => {
   fertilizerOverlay.addEventListener("click", closeStockPanel);
 
 // <--------------------------------> FUNCTION TO SAVE <-------------------------------->
-  saveBtn.addEventListener("click", async function () {
-    const fertilizerId = saveBtn.dataset.fertilizerId;
-    const fertilizerTypeName = document.getElementById("fert_category").value;  // Still needed for activity log
-    const fertilizerName = document.getElementById("fert_name").value;           // Still needed for activity log
-    const fertilizerStock = document.getElementById("fert_stock").value;
-    let unit = document.getElementById("fert_unit").value;
+saveBtn.addEventListener("click", async function () {
+  const fertilizerId = saveBtn.dataset.fertilizerId;
+  const fertilizerTypeName = document.getElementById("fert_category").value;  // Still needed for activity log
+  const fertilizerName = document.getElementById("fert_name").value;           // Still needed for activity log
+  const fertilizerStock = document.getElementById("fert_stock").value;
+  let unit = document.getElementById("fert_unit").value;
 
-    if (!unit || unit === "Invalid Unit") {
-      unit = "No unit was recorded";
-    }
+  if (!unit || unit === "Invalid Unit") {
+    unit = "No unit was recorded";
+  }
 
-    if (!fertilizerStock || isNaN(fertilizerStock) || fertilizerStock <= 0) {
-      showFertilizerStockMessage("Please enter a valid Fertilizer stock quantity.", false);
+  if (!fertilizerStock || isNaN(fertilizerStock) || fertilizerStock <= 0) {
+    showFertilizerStockMessage("Please enter a valid Fertilizer stock quantity.", false);
+    return;
+  }
+
+  try {
+    // Get the authenticated user
+    const user = await getAuthenticatedUser().catch((error) => {
+      showFertilizerStockMessage(error, false);
+      throw new Error(error);
+    });
+
+    // Fetch user_type from tb_users based on the authenticated email
+    const usersCollection = collection(db, "tb_users");
+    const userQuery = query(usersCollection, where("email", "==", user.email));
+    const userSnapshot = await getDocs(userQuery);
+
+    if (userSnapshot.empty) {
+      showFertilizerStockMessage("User not found in the database.", false);
       return;
     }
 
-    try {
-      // Get the authenticated user
-      const user = await getAuthenticatedUser().catch((error) => {
-        showFertilizerStockMessage(error, false);
-        throw new Error(error);
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
+
+    // Fetch Fertilizer data from tb_Fertilizer
+    const fertilizersCollection = collection(db, "tb_fertilizer");
+    const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
+    const querySnapshot = await getDocs(fertilizerQuery);
+
+    if (!querySnapshot.empty) {
+      const docRef = querySnapshot.docs[0].ref;
+      const existingStock = querySnapshot.docs[0].data().current_stock || 0;
+      const newStock = existingStock + Number(fertilizerStock);
+
+      // Update stock in tb_fertilizer_types
+      await updateDoc(docRef, {
+        stock_date: Timestamp.now(),
+        current_stock: newStock,
+        unit: unit
       });
 
-      // Fetch user_name from tb_users based on the authenticated email
-      const usersCollection = collection(db, "tb_users");
-      const userQuery = query(usersCollection, where("email", "==", user.email));
-      const userSnapshot = await getDocs(userQuery);
+      // Check if record already exists in tb_fertilizer_stock for the same fertilizer_type_id
+      const inventoryCollection = collection(db, "tb_fertilizer_stock");
+      const inventoryQuery = query(inventoryCollection, where("fertilizer_id", "==", Number(fertilizerId)));
+      const inventorySnapshot = await getDocs(inventoryQuery);
 
-      if (userSnapshot.empty) {
-        showFertilizerStockMessage("User not found in the database.", false);
-        return;
-      }
+      if (!inventorySnapshot.empty) {
+        // Record exists, update the stocks array
+        const inventoryDocRef = inventorySnapshot.docs[0].ref;
+        const inventoryData = inventorySnapshot.docs[0].data();
+        const stocks = inventoryData.stocks || [];
 
-      // Get user_name from the fetched user document
-      const userName = userSnapshot.docs[0].data().user_name;
+        // Check if owned_by already exists in the stocks array
+        const userStockIndex = stocks.findIndex(stock => stock.owned_by === userType);
 
-      // Fetch Fertilizer data from tb_Fertilizer
-      const fertilizersCollection = collection(db, "tb_fertilizer");
-      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-      const querySnapshot = await getDocs(fertilizerQuery);
-
-      if (!querySnapshot.empty) {
-        const docRef = querySnapshot.docs[0].ref;
-        const existingStock = querySnapshot.docs[0].data().current_stock || 0;
-        const newStock = existingStock + Number(fertilizerStock);
-
-        // Update stock in tb_fertilizer_types
-        await updateDoc(docRef, {
-          stock_date: Timestamp.now(),
-          current_stock: newStock,
-          unit: unit
-        });
-
-        // Check if record already exists in tb_fertilizer_stock for the same fertilizer_type_id
-        const inventoryCollection = collection(db, "tb_fertilizer_stock");
-        const inventoryQuery = query(inventoryCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-        const inventorySnapshot = await getDocs(inventoryQuery);
-
-        if (!inventorySnapshot.empty) {
-          // Record exists, update the stocks array
-          const inventoryDocRef = inventorySnapshot.docs[0].ref;
-          const inventoryData = inventorySnapshot.docs[0].data();
-          const stocks = inventoryData.stocks || [];
-
-          // Check if owned_by already exists in the stocks array
-          const userStockIndex = stocks.findIndex(stock => stock.owned_by === userName);
-
-          if (userStockIndex !== -1) {
-            // Update existing stock for this user
-            stocks[userStockIndex].current_stock += Number(fertilizerStock);
-            stocks[userStockIndex].stock_date = Timestamp.now();
-            stocks[userStockIndex].unit = unit;
-          } else {
-            // Add a new stock entry for this user
-            stocks.push({
-              owned_by: userName,
-              current_stock: Number(fertilizerStock),
-              stock_date: Timestamp.now(),
-              unit: unit
-            });
-          }
-
-          // Update the document with the modified stocks array
-          await updateDoc(inventoryDocRef, { stocks: stocks });
+        if (userStockIndex !== -1) {
+          // Update existing stock for this user_type
+          stocks[userStockIndex].current_stock += Number(fertilizerStock);
+          stocks[userStockIndex].stock_date = Timestamp.now();
+          stocks[userStockIndex].unit = unit;
         } else {
-          // Record does not exist, create a new document with stocks array
-          await addDoc(inventoryCollection, {
-            fertilizer_id: Number(fertilizerId),
-            stocks: [
-              {
-                owned_by: userName,
-                current_stock: Number(fertilizerStock),
-                stock_date: Timestamp.now(),
-                unit: unit
-              }
-            ]
+          // Add a new stock entry for this user_type
+          stocks.push({
+            owned_by: userType,
+            current_stock: Number(fertilizerStock),
+            stock_date: Timestamp.now(),
+            unit: unit
           });
         }
 
-        await saveActivityLog(`Added Fertilizer Stock for ${fertilizerTypeName} with quantity of ${fertilizerStock}`);
-        showFertilizerStockMessage("Fertilizer Stock has been added successfully!", true);
-        closeStockPanel();
+        // Update the document with the modified stocks array
+        await updateDoc(inventoryDocRef, { stocks: stocks });
       } else {
-        showFertilizerStockMessage("ERROR: Invalid Fertilizer Name unable to save data", false);
+        // Record does not exist, create a new document with stocks array
+        await addDoc(inventoryCollection, {
+          fertilizer_id: Number(fertilizerId),
+          stocks: [
+            {
+              owned_by: userType,
+              current_stock: Number(fertilizerStock),
+              stock_date: Timestamp.now(),
+              unit: unit
+            }
+          ]
+        });
       }
-    } catch (error) {
-      console.error("Error updating Fertilizer stock:", error);
-      showFertilizerStockMessage("An error occurred while updating Fertilizer stock.", false);
+
+      await saveActivityLog(`Added Fertilizer Stock for ${fertilizerTypeName} with quantity of ${fertilizerStock}`);
+      showFertilizerStockMessage("Fertilizer Stock has been added successfully!", true);
+      closeStockPanel();
+    } else {
+      showFertilizerStockMessage("ERROR: Invalid Fertilizer Name unable to save data", false);
     }
-  });
+  } catch (error) {
+    console.error("Error updating Fertilizer stock:", error);
+    showFertilizerStockMessage("An error occurred while updating Fertilizer stock.", false);
+  }
+});
 });

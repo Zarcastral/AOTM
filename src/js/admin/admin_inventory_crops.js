@@ -85,8 +85,8 @@ async function fetchCrops() {
       return;
     }
 
-    // Get user_name from the fetched user document
-    const userName = userSnapshot.docs[0].data().user_name;
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
 
     const cropsCollection = collection(db, "tb_crop_types");
     const cropsQuery = query(cropsCollection);
@@ -112,8 +112,8 @@ async function fetchCrops() {
             return stockData.stocks || []; // Access the nested stocks array if available
           });
 
-          // Filter stock data for the authenticated user
-          const userStockData = stockDataArray.filter(stock => stock.owned_by === userName);
+          // Filter stock data for the authenticated user based on user_type
+          const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
 
           if (userStockData.length > 0) {
             crop.stocks = userStockData;  // Save user-specific stock data as an array
@@ -123,7 +123,7 @@ async function fetchCrops() {
               stock_date: null,
               current_stock: "",
               unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for the current user"
+              owned_by: "No stock record found for the current user type"
             }];
           }
         } else {
@@ -132,7 +132,7 @@ async function fetchCrops() {
             stock_date: null,
             current_stock: "",
             unit: "Stock has not been updated yet",
-            owned_by: "No stock record found for any user"
+            owned_by: "No stock record found for any user type"
           }];
         }
 
@@ -150,7 +150,6 @@ async function fetchCrops() {
     console.error("Error fetching crops:", error);
   }
 }
-
 
 // Display crops in the table
 function displayCrops(cropsList) {

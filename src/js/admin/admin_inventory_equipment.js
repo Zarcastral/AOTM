@@ -57,6 +57,7 @@ function parseDate(dateValue) {
   
   return new Date(dateValue); // Convert string/ISO formats to Date
 }
+
 // Fetch equipments data (tb_equipment) from Firestore
 async function fetchEquipments() {
   try {
@@ -71,8 +72,10 @@ async function fetchEquipments() {
       return;
     }
 
-    // Get user_name from the fetched user document
-    const userName = userSnapshot.docs[0].data().user_name;
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
+    currentUserName = userSnapshot.docs[0].data().user_name; // Store the user's username
+    console.log("Authenticated user:", currentUserName); // Log the user's username
 
     const equipmentsCollection = collection(db, "tb_equipment");
     const equipmentsQuery = query(equipmentsCollection);
@@ -82,10 +85,6 @@ async function fetchEquipments() {
       const equipmentsData = await Promise.all(snapshot.docs.map(async (doc) => {
         const equipment = doc.data();
         const equipmentId = equipment.equipment_id;
-
-        // Log equipment data for debugging
-        console.log("Equipment data:", equipment);
-        console.log("Equipment ID:", equipmentId);
 
         // Check if equipmentId is defined
         if (equipmentId) {
@@ -103,18 +102,18 @@ async function fetchEquipments() {
               return stockData.stocks || []; // Access the nested stocks array if available
             });
 
-            // Filter stock data for the authenticated user
-            const userStockData = stockDataArray.filter(stock => stock.owned_by === userName);
+            // Filter stock data based on user_type
+            const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
 
             if (userStockData.length > 0) {
               equipment.stocks = userStockData;  // Save user-specific stock data as an array
             } else {
-              // No stock for the authenticated user
+              // No stock for the specific user_type
               equipment.stocks = [{
                 stock_date: null,
                 current_stock: "",
                 unit: "Stock has not been updated yet",
-                owned_by: "No stock record found for the current user"
+                owned_by: "No stock record found for the current user type"
               }];
             }
           } else {
@@ -123,7 +122,7 @@ async function fetchEquipments() {
               stock_date: null,
               current_stock: "",
               unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for any user"
+              owned_by: "No stock record found for any user type"
             }];
           }
         } else {
