@@ -1,4 +1,5 @@
 export function toggleLoadingIndicator(isLoading) {
+  let targetDocument = window.top.document; // ✅ Always target the top page
   let loadingIndicator = document.getElementById("loading-indicator");
 
   if (!loadingIndicator) {
