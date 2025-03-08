@@ -1,0 +1,438 @@
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: #F5F6FA;
+    font-family: 'Poppins';
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    min-height: 60px;
+    height: 60px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    position: relative;
+  }
+
+  .header-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #41A186;
+  }
+
+  .header-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .header-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Space between panels */
+    padding: 20px; /* Padding around the panels */
+    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
+  }
+
+  /* Account Panel Styles */
+  .account-panel {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    width: 300px;
+    height: 400px; /* Set a fixed height here */
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    display: none;
+    z-index: 10;
+  }
+  .panel h2 {
+    font-size: 30px;
+    font-weight: bold;
+    color: #41A186;
+    margin-bottom: 20px;
+  }
+  .account-panel.active {
+    display: block;
+  }
+
+  .account-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .account-panel ul li {
+    padding: 10px;
+    border-bottom: 1px solid #E2E8F0;
+    cursor: pointer;
+  }
+
+  .account-panel ul li:hover {
+    background-color: #F7FAFC;
+  }
+
+  .account-panel ul li:last-child {
+    border-bottom: none;
+  }
+.panel {
+    background-color: white;
+    width: 90%;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .crop-search-bar, .fert-search-bar
+  .equp-search-bar {
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .panel table th, .panel table td {
+    text-align: center;
+    vertical-align: middle; /* Ensures vertical alignment */
+  }
+  
+  .image-header img {
+    display: block; /* Makes the image block-level for better alignment */
+    margin: 0 auto; /* Centers the image horizontally */
+  }
+  .crop-search-bar input, .fert-search-bar input,
+  .equip-search-bar input {
+    width: 300px;
+    padding: 8px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+  }
+
+  .crop-search-bar select, .fert-search-bar select,
+  .equip-search-bar select  {
+    padding: 8px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+  }
+  .panel table th, .panel table td {
+    text-align: left; /* This centers the text */
+    vertical-align: middle;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  th,
+  td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #E5E7EB;
+  }
+
+  th {
+    background-color: #F9FAFB;
+    color: #6B7280;
+    font-weight: 600;
+  }
+
+  tbody tr:hover {
+    background-color: #F3F4F6;
+  }
+
+  .checkbox {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .checkbox input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  .btn-new-project {
+    background-color: #41A186;;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  .btn-new-project:hover {
+    background-color: #318a71;
+  }
+
+  .button-container {
+    width: 90%;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  .stock-selector {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .stock-selector a {
+    color: slategray;
+
+    transition: color 0.3s ease;
+}
+
+.stock-selector a.active {
+    color: #41A186;
+    font-weight: bold;
+}
+
+/* Pagination styles */
+.crops-pagination,
+.fertilizer-pagination,
+.equipment-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; /* Aligns vertically */
+  margin-top: 20px;
+  width: 100%;
+  gap: 10px; /* Adds spacing between elements */
+}
+
+#crop-page-number, #fertilizer-page-number, #equipment-page-number {
+  font-size: 17px;
+  color: #333;
+}
+
+.crop-pagination-btn, .fertilizer-pagination-btn,
+.equipment-pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.crop-pagination-btn:hover, .fertilizer-pagination-btn:hover,
+.equipment-pagination-btn:hover {
+  color: #41A186;
+}
+
+.crop-pagination-btn:disabled, .fertilizer-pagination-btn:disabled,
+.equipment-pagination-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/*------------------------------- BULK DELETE DESIGNS --------------------------------------*/
+.crop-checkbox-bulk-delete, .equipment-checkbox-delete,
+.fertilizer-checkbox-bulk-delete {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;  /* Aligns content to the left */
+  gap: 10px;  /* Adds space between table and button */
+  width: 100%;  /* Ensures the wrapper takes full width */
+}
+
+.crop-checkbox-bulk-delete input, .equipment-checkbox-bulk-delete input,
+.fertilizer-checkbox-bulk-delete input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+  #crop-bulk-delete, #fert-bulk-delete, 
+  #equip-bulk-delete {
+    color: white;
+    padding: 10px 10px;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+  #crop-bulk-delete:focus, #fert-bulk-delete:focus,
+  #equip-bulk-delete:focus{
+    outline: none;
+  }
+
+  #crop-bulk-delete:disabled, #fert-bulk-delete:disabled,
+  #equip-bulk-delete:disabled {
+    cursor: not-allowed;
+  }
+
+/* Bulk Delete Panel Style */
+.crop-bulk-panel, .fert-bulk-panel,
+.equip-bulk-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.crop-bulk-panel.show, .fert-bulk-panel.show,
+.equip-bulk-panel.show {
+  display: flex;
+}
+
+/* Center the confirmation message */
+.confirm-crop-bulk-message,  
+.confirm-fert-bulk-message, 
+.confirm-equip-bulk-message {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 400px;
+  position: absolute; /* Center it inside the panel */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Perfect centering */
+  margin: 0; /* Remove any default margins */
+}
+
+/* Bulk Confirm and Cancel Button Styles */
+.crop-bulk-confirm-btn, .crop-bulk-cancel-btn, .fert-bulk-confirm-btn, .fert-bulk-cancel-btn,
+.equip-bulk-confirm-btn, .equip-bulk-cancel-btn{
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.crop-bulk-confirm-btn, .fert-bulk-confirm-btn,
+.equip-bulk-confirm-btn{
+  background-color: #41A186;
+  color: white;
+  border: none;
+}
+
+.crop-bulk-confirm-btn:hover, .fert-bulk-confirm-btn:hover,
+.equip-bulk-confirm-btn:hover {
+  background-color: #318a71;
+  transition: background-color 0.3s ease;
+}
+
+.crop-bulk-cancel-btn, .fert-bulk-cancel-btn,
+.equip-bulk-cancel-btn{
+  background-color: slategrey;
+  color: white;
+  border: none;
+}
+
+.crop-bulk-cancel-btn:hover, .fert-bulk-cancel-btn:hover,
+.equip-bulk-cancel-btn:hover {
+  background-color:rgb(90, 101, 112);
+  transition: background-color 0.3s ease, opacity 0.3s ease; 
+}
+
+/* Bulk Delete Success Message Style */
+.crop-bulk-message, .fert-bulk-message,
+.equip-bulk-message  {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #41A186;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+  /* Responsive Design */
+  @media screen and (max-width: 768px) {
+    .header {
+      padding: 0 10px;
+    }
+
+    .header-title {
+      font-size: 1.25rem;
+    }
+
+    .header-icons img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .main-content {
+      padding: 10px;
+    }
+
+    .header {
+      padding-left: 50px;
+    }
+
+    .account-panel {
+      width: 100%;
+      height: auto;
+      left: 0;
+      top: 80px;
+      padding: 20px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .header-title {
+      font-size: 1.1rem;
+    }
+
+    .header-icons img {
+      width: 18px;
+      height: 18px;
+    }
+
+    .main-content {
+      padding: 5px;
+    }
+
+    .account-panel {
+      width: 100%;
+      height: 60%;
+      padding: 15px;
+    }
+  }

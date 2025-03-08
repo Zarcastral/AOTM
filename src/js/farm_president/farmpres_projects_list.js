@@ -10,8 +10,8 @@ import {
   } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 const db = getFirestore(app);
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth();
 
 
@@ -30,7 +30,6 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let projectList = [];
 
-
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log("User is authenticated:", user.email);
@@ -40,7 +39,6 @@ onAuthStateChanged(auth, (user) => {
         // Redirect to login page or prompt for sign-in
     }
 });
-
 
 async function fetch_projects(filter = {}) {
     try {
@@ -60,7 +58,7 @@ async function fetch_projects(filter = {}) {
         }
 
         const farmerData = farmerDocSnap.data();
-        const farmerFirstName = farmerData.first_name || "";
+        const farmerEmail = farmerData.email || "";  // Fetch email from tb_farmers
 
         const querySnapshot = await getDocs(collection(db, "tb_projects"));
         projectList = [];
@@ -70,7 +68,8 @@ async function fetch_projects(filter = {}) {
             const data = doc.data();
             const projectId = String(data.project_id || "");
 
-            if ((data.farm_president || "").toLowerCase() !== farmerFirstName.toLowerCase()) {
+            // Check email in tb_projects instead of farm_president
+            if ((data.email || "").toLowerCase() !== farmerEmail.toLowerCase()) {
                 return;
             }
 
@@ -79,7 +78,7 @@ async function fetch_projects(filter = {}) {
             const searchTerm = filter.search?.toLowerCase();
             const matchesSearch = searchTerm
                 ? `${data.project_name || ""}`.toLowerCase().includes(searchTerm) ||
-                  `${data.farm_president || ""}`.toLowerCase().includes(searchTerm) ||
+                  `${data.email || ""}`.toLowerCase().includes(searchTerm) ||  // Updated condition
                   (data.start_date || "").includes(searchTerm) ||
                   (data.end_date || "").includes(searchTerm) ||
                   (data.crop_type_name || "").toLowerCase().includes(searchTerm) ||
