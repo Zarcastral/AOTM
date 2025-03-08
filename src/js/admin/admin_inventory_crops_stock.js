@@ -14,10 +14,15 @@ import {
   doc
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-
 const db = getFirestore(app);
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth();
+
+// Initialize fetches when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  fetchCropNames();
+  fetchCrops();
+});
 
 async function saveActivityLog(action) {
 
@@ -134,7 +139,7 @@ async function getAuthenticatedUser() {
     });
   });
 }
-// Fetch crops data from Firestore
+
 // Fetch crops data from Firestore
 async function fetchCrops() {
   try {
@@ -185,18 +190,18 @@ async function fetchCrops() {
             // No stock for the authenticated user
             crop.stocks = [{
               stock_date: null,
-              current_stock: "0",
-              unit: "Units",
-              owned_by: "Owner not Recorded"
+              current_stock: "",
+              unit: "Stock has not been updated yet",
+              owned_by: "No stock record found for the current user"
             }];
           }
         } else {
           // No stock data found at all
           crop.stocks = [{
             stock_date: null,
-            current_stock: "0",
-            unit: "Units",
-            owned_by: "Owner not Recorded"
+            current_stock: "",
+            unit: "Stock has not been updated yet",
+            owned_by: "No stock record found for any user"
           }];
         }
 
@@ -258,7 +263,7 @@ function displayCrops(cropsList) {
       const stock_date = stock.stock_date
         ? (stock.stock_date.toDate ? stock.stock_date.toDate().toLocaleDateString() : new Date(stock.stock_date).toLocaleDateString())
         : "Stock has not been updated";
-      const currentStock = stock.current_stock || "0";
+      const currentStock = stock.current_stock || "";
       const unit = stock.unit || "Units";
       const owned_by = stock.owned_by || "Owner not Recorded";
 
@@ -356,11 +361,7 @@ document.querySelector(".crop_select").addEventListener("change", function () {
   displayCrops(filteredCrops); // Update the table with filtered crops
 });
 
-// Initialize fetches when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  fetchCropNames();
-  fetchCrops();
-});
+
 
 
 // ---------------------------- CROP BULK DELETE CODES ---------------------------- //
@@ -644,115 +645,114 @@ document.addEventListener("DOMContentLoaded", () => {
   cropOverlay.addEventListener("click", closeStockPanel); 
 
 // <--------------------------------> FUNCTION TO SAVE <-------------------------------->
-saveBtn.addEventListener("click", async function () {
-  const cropTypeId = saveBtn.dataset.cropTypeId;
-  const cropTypeName = document.getElementById("crop_name").value;  // Still needed for activity log
-  const cropName = document.getElementById("crops").value;           // Still needed for activity log
-  const cropStock = document.getElementById("crop_stock").value;
-  let unit = document.getElementById("crop_unit").value;
+  saveBtn.addEventListener("click", async function () {
+    const cropTypeId = saveBtn.dataset.cropTypeId;
+    const cropTypeName = document.getElementById("crop_name").value;  // Still needed for activity log
+    const cropName = document.getElementById("crops").value;           // Still needed for activity log
+    const cropStock = document.getElementById("crop_stock").value;
+    let unit = document.getElementById("crop_unit").value;
 
-  if (!unit || unit === "Invalid Unit") {
-    unit = "No unit was recorded";
-  }
+    if (!unit || unit === "Invalid Unit") {
+      unit = "No unit was recorded";
+    }
 
-  if (!cropStock || isNaN(cropStock) || cropStock <= 0) {
-    showCropStockMessage("Please enter a valid crop stock quantity.", false);
-    return;
-  }
-
-  try {
-    // Get the authenticated user
-    const user = await getAuthenticatedUser().catch((error) => {
-      showCropStockMessage(error, false);
-      throw new Error(error);
-    });
-
-    // Fetch user_name from tb_users based on the authenticated email
-    const usersCollection = collection(db, "tb_users");
-    const userQuery = query(usersCollection, where("email", "==", user.email));
-    const userSnapshot = await getDocs(userQuery);
-
-    if (userSnapshot.empty) {
-      showCropStockMessage("User not found in the database.", false);
+    if (!cropStock || isNaN(cropStock) || cropStock <= 0) {
+      showCropStockMessage("Please enter a valid crop stock quantity.", false);
       return;
     }
 
-    // Get user_name from the fetched user document
-    const userName = userSnapshot.docs[0].data().user_name;
-
-    // Fetch crop data from tb_crop_types
-    const cropsCollection = collection(db, "tb_crop_types");
-    const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
-    const querySnapshot = await getDocs(cropQuery);
-
-    if (!querySnapshot.empty) {
-      const docRef = querySnapshot.docs[0].ref;
-      const existingStock = querySnapshot.docs[0].data().current_stock || 0;
-      const newStock = existingStock + Number(cropStock);
-
-      // Update stock in tb_crop_types
-      await updateDoc(docRef, {
-        stock_date: Timestamp.now(),
-        current_stock: newStock,
-        unit: unit
+    try {
+      // Get the authenticated user
+      const user = await getAuthenticatedUser().catch((error) => {
+        showCropStockMessage(error, false);
+        throw new Error(error);
       });
 
-      // Check if record already exists in tb_crop_stock for the same crop_type_id
-      const inventoryCollection = collection(db, "tb_crop_stock");
-      const inventoryQuery = query(inventoryCollection, where("crop_type_id", "==", Number(cropTypeId)));
-      const inventorySnapshot = await getDocs(inventoryQuery);
+      // Fetch user_name from tb_users based on the authenticated email
+      const usersCollection = collection(db, "tb_users");
+      const userQuery = query(usersCollection, where("email", "==", user.email));
+      const userSnapshot = await getDocs(userQuery);
 
-      if (!inventorySnapshot.empty) {
-        // Record exists, update the stocks array
-        const inventoryDocRef = inventorySnapshot.docs[0].ref;
-        const inventoryData = inventorySnapshot.docs[0].data();
-        const stocks = inventoryData.stocks || [];
+      if (userSnapshot.empty) {
+        showCropStockMessage("User not found in the database.", false);
+        return;
+      }
 
-        // Check if owned_by already exists in the stocks array
-        const userStockIndex = stocks.findIndex(stock => stock.owned_by === userName);
+      // Get user_name from the fetched user document
+      const userName = userSnapshot.docs[0].data().user_name;
 
-        if (userStockIndex !== -1) {
-          // Update existing stock for this user
-          stocks[userStockIndex].current_stock += Number(cropStock);
-          stocks[userStockIndex].stock_date = Timestamp.now();
-          stocks[userStockIndex].unit = unit;
-        } else {
-          // Add a new stock entry for this user
-          stocks.push({
-            owned_by: userName,
-            current_stock: Number(cropStock),
-            stock_date: Timestamp.now(),
-            unit: unit
-          });
-        }
+      // Fetch crop data from tb_crop_types
+      const cropsCollection = collection(db, "tb_crop_types");
+      const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
+      const querySnapshot = await getDocs(cropQuery);
 
-        // Update the document with the modified stocks array
-        await updateDoc(inventoryDocRef, { stocks: stocks });
-      } else {
-        // Record does not exist, create a new document with stocks array
-        await addDoc(inventoryCollection, {
-          crop_type_id: Number(cropTypeId),
-          stocks: [
-            {
+      if (!querySnapshot.empty) {
+        const docRef = querySnapshot.docs[0].ref;
+        const existingStock = querySnapshot.docs[0].data().current_stock || 0;
+        const newStock = existingStock + Number(cropStock);
+
+        // Update stock in tb_crop_types
+        await updateDoc(docRef, {
+          stock_date: Timestamp.now(),
+          current_stock: newStock,
+          unit: unit
+        });
+
+        // Check if record already exists in tb_crop_stock for the same crop_type_id
+        const inventoryCollection = collection(db, "tb_crop_stock");
+        const inventoryQuery = query(inventoryCollection, where("crop_type_id", "==", Number(cropTypeId)));
+        const inventorySnapshot = await getDocs(inventoryQuery);
+
+        if (!inventorySnapshot.empty) {
+          // Record exists, update the stocks array
+          const inventoryDocRef = inventorySnapshot.docs[0].ref;
+          const inventoryData = inventorySnapshot.docs[0].data();
+          const stocks = inventoryData.stocks || [];
+
+          // Check if owned_by already exists in the stocks array
+          const userStockIndex = stocks.findIndex(stock => stock.owned_by === userName);
+
+          if (userStockIndex !== -1) {
+            // Update existing stock for this user
+            stocks[userStockIndex].current_stock += Number(cropStock);
+            stocks[userStockIndex].stock_date = Timestamp.now();
+            stocks[userStockIndex].unit = unit;
+          } else {
+            // Add a new stock entry for this user
+            stocks.push({
               owned_by: userName,
               current_stock: Number(cropStock),
               stock_date: Timestamp.now(),
               unit: unit
-            }
-          ]
-        });
+            });
+          }
+
+          // Update the document with the modified stocks array
+          await updateDoc(inventoryDocRef, { stocks: stocks });
+        } else {
+          // Record does not exist, create a new document with stocks array
+          await addDoc(inventoryCollection, {
+            crop_type_id: Number(cropTypeId),
+            stocks: [
+              {
+                owned_by: userName,
+                current_stock: Number(cropStock),
+                stock_date: Timestamp.now(),
+                unit: unit
+              }
+            ]
+          });
+        }
+
+        await saveActivityLog(`Added Crop Stock for ${cropTypeName} with quantity of ${cropStock}`);
+        showCropStockMessage("Crop Stock has been added successfully!", true);
+        closeStockPanel();
+      } else {
+        showCropStockMessage("ERROR: Invalid Crop Name unable to save data", false);
       }
-
-      await saveActivityLog(`Added Crop Stock for ${cropTypeName} with quantity of ${cropStock}`);
-      showCropStockMessage("Crop Stock has been added successfully!", true);
-      closeStockPanel();
-    } else {
-      showCropStockMessage("ERROR: Invalid Crop Name unable to save data", false);
+    } catch (error) {
+      console.error("Error updating crop stock:", error);
+      showCropStockMessage("An error occurred while updating crop stock.", false);
     }
-  } catch (error) {
-    console.error("Error updating crop stock:", error);
-    showCropStockMessage("An error occurred while updating crop stock.", false);
-  }
-});
-
+  });
 });

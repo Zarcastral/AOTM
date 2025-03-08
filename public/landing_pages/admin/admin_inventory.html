@@ -27,32 +27,35 @@
         <span class="stock-form" ><a href="admin_inventory_stock.html">Manage Inventory</a></span>
       </div>
     <div class="panel">
-      <h2>Crops</h2>
-      <div class="crop-search-bar">
-        <input type="text" id="crop-search-bar" placeholder="Search">
-        <select class="crop_select">
-          <option value="">Select Crops </option>
-        </select>
-      </div>
-      <div class="crop_table">
-        <table>
-          <thead>
-            <tr>
+      <div class="table-wrapper">
+        <h2>Crops</h2>
+        <div class="crop-search-bar">
+          <input type="text" id="crop-search-bar" placeholder="Search">
+          <select class="crop_select">
+            <option value="">Select Crops </option>
+          </select>
+        </div>
+        <div class="crop_table">
+          <table>
+            <thead>
               <tr>
-                <th class="crop-checkbox-bulk-delete" > 
-                  <button id="crop-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-              </th> 
-              <th>#</th>
-              <th>Crop Type</th>
-              <th>Crops</th>
-              <th>Date Added</th>
-              <th>Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Crops will be populated here -->
-        </tbody>
-      </table>
+                <tr>
+                  <th class="crop-checkbox-bulk-delete" > 
+                    <button id="crop-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+                </th> 
+                <th>#</th>
+                <th>Crop Type</th>
+                <th>Crops</th>
+                <th>Date Added</th>
+                <th>Stock</th>
+                <th>Owned By</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Crops will be populated here -->
+          </tbody>
+        </table>
+      </div>
       <div class="crops-pagination">
         <span id="crop-page-number">Page 1</span>
         <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
@@ -74,6 +77,7 @@
 
     <!-- Farmers Activity Panel -->
     <div class="panel">
+      <div class="table-wrapper">
       <h2>Fertilizer</h2>
       <div class="fert-search-bar">
         <input type="text" id="fert-search-bar" placeholder="Search">
@@ -93,12 +97,14 @@
             <th>Category</th>
             <th>Date Added</th>
             <th>Stock</th>
+            <th>Owned By</th>
           </tr>
         </thead>
         <tbody>
           <!-- will be populated here -->
         </tbody>
       </table>
+    </div>
         <div class="fertilizer-pagination">
           <span id="fertilizer-page-number">Page 1</span>
           <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
@@ -120,6 +126,7 @@
 
     <!-- Equipment Status Panel -->
     <div class="panel">
+      <div class="table-wrapper">
       <h2>Equipment </h2>
       <div class="equip-search-bar">
         <input type="text"  id="equip-search-bar"  placeholder="Search">
@@ -139,12 +146,14 @@
                 <th>Category</th>
                 <th>Date Added</th>
                 <th>Stock</th>
+                <th>Owned By</th>
             </tr>
           </thead>
           <tbody>
             <!-- record will be put here -->
           </tbody>    
         </table>
+      </div>
       </div>
           <div class="equipment-pagination">
             <span id="equipment-page-number">Page 1</span>
