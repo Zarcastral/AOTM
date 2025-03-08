@@ -141,38 +141,29 @@
 
 
 
-    <!-- Modal for Add Crop Type -->
-    <div id="add-crop-type-popup" class="popup">
-        <div class="popup-content barangay-modal">
-            <h3>Add Crop Type</h3>
-            <div class="form-group">
-                <div class="input-group">
-                    <label for="crop-type-name">Crop Type Name</label>
-                    <input type="text" id="crop-type-name" required>
-                </div>
-                <div class="input-group">
-                    <label for="crop-name">Crop Name</label>
-                    <select id="crop-name"></select>
-                </div>
+<!-- Modal for Add Crop Type -->
+<div id="add-crop-type-popup" class="popup">
+    <div class="popup-content barangay-modal">
+        <h3>Add Crop Type</h3>
+        <div class="form-group">
+            <div class="input-group">
+                <label for="crop-type-name">Crop Type Name</label>
+                <input type="text" id="crop-type-name" required>
             </div>
-            <div class="form-group">
-                <div class="input-group">
-                    <label for="crop-stock">Crop Stock</label>
-                    <input type="number" id="crop-stock" required>
-                </div>
-                <div class="input-group">
-                    <label for="crop-unit">Crop Unit</label>
-                    <input type="text" id="crop-unit" required>
-                </div>
-            </div>
-            <div class="button-group">
-                <button class="cancel-button" onclick="closePopup('add-crop-type-popup')">Cancel</button>
-                <button class="save-button" onclick="addCropType()">Save</button>
+            <div class="input-group">
+                <label for="crop-name">Crop Name</label>
+                <select id="crop-name"></select>
             </div>
         </div>
+        <div class="button-group">
+            <button class="cancel-button" onclick="closePopup('add-crop-type-popup')">Cancel</button>
+            <button class="save-button" onclick="addCropType()">Save</button>
+        </div>
     </div>
+</div>
 
-    <!-- Equipment Modal -->
+
+<!-- Equipment Modal -->
 <div id="add-equipment-popup" class="popup">
     <div class="popup-content barangay-modal">
         <h3>Add Equipment</h3>
@@ -186,12 +177,6 @@
                 <select id="equipment-category"></select>
             </div>
         </div>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="equipment-quantity">Equipment Quantity</label>
-                <input type="number" id="equipment-quantity" required>
-            </div>
-        </div>
         <div class="button-group">
             <button class="cancel-button" onclick="closePopup('add-equipment-popup')">Cancel</button>
             <button class="save-button" onclick="addEquipment()">Save</button>
@@ -200,7 +185,8 @@
 </div>
 
 
-    <!-- Fertilizer Modal -->
+
+<!-- Fertilizer Modal -->
 <div id="add-fertilizer-popup" class="popup">
     <div class="popup-content fertilizer-modal">
         <h3>Add Fertilizer</h3>
@@ -214,22 +200,13 @@
                 <select id="fertilizer-category"></select>
             </div>
         </div>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="fertilizer-quantity">Fertilizer Stock</label>
-                <input type="number" id="fertilizer-stock" required>
-            </div>
-            <div class="input-group">
-                <label for="fertilizer-unit">Fertilizer Unit</label>
-                <input type="text" id="fertilizer-unit" required value="kg" disabled>
-            </div>
-        </div>
         <div class="button-group">
             <button class="cancel-button" onclick="closePopup('add-fertilizer-popup')">Cancel</button>
             <button class="save-button" onclick="addFertilizer()">Save</button>
         </div>
     </div>
 </div>
+
 
 
     <!-- Modal for Edit Item -->
