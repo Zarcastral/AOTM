@@ -19,7 +19,7 @@
     </div>
   </div>
   <div class="main-content">
-    <!-- Table has been removed -->
+    <!-- Main content goes here -->
   </div>
 
   <!-- Account Panel with iframe to load external content -->
@@ -27,52 +27,31 @@
     <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
   </div>
 
-  <script>
+  <script type="module">
+    import { toggleLoadingIndicator } from "../../../src/auth/loading.js";
+
     document.addEventListener("DOMContentLoaded", () => {
       const accountIcon = document.getElementById("account-icon");
       const accountPanel = document.getElementById("account-panel");
       const accountFrame = document.getElementById("account-frame");
 
       accountIcon.addEventListener("click", () => {
-        console.log("Account icon clicked!");
-
         accountPanel.classList.toggle("active");
-        console.log("Panel active status:", accountPanel.classList.contains("active"));
-
-        if (accountPanel.classList.contains("active")) {
-          accountFrame.src = "logout.html";
-          console.log("Iframe src set to logout.html");
-        } else {
-          accountFrame.src = "";
-          console.log("Iframe cleared");
-        }
-      });
-
-      // Close when clicking outside
-      document.addEventListener("click", (event) => {
-        if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-          console.log("Clicked outside, closing panel...");
-          closeAccountPanel();
-        }
+        accountFrame.src = accountPanel.classList.contains("active") ? "logout.html" : "";
       });
 
       // Handle messages from iframe (logout.html)
       window.addEventListener("message", (event) => {
-        console.log("Message received from iframe:", event.data);
-
         if (event.data === "closeAccountPanel") {
-          console.log("Closing account panel from iframe message...");
           closeAccountPanel();
-        }
+        } else if (event.data === "closeIframe") {
+          closeAccountPanel();
+          toggleLoadingIndicator(true);
 
-        if (event.data === "closeIframe") {
-          console.log("Closing iframe and logging out...");
-          closeAccountPanel(); // Remove the iframe
-
-          // ✅ Redirect to login page after closing iframe
           setTimeout(() => {
-            window.top.location.href = "../../index.html"; // Ensure full-page redirect
-          }, 500);
+            sessionStorage.clear();
+            window.top.location.href = "../../index.html";
+          }, 1500);
         }
       });
 
@@ -83,8 +62,6 @@
       }
     });
   </script>
-
-
 
 </body>
 

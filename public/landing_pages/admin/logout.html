@@ -28,7 +28,7 @@
   </div>
 
   <script type="module">
-    import { toggleLoadingIndicator } from "../../../src/auth/loading.js"; // ✅ Import loading.js
+    import { toggleLoadingIndicator } from "../../../src/auth/loading.js";
 
     document.addEventListener("DOMContentLoaded", () => {
       const accountPanel = document.getElementById("account-panel");
@@ -50,21 +50,16 @@
 
       // Logout logic
       logoutButton.addEventListener("click", () => {
-        // ✅ Step 1: Close the iframe
         window.parent.postMessage("closeIframe", "*");
 
-        // ✅ Step 2: Delay to ensure iframe is closed before proceeding
         setTimeout(() => {
-          toggleLoadingIndicator(true); // ✅ Show loading indicator
+          toggleLoadingIndicator(true);
 
           setTimeout(() => {
-            sessionStorage.clear(); // ✅ Clear session storage
-
-            // ✅ Redirect the top-level page to index.html
+            sessionStorage.clear();
             window.top.location.href = "../../index.html";
-          }, 1500); // Simulate loading delay
-
-        }, 500); // Small delay to allow iframe closing first
+          }, 1500);
+        }, 500);
       });
 
       // Close the panel when clicking the close button
