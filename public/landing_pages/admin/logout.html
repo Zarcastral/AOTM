@@ -17,30 +17,63 @@
       <!-- Profile section -->
       <div class="profile-section">
         <img src="../../images/profile.jpg" alt="Profile Picture" class="profile-picture" />
-        <p class="profile-name">George Bush</p>
+        <p class="profile-name"></p>
       </div>
       <!-- Options (left-aligned) -->
       <ul class="panel-options">
         <li class="panel-item">Profile <span>&rsaquo;</span></li>
-        <li class="panel-item">Log out</li>
+        <li class="panel-item" id="logout-button">Log out</li>
       </ul>
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { toggleLoadingIndicator } from "../../../src/auth/loading.js"; // ✅ Import loading.js
+
     document.addEventListener("DOMContentLoaded", () => {
       const accountPanel = document.getElementById("account-panel");
       const closePanel = document.getElementById("close-panel");
+      const profileName = document.querySelector(".profile-name");
+      const profilePicture = document.querySelector(".profile-picture");
+      const logoutButton = document.getElementById("logout-button");
+
+      // Retrieve session data
+      const storedName = sessionStorage.getItem("userFullName") || "Guest";
+      const storedPicture = sessionStorage.getItem("userPicture") || "../../images/default.jpg";
+
+      // Update the UI with session data
+      profileName.textContent = storedName;
+      profilePicture.src = storedPicture;
 
       // Show the panel (can be triggered based on a condition, e.g., user is logged in)
-      accountPanel.style.display = "block";  // Make the panel visible by default
+      accountPanel.style.display = "block";
 
-      // Hide the panel when clicking the close button
+      // Logout logic
+      logoutButton.addEventListener("click", () => {
+        // ✅ Step 1: Close the iframe
+        window.parent.postMessage("closeIframe", "*");
+
+        // ✅ Step 2: Delay to ensure iframe is closed before proceeding
+        setTimeout(() => {
+          toggleLoadingIndicator(true); // ✅ Show loading indicator
+
+          setTimeout(() => {
+            sessionStorage.clear(); // ✅ Clear session storage
+
+            // ✅ Redirect the top-level page to index.html
+            window.top.location.href = "../../index.html";
+          }, 1500); // Simulate loading delay
+
+        }, 500); // Small delay to allow iframe closing first
+      });
+
+      // Close the panel when clicking the close button
       closePanel.addEventListener("click", () => {
-        accountPanel.style.display = "none";
+        window.parent.postMessage("closeAccountPanel", "*");
       });
     });
   </script>
+
 </body>
 
 </html>

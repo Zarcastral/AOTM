@@ -387,7 +387,7 @@ async function loadCropTypes() {
   try {
     const querySnapshot = await getDocs(collection(db, "tb_crop_types"));
     cropTypes = [];
-    cropTypeSelect.innerHTML = "<option value=''>Select a crop type</option>"; // Clear existing options
+    cropTypeSelect.innerHTML = "<option value=''>Select a crop type</option>"; // Default option
 
     if (querySnapshot.empty) {
       console.log("No crop types found in Firestore.");
@@ -396,15 +396,25 @@ async function loadCropTypes() {
 
     querySnapshot.forEach((doc) => {
       const cropData = doc.data();
-
-      if (cropData && cropData.crop_type_name) {
-        cropTypes.push({ id: doc.id, name: cropData.crop_type_name });
-
-        const option = document.createElement("option");
-        option.value = doc.id;
-        option.textContent = cropData.crop_type_name; // Set the display text as crop_type_name
-        cropTypeSelect.appendChild(option);
+      if (cropData && cropData.crop_type_name && cropData.crop_name) {
+        cropTypes.push({
+          id: doc.id,
+          name: cropData.crop_type_name,
+          cropName: cropData.crop_name, // Store crop_name for later use
+        });
       }
+    });
+
+    // ✅ Sort crop types alphabetically by name
+    cropTypes.sort((a, b) => a.name.localeCompare(b.name));
+
+    // ✅ Populate dropdown after sorting
+    cropTypes.forEach((crop) => {
+      const option = document.createElement("option");
+      option.value = crop.id;
+      option.textContent = crop.name;
+      option.dataset.cropName = crop.cropName; // Store crop_name in dataset
+      cropTypeSelect.appendChild(option);
     });
   } catch (error) {
     console.error("Error fetching crop types:", error);
@@ -449,6 +459,21 @@ assignTasksBtn.addEventListener("click", async () => {
   }
 
   try {
+    console.log("Fetching crop_name...");
+    const cropRef = doc(db, "tb_crop_types", selectedCropTypeId);
+    const cropSnap = await getDoc(cropRef);
+
+    if (!cropSnap.exists()) {
+      console.error("Crop type not found in tb_crop_types.");
+      alert("Error: Crop type not found.");
+      assignTasksBtn.disabled = false;
+      return;
+    }
+
+    const cropData = cropSnap.data();
+    const cropName = cropData.crop_name; // ✅ Get crop_name from Firestore
+    console.log("Found crop_name:", cropName);
+
     console.log("Fetching task_id_counter...");
     const counterRef = doc(db, "tb_id_counters", "task_id_counter"); // Fixed collection name
     let counterSnap = await getDoc(counterRef);
@@ -478,7 +503,7 @@ assignTasksBtn.addEventListener("click", async () => {
       const taskData = taskSnap.data();
       console.log("Task data:", taskData);
 
-      // ✅ Check for duplicate
+      // ✅ Check for duplicate task name in tb_task_list
       const taskListQuery = query(
         collection(db, "tb_task_list"),
         where("crop_type_name", "==", selectedCropTypeName),
@@ -491,13 +516,14 @@ assignTasksBtn.addEventListener("click", async () => {
         continue; // Skip adding duplicate task
       }
 
-      // ✅ Save task to Firestore
+      // ✅ Save task to Firestore (without crop_type_id)
       console.log(
         `Saving task "${taskData.task_name}" with task_id ${taskCounter}...`
       );
       await addDoc(collection(db, "tb_task_list"), {
         task_id: taskCounter, // Assign task_id from count
         crop_type_name: selectedCropTypeName,
+        crop_name: cropName, // ✅ Save crop_name
         task_name: taskData.task_name,
         subtasks: taskData.subtasks || [],
         assigned_on: new Date(),
@@ -553,8 +579,4 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", function () {
       document.getElementById("add-task-modal").style.display = "none";
     });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  fetchAssignedTasks();
 });

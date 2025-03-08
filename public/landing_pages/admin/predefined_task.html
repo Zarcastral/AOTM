@@ -86,12 +86,18 @@
             <button id="assign-tasks-btn">Assign Tasks</button>
         </div>
     </div>
+    <!-- Add Crop Filter Dropdown Above the Assigned Tasks Table -->
+    <label for="crop-filter">Filter by Crop Name:</label>
+    <select id="crop-filter">
+        <option value="">All Crops</option> <!-- Default option to show all tasks -->
+    </select>
 
     <h2>Assigned Tasks</h2>
     <table>
         <thead>
             <tr>
-                <th>Task ID</th> <!-- New column for Task ID -->
+                <th>Task ID</th>
+                <th>Crop Name</th>
                 <th>Crop Type</th>
                 <th>Task Name</th>
                 <th>Assigned On</th>
@@ -99,31 +105,32 @@
             </tr>
         </thead>
         <tbody id="assigned-tasks-table-body">
-            <!-- Task rows will be populated here -->
+            <!-- Task rows will be populated dynamically -->
         </tbody>
     </table>
 
 
-    <!-- Edit Task Modal -->
+
+
+    <!-- Edit Subtasks Modal -->
     <div id="edit-subtasks-modal" class="modal">
         <div class="modal-content">
-            <span class="close" id="close-edit-task-modal">&times;</span>
-            <h2>Edit Task</h2>
+            <span class="close" id="close-edit-subtasks-modal">&times;</span>
+            <h2>Edit Subtask</h2>
             <p id="edit-task-name-display"></p>
 
-            <!-- Subtask Input and Button inside Modal -->
+            <!-- Subtask List -->
+            <ul id="subtask-list-subtasks"></ul>
+
+            <!-- Subtask Input and Button -->
             <div class="subtask-container">
-                <input type="text" id="new-subtask-input" placeholder="Enter subtask..." />
-                <button id="add-subtask-btn">Add Subtask</button>
+                <input type="text" id="new-subtask-input-subtasks" placeholder="Enter subtask..." />
+                <button id="add-subtask-btn-subtasks">Add Subtask</button>
             </div>
 
-            <!-- Subtask List (Dynamically Added Subtasks) -->
-            <ul id="subtask-list"></ul>
-
-            <button id="save-subtasks-btn" disabled>Save Changes</button>
+            <button id="save-subtasks-btn-subtasks" disabled>Save Changes</button>
         </div>
     </div>
-
 
 
     <script type="module" src="predefined_task.js"></script>
