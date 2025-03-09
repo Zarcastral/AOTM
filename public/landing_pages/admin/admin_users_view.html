@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="../../../src/js/admin/admin_users_view.js"></script>
   <title>View User</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/src/style/admin/admin_users_view.css">
+  <link rel="stylesheet" href="../../../src/style/admin/admin_users_view.css">
 </head>
 <body>
   
@@ -94,6 +95,11 @@
         <button type="button" id="close-button">Close</button>
     </form>
   </div>
-  <script type="module" src="../../../src/auth/admin_users_view.js"></script>
+  <!-- Modal for displaying larger image -->
+<div id="imageModal" class="modal">
+  <span class="close">&times;</span>
+  <img class="modal-content" id="modalImage">
+  <div id="caption"></div>
+</div>
 </body>
 </html>

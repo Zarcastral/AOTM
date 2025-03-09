@@ -108,7 +108,25 @@ document.addEventListener("DOMContentLoaded", async () => {
                     const user_picture = userData.user_picture;
 
                     if (user_picture) {
-                        document.getElementById("profile-picture").src = user_picture;
+                        const profilePicture = document.getElementById("profile-picture");
+                        profilePicture.src = user_picture;
+
+                        // Add click event listener to the profile picture
+                        profilePicture.addEventListener("click", () => {
+                            const modal = document.getElementById("imageModal");
+                            const modalImg = document.getElementById("modalImage");
+                            const captionText = document.getElementById("caption");
+
+                            modal.style.display = "block";
+                            modalImg.src = user_picture;
+                            captionText.innerHTML = "Profile Picture of: " + username;
+
+                            // Close the modal when the close button is clicked
+                            const span = document.getElementsByClassName("close")[0];
+                            span.onclick = function() {
+                                modal.style.display = "none";
+                            }
+                        });
                     }
                 } else {
                     console.log("No user found with the given user_name.");
@@ -129,4 +147,3 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.location.href = "admin_users.html";
     });
 });
-
