@@ -416,8 +416,8 @@ export async function fetchAssignedTasks() {
         <td>${taskName}</td>
         <td>${assignedOn}</td>
         <td>
-          <button class="edit-btn" data-id="${taskId}" data-task="${taskName}">Edit</button>
-          <button class="delete-btn" data-id="${taskId}" data-task="${taskName}" data-crop="${cropName}" data-crop-type="${cropTypeName}">Delete</button>
+         <button class="edit-btn" data-id="${taskId}" data-task="${taskName}" title="Edit">Edit</button>
+        <button class="delete-btn" data-id="${taskId}" data-task="${taskName}" data-crop="${cropName}" data-crop-type="${cropTypeName}" title="Delete">Delete</button>
         </td>
       `;
       taskListTable.appendChild(row);
