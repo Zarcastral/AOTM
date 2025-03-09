@@ -80,3 +80,14 @@ body {
 .panel-item:hover {
   background-color: #f9f9f9;
 }
+
+/* Remove default styling for links */
+.panel-options a {
+  text-decoration: none; /* Removes underline */
+  color: inherit; /* Makes the link color inherit from its parent (e.g., from the text color) */
+}
+
+/* Optional: Style for hover effect */
+.panel-options a:hover {
+  color: #333; /* Change color on hover (if desired) */
+}

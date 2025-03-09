@@ -117,9 +117,12 @@ loginForm.addEventListener("submit", async (e) => {
     if (!farmersSnapshot.empty) {
       const farmerData = farmersSnapshot.docs[0].data();
       if (farmerData.user_type) {
+        sessionStorage.setItem("user_type", farmerData.user_type);
         // Store barangay, full name, and user picture
         sessionStorage.setItem("barangay_name", farmerData.barangay_name || "");
-        const fullName = `${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name + " " : ""}${farmerData.last_name}`.trim();
+        const fullName = `${farmerData.first_name} ${
+          farmerData.middle_name ? farmerData.middle_name + " " : ""
+        }${farmerData.last_name}`.trim();
         sessionStorage.setItem("userFullName", fullName);
         sessionStorage.setItem("userPicture", farmerData.user_picture || "");
         redirectUser(farmerData.user_type);
@@ -135,9 +138,12 @@ loginForm.addEventListener("submit", async (e) => {
     if (!usersSnapshot.empty) {
       const userData = usersSnapshot.docs[0].data();
       if (userData.user_type) {
+        sessionStorage.setItem("user_type", userData.user_type);
         sessionStorage.setItem("barangay_name", userData.barangay_name || "");
         sessionStorage.setItem("email", userData.email || "");
-        const fullName = `${userData.first_name} ${userData.middle_name ? userData.middle_name + " " : ""}${userData.last_name}`.trim();
+        const fullName = `${userData.first_name} ${
+          userData.middle_name ? userData.middle_name + " " : ""
+        }${userData.last_name}`.trim();
         sessionStorage.setItem("userFullName", fullName);
         sessionStorage.setItem("userPicture", userData.user_picture || "");
         redirectUser(userData.user_type);

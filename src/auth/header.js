@@ -41,6 +41,9 @@ function initializeHeaderEvents() {
         sessionStorage.clear();
         window.top.location.href = "../../index.html";
       }, 1500);
+    } else if (event.data === "navigateToProfile") {
+      closeAccountPanel();
+      window.location.href = "../components/profile.html"; // Redirect to profile
     }
   });
 

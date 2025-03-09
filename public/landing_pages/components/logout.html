@@ -21,54 +21,14 @@
       </div>
       <!-- Options (left-aligned) -->
       <ul class="panel-options">
-        <li class="panel-item">Profile <span>&rsaquo;</span></li>
+        <!-- Profile link will navigate to profile.html in the top window -->
+        <li class="panel-item">Profile</li>
         <li class="panel-item" id="logout-button">Log out</li>
       </ul>
     </div>
   </div>
 
-  <script type="module">
-    import { toggleLoadingIndicator } from "../../../src/auth/loading.js";
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const accountPanel = document.getElementById("account-panel");
-      const closePanel = document.getElementById("close-panel");
-      const profileName = document.querySelector(".profile-name");
-      const profilePicture = document.querySelector(".profile-picture");
-      const logoutButton = document.getElementById("logout-button");
-
-      // Retrieve session data
-      const storedName = sessionStorage.getItem("userFullName") || "Guest";
-      const storedPicture = sessionStorage.getItem("userPicture") || "../../images/default.jpg";
-
-      // Update the UI with session data
-      profileName.textContent = storedName;
-      profilePicture.src = storedPicture;
-
-      // Show the panel (can be triggered based on a condition, e.g., user is logged in)
-      accountPanel.style.display = "block";
-
-      // Logout logic
-      logoutButton.addEventListener("click", () => {
-        window.parent.postMessage("closeIframe", "*");
-
-        setTimeout(() => {
-          toggleLoadingIndicator(true);
-
-          setTimeout(() => {
-            sessionStorage.clear();
-            window.top.location.href = "../../index.html";
-          }, 1500);
-        }, 500);
-      });
-
-      // Close the panel when clicking the close button
-      closePanel.addEventListener("click", () => {
-        window.parent.postMessage("closeAccountPanel", "*");
-      });
-    });
-  </script>
-
+  <script type="module" src="../../../src/auth/logout.js"></script>
 </body>
 
 </html>
