@@ -8,9 +8,10 @@ import {
   onSnapshot,
   doc
 } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-const auth = getAuth(app);
+
 import app from "../../config/firebase_config.js";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+const auth = getAuth();
 const db = getFirestore(app);
 
 let cropsList = []; // Declare cropsList globally for filtering
@@ -18,33 +19,17 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let filteredCrops = []; // Initialize filteredCrops with an empty array
 let selectedCrops = [];
-let currentUserName = ""; // Variable to store the current user's user_name
+// USE THIS TO SORT FOR CROP ID ASCENDING ORDER
+/*function sortCropsById() {
+  filteredCrops.sort((a, b) => Number(a.crop_type_id || 0) - Number(b.crop_type_id || 0));
+}*/
 
-// Authenticate the user and fetch their user_name
-function authenticateUser() {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const userDoc = await getDocs(
-        query(collection(db, "tb_users"), where("email", "==", user.email))
-      );
-      if (!userDoc.empty) {
-        currentUserName = userDoc.docs[0].data().user_name;
-        console.log("Authenticated user:", currentUserName); // Debug log
-        fetchCrops(); // Fetch crops after getting the user_name
-      } else {
-        console.error("User record not found in tb_users collection.");
-      }
-    } else {
-      console.error("No user is signed in.");
-    }
-  });
-}
 
-// Sort crops by date (latest to oldest)
+// DIS ONE IS FOR DATES FROM LATEST TO OLDEST
 function sortCropsById() {
   filteredCrops.sort((a, b) => {
-    const dateA = parseDate(a.dateAdded);
-    const dateB = parseDate(b.dateAdded);
+    const dateA = parseDate(a.date_created);
+    const dateB = parseDate(b.date_created);
     return dateB - dateA; // Sort latest to oldest
   });
 }
@@ -59,97 +44,53 @@ function parseDate(dateValue) {
   
   return new Date(dateValue); // Convert string/ISO formats to Date
 }
-async function getAuthenticatedUser() {
-  return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        resolve(user);
+
+// Authenticate user and fetch crops
+onAuthStateChanged(auth, async (user) => {
+  if (user.email) {
+    try {
+      const farmersCollection = collection(db, "tb_farmers");
+      const farmerQuery = query(farmersCollection, where("email", "==", user.email));
+      const farmerSnapshot = await getDocs(farmerQuery);
+
+      if (!farmerSnapshot.empty) {
+        console.log("Authenticated user:", user.email);
+        fetchCrops(user.email);
       } else {
-        reject("User not authenticated. Please log in.");
+        console.error("User is not a farmer.");
       }
-    });
+    } catch (error) {
+      console.error("Error authenticating user:", error);
+    }
+  } else {
+    console.log("No user is signed in.");
+  }
+});
+
+// Fetch crops data based on authenticated user's email
+function fetchCrops(userEmail) {
+  const projectsCollection = collection(db, "tb_projects");
+  const projectsQuery = query(projectsCollection, where("email", "==", userEmail));
+
+  onSnapshot(projectsQuery, (snapshot) => {
+    cropsList = snapshot.docs.map(doc => ({
+      project_id: doc.data().project_id || "N/A",
+      project_name: doc.data().project_name || "N/A",
+      crop_name: doc.data().crop_name || "N/A",
+      crop_type_name: doc.data().crop_type_name || "N/A",
+      date_created: doc.data().date_added || "N/A",
+      quantity_crop_type: doc.data().quantity_crop_type || "N/A",
+      crop_unit: doc.data().crop_unit || "No Unit Record" // Add this line to handle unit
+    }));
+
+    filteredCrops = [...cropsList];
+    sortCropsById();          // Sort crops by date (latest to oldest)
+    displayCrops(filteredCrops); // Update table display
+  }, (error) => {
+    console.error("Error listening to projects:", error);
   });
 }
 
-// Real-time listener for crops collection
-async function fetchCrops() {
-  try {
-    // Get authenticated user
-    const user = await getAuthenticatedUser();
-    const usersCollection = collection(db, "tb_users");
-    const userQuery = query(usersCollection, where("email", "==", user.email));
-    const userSnapshot = await getDocs(userQuery);
-
-    if (userSnapshot.empty) {
-      console.error("User not found in the database.");
-      return;
-    }
-
-    // Get user_type from the fetched user document
-    const userType = userSnapshot.docs[0].data().user_type;
-
-    const cropsCollection = collection(db, "tb_crop_types");
-    const cropsQuery = query(cropsCollection);
-
-    // Listen for real-time updates
-    onSnapshot(cropsQuery, async (snapshot) => {
-      const cropsData = await Promise.all(snapshot.docs.map(async (doc) => {
-        const crop = doc.data();
-        const cropTypeId = crop.crop_type_id;
-
-        // Fetch related stock data from tb_crop_stock based on crop_type_id
-        const stockCollection = collection(db, "tb_crop_stock");
-        const stockQuery = query(stockCollection, where("crop_type_id", "==", cropTypeId));
-        const stockSnapshot = await getDocs(stockQuery);
-
-        // Initialize stock array for this crop
-        crop.stocks = [];
-
-        if (!stockSnapshot.empty) {
-          // Extract stock data as arrays
-          const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
-            const stockData = stockDoc.data();
-            return stockData.stocks || []; // Access the nested stocks array if available
-          });
-
-          // Filter stock data for the authenticated user based on user_type
-          const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-
-          if (userStockData.length > 0) {
-            crop.stocks = userStockData;  // Save user-specific stock data as an array
-          } else {
-            // No stock for the authenticated user
-            crop.stocks = [{
-              stock_date: null,
-              current_stock: "",
-              unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for the current user type"
-            }];
-          }
-        } else {
-          // No stock data found at all
-          crop.stocks = [{
-            stock_date: null,
-            current_stock: "",
-            unit: "Stock has not been updated yet",
-            owned_by: "No stock record found for any user type"
-          }];
-        }
-
-        return crop;
-      }));
-
-      cropsList = cropsData;
-      filteredCrops = [...cropsList];
-      sortCropsById();            // Sort crops by date (latest to oldest)
-      displayCrops(filteredCrops); // Update table display
-    }, (error) => {
-      console.error("Error listening to crops:", error);
-    });
-  } catch (error) {
-    console.error("Error fetching crops:", error);
-  }
-}
 
 // Display crops in the table
 function displayCrops(cropsList) {
@@ -159,12 +100,13 @@ function displayCrops(cropsList) {
     return;
   }
 
-  tableBody.innerHTML = "";
+  tableBody.innerHTML = ""; // Clear existing rows
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginatedCrops = cropsList.slice(startIndex, endIndex);
 
   if (paginatedCrops.length === 0) {
+    // Show "No records found" if CropsList is empty
     const messageRow = document.createElement("tr");
     messageRow.classList.add("no-records-message");
     messageRow.innerHTML = `
@@ -174,51 +116,42 @@ function displayCrops(cropsList) {
     return;
   }
 
+  // Remove any "No records found" message if there are records
   const noRecordsMessage = document.querySelector(".no-records-message");
   if (noRecordsMessage) {
     noRecordsMessage.remove();
   }
 
+  // Render crops list in the table
   paginatedCrops.forEach((crop) => {
     const row = document.createElement("tr");
 
-    const cropTypeId = crop.crop_type_id || "Crop Type Id not recorded";
-    const cropName = crop.crop_name || "Crop Name not recorded";
-    const cropType = crop.crop_type_name || "Crop Category not recorded.";
-    const dateAdded = crop.dateAdded
-      ? crop.dateAdded.toDate
-        ? crop.dateAdded.toDate().toLocaleDateString()
-        : new Date(crop.dateAdded).toLocaleDateString()
+    const projectId = crop.project_id || "N/A";
+    const projectName = crop.project_name || "N/A";
+    const cropName = crop.crop_name || "N/A";
+    const cropType = crop.crop_type_name || "N/A";
+    const date_created = crop.date_created
+      ? (crop.date_created.toDate ? crop.date_created.toDate().toLocaleDateString() : new Date(crop.date_created).toLocaleDateString())
       : "Date not recorded";
-      crop.stocks.forEach((stock) => {
-      const currentStock = stock.current_stock || "";
-      const unit = stock.unit || "Units";
-      const owned_by = stock.owned_by || "Owner not Recorded";
-
-      row.innerHTML = `
+    const quantityCropType = crop.quantity_crop_type || "0";
+    const crop_unit = crop.crop_unit || "No Recorded Unit";
+    row.innerHTML = `
         <td class="checkbox">
-            <input type="checkbox" data-crop-id="${cropTypeId}">
+            <input type="checkbox" data-crop-id="${projectId}">
         </td>
-        <td>${cropTypeId}</td>
+        <td>${projectId}</td>
+        <td>${projectName}</td>
         <td>${cropType}</td>
         <td>${cropName}</td>
-        <td>${dateAdded}</td>
-        <td>${currentStock} ${unit}</td>
-        <td>${owned_by}</td>
-      `;
-      tableBody.appendChild(row);
-    });
+        <td>${date_created}</td>
+        <td>${quantityCropType} ${crop_unit}</td>
+    `;
+    tableBody.appendChild(row);
   });
   addCheckboxListeners();
   updatePagination();
   toggleBulkDeleteButton();
 }
-// Initialize fetches when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  authenticateUser(); // Fetch the current user's user_name
-  fetchCropNames();
-  fetchCrops();
-});
 
 // Update pagination display
 function updatePagination() {
@@ -290,6 +223,10 @@ document.querySelector(".crop_select").addEventListener("change", function () {
   displayCrops(filteredCrops); // Update the table with filtered crops
 });
 
+// Initialize fetches when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  fetchCropNames();
+});
 
 
 // ---------------------------- CROP BULK DELETE CODES ---------------------------- //
@@ -434,6 +371,7 @@ function showDeleteMessage(message, success) {
     }, 300);
   }, 4000);
 }
+
 // Search bar event listener for real-time filtering
 document.getElementById("crop-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
@@ -441,6 +379,7 @@ document.getElementById("crop-search-bar").addEventListener("input", function ()
   // Filter crops based on searchQuery, excluding stock and date fields
   filteredCrops = cropsList.filter(crop => {
     return (
+      crop.project_name?.toLowerCase().includes(searchQuery) ||
       crop.crop_name?.toLowerCase().includes(searchQuery) ||
       crop.crop_type_name?.toLowerCase().includes(searchQuery) ||
       crop.crop_type_id?.toString().includes(searchQuery) // Ensure ID is searchable

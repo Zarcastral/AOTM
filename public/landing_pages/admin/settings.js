@@ -316,12 +316,10 @@ window.addBarangay = async function() {
 window.addCropType = async function() {
     const cropTypeName = document.getElementById('crop-type-name').value;
     const cropName = document.getElementById('crop-name').value;
-    const stock = parseInt(document.getElementById('crop-stock').value, 10); // Convert to integer
-    const unit = document.getElementById('crop-unit').value;
     const dateAdded = new Date().toISOString();
 
-    if (!cropTypeName || !cropName || isNaN(stock) || !unit) { // Check if stock is a valid number
-        alert('All fields are required, and stock must be a valid number!');
+    if (!cropTypeName || !cropName) {
+        alert('All fields are required!');
         return;
     }
 
@@ -356,8 +354,8 @@ window.addCropType = async function() {
             crop_type_name: cropTypeName,
             crop_name: cropName,
             crop_name_id: cropNameId,
-            current_stock: stock, // Now an integer
-            unit: unit,
+            current_stock: 0, // Always set to 0
+            unit: "kg", // Always set to "kg"
             dateAdded
         }).then(() => {
             alert('Crop Type added successfully');
@@ -367,17 +365,17 @@ window.addCropType = async function() {
             console.error('Error adding crop type:', error);
         });
     }
-}
+};
 
 
-//add equipment
+
+// Add Equipment
 window.addEquipment = async function() {
     const equipmentName = document.getElementById('equipment-name').value;
     const category = document.getElementById('equipment-category').value;
-    const quantity = parseInt(document.getElementById('equipment-quantity').value, 10);
     const dateAdded = new Date().toISOString();
 
-    if (!equipmentName || !category || isNaN(quantity)) {
+    if (!equipmentName || !category) {
         alert('All fields are required!');
         return;
     }
@@ -400,7 +398,7 @@ window.addEquipment = async function() {
             equipment_id: nextEquipmentId,
             equipment_name: equipmentName,
             equipment_category: category,
-            current_quantity: quantity,
+            current_quantity: 0, // Always set to 0
             dateAdded
         }).then(() => {
             alert('Equipment added successfully');
@@ -410,25 +408,24 @@ window.addEquipment = async function() {
             console.error('Error adding equipment:', error);
         });
     }
-}
+};
 
-// Add fertilizer
+
+// Add Fertilizer
 window.addFertilizer = async function() {
     const fertilizerName = document.getElementById('fertilizer-name').value;
-    const fertilizerType = document.getElementById('fertilizer-category').value; // Changed variable name
-    const quantity = parseInt(document.getElementById('fertilizer-stock').value, 10);
-    const unit = document.getElementById('fertilizer-unit').value;
+    const fertilizerType = document.getElementById('fertilizer-category').value;
     const dateAdded = new Date().toISOString();
 
-    if (!fertilizerName || !fertilizerType || isNaN(quantity) || !unit) {
-        alert('All fields are required and stock must be a valid number!');
+    if (!fertilizerName || !fertilizerType) {
+        alert('All fields are required!');
         return;
     }
 
     // Check if the fertilizer already exists
     const existingFertilizer = await db.collection('tb_fertilizer')
         .where('fertilizer_name', '==', fertilizerName)
-        .where('fertilizer_type', '==', fertilizerType) // Updated field name
+        .where('fertilizer_type', '==', fertilizerType)
         .get();
 
     if (!existingFertilizer.empty) {
@@ -442,9 +439,9 @@ window.addFertilizer = async function() {
         db.collection('tb_fertilizer').add({
             fertilizer_id: nextFertilizerId,
             fertilizer_name: fertilizerName,
-            fertilizer_type: fertilizerType, // Updated field name
-            quantity: quantity,
-            unit: unit,
+            fertilizer_type: fertilizerType,
+            quantity: 0, // Always set to 0
+            unit: "kg", // Always set to "kg"
             dateAdded
         }).then(() => {
             alert('Fertilizer added successfully');
@@ -454,7 +451,8 @@ window.addFertilizer = async function() {
             console.error('Error adding fertilizer:', error);
         });
     }
-}
+};
+
 
 
 

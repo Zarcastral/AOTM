@@ -2,7 +2,6 @@ import {
   collection,
   getDocs,
   getDoc,
-  addDoc,
   getFirestore,
   query,
   where,
@@ -10,17 +9,34 @@ import {
   updateDoc,
   Timestamp,
   onSnapshot,
+  addDoc,
+  arrayRemove,
   doc
 } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-
 const db = getFirestore(app);
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+const auth = getAuth();
+// Initialize fetches when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  fetchEquipmentNames();
+  getAuthenticatedUser();
+  fetchEquipments();
+});
+async function getAuthenticatedUser() {
+  return new Promise((resolve, reject) => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        resolve(user);
+      } else {
+        reject("User not authenticated. Please log in.");
+      }
+    });
+  });
+}
 
 async function saveActivityLog(action) {
-  const auth = getAuth();
-
   // Use onAuthStateChanged to wait for authentication status
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -78,18 +94,34 @@ async function saveActivityLog(action) {
     }
   });
 }
+
 let equipmentsList = []; // Declare equipmentsList globally for filtering
 let filteredEquipments = equipmentsList; // Declare a variable for filtered equipments
 let currentPage = 1;
 const rowsPerPage = 5;
 let selectedEquipments = [];
+
 function sortEquipmentsById() {
   filteredEquipments.sort((a, b) => {
-    const dateA = parseDate(a.stock_date);
-    const dateB = parseDate(b.stock_date);
-    return dateB - dateA; // Sort latest to oldest
+    const hasDateA = a.stocks.length > 0 && a.stocks[0].stock_date;
+    const hasDateB = b.stocks.length > 0 && b.stocks[0].stock_date;
+
+    if (hasDateA && hasDateB) {
+      // Both have dates, sort by date (latest to oldest)
+      const latestDateA = parseDate(a.stocks[0].stock_date);
+      const latestDateB = parseDate(b.stocks[0].stock_date);
+      return latestDateB - latestDateA;
+    } else if (!hasDateA && !hasDateB) {
+      // Neither has dates, sort by Equipment_id (low to high)
+      return a.equipment_id - b.equipment_id;
+    } else {
+      // One has a date, prioritize those with dates first
+      return hasDateB - hasDateA;
+    }
   });
 }
+
+// <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 
 function parseDate(dateValue) {
   if (!dateValue) return new Date(0); // Default to epoch if no date
@@ -101,21 +133,96 @@ function parseDate(dateValue) {
   
   return new Date(dateValue); // Convert string/ISO formats to Date
 }
+
 // Fetch equipments data (tb_equipment) from Firestore
 async function fetchEquipments() {
-  const equipmentsCollection = collection(db, "tb_equipment");
-  const equipmentsQuery = query(equipmentsCollection);
+  try {
+    // Get authenticated user
+    const user = await getAuthenticatedUser();
+    const usersCollection = collection(db, "tb_users");
+    const userQuery = query(usersCollection, where("email", "==", user.email));
+    const userSnapshot = await getDocs(userQuery);
 
-  // Listen for real-time updates
-  onSnapshot(equipmentsQuery, (snapshot) => {
-    equipmentsList = snapshot.docs.map(doc => doc.data());
-    filteredEquipments = [...equipmentsList];
-    sortEquipmentsById();          // Sort Equipments by date (latest to oldest)
-    displayEquipments(filteredEquipments); // Update table display
-  }, (error) => {
-    console.error("Error listening to Equipments:", error);
-  });
+    if (userSnapshot.empty) {
+      console.error("User not found in the database.");
+      return;
+    }
+
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
+
+    const equipmentsCollection = collection(db, "tb_equipment");
+    const equipmentsQuery = query(equipmentsCollection);
+
+    // Listen for real-time updates
+    onSnapshot(equipmentsQuery, async (snapshot) => {
+      const equipmentsData = await Promise.all(snapshot.docs.map(async (doc) => {
+        const equipment = doc.data();
+        const equipmentId = equipment.equipment_id;
+
+        // Check if equipmentId is defined
+        if (equipmentId) {
+          const stockCollection = collection(db, "tb_equipment_stock");
+          const stockQuery = query(stockCollection, where("equipment_id", "==", equipmentId));
+          const stockSnapshot = await getDocs(stockQuery);
+
+          // Initialize stock array for this equipment
+          equipment.stocks = [];
+
+          if (!stockSnapshot.empty) {
+            // Extract stock data as arrays
+            const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
+              const stockData = stockDoc.data();
+              return stockData.stocks || []; // Access the nested stocks array if available
+            });
+
+            // Filter stock data based on user_type
+            const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
+
+            if (userStockData.length > 0) {
+              equipment.stocks = userStockData;  // Save user-specific stock data as an array
+            } else {
+              // No stock for the specific user_type
+              equipment.stocks = [{
+                stock_date: null,
+                current_stock: "",
+                unit: "Stock has not been updated yet",
+                owned_by: "No stock record found for the current user type"
+              }];
+            }
+          } else {
+            // No stock data found at all
+            equipment.stocks = [{
+              stock_date: null,
+              current_stock: "",
+              unit: "Stock has not been updated yet",
+              owned_by: "No stock record found for any user type"
+            }];
+          }
+        } else {
+          console.error("equipment_id is undefined for:", equipment.equipment_name);
+          // Skip this equipment if equipment_id is missing
+          return null;
+        }
+
+        return equipment;
+      }));
+
+      // Filter out null results if any equipment was skipped
+      const validEquipmentsData = equipmentsData.filter(equip => equip !== null);
+
+      equipmentsList = validEquipmentsData;
+      filteredEquipments = [...equipmentsList];
+      sortEquipmentsById();                  // Sort Equipments by date (latest to oldest)
+      displayEquipments(filteredEquipments);  // Update table display
+    }, (error) => {
+      console.error("Error listening to Equipments:", error);
+    });
+  } catch (error) {
+    console.error("Error fetching Equipments:", error);
+  }
 }
+
 
 // Display equipments in the table with pagination
 function displayEquipments(equipmentsList) {
@@ -153,12 +260,15 @@ function displayEquipments(equipmentsList) {
 
     const equipmentName = equipment.equipment_name || "Equipment Name not recorded";
     const equipmentId = equipment.equipment_id || "Equipment Id not recorded";
-    const equipmentType = equipment.equipment_category || "Equipment Category not recorded";
-    const stock_date = equipment.stock_date
-      ? (equipment.stock_date.toDate ? equipment.stock_date.toDate().toLocaleDateString() : new Date(equipment.stock_date).toLocaleDateString())
-      : "Date not recorded";
-    const currentStock = equipment.current_stock || "0";
-    const unit = equipment.unit || "units";
+    const equipmentCategory = equipment.equipment_category || "Equipment Category not recorded";
+    // Iterate through stocks array
+    equipment.stocks.forEach((stock) => {
+      const stock_date = stock.stock_date
+        ? (stock.stock_date.toDate ? stock.stock_date.toDate().toLocaleDateString() : new Date(stock.stock_date).toLocaleDateString())
+        : "Stock has not been updated";
+      const currentStock = stock.current_stock || "";
+      const unit = stock.unit || "Units";
+      const owned_by = stock.owned_by || "Owner not Recorded";
 
     row.innerHTML = `
         <td class="checkbox">
@@ -166,7 +276,7 @@ function displayEquipments(equipmentsList) {
         </td>
         <td>${equipmentId}</td>
         <td>${equipmentName}</td>
-        <td>${equipmentType}</td>
+        <td>${equipmentCategory}</td>
         <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
         <td>
@@ -176,6 +286,8 @@ function displayEquipments(equipmentsList) {
 
     tableBody.appendChild(row);
   });
+
+});
   addCheckboxListeners();
   updatePagination();
   toggleBulkDeleteButton();
@@ -252,31 +364,23 @@ document.querySelector(".equipment_select").addEventListener("change", function 
   displayEquipments(filteredEquipments); // Update the table with filtered Equipments
 });
 
-// Initialize fetches when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  fetchEquipmentNames();
-  fetchEquipments();
-});
 
-// ---------------------------- equip BULK DELETE CODES ---------------------------- //
+
 const deletemessage = document.getElementById("equip-bulk-message"); // delete message panel
 
 // CHECKBOX CHANGE EVENT HANDLER
 function handleCheckboxChange(event) {
-  const checkbox = event.target; // The checkbox that triggered the event
-  const row = checkbox.closest("tr"); // Get the row of the checkbox
+  const checkbox = event.target;
+  const row = checkbox.closest("tr");
   if (!row) return;
 
-  // Get equipmentType ID from the data attribute
   const equipmentId = checkbox.getAttribute("data-equipment-id");
 
   if (checkbox.checked) {
-    // Add to selected list if checked
     if (!selectedEquipments.includes(equipmentId)) {
       selectedEquipments.push(equipmentId);
     }
   } else {
-    // Remove from list if unchecked
     selectedEquipments = selectedEquipments.filter(item => item !== equipmentId);
   }
 
@@ -284,13 +388,13 @@ function handleCheckboxChange(event) {
   toggleBulkDeleteButton();
 }
 
-
 // Enable/Disable the Bulk Delete button
 function toggleBulkDeleteButton() {
   const bulkDeleteButton = document.getElementById("equip-bulk-delete");
   bulkDeleteButton.disabled = selectedEquipments.length === 0;
 }
-// Attach event listener to checkboxes (after equipments are displayed)
+
+// Attach event listener to checkboxes
 function addCheckboxListeners() {
   document.querySelectorAll(".equipment_table input[type='checkbox']").forEach(checkbox => {
     checkbox.addEventListener("change", handleCheckboxChange);
@@ -304,37 +408,35 @@ document.getElementById("equip-bulk-delete").addEventListener("click", async () 
   let hasInvalidId = false;
 
   for (const checkbox of selectedCheckboxes) {
-      const equipmentId = checkbox.getAttribute("data-equipment-id");
+    const equipmentId = checkbox.getAttribute("data-equipment-id");
 
-      // Validate equipmentId (null, undefined, or empty string)
-      if (!equipmentId || equipmentId.trim() === "") {
-          hasInvalidId = true;
-          break;
+    if (!equipmentId || equipmentId.trim() === "") {
+      hasInvalidId = true;
+      break;
+    }
+
+    try {
+      const q = query(collection(db, "tb_equipment_stock"), where("equipment_id", "==", Number(equipmentId)));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        hasInvalidId = true;
+        console.error(`ERROR: equipment ID ${equipmentId} does not exist in the database.`);
+        break;
       }
 
-      /* Check if the equipment_id exists in the database */
-      try {
-          const q = query(collection(db, "tb_equipment"), where("equipment_id", "==", Number(equipmentId)));
-          const querySnapshot = await getDocs(q);
-
-          if (querySnapshot.empty) {
-              hasInvalidId = true;
-              console.error(`ERROR: Equipment ID ${equipmentId} does not exist in the database.`);
-              break;
-          }
-
-          selectedEquipmentIds.push(equipmentId);
-      } catch (error) {
-          console.error("Error fetching Equipment records:", error);
-          hasInvalidId = true;
-          break;
-      }
+      selectedEquipmentIds.push(equipmentId);
+    } catch (error) {
+      console.error("Error fetching Equipment records:", error);
+      hasInvalidId = true;
+      break;
+    }
   }
 
   if (hasInvalidId) {
-      showDeleteMessage("ERROR: Equipment ID of one or more selected records are invalid", false);
+    deleteSelectedEquipments("ERROR: Equipment ID of one or more selected records are invalid", false);
   } else {
-      document.getElementById("equip-bulk-panel").style.display = "block"; // Show confirmation panel
+    document.getElementById("equip-bulk-panel").style.display = "block";
   }
 });
 
@@ -343,79 +445,60 @@ document.getElementById("cancel-equip-delete").addEventListener("click", () => {
   document.getElementById("equip-bulk-panel").style.display = "none";
 });
 
-// Function to delete selected Equipments from Firestore
+// Function to delete selected Equipments from tb_Equipment_stock's stocks array based on owned_by
 async function deleteSelectedEquipments() {
   if (selectedEquipments.length === 0) {
     return;
   }
 
   try {
-    const equipmentsCollection = collection(db, "tb_equipment");
+    // Get the current authenticated user's user_type
+    const user = auth.currentUser;
+    const userDoc = await getDoc(doc(db, "tb_users", user.uid));
+    const userType = userDoc.data().user_type;  // Fetch user_type instead of user_name
 
-    // Loop through selected equipments and delete them
-    for (const equipmentTypeId of selectedEquipments) {
-      const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentTypeId)));
-      const querySnapshot = await getDocs(equipmentQuery);
+    const stockCollection = collection(db, "tb_equipment_stock");
+    let deletedEquipmentNames = [];
 
-      querySnapshot.forEach(async (docSnapshot) => {
-        await deleteDoc(doc(db, "tb_equipment", docSnapshot.id));
-      });
+    for (const equipmentId of selectedEquipments) {
+      const stockQuery = query(stockCollection, where("equipment_id", "==", Number(equipmentId)));
+      const stockSnapshot = await getDocs(stockQuery);
+
+      for (const docSnapshot of stockSnapshot.docs) {
+        const stockData = docSnapshot.data();
+        const docRef = doc(db, "tb_equipment_stock", docSnapshot.id);
+
+        // Filter stocks to get only those matching the user_type -> owned_by
+        const stocksToRemove = stockData.stocks.filter(stock => stock.owned_by === userType);
+
+        if (stocksToRemove.length > 0) {
+          for (const stock of stocksToRemove) {
+            await updateDoc(docRef, {
+              stocks: arrayRemove(stock)
+            });
+            deletedEquipmentNames.push(stock.equipment_name);
+          }
+        }
+      }
     }
 
-    console.log("Deleted equipments:", selectedEquipments);
-    // Show success message
-    await saveActivityLog(`Deleted Equipments: ${equipmentName.join(", ")}`);
-    showDeleteMessage("All selected Equipment records successfully deleted!", true);
+    console.log("Deleted Equipments:", deletedEquipmentNames);
+    await saveActivityLog(`Deleted Equipments: ${deletedEquipmentNames.join(", ")}`);
+    deleteSelectedEquipments("All selected Equipment records successfully deleted!", true);
 
-    // Clear selection and update the UI
     selectedEquipments = [];
-    document.getElementById("equip-bulk-panel").style.display = "none"; // Hide confirmation panel
-    fetchEquipments(); // Refresh the table
+    document.getElementById("equip-bulk-panel").style.display = "none";
+    fetchEquipments();
 
   } catch (error) {
-    console.error("Error deleting equipments:", error);
-    showDeleteMessage("Error deleting equipments!", false);
+    console.error("Error deleting Equipments:", error);
+    deleteSelectedEquipments("Error deleting Equipments!", false);
   }
 }
 
 // Confirm Deletion and Call Delete Function
 document.getElementById("confirm-equip-delete").addEventListener("click", () => {
   deleteSelectedEquipments();
-});
-
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
-const deleteMessage = document.getElementById("equip-bulk-message");
-
-function showDeleteMessage(message, success) {
-  deleteMessage.textContent = message;
-  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  deleteMessage.style.opacity = '1';
-  deleteMessage.style.display = 'block';
-
-  setTimeout(() => {
-    deleteMessage.style.opacity = '0';
-    setTimeout(() => {
-      deleteMessage.style.display = 'none';
-    }, 300);
-  }, 4000);
-}
-
-// Search bar event listener for real-time filtering
-document.getElementById("equip-search-bar").addEventListener("input", function () {
-  const searchQuery = this.value.toLowerCase().trim();
-
-  // Filter Equipments based on searchQuery, excluding stock and date fields
-  filteredEquipments = equipmentsList.filter(equipment => {
-    return (
-      equipment.equipment_name?.toLowerCase().includes(searchQuery) ||
-      equipment.equipment_category?.toLowerCase().includes(searchQuery) ||
-      equipment.equipment_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
-    );
-  });
-
-  currentPage = 1; // Reset pagination
-  sortEquipmentsById();
-  displayEquipments(filteredEquipments); // Update the table with filtered Equipments
 });
 
 // <------------------ FUNCTION TO DISPLAY equipment STOCK MESSAGE ------------------------>
@@ -447,11 +530,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = event.target.closest("tr");
       if (!row) return;
 
-      const equipmentTypeId = row.children[1].textContent.trim();
+      const equipmentId = row.children[1].textContent.trim();
 
       try {
         const equipmentCollection = collection(db, "tb_equipment");
-        const equipmentQuery = query(equipmentCollection, where("equipment_id", "==", Number(equipmentTypeId)));
+        const equipmentQuery = query(equipmentCollection, where("equipment_id", "==", Number(equipmentId)));
         const querySnapshot = await getDocs(equipmentQuery);
 
         let equipmentCategory = "No category was recorded";
@@ -506,7 +589,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Display the floating panel
         equipmentStockPanel.style.display = "block";
         equipmentOverlay.style.display = "block";
-        saveBtn.dataset.equipmentTypeId = equipmentTypeId;
+        saveBtn.dataset.equipmentId = equipmentId;
       } catch (error) {
         console.error("Error fetching equipment details:", error);
       }
@@ -526,51 +609,116 @@ document.addEventListener("DOMContentLoaded", () => {
   cancelBtn.addEventListener("click", closeStockPanel);
   equipmentOverlay.addEventListener("click", closeStockPanel);
 
-  saveBtn.addEventListener("click", async function () {
-    const equipmentTypeId = saveBtn.dataset.equipmentTypeId;
-    const equipmentCategory = document.getElementById("equip_category").value;
-    const equipmentName = document.getElementById("equip_name").value;
-    const equipmentStock = document.getElementById("equip_stock").value;
-    const unitDropdown = document.getElementById("equip_unit");
-    let unit = unitDropdown.value.trim();
+// <--------------------------------> FUNCTION TO SAVE <-------------------------------->
+saveBtn.addEventListener("click", async function () {
+  const equipmentId = saveBtn.dataset.equipmentId;
+  const equipmentCategory = document.getElementById("equip_category").value;  // Still needed for activity log
+  const equipmentName = document.getElementById("equip_name").value;           // Still needed for activity log
+  const equipmentStock = document.getElementById("equip_stock").value;
+  let unit = document.getElementById("equip_unit").value;
 
-    if (!unit || unit === "Invalid Unit") {
-      unit = "No unit was recorded";
-    }
+  if (!unit || unit === "Invalid Unit") {
+    unit = "No unit was recorded";
+  }
 
-    document.getElementById("equip_unit_hidden").value = unit;
+  if (!equipmentStock || isNaN(equipmentStock) || equipmentStock <= 0) {
+    showEquipmentStockMessage("Please enter a valid Equipment stock quantity.", false);
+    return;
+  }
 
-    if (!equipmentStock || isNaN(equipmentStock) || equipmentStock <= 0) {
-      showEquipmentStockMessage("Please enter a valid equipment stock quantity.", false);
+  try {
+    // Get the authenticated user
+    const user = await getAuthenticatedUser().catch((error) => {
+      showEquipmentStockMessage(error, false);
+      throw new Error(error);
+    });
+
+    // Fetch user_type from tb_users based on the authenticated email
+    const usersCollection = collection(db, "tb_users");
+    const userQuery = query(usersCollection, where("email", "==", user.email));
+    const userSnapshot = await getDocs(userQuery);
+
+    if (userSnapshot.empty) {
+      showEquipmentStockMessage("User not found in the database.", false);
       return;
     }
 
-    try {
-      const equipmentsCollection = collection(db, "tb_equipment");
-      const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentTypeId)));
-      const querySnapshot = await getDocs(equipmentQuery);
+    // Get user_type from the fetched user document
+    const userType = userSnapshot.docs[0].data().user_type;
 
-      if (!querySnapshot.empty) {
-        const docRef = querySnapshot.docs[0].ref;
-        const existingStock = querySnapshot.docs[0].data().current_stock || 0;
-        const newStock = existingStock + Number(equipmentStock);
+    // Fetch Equipment data from tb_Equipment
+    const equipmentsCollection = collection(db, "tb_equipment");
+    const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentId)));
+    const querySnapshot = await getDocs(equipmentQuery);
 
-        await updateDoc(docRef, {
-          stock_date: Timestamp.now(),
-          equipment_name: equipmentName,
-          equipment_category: equipmentCategory,
-          current_stock: newStock,
-          unit: unit
-        });
-        await saveActivityLog(`Added Equipment Stock for ${equipmentName} with quantity of ${equipmentStock}`);
-        showEquipmentStockMessage("Equipment Stock has been added successfully!", true);
-        closeStockPanel();
+    if (!querySnapshot.empty) {
+      const docRef = querySnapshot.docs[0].ref;
+      const existingStock = querySnapshot.docs[0].data().current_stock || 0;
+      const newStock = existingStock + Number(equipmentStock);
+
+      // Update stock in tb_equipment_types
+      await updateDoc(docRef, {
+        stock_date: Timestamp.now(),
+        current_stock: newStock,
+        unit: unit
+      });
+
+      // Check if record already exists in tb_equipment_stock for the same equipment_type_id
+      const inventoryCollection = collection(db, "tb_equipment_stock");
+      const inventoryQuery = query(inventoryCollection, where("equipment_id", "==", Number(equipmentId)));
+      const inventorySnapshot = await getDocs(inventoryQuery);
+
+      if (!inventorySnapshot.empty) {
+        // Record exists, update the stocks array
+        const inventoryDocRef = inventorySnapshot.docs[0].ref;
+        const inventoryData = inventorySnapshot.docs[0].data();
+        const stocks = inventoryData.stocks || [];
+
+        // Check if owned_by already exists in the stocks array
+        const userStockIndex = stocks.findIndex(stock => stock.owned_by === userType);
+
+        if (userStockIndex !== -1) {
+          // Update existing stock for this user_type
+          stocks[userStockIndex].current_stock += Number(equipmentStock);
+          stocks[userStockIndex].stock_date = Timestamp.now();
+          stocks[userStockIndex].unit = unit;
+        } else {
+          // Add a new stock entry for this user_type
+          stocks.push({
+            owned_by: userType,
+            current_stock: Number(equipmentStock),
+            stock_date: Timestamp.now(),
+            unit: unit
+          });
+        }
+
+        // Update the document with the modified stocks array
+        await updateDoc(inventoryDocRef, { stocks: stocks });
       } else {
-        showEquipmentStockMessage("ERROR: Invalid Equipment Name unable to save data", false);
+        // Record does not exist, create a new document with stocks array
+        await addDoc(inventoryCollection, {
+          equipment_id: Number(equipmentId),
+          stocks: [
+            {
+              owned_by: userType,
+              current_stock: Number(equipmentStock),
+              stock_date: Timestamp.now(),
+              unit: unit
+            }
+          ]
+        });
       }
-    } catch (error) {
-      console.error("Error updating Equipment stock:", error);
-      showEquipmentStockMessage("An error occurred while updating Equipment stock.", false);
+
+      await saveActivityLog(`Added Equipment Stock for ${equipmentName} with quantity of ${equipmentStock}`);
+      showEquipmentStockMessage("Equipment Stock has been added successfully!", true);
+      closeStockPanel();
+    } else {
+      showEquipmentStockMessage("ERROR: Invalid Equipment Name unable to save data", false);
     }
-  });
+  } catch (error) {
+    console.error("Error updating Equipment stock:", error);
+    showEquipmentStockMessage("An error occurred while updating Equipment stock.", false);
+  }
+});
+
 });

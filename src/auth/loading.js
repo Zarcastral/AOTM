@@ -1,8 +1,9 @@
 export function toggleLoadingIndicator(isLoading) {
-  let loadingIndicator = document.getElementById("loading-indicator");
+  let targetDocument = window.top.document; // ✅ Always target the top page
+  let loadingIndicator = targetDocument.getElementById("loading-indicator");
 
   if (!loadingIndicator) {
-    loadingIndicator = document.createElement("div");
+    loadingIndicator = targetDocument.createElement("div");
     loadingIndicator.id = "loading-indicator";
     loadingIndicator.innerHTML = `
       <div class="spinner">
@@ -11,14 +12,13 @@ export function toggleLoadingIndicator(isLoading) {
           .join("")}
       </div>
       <style>
-        /* Centered loading overlay */
+        /* Full-page overlay */
         #loading-indicator {
-          display: none;
           position: fixed;
           top: 0;
           left: 0;
-          width: 100%;
-          height: 100%;
+          width: 100vw;
+          height: 100vh;
           background: rgba(0, 0, 0, 0.6);
           z-index: 9999;
           display: flex;
@@ -36,7 +36,7 @@ export function toggleLoadingIndicator(isLoading) {
           align-items: center;
         }
 
-        /* Dots in a circular shape */
+        /* Dots animation */
         .dot {
           position: absolute;
           width: 12px;
@@ -48,14 +48,14 @@ export function toggleLoadingIndicator(isLoading) {
           animation-delay: calc(var(--i) * 0.15s);
         }
 
-        /* Fade effect for the dots */
         @keyframes fade {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
         }
       </style>
     `;
-    document.body.appendChild(loadingIndicator);
+
+    targetDocument.body.appendChild(loadingIndicator); // ✅ Add to top-level document
   }
 
   loadingIndicator.style.display = isLoading ? "flex" : "none";

@@ -8,37 +8,15 @@ import {
   onSnapshot,
   doc
 } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-const auth = getAuth(app);
-import app from "../../config/firebase_config.js";
-const db = getFirestore(app);
 
+import app from "../../config/firebase_config.js";
+
+const db = getFirestore(app);
 let equipmentsList = []; // Declare equipmentsList globally for filtering
 let filteredEquipments = equipmentsList; // Declare a variable for filtered equipments
 let currentPage = 1;
 const rowsPerPage = 5;
 let selectedEquipments = [];
-let currentUserName = ""; // Variable to store the current user's user_name
-
-// Initialize fetches when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  getAuthenticatedUser();
-  fetchEquipmentNames();
-  fetchEquipments();
-});
-
-async function getAuthenticatedUser() {
-  return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        resolve(user);
-      } else {
-        reject("User not authenticated. Please log in.");
-      }
-    });
-  });
-}
-
 function sortEquipmentsById() {
   filteredEquipments.sort((a, b) => {
     const dateA = parseDate(a.dateAdded);
@@ -57,96 +35,20 @@ function parseDate(dateValue) {
   
   return new Date(dateValue); // Convert string/ISO formats to Date
 }
-
 // Fetch equipments data (tb_equipment) from Firestore
 async function fetchEquipments() {
-  try {
-    // Get authenticated user
-    const user = await getAuthenticatedUser();
-    const usersCollection = collection(db, "tb_users");
-    const userQuery = query(usersCollection, where("email", "==", user.email));
-    const userSnapshot = await getDocs(userQuery);
+  const equipmentsCollection = collection(db, "tb_equipment");
+  const equipmentsQuery = query(equipmentsCollection);
 
-    if (userSnapshot.empty) {
-      console.error("User not found in the database.");
-      return;
-    }
-
-    // Get user_type from the fetched user document
-    const userType = userSnapshot.docs[0].data().user_type;
-    currentUserName = userSnapshot.docs[0].data().user_name; // Store the user's username
-    console.log("Authenticated user:", currentUserName); // Log the user's username
-
-    const equipmentsCollection = collection(db, "tb_equipment");
-    const equipmentsQuery = query(equipmentsCollection);
-
-    // Listen for real-time updates
-    onSnapshot(equipmentsQuery, async (snapshot) => {
-      const equipmentsData = await Promise.all(snapshot.docs.map(async (doc) => {
-        const equipment = doc.data();
-        const equipmentId = equipment.equipment_id;
-
-        // Check if equipmentId is defined
-        if (equipmentId) {
-          const stockCollection = collection(db, "tb_equipment_stock");
-          const stockQuery = query(stockCollection, where("equipment_id", "==", equipmentId));
-          const stockSnapshot = await getDocs(stockQuery);
-
-          // Initialize stock array for this equipment
-          equipment.stocks = [];
-
-          if (!stockSnapshot.empty) {
-            // Extract stock data as arrays
-            const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
-              const stockData = stockDoc.data();
-              return stockData.stocks || []; // Access the nested stocks array if available
-            });
-
-            // Filter stock data based on user_type
-            const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-
-            if (userStockData.length > 0) {
-              equipment.stocks = userStockData;  // Save user-specific stock data as an array
-            } else {
-              // No stock for the specific user_type
-              equipment.stocks = [{
-                stock_date: null,
-                current_stock: "",
-                unit: "Stock has not been updated yet",
-                owned_by: "No stock record found for the current user type"
-              }];
-            }
-          } else {
-            // No stock data found at all
-            equipment.stocks = [{
-              stock_date: null,
-              current_stock: "",
-              unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for any user type"
-            }];
-          }
-        } else {
-          console.error("equipment_id is undefined for:", equipment.equipment_name);
-          // Skip this equipment if equipment_id is missing
-          return null;
-        }
-
-        return equipment;
-      }));
-
-      // Filter out null results if any equipment was skipped
-      const validEquipmentsData = equipmentsData.filter(equip => equip !== null);
-
-      equipmentsList = validEquipmentsData;
-      filteredEquipments = [...equipmentsList];
-      sortEquipmentsById();                  // Sort Equipments by date (latest to oldest)
-      displayEquipments(filteredEquipments);  // Update table display
-    }, (error) => {
-      console.error("Error listening to Equipments:", error);
-    });
-  } catch (error) {
-    console.error("Error fetching Equipments:", error);
-  }
+  // Listen for real-time updates
+  onSnapshot(equipmentsQuery, (snapshot) => {
+    equipmentsList = snapshot.docs.map(doc => doc.data());
+    filteredEquipments = [...equipmentsList];
+    sortEquipmentsById();          // Sort Equipments by date (latest to oldest)
+    displayEquipments(filteredEquipments); // Update table display
+  }, (error) => {
+    console.error("Error listening to Equipments:", error);
+  });
 }
 
 // Display equipments in the table with pagination
@@ -187,29 +89,24 @@ function displayEquipments(equipmentsList) {
     const equipmentId = equipment.equipment_id || "Equipment Id not recorded";
     const equipmentType = equipment.equipment_category || "Equipment Category not recorded";
     const dateAdded = equipment.dateAdded
-      ? equipment.dateAdded.toDate
-        ? equipment.dateAdded.toDate().toLocaleDateString()
-        : new Date(equipment.dateAdded).toLocaleDateString()
+      ? (equipment.dateAdded.toDate ? equipment.dateAdded.toDate().toLocaleDateString() : new Date(equipment.dateAdded).toLocaleDateString())
       : "Date not recorded";
-    equipment.stocks.forEach((stock) => {
-      const currentStock = stock.current_stock || "";
-      const unit = stock.unit || "Units";
-      const owned_by = stock.owned_by || "Owner not Recorded";
+    const currentStock = equipment.current_stock || "0";
+    const unit = equipment.unit || "units";
 
-      row.innerHTML = `
-          <td class="checkbox">
-              <input type="checkbox" data-equipment-id="${equipmentId}">
-          </td>
-          <td>${equipmentId}</td>
-          <td>${equipmentName}</td>
-          <td>${equipmentType}</td>
-          <td>${dateAdded}</td>
-          <td>${currentStock} ${unit}</td>
-          <td>${owned_by}</td>
-      `;
+    row.innerHTML = `
+        <td class="checkbox">
+            <input type="checkbox" data-equipment-id="${equipmentId}">
+        </td>
+        <td>${equipmentId}</td>
+        <td>${equipmentName}</td>
+        <td>${equipmentType}</td>
+        <td>${dateAdded}</td>
+        <td>${currentStock} ${unit}</td>
+    `;
+
     tableBody.appendChild(row);
   });
-});
   addCheckboxListeners();
   updatePagination();
   toggleBulkDeleteButton();
@@ -286,6 +183,11 @@ document.querySelector(".equipment_select").addEventListener("change", function 
   displayEquipments(filteredEquipments); // Update the table with filtered Equipments
 });
 
+// Initialize fetches when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  fetchEquipmentNames();
+  fetchEquipments();
+});
 
 // ---------------------------- equip BULK DELETE CODES ---------------------------- //
 const deletemessage = document.getElementById("equip-bulk-message"); // delete message panel

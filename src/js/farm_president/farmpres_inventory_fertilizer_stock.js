@@ -5,64 +5,29 @@ import {
   query,
   where,
   deleteDoc,
+  updateDoc,
+  Timestamp,
   onSnapshot,
   doc
 } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-const auth = getAuth(app);
+
 import app from "../../config/firebase_config.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetchFertilizerNames();
+  fetchFertilizers();
+});
+
 const db = getFirestore(app);
-
-async function getAuthenticatedUser() {
-  return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        resolve(user);
-      } else {
-        reject("User not authenticated. Please log in.");
-      }
-    });
-  });
-}
-
 let fertilizersList = []; // Declare fertilizersList globally for filtering
 let filteredFertilizers = fertilizersList; // Declare a variable for filtered fertilizers
 let currentPage = 1;
 const rowsPerPage = 5;
 let selectedFertilizers = [];
-let currentUserName = ""; // Variable to store the current user's user_name
-
-document.addEventListener("DOMContentLoaded", () => {
-  authenticateUser(); // Fetch the current user's user_name
-  fetchFertilizerNames();
-  fetchFertilizers();
-});
-
-
-// Authenticate the user and fetch their user_name
-function authenticateUser() {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const userDoc = await getDocs(
-        query(collection(db, "tb_users"), where("email", "==", user.email))
-      );
-      if (!userDoc.empty) {
-        currentUserName = userDoc.docs[0].data().user_name;
-        console.log("Authenticated user:", currentUserName); // Debug log
-        fetchFertilizers(); // Fetch Fertilizers after getting the user_name
-      } else {
-        console.error("User record not found in tb_users collection.");
-      }
-    } else {
-      console.error("No user is signed in.");
-    }
-  });
-}
-
 function sortFertilizersById() {
    filteredFertilizers.sort((a, b) => {
-    const dateA = parseDate(a.dateAdded);
-    const dateB = parseDate(b.dateAdded);
+    const dateA = parseDate(a.stock_date);
+    const dateB = parseDate(b.stock_date);
     return dateB - dateA; // Sort latest to oldest
   });
 }
@@ -77,82 +42,18 @@ function parseDate(dateValue) {
 }
 // Fetch fertilizers data (tb_fertilizer) from Firestore
 async function fetchFertilizers() {
-  try {
-    // Get authenticated user
-    const user = await getAuthenticatedUser();
-    const usersCollection = collection(db, "tb_users");
-    const userQuery = query(usersCollection, where("email", "==", user.email));
-    const userSnapshot = await getDocs(userQuery);
+  const fertilizersCollection = collection(db, "tb_fertilizer");
+  const fertilizersQuery = query(fertilizersCollection);
 
-    if (userSnapshot.empty) {
-      console.error("User not found in the database.");
-      return;
-    }
-
-    // Get user_type from the fetched user document
-    const userType = userSnapshot.docs[0].data().user_type;
-
-    const fertilizersCollection = collection(db, "tb_fertilizer");
-    const fertilizersQuery = query(fertilizersCollection);
-
-    // Listen for real-time updates
-    onSnapshot(fertilizersQuery, async (snapshot) => {
-      const fertilizersData = await Promise.all(snapshot.docs.map(async (doc) => {
-        const fertilizer = doc.data();
-        const fertilizerId = fertilizer.fertilizer_id;
-
-        // Fetch related stock data from tb_fertilizer_stock based on fertilizer_id
-        const stockCollection = collection(db, "tb_fertilizer_stock");
-        const stockQuery = query(stockCollection, where("fertilizer_id", "==", fertilizerId));
-        const stockSnapshot = await getDocs(stockQuery);
-
-        // Initialize stock array for this fertilizer
-        fertilizer.stocks = [];
-
-        if (!stockSnapshot.empty) {
-          // Extract stock data as arrays
-          const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
-            const stockData = stockDoc.data();
-            return stockData.stocks || []; // Access the nested stocks array if available
-          });
-
-          // Filter stock data for the user type
-          const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-
-          if (userStockData.length > 0) {
-            fertilizer.stocks = userStockData;  // Save user-type-specific stock data as an array
-          } else {
-            // No stock for the user type
-            fertilizer.stocks = [{
-              stock_date: null,
-              current_stock: "",
-              unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for the current user type"
-            }];
-          }
-        } else {
-          // No stock data found at all
-          fertilizer.stocks = [{
-            stock_date: null,
-            current_stock: "",
-            unit: "Stock has not been updated yet",
-            owned_by: "No stock record found for any user type"
-          }];
-        }
-
-        return fertilizer;
-      }));
-
-      fertilizersList = fertilizersData;
-      filteredFertilizers = [...fertilizersList];
-      sortFertilizersById();            // Sort Fertilizers by date (latest to oldest)
-      displayFertilizers(filteredFertilizers); // Update table display
-    }, (error) => {
-      console.error("Error listening to Fertilizers:", error);
-    });
-  } catch (error) {
-    console.error("Error fetching Fertilizers:", error);
-  }
+  // Listen for real-time updates
+  onSnapshot(fertilizersQuery, (snapshot) => {
+    fertilizersList = snapshot.docs.map(doc => doc.data());
+    filteredFertilizers = [...fertilizersList];
+    sortFertilizersById();          // Sort Fertilizers by date (latest to oldest)
+    displayFertilizers(filteredFertilizers); // Update table display
+  }, (error) => {
+    console.error("Error listening to Fertilizers:", error);
+  });
 }
 
 function displayFertilizers(fertilizersList) {
@@ -189,17 +90,12 @@ function displayFertilizers(fertilizersList) {
 
     const fertilizerName = fertilizer.fertilizer_name || "Fertilizer Name not recorded";
     const fertilizerId = fertilizer.fertilizer_id || "Fertilizer Id not recorded";
-    const fertilizerType = fertilizer.fertilizer_type || "Fertilizer Category not recorded";
-    const dateAdded = fertilizer.dateAdded
-      ? fertilizer.dateAdded.toDate
-        ? fertilizer.dateAdded.toDate().toLocaleDateString()
-        : new Date(fertilizer.dateAdded).toLocaleDateString()
+    const fertilizerType = fertilizer.fertilizer_type_name || "Fertilizer Category not recorded";
+    const stock_date = fertilizer.stock_date
+      ? (fertilizer.stock_date.toDate ? fertilizer.stock_date.toDate().toLocaleDateString() : new Date(fertilizer.stock_date).toLocaleDateString())
       : "Date not recorded";
-    fertilizer.stocks.forEach((stock) => {
-      const currentStock = stock.current_stock || "";
-      const unit = stock.unit || "Units";
-      const owned_by = stock.owned_by || "Owner not Recorded";
-
+    const currentStock = fertilizer.current_stock || "0";
+    const unit = fertilizer.unit || "units";
 
     row.innerHTML = `
         <td class="checkbox">
@@ -208,14 +104,15 @@ function displayFertilizers(fertilizersList) {
         <td>${fertilizerId}</td>
         <td>${fertilizerName}</td>
         <td>${fertilizerType}</td>
-        <td>${dateAdded}</td>
+        <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
-        <td>${owned_by}</td>
+        <td>
+          <button class="add-fert-stock-btn" id="add-fert-btn" data-id="${fertilizer.fertilizerId}">+ Add Stock</button>
+        </td>
     `;
 
     tableBody.appendChild(row);
   });
-});
   addCheckboxListeners();
   updatePagination();
   toggleBulkDeleteButton();
@@ -255,7 +152,7 @@ document.getElementById("fertilizer-next-page").addEventListener("click", () => 
 async function fetchFertilizerNames() {
   const fertilizersCollection = collection(db, "tb_fertilizer_types");
   const fertilizersSnapshot = await getDocs(fertilizersCollection);
-  const fertilizerNames = fertilizersSnapshot.docs.map(doc => doc.data().fertilizer_type);
+  const fertilizerNames = fertilizersSnapshot.docs.map(doc => doc.data().fertilizer_type_name);
 
   populateFertilizerDropdown(fertilizerNames);
 }
@@ -284,7 +181,7 @@ document.querySelector(".fertilizer_select").addEventListener("change", function
   const selectedFertilizer = this.value.toLowerCase();
   // Filter fertilizers based on selected value
   filteredFertilizers = selectedFertilizer
-    ? fertilizersList.filter(fertilizer => fertilizer.fertilizer_type?.toLowerCase() === selectedFertilizer)
+    ? fertilizersList.filter(fertilizer => fertilizer.fertilizer_type_name?.toLowerCase() === selectedFertilizer)
     : fertilizersList; // If no selection, show all fertilizers
 
   currentPage = 1; // Reset to the first page when filter is applied
@@ -437,12 +334,164 @@ document.getElementById("fert-search-bar").addEventListener("input", function ()
   filteredFertilizers = fertilizersList.filter(fertilizer => {
     return (
       fertilizer.fertilizer_name?.toLowerCase().includes(searchQuery) ||
-      fertilizer.fertilizer_type?.toLowerCase().includes(searchQuery) ||
-      fertilizer.fertilizer_id?.toString().includes(searchQuery) // Ensure ID is searchable
+      fertilizer.fertilizer_type_name?.toLowerCase().includes(searchQuery) ||
+      fertilizer.fertilizer_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
     );
   });
 
   currentPage = 1; // Reset pagination
   sortFertilizersById();
   displayFertilizers(filteredFertilizers); // Update the table with filtered Fertilizers
+});
+// <------------------ FUNCTION TO DISPLAY fertment STOCK MESSAGE ------------------------>
+const fertilizerStockMessage = document.getElementById("fert-stock-message");
+
+function showFertilizerStockMessage(message, success) {
+  fertilizerStockMessage.textContent = message;
+  fertilizerStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  fertilizerStockMessage.style.opacity = '1';
+  fertilizerStockMessage.style.display = 'block';
+
+  setTimeout(() => {
+    fertilizerStockMessage.style.opacity = '0';
+    setTimeout(() => {
+      fertilizerStockMessage.style.display = 'none';
+    }, 300);
+  }, 4000);
+}
+// <------------------ FUNCTION TO DISPLAY ADD STOCK FLOATING PANEL ------------------------>
+
+document.addEventListener("DOMContentLoaded", () => {
+  const fertilizerStockPanel = document.getElementById("fert-stock-panel");
+  const fertilizerOverlay = document.getElementById("fert-overlay");
+  const cancelBtn = document.getElementById("fert-cancel-stock");
+  const saveBtn = document.getElementById("fert-save-stock");
+
+  document.querySelector(".fertilizer_table").addEventListener("click", async function (event) {
+    if (event.target.classList.contains("add-fert-stock-btn")) {
+      const row = event.target.closest("tr");
+      if (!row) return;
+
+      const fertilizerId = row.children[1].textContent.trim();
+
+      try {
+        const fertilizerCollection = collection(db, "tb_fertilizer");
+        const fertilizerQuery = query(fertilizerCollection, where("fertilizer_id", "==", Number(fertilizerId)));
+        const querySnapshot = await getDocs(fertilizerQuery);
+
+        let fertilizerTypeName = "No category was recorded";
+        let fertilizerName = "No name was recorded";
+        let fertilizerUnit = "No unit was recorded";
+
+        if (!querySnapshot.empty) {
+          const fertilizerData = querySnapshot.docs[0].data();
+
+          fertilizerTypeName = fertilizerData.fertilizer_type_name?.trim() || "No category was recorded";
+          fertilizerName = fertilizerData.fertilizer_name?.trim() || "No name was recorded";
+          fertilizerUnit = fertilizerData.unit?.trim() || "No unit was recorded";
+
+          // Unit Dropdown Validation
+          const unitDropdown = document.getElementById("fert_unit");
+          unitDropdown.disabled = false; // Temporarily enable
+
+          const unitOptions = Array.from(unitDropdown.options).map(opt => opt.value.toLowerCase());
+
+          if (!fertilizerUnit || fertilizerUnit === "No unit was recorded") {
+            // Ensure the dropdown has "Invalid Unit"
+            let invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
+            if (!invalidOption) {
+              invalidOption = new Option("Invalid Unit", "Invalid Unit");
+              unitDropdown.add(invalidOption);
+            }
+            unitDropdown.value = "Invalid Unit";
+          } else {
+            // Check if the unit exists in the dropdown
+            if (unitOptions.includes(fertilizerUnit.toLowerCase())) {
+              unitDropdown.value = fertilizerUnit;
+            } else {
+              // Remove existing "Invalid Unit" option if any
+              const invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
+              if (invalidOption) invalidOption.remove();
+          
+              // Add "Invalid Unit" option and select it
+              const invalidOptionElement = new Option("Invalid Unit", "Invalid Unit");
+              unitDropdown.add(invalidOptionElement);
+              unitDropdown.value = "Invalid Unit";
+            }
+          }          
+
+          unitDropdown.disabled = true; // Disable it again
+        }
+
+        // Assign values to the inputs
+        document.getElementById("fert_category").value = fertilizerTypeName;
+        document.getElementById("fert_name").value = fertilizerName;
+        document.getElementById("fert_unit_hidden").value = fertilizerUnit;
+
+        fertilizerStockPanel.style.display = "block";
+        fertilizerOverlay.style.display = "block";
+        saveBtn.dataset.fertilizerId = fertilizerId;
+      } catch (error) {
+        console.error("Error fetching fertilizer details:", error);
+      }
+    }
+  });
+
+  function closeStockPanel() {
+    fertilizerStockPanel.style.display = "none";
+    fertilizerOverlay.style.display = "none";
+    document.getElementById("fert_category").value = "";
+    document.getElementById("fert_name").value = "";
+    document.getElementById("fert_stock").value = "";
+    document.getElementById("fert_unit_hidden").value = "";
+    fetchFertilizers();
+  }
+
+  cancelBtn.addEventListener("click", closeStockPanel);
+  fertilizerOverlay.addEventListener("click", closeStockPanel);
+
+  saveBtn.addEventListener("click", async function () {
+    const fertilizerId = saveBtn.dataset.fertilizerId;
+    const fertilizerTypeName = document.getElementById("fert_category").value;
+    const fertilizerName = document.getElementById("fert_name").value;
+    const fertilizerStock = document.getElementById("fert_stock").value;
+    const unit = document.getElementById("fert_unit").value;
+
+    if (!unit || unit === "Invalid Unit") {
+      unit = "No unit was recorded";
+    }
+    
+    if (!fertilizerStock || isNaN(fertilizerStock) || fertilizerStock <= 0) {
+      showFertilizerStockMessage("Please enter a valid fertilizer stock quantity.", false);
+      return;
+    }
+
+    try {
+      const fertilizersCollection = collection(db, "tb_fertilizer");
+      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
+      const querySnapshot = await getDocs(fertilizerQuery);
+
+      if (!querySnapshot.empty) {
+        const docRef = querySnapshot.docs[0].ref;
+        const existingStock = querySnapshot.docs[0].data().current_stock || 0;
+        const newStock = existingStock + Number(fertilizerStock);
+
+        await updateDoc(docRef, {
+          stock_date: Timestamp.now(),
+          fertilizer_name: fertilizerName,
+          fertilizerTypeName: fertilizerTypeName,
+          current_stock: newStock,
+          unit: unit
+        });
+
+        showFertilizerStockMessage("Fertilizer Stock has been added successfully!", true);
+        closeStockPanel();
+      } else {
+        showFertilizerStockMessage("ERROR: Invalid Fertilizer Name unable to save data", false);
+      }
+    } catch (error) {
+      console.error("Error updating Fertilizer stock:", error);
+      showFertilizerStockMessage("An error occurred while updating Fertilizer stock.", false);
+    }
+  });
 });

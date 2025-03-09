@@ -27,32 +27,35 @@
         <span class="stock-form" ><a href="admin_inventory_stock.html">Manage Inventory</a></span>
       </div>
     <div class="panel">
-      <h2>Crops</h2>
-      <div class="crop-search-bar">
-        <input type="text" id="crop-search-bar" placeholder="Search">
-        <select class="crop_select">
-          <option value="">Select Crops </option>
-        </select>
-      </div>
-      <div class="crop_table">
-        <table>
-          <thead>
-            <tr>
+      <div class="table-wrapper">
+        <h2>Crops</h2>
+        <div class="crop-search-bar">
+          <input type="text" id="crop-search-bar" placeholder="Search">
+          <select class="crop_select">
+            <option value="">Select Crops </option>
+          </select>
+        </div>
+        <div class="crop_table">
+          <table>
+            <thead>
               <tr>
-                <th class="crop-checkbox-bulk-delete" > 
-                  <button id="crop-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-              </th> 
-              <th>#</th>
-              <th>Crop Type</th>
-              <th>Crops</th>
-              <th>Date Added</th>
-              <th>Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Crops will be populated here -->
-        </tbody>
-      </table>
+                <tr>
+                  <th class="crop-checkbox-bulk-delete" > 
+                    <button id="crop-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+                </th> 
+                <th>#</th>
+                <th>Crop Type</th>
+                <th>Crops</th>
+                <th>Date Added</th>
+                <th>Stock</th>
+                <th>Owned By</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Crops will be populated here -->
+          </tbody>
+        </table>
+      </div>
       <div class="crops-pagination">
         <span id="crop-page-number">Page 1</span>
         <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
@@ -74,6 +77,7 @@
 
     <!-- Farmers Activity Panel -->
     <div class="panel">
+      <div class="table-wrapper">
       <h2>Fertilizer</h2>
       <div class="fert-search-bar">
         <input type="text" id="fert-search-bar" placeholder="Search">
@@ -93,12 +97,14 @@
             <th>Category</th>
             <th>Date Added</th>
             <th>Stock</th>
+            <th>Owned By</th>
           </tr>
         </thead>
         <tbody>
           <!-- will be populated here -->
         </tbody>
       </table>
+    </div>
         <div class="fertilizer-pagination">
           <span id="fertilizer-page-number">Page 1</span>
           <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
@@ -120,6 +126,7 @@
 
     <!-- Equipment Status Panel -->
     <div class="panel">
+      <div class="table-wrapper">
       <h2>Equipment </h2>
       <div class="equip-search-bar">
         <input type="text"  id="equip-search-bar"  placeholder="Search">
@@ -139,12 +146,14 @@
                 <th>Category</th>
                 <th>Date Added</th>
                 <th>Stock</th>
+                <th>Owned By</th>
             </tr>
           </thead>
           <tbody>
             <!-- record will be put here -->
           </tbody>    
         </table>
+      </div>
       </div>
           <div class="equipment-pagination">
             <span id="equipment-page-number">Page 1</span>
@@ -165,34 +174,64 @@
         </div>
   </div>
 
- 
-
   <!-- Account Panel with iframe to load external content -->
   <div id="account-panel" class="account-panel">
     <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
   </div>
 
   <script>
-    const accountIcon = document.getElementById("account-icon");
-    const accountPanel = document.getElementById("account-panel");
-    const accountFrame = document.getElementById("account-frame");
+    document.addEventListener("DOMContentLoaded", () => {
+      const accountIcon = document.getElementById("account-icon");
+      const accountPanel = document.getElementById("account-panel");
+      const accountFrame = document.getElementById("account-frame");
 
-    // Load content when account icon is clicked
-    accountIcon.addEventListener("click", () => {
-      accountPanel.classList.toggle("active");
+      accountIcon.addEventListener("click", () => {
+        console.log("Account icon clicked!");
 
-      // Load external content in iframe
-      if (accountPanel.classList.contains("active")) {
-        accountFrame.src = "logout.html"; // Change to the URL of your content page
-      } else {
-        accountFrame.src = ""; // Clear iframe content when panel is closed
-      }
-    });
+        accountPanel.classList.toggle("active");
+        console.log("Panel active status:", accountPanel.classList.contains("active"));
 
-    document.addEventListener("click", (event) => {
-      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
+        if (accountPanel.classList.contains("active")) {
+          accountFrame.src = "logout.html";
+          console.log("Iframe src set to logout.html");
+        } else {
+          accountFrame.src = "";
+          console.log("Iframe cleared");
+        }
+      });
+
+      // Close when clicking outside
+      document.addEventListener("click", (event) => {
+        if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
+          console.log("Clicked outside, closing panel...");
+          closeAccountPanel();
+        }
+      });
+
+      // Handle messages from iframe (logout.html)
+      window.addEventListener("message", (event) => {
+        console.log("Message received from iframe:", event.data);
+
+        if (event.data === "closeAccountPanel") {
+          console.log("Closing account panel from iframe message...");
+          closeAccountPanel();
+        }
+
+        if (event.data === "closeIframe") {
+          console.log("Closing iframe and logging out...");
+          closeAccountPanel(); // Remove the iframe
+
+          // ✅ Redirect to login page after closing iframe
+          setTimeout(() => {
+            window.top.location.href = "../../index.html"; // Ensure full-page redirect
+          }, 500);
+        }
+      });
+
+      // Function to close the account panel
+      function closeAccountPanel() {
         accountPanel.classList.remove("active");
-        accountFrame.src = ""; // Clear iframe content when clicking outside
+        accountFrame.src = "";
       }
     });
   </script>

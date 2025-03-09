@@ -1,0 +1,283 @@
+body {
+    font-family: 'Poppins';
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+
+/* Remove spinner controls for Chrome, Edge, and Safari */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.container {
+    max-width: 800px; /* Match panel width for better alignment */
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* Ensures it takes full height of the screen */
+}
+
+.panel {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 50px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 800px; 
+    margin-left: -50px;
+}
+.panel2{
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 50px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 800px; 
+    margin-left: -50px;
+
+}
+.panel h2 {
+    margin-bottom: 20px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+.form-group1 label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group3 select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.form-group1 select {
+    width: 92.5%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.form-group1 input,
+.form-group input, .form-group select {
+    width: 90%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.form-group2 select {
+    width: 98%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.form-group2 input {
+    width: 156%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group select:disabled, .form-group input:disabled {
+    background-color: #f0f0f0;
+}
+.inline-group {
+    display: flex;
+    gap: 199px;
+    margin-left: 50px;
+}
+.inline-group4 {
+    gap: 210px;
+    margin-left: 50px;
+}
+.inline-group2 {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    margin-left: 50px;
+}
+
+.inline-group3 {
+    display: flex;
+    gap: 10px;
+    align-items: center; /* Ensures everything aligns in one line */
+    flex-wrap: nowrap; /* Prevents elements from moving to the next line */
+    width: 100%;
+    margin-left: 50px;
+}
+
+.form-group3 {
+    flex: 1.5; /* Gives Crop Type & Fertilizer Type more space */
+}
+
+.form-group4 {
+    flex: 1; /* Ensures Quantity & Unit stay aligned */
+    display: flex;
+    flex-direction: column; /* Keeps label above input */
+    margin-left: 10px;
+}
+
+.form-group5 {
+    flex: 1; /* Ensures Quantity & Unit stay aligned */
+    display: flex;
+    flex-direction: column; /* Keeps label above input */
+    margin-left: -80px;
+}
+.form-group3 select {
+    width: 100%; /* Prevents it from overflowing */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group4 input {
+    width: 55.5%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    
+}
+.form-group5 select {
+    width: 55%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    
+}
+
+.inline-group .form-group {
+    flex: 1;
+}
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-left: 473px;
+
+}
+.cancel {
+    background-color: #ccc;
+    border: none;
+    padding: 10px 60px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.save {
+    background-color: #41A186;
+    color: white;
+    border: none;
+    padding: 10px 60px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+/* Medium Screens (Tablets) */
+@media screen and (max-width: 1024px) {
+    .container {
+        max-width: 90%;
+    }
+
+    .panel, .panel2 {
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .inline-group, .inline-group2, .inline-group3, .inline-group4 {
+        flex-direction: column;
+        gap: 10px;
+        margin-left: 0;
+    }
+
+    .form-group1 select,
+    .form-group1 input,
+    .form-group input,
+    .form-group select {
+        width: 100%;
+    }
+
+    .form-group2 input {
+        width: 100%;
+    }
+
+    .button-group {
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center;
+    }
+}
+
+/* Small Screens (Mobile) */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        max-width: 100%;
+    }
+
+    .panel, .panel2 {
+        width: 100%;
+        padding: 15px;
+    }
+
+    .form-group,
+    .form-group1,
+    .form-group2,
+    .form-group3,
+    .form-group4,
+    .form-group5 {
+        width: 100%;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group1 input,
+    .form-group1 select,
+    .form-group2 input,
+    .form-group2 select,
+    .form-group3 select,
+    .form-group4 input,
+    .form-group5 select {
+        width: 100%;
+    }
+
+    .inline-group,
+    .inline-group2,
+    .inline-group3,
+    .inline-group4 {
+        flex-direction: column;
+        gap: 5px;
+        margin-left: 0;
+    }
+
+    .button-group {
+        flex-direction: column;
+        margin-left: 0;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .cancel,
+    .save {
+        width: 100%;
+        padding: 10px;
+    }
+}

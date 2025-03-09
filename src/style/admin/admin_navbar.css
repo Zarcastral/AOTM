@@ -1,5 +1,5 @@
 body {
-  font-family: 'Poppins';
+  font-family: "Poppins";
   margin: 0;
   padding: 0;
 }
@@ -71,68 +71,68 @@ body {
 /* Individual Hover Effects */
 .dash a:hover img,
 .dash a.selected img {
-  content: url(../../images/dashGreen.png);
+  content: url(../../../public/images/dashGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .proj a:hover img,
 .proj a.selected img {
-  content: url(../../images/graphGreen.png);
+  content: url(../../../public/images/graphGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .harv a:hover img,
 .harv a.selected img {
-  content: url(../../images/bagGreen.png);
+  content: url(../../../public/images/bagGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .inv a:hover img,
 .inv a.selected img {
-  content: url(../../images/boxGreen.png);
+  content: url(../../../public/images/boxGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .farm a:hover img,
 .farm a.selected img {
-  content: url(../../images/profileGreen.png);
+  content: url(../../../public/images/profileGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .use a:hover img,
 .use a.selected img {
-  content: url(../../images/userGreen.png);
+  content: url(../../../public/images/userGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .rep a:hover img,
 .rep a.selected img {
-  content: url(../../images/folderGreen.png);
+  content: url(../../../public/images/folderGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .act a:hover img,
 .act a.selected img {
-  content: url(../../images/archiveGreen.png);
+  content: url(../../../public/images/archiveGreen.png);
   height: 20px;
   width: 20px;
 }
 .task a:hover img,
 .task a.selected img {
-  content: url(../../images/flashGreen.png);
+  content: url(../../../public/images/flashGreen.png);
   height: 20px;
   width: 20px;
 }
 .sett a:hover img,
 .sett a.selected img {
-  content: url(../../images/settingGreen.png);
+  content: url(../../../public/images/settingGreen.png);
   height: 20px;
   width: 20px;
 }
@@ -141,7 +141,7 @@ body {
 .tools-section {
   padding: 12px 20px;
   font-size: 18px;
-  color: #41A186;
+  color: #41a186;
 }
 
 /* Settings Positioned at the Bottom */
@@ -183,7 +183,7 @@ iframe {
   top: 10px;
   left: 10px;
   z-index: 60;
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   border: none;
   padding: 10px;

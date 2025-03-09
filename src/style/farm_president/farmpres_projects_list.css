@@ -457,6 +457,37 @@ input[type="checkbox"] {
     justify-content: space-between;
     margin-top: 20px;
 }
+
+
+/*team assign*/
+.team-assign-box {
+    width: 100%;
+    max-width: 500px;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.team-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.team-item {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+
+
+
+
 /* Responsive styles */
 @media (max-width: 1024px) {
     .main-content {
