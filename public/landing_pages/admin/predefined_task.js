@@ -263,7 +263,7 @@ confirmDeleteBtn.addEventListener("click", async () => {
     // Remove task from the UI
     const taskItem = document
       .querySelector(`[data-id="${taskToDeleteId}"]`)
-      .closest("li");
+      .closest("tr");
     taskItem.remove();
 
     // Reset taskToDeleteId and hide the modal
