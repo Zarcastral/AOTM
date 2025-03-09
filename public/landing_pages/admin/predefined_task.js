@@ -228,17 +228,20 @@ saveSubtasksBtn.addEventListener("click", async () => {
 });
 
 async function fetchTasks() {
-  taskList.innerHTML = "";
+  const taskList = document.getElementById("task-list");
+  taskList.innerHTML = ""; // Clear existing rows
   const querySnapshot = await getDocs(collection(db, "tb_pretask"));
   querySnapshot.forEach((doc) => {
     const taskData = doc.data();
-    const taskItem = document.createElement("li");
-    taskItem.innerHTML = `
-        ${taskData.task_name} 
-        <button class="edit-task-btn" data-id="${doc.id}">Edit</button>
-        <button class="delete-task-btn" data-id="${doc.id}">Delete</button>
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${taskData.task_name}</td>
+        <td>
+         <button class="edit-task-btn" data-id="${doc.id}">Edit</button>
+         <button class="delete-task-btn" data-id="${doc.id}">Delete</button>
+        </td>
       `;
-    taskList.appendChild(taskItem);
+    taskList.appendChild(row);
   });
 
   // Add delete task functionality
