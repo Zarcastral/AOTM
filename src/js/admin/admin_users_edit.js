@@ -102,14 +102,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             try {
                 const q = query(collection(db, "tb_users"), where("user_name", "==", username));
                 const querySnapshot = await getDocs(q);
-        
+
                 if (!querySnapshot.empty) {
                     const userData = querySnapshot.docs[0].data();
                     const user_picture = userData.user_picture;
-        
+
                     if (user_picture) {
-                        document.getElementById("profile-picture").src = user_picture;
-                        originalImageSrc = user_picture;
+                        const profilePicture = document.getElementById("profile-picture");
+                        profilePicture.src = user_picture;
+                    
+                        // Add click event listener to the profile picture
+                        profilePicture.addEventListener("click", () => {
+                            const modal = document.getElementById("imageModal");
+                            const modalImg = document.getElementById("modalImage");
+                            const captionText = document.getElementById("caption");
+                    
+                            modal.style.display = "block";
+                            modalImg.src = profilePicture.src; // Use the current src value of the p
+                            captionText.innerHTML = "Profile Picture of: " + username;
+
+                            // Close the modal when the close button is clicked
+                            const span = document.getElementsByClassName("close")[0];
+                            span.onclick = function() {
+                                modal.style.display = "none";
+                            }
+                        });
                     }
                 } else {
                     console.log("No user found with the given user_name.");
@@ -117,6 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } catch (error) {
                 console.error("Error fetching profile picture:", error);
             }
+
             
     // When no file is selected, revert the image back to the original profile picture
     document.getElementById("profile_picture").addEventListener("change", handleFileSelect);

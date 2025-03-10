@@ -133,7 +133,7 @@ tbody tr:hover {
 
 /* New User Button */
 .add-user-btn {
-    background-color: #4CAF50;
+    background-color: #41A186; /*light shade*/
     color: white;
     padding: 12px 20px;
     font-size: 18px;
@@ -147,7 +147,7 @@ tbody tr:hover {
 }
 
 .add-user-btn:hover {
-    background-color: #38853c; 
+    background-color: #318a71; /*dark shade hover */
     text-decoration: none;
     transition: background-color 0.3s ease;
 }
@@ -225,13 +225,13 @@ tbody tr:hover {
 }
 
 .confirm-btn {
-    background-color: #4CAF50;
+    background-color: #41A186; /*light shade*/
     color: white;
     border: none;
 }
 
 .confirm-btn:hover {
-    background-color: #38853c;
+    background-color: #318a71; /*dark shade hover */
     transition: background-color 0.3s ease;
 }
 
@@ -375,13 +375,13 @@ tbody tr:hover {
 }
 
 .bulk-confirm-btn {
-    background-color: #4CAF50;
+    background-color: #41A186; /*light shade*/
     color: white;
     border: none;
 }
 
 .bulk-confirm-btn:hover {
-    background-color: #38853c;
+    background-color: #318a71; /*dark shade hover */
     transition: background-color 0.3s ease;
 }
 
@@ -402,7 +402,7 @@ tbody tr:hover {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #4CAF50;
+    background-color: #41A186; /*light shade*/
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
