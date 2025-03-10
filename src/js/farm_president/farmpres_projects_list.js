@@ -344,9 +344,7 @@ async function teamAssign(project_id) {
                     if (!querySnapshot.empty) {
                         querySnapshot.forEach(async (doc) => {
                             const projectRef = doc.ref;
-
-                            // Get current date in ISO format
-                            const currentDate = new Date().toISOString();
+                            const currentDate = new Date().toISOString(); // Get current date
 
                             await updateDoc(projectRef, {
                                 team_id: selectedTeam.team_id,
@@ -355,7 +353,8 @@ async function teamAssign(project_id) {
                                 farmer_name: selectedTeam.farmer_name,
                                 crop_date: currentDate,
                                 fertilizer_date: currentDate,
-                                equipment_date: currentDate
+                                equipment_date: currentDate,
+                                status: "Ongoing" // ✅ Status updated from Pending to Ongoing
                             });
 
                             localStorage.setItem("projectData", JSON.stringify({
@@ -366,10 +365,11 @@ async function teamAssign(project_id) {
                                 farmer_name: selectedTeam.farmer_name,
                                 crop_date: currentDate,
                                 fertilizer_date: currentDate,
-                                equipment_date: currentDate
+                                equipment_date: currentDate,
+                                status: "Ongoing"
                             }));
 
-                            alert(`Team "${selectedTeam.team_name}" has been successfully assigned!`);
+                            alert(`Team "${selectedTeam.team_name}" has been successfully assigned! Project status updated to Ongoing.`);
                             
                             // Redirect to farmpres_project.html after successful save
                             window.location.href = "farmpres_project.html";
@@ -401,6 +401,7 @@ async function teamAssign(project_id) {
         if (cancelTeamAssign) cancelTeamAssign.addEventListener("click", resetTeamSelection);
     }, 100);
 }
+
 
 
 
