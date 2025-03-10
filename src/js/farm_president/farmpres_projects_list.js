@@ -234,7 +234,6 @@ tableBody.addEventListener("click", (event) => {
 
 //TEAM ASSIGN
 async function teamAssign(project_id) {
-    // Show the confirmation popup
     const panel = document.getElementById("team-assign-confirmation-panel");
     if (!panel) {
         console.error("Error: Confirmation panel not found!");
@@ -250,53 +249,53 @@ async function teamAssign(project_id) {
         const projectSnapshot = await getDocs(projectQuery);
         const assignedTeamIds = new Set();
 
-        // Collect team_ids that are already assigned to active projects (convert to integer)
         projectSnapshot.forEach((doc) => {
             const projectData = doc.data();
             if (projectData.team_id) {
-                assignedTeamIds.add(parseInt(projectData.team_id, 10)); // Ensure it's an integer
+                assignedTeamIds.add(parseInt(projectData.team_id, 10));
             }
         });
 
-        console.log("Assigned Team IDs:", Array.from(assignedTeamIds)); // Debugging
+        console.log("Assigned Team IDs:", Array.from(assignedTeamIds));
 
         // Fetch available teams
         const teamQuery = query(collection(db, "tb_teams"), where("barangay_name", "==", userBarangay));
         const teamSnapshot = await getDocs(teamQuery);
 
-        let displayedTeamIds = []; // Store displayed team IDs
-        let teamListHtml = `<div class="team-assign-box">
-                                <h3>Available Teams</h3>
-                                <div class="team-list-container">`;
+        let displayedTeamIds = [];
+        let teamListHtml = `
+            <div class="team-assign-box">
+                <h3>Available Teams</h3>
+                <div class="team-list-container">
+        `;
 
         teamSnapshot.forEach((doc) => {
             const teamData = doc.data();
-            const teamId = parseInt(teamData.team_id, 10); // Ensure it's an integer
+            const teamId = parseInt(teamData.team_id, 10);
 
-            console.log(`Checking team: ${teamId} (Is assigned? ${assignedTeamIds.has(teamId)})`); // Debugging
+            console.log(`Checking team: ${teamId} (Is assigned? ${assignedTeamIds.has(teamId)})`);
 
-            // 🚀 **NEW FIX: Skip teams that are already assigned**
-            if (assignedTeamIds.has(teamId)) {
-                return; // This team is already assigned, so we don't display it
-            }
+            if (assignedTeamIds.has(teamId)) return; // Skip already assigned teams
 
-            displayedTeamIds.push(teamId); // Add to displayed teams list
+            displayedTeamIds.push(teamId);
             const teamName = teamData.team_name;
             const leadFarmer = teamData.lead_farmer;
             const totalFarmers = teamData.farmer_name ? teamData.farmer_name.length : 0;
 
-            teamListHtml += `<div class="team-item" 
-                                data-team-id="${teamId}" 
-                                data-team-name="${teamName}" 
-                                data-lead-farmer="${leadFarmer}" 
-                                data-farmers='${JSON.stringify(teamData.farmer_name || [])}'>
-                                <strong>${teamName}</strong><br>
-                                Lead: ${leadFarmer}<br>
-                                Total Farmers: ${totalFarmers}
-                             </div>`;
+            teamListHtml += `
+                <div class="team-item" 
+                     data-team-id="${teamId}" 
+                     data-team-name="${teamName}" 
+                     data-lead-farmer="${leadFarmer}" 
+                     data-farmers='${JSON.stringify(teamData.farmer_name || [])}'>
+                    <strong>${teamName}</strong><br>
+                    Lead: ${leadFarmer}<br>
+                    Total Farmers: ${totalFarmers}
+                </div>
+            `;
         });
 
-        console.log("Displayed Team IDs (After Filtering):", displayedTeamIds); // Debugging
+        console.log("Displayed Team IDs (After Filtering):", displayedTeamIds);
 
         teamListHtml += "</div></div>";
         document.getElementById("team-assign-list").innerHTML = teamListHtml;
@@ -345,11 +344,18 @@ async function teamAssign(project_id) {
                     if (!querySnapshot.empty) {
                         querySnapshot.forEach(async (doc) => {
                             const projectRef = doc.ref;
+
+                            // Get current date in ISO format
+                            const currentDate = new Date().toISOString();
+
                             await updateDoc(projectRef, {
-                                team_id: selectedTeam.team_id, // Store as integer
+                                team_id: selectedTeam.team_id,
                                 team_name: selectedTeam.team_name,
                                 lead_farmer: selectedTeam.lead_farmer,
-                                farmer_name: selectedTeam.farmer_name
+                                farmer_name: selectedTeam.farmer_name,
+                                crop_date: currentDate,
+                                fertilizer_date: currentDate,
+                                equipment_date: currentDate
                             });
 
                             localStorage.setItem("projectData", JSON.stringify({
@@ -357,7 +363,10 @@ async function teamAssign(project_id) {
                                 team_id: selectedTeam.team_id,
                                 team_name: selectedTeam.team_name,
                                 lead_farmer: selectedTeam.lead_farmer,
-                                farmer_name: selectedTeam.farmer_name
+                                farmer_name: selectedTeam.farmer_name,
+                                crop_date: currentDate,
+                                fertilizer_date: currentDate,
+                                equipment_date: currentDate
                             }));
 
                             alert(`Team "${selectedTeam.team_name}" has been successfully assigned!`);
@@ -373,7 +382,6 @@ async function teamAssign(project_id) {
                     alert("An error occurred while assigning the team. Please try again.");
                 }
 
-                // Close popup
                 panel.style.display = "none";
             };
         } else {
@@ -393,29 +401,6 @@ async function teamAssign(project_id) {
         if (cancelTeamAssign) cancelTeamAssign.addEventListener("click", resetTeamSelection);
     }, 100);
 }
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
