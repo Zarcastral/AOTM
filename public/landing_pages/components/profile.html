@@ -97,13 +97,10 @@
     <div id="error-message" style="color: red;"></div>
   </div>
 
-  <script src="../../../src/js/components/profile.js"></script>
+  <script type="module" src="../../../src/js/components/profile.js"></script>
 
-  <!-- Import the reusable header script -->
-  <script type="module">
-    import { loadHeader } from '../../../src/auth/header.js';
-    loadHeader('header-container');
-  </script>
+  <!-- Import the reusable script from src/auth -->
+  <script type="module" src="../../../src/auth/header.js"></script>
 
 
 </body>

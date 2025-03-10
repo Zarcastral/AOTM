@@ -1,16 +1,19 @@
 import { toggleLoadingIndicator } from "./loading.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  fetch("../components/header.html")
-    .then((response) => response.text())
-    .then((data) => {
-      document.getElementById("header-container").innerHTML = data;
-
-      // Initialize the header events after loading
-      initializeHeaderEvents();
-    })
-    .catch((error) => console.error("Error loading header:", error));
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadHeader("header-container");
+  initializeHeaderEvents();
 });
+
+async function loadHeader(containerId) {
+  try {
+    const response = await fetch("../components/header.html");
+    const data = await response.text();
+    document.getElementById(containerId).innerHTML = data;
+  } catch (error) {
+    console.error("Error loading header:", error);
+  }
+}
 
 function initializeHeaderEvents() {
   const accountIcon = document.getElementById("account-icon");
@@ -22,43 +25,36 @@ function initializeHeaderEvents() {
     return;
   }
 
-  accountIcon.addEventListener("click", () => {
-    accountPanel.classList.toggle("active");
-    accountFrame.src = accountPanel.classList.contains("active")
-      ? "../components/logout.html"
-      : "";
-  });
+  accountIcon.addEventListener("click", toggleAccountPanel);
+  window.addEventListener("message", handleIframeMessages);
 
-  // Handle messages from iframe (logout.html)
-  window.addEventListener("message", (event) => {
-    if (event.data === "closeAccountPanel") {
-      closeAccountPanel();
-    } else if (event.data === "closeIframe") {
-      closeAccountPanel();
-      toggleLoadingIndicator(true); // Ensure function is properly imported
+  function toggleAccountPanel() {
+    const isActive = accountPanel.classList.toggle("active");
+    accountFrame.src = isActive ? "../components/logout.html" : "";
+  }
 
-      setTimeout(() => {
-        sessionStorage.clear();
-        window.top.location.href = "../../index.html";
-      }, 1500);
-    } else if (event.data === "navigateToProfile") {
-      closeAccountPanel();
-      window.location.href = "../components/profile.html"; // Redirect to profile
+  function handleIframeMessages(event) {
+    switch (event.data) {
+      case "closeAccountPanel":
+        closeAccountPanel();
+        break;
+      case "closeIframe":
+        closeAccountPanel();
+        toggleLoadingIndicator(true);
+        setTimeout(() => {
+          sessionStorage.clear();
+          window.top.location.href = "../../index.html";
+        }, 1500);
+        break;
+      case "navigateToProfile":
+        closeAccountPanel();
+        window.location.href = "../components/profile.html";
+        break;
     }
-  });
+  }
 
   function closeAccountPanel() {
     accountPanel.classList.remove("active");
     accountFrame.src = "";
   }
-}
-
-// header.js
-export function loadHeader(containerId) {
-  fetch("../../../src/auth/header.html")
-    .then((response) => response.text())
-    .then((data) => {
-      document.getElementById(containerId).innerHTML = data;
-    })
-    .catch((error) => console.error("Error loading header:", error));
 }
