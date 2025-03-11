@@ -21,20 +21,37 @@ const auth = getAuth();
 // Initialize fetches when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   fetchEquipmentNames();
-  getAuthenticatedUser();
   fetchEquipments();
 });
+
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        resolve(user);
+        try {
+          const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+          const userSnapshot = await getDocs(userQuery);
+
+          if (!userSnapshot.empty) {
+            const userName = userSnapshot.docs[0].data().user_name;
+            console.log("Authenticated user's user_name:", userName);
+            resolve(user); // Resolve with user object if needed
+          } else {
+            console.error("User record not found in tb_users collection.");
+            reject("User record not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching user_name:", error);
+          reject(error);
+        }
       } else {
-        reject("User not authenticated. Please log in.");
+        console.error("User not authenticated. Please log in.");
+        reject("User not authenticated.");
       }
     });
   });
 }
+
 
 async function saveActivityLog(action) {
   // Use onAuthStateChanged to wait for authentication status
@@ -170,24 +187,33 @@ async function fetchEquipments() {
           equipment.stocks = [];
 
           if (!stockSnapshot.empty) {
-            // Extract stock data as arrays
             const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
               const stockData = stockDoc.data();
               return stockData.stocks || []; // Access the nested stocks array if available
             });
-
-            // Filter stock data based on user_type
-            const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-
-            if (userStockData.length > 0) {
-              equipment.stocks = userStockData;  // Save user-specific stock data as an array
+          
+            if (stockDataArray.length > 0) {
+              // Filter stock data for the authenticated user based on user_type
+              const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
+          
+              if (userStockData.length > 0) {
+                equipment.stocks = userStockData;  // Save user-specific stock data as an array
+              } else {
+                // Stocks exist but not for the current user_type
+                equipment.stocks = [{
+                  stock_date: null,
+                  current_stock: "",
+                  unit: "Stock has not been updated yet",
+                  owned_by: "No stock record found for the current user type"
+                }];
+              }
             } else {
-              // No stock for the specific user_type
+              // `stocks` array is empty for all users
               equipment.stocks = [{
                 stock_date: null,
                 current_stock: "",
                 unit: "Stock has not been updated yet",
-                owned_by: "No stock record found for the current user type"
+                owned_by: "No stock record found for any user type"
               }];
             }
           } else {
@@ -280,7 +306,7 @@ function displayEquipments(equipmentsList) {
         <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
         <td>
-          <button class="add-equip-stock-btn" id="add-equip-stock-btn" data-id="${equipment.cropTypeId}">+ Add Stock</button>
+          <button class="add-equip-stock-btn" id="add-equip-stock-btn" data-id="${equipment.equipmentId}">+ Add Stock</button>
         </td>
     `;
 

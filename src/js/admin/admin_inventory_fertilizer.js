@@ -15,15 +15,32 @@ const db = getFirestore(app);
 
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        resolve(user);
+        try {
+          const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+          const userSnapshot = await getDocs(userQuery);
+
+          if (!userSnapshot.empty) {
+            const userName = userSnapshot.docs[0].data().user_name;
+            console.log("Authenticated user's user_name:", userName);
+            resolve(user); // Resolve with user object if needed
+          } else {
+            console.error("User record not found in tb_users collection.");
+            reject("User record not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching user_name:", error);
+          reject(error);
+        }
       } else {
-        reject("User not authenticated. Please log in.");
+        console.error("User not authenticated. Please log in.");
+        reject("User not authenticated.");
       }
     });
   });
 }
+
 
 let fertilizersList = []; // Declare fertilizersList globally for filtering
 let filteredFertilizers = fertilizersList; // Declare a variable for filtered fertilizers
@@ -33,31 +50,10 @@ let selectedFertilizers = [];
 let currentUserName = ""; // Variable to store the current user's user_name
 
 document.addEventListener("DOMContentLoaded", () => {
-  authenticateUser(); // Fetch the current user's user_name
   fetchFertilizerNames();
   fetchFertilizers();
 });
 
-
-// Authenticate the user and fetch their user_name
-function authenticateUser() {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const userDoc = await getDocs(
-        query(collection(db, "tb_users"), where("email", "==", user.email))
-      );
-      if (!userDoc.empty) {
-        currentUserName = userDoc.docs[0].data().user_name;
-        console.log("Authenticated user:", currentUserName); // Debug log
-        fetchFertilizers(); // Fetch Fertilizers after getting the user_name
-      } else {
-        console.error("User record not found in tb_users collection.");
-      }
-    } else {
-      console.error("No user is signed in.");
-    }
-  });
-}
 
 function sortFertilizersById() {
    filteredFertilizers.sort((a, b) => {
@@ -75,6 +71,8 @@ function parseDate(dateValue) {
   
   return new Date(dateValue); // Convert string/ISO formats to Date
 }
+
+
 // Fetch fertilizers data (tb_fertilizer) from Firestore
 async function fetchFertilizers() {
   try {
@@ -110,24 +108,33 @@ async function fetchFertilizers() {
         fertilizer.stocks = [];
 
         if (!stockSnapshot.empty) {
-          // Extract stock data as arrays
           const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
             const stockData = stockDoc.data();
             return stockData.stocks || []; // Access the nested stocks array if available
           });
-
-          // Filter stock data for the user type
-          const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-
-          if (userStockData.length > 0) {
-            fertilizer.stocks = userStockData;  // Save user-type-specific stock data as an array
+        
+          if (stockDataArray.length > 0) {
+            // Filter stock data for the authenticated user based on user_type
+            const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
+        
+            if (userStockData.length > 0) {
+              fertilizer.stocks = userStockData;  // Save user-specific stock data as an array
+            } else {
+              // Stocks exist but not for the current user_type
+              fertilizer.stocks = [{
+                stock_date: null,
+                current_stock: "",
+                unit: "Stock has not been updated yet",
+                owned_by: "No stock record found for the current user type"
+              }];
+            }
           } else {
-            // No stock for the user type
+            // `stocks` array is empty for all users
             fertilizer.stocks = [{
               stock_date: null,
               current_stock: "",
               unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for the current user type"
+              owned_by: "No stock record found for any user type"
             }];
           }
         } else {
@@ -138,7 +145,7 @@ async function fetchFertilizers() {
             unit: "Stock has not been updated yet",
             owned_by: "No stock record found for any user type"
           }];
-        }
+        }  
 
         return fertilizer;
       }));
@@ -343,8 +350,9 @@ document.getElementById("cancel-fert-delete").addEventListener("click", () => {
 document.getElementById("fert-bulk-delete").addEventListener("click", async () => {
   const selectedCheckboxes = document.querySelectorAll(".fertilizer_table input[type='checkbox']:checked");
 
-  let selectedFertilizerIds = [];
+  let selectedfertilizerIds = [];
   let hasInvalidId = false;
+  let hasStocks = false;  // Flag to track if stocks exist
 
   for (const checkbox of selectedCheckboxes) {
       const fertilizerId = checkbox.getAttribute("data-fertilizer-id");
@@ -355,7 +363,7 @@ document.getElementById("fert-bulk-delete").addEventListener("click", async () =
           break;
       }
 
-      /* Check if the fertilizer_id exists in the database */
+      /* Check if the fertilizerType_id exists in the database */
       try {
           const q = query(collection(db, "tb_fertilizer"), where("fertilizer_id", "==", Number(fertilizerId)));
           const querySnapshot = await getDocs(q);
@@ -366,22 +374,46 @@ document.getElementById("fert-bulk-delete").addEventListener("click", async () =
               break;
           }
 
-          selectedFertilizerIds.push(fertilizerId);
+          // Check if there are stocks for this Fertilizer_type_id by querying tb_Fertilizer_stock
+          const stockQuery = query(collection(db, "tb_fertilizer_stock"), where("fertilizer_id", "==", Number(fertilizerId)));
+          const stockSnapshot = await getDocs(stockQuery);
+
+          if (!stockSnapshot.empty) {
+              for (const stockDoc of stockSnapshot.docs) {
+                  const stocksArray = stockDoc.data().stocks;
+                  if (Array.isArray(stocksArray) && stocksArray.length > 0) {
+                      hasStocks = true;
+                      console.error(`ERROR: Fertilizer ID ${fertilizerId} has stocks and cannot be deleted.`);
+                      break;
+                  }
+              }
+          }
+
+          if (hasStocks) break;  // Stop further checks if stocks are found
+
+          selectedfertilizerIds.push(fertilizerId);
       } catch (error) {
-          console.error("Error fetching fertilizer records:", error);
+          console.error("Error fetching Fertilizer records or stocks:", error);
           hasInvalidId = true;
           break;
       }
   }
 
   if (hasInvalidId) {
-      showDeleteMessage("ERROR: Fertilizier ID of one or more selected records are invalid", false);
+      showDeleteMessage("ERROR: Fertilizer ID of one or more selected records are invalid", false);
+  } else if (hasStocks) {
+      showDeleteMessage("ERROR: One or more selected Fertilizers have existing stocks", false);
   } else {
       document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
   }
 });
 
-// FUNCTION FOR DELETING THE SELECTED FERTILIZERS
+// Close the Bulk Delete Panel
+document.getElementById("cancel-fert-delete").addEventListener("click", () => {
+  document.getElementById("fert-bulk-panel").style.display = "none";
+});
+
+// Function to delete selected Fertilizers from both tb_Fertilizer_types and tb_Fertilizer_stock in Firestore
 async function deleteSelectedFertilizers() {
   if (selectedFertilizers.length === 0) {
     return;
@@ -389,26 +421,48 @@ async function deleteSelectedFertilizers() {
 
   try {
     const fertilizersCollection = collection(db, "tb_fertilizer");
+    const stocksCollection = collection(db, "tb_fertilizer_stock");
+    const batch = writeBatch(db);  // Create a batch for efficient deletions
 
-    // Loops through selected fertilizers and delete them
     for (const fertilizerId of selectedFertilizers) {
+      // Delete from tb_Fertilizer_types
       const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-      const querySnapshot = await getDocs(fertilizerQuery);
+      const fertilizerSnapshot = await getDocs(fertilizerQuery);
 
-      querySnapshot.forEach(async (docSnapshot) => {
-        await deleteDoc(doc(db, "tb_fertilizer", docSnapshot.id));
-      });
+      if (!fertilizerSnapshot.empty) {
+        for (const docSnapshot of fertilizerSnapshot.docs) {
+          console.log("Deleting document ID from tb_fertilizer:", docSnapshot.id);
+          batch.delete(doc(db, "tb_fertilizer", docSnapshot.id));  // Add to batch
+        }
+      } else {
+        console.error(`ERROR: Fertilizer ID ${fertilizerId} does not exist in tb_fertilizer.`);
+      }
+
+      // Delete from tb_fertilizer_stock
+      const stockQuery = query(stocksCollection, where("fertilizer_id", "==", Number(fertilizerId)));
+      const stockSnapshot = await getDocs(stockQuery);
+
+      if (!stockSnapshot.empty) {
+        for (const stockDoc of stockSnapshot.docs) {
+          console.log("Deleting document ID from tb_fertilizer_stock:", stockDoc.id);
+          batch.delete(doc(db, "tb_fertilizer_stock", stockDoc.id));  // Add to batch
+        }
+      } else {
+        console.warn(`WARNING: No matching stocks found for Fertilizer ID ${fertilizerId} in tb_fertilizer_stock.`);
+      }
     }
 
-    console.log("Deleted fertilizers:", selectedFertilizers);
-    showDeleteMessage("All selected Fertilizer records successfully deleted!", true);
-    selectedFertilizers = [];
-
+    // Commit all deletions in a batch
+    await batch.commit();
+    console.log("Deleted ferts and Stocks:", selectedFertilizers);
+    showDeleteMessage("All selected Fertilizer records and their stocks successfully deleted!", true);
+    selectedFertilizers = [];  // Clear selection AFTER successful deletion
     document.getElementById("fert-bulk-panel").style.display = "none";
-    fetchFertilizers();
+    fetchFertilizers();  // Refresh the table
+
   } catch (error) {
-    console.error("Error deleting fertilizers:", error);
-    showDeleteMessage("Error deleting fertilizers!", false);
+    console.error("Error deleting Fertilizers or stocks:", error);
+    showDeleteMessage("Error deleting Fertilizers or stocks!", false);
   }
 }
 

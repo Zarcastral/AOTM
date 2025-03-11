@@ -5,6 +5,8 @@ import {
   query,
   where,
   deleteDoc,
+  writeBatch,
+  getDoc,
   onSnapshot,
   doc
 } from "firebase/firestore";
@@ -19,26 +21,6 @@ const rowsPerPage = 5;
 let filteredCrops = []; // Initialize filteredCrops with an empty array
 let selectedCrops = [];
 let currentUserName = ""; // Variable to store the current user's user_name
-
-// Authenticate the user and fetch their user_name
-function authenticateUser() {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const userDoc = await getDocs(
-        query(collection(db, "tb_users"), where("email", "==", user.email))
-      );
-      if (!userDoc.empty) {
-        currentUserName = userDoc.docs[0].data().user_name;
-        console.log("Authenticated user:", currentUserName); // Debug log
-        fetchCrops(); // Fetch crops after getting the user_name
-      } else {
-        console.error("User record not found in tb_users collection.");
-      }
-    } else {
-      console.error("No user is signed in.");
-    }
-  });
-}
 
 // Sort crops by date (latest to oldest)
 function sortCropsById() {
@@ -61,15 +43,32 @@ function parseDate(dateValue) {
 }
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        resolve(user);
+        try {
+          const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+          const userSnapshot = await getDocs(userQuery);
+
+          if (!userSnapshot.empty) {
+            const userName = userSnapshot.docs[0].data().user_name;
+            console.log("Authenticated user's user_name:", userName);
+            resolve(user); // Resolve with user object if needed
+          } else {
+            console.error("User record not found in tb_users collection.");
+            reject("User record not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching user_name:", error);
+          reject(error);
+        }
       } else {
-        reject("User not authenticated. Please log in.");
+        console.error("User not authenticated. Please log in.");
+        reject("User not authenticated.");
       }
     });
   });
 }
+
 
 // Real-time listener for crops collection
 async function fetchCrops() {
@@ -106,24 +105,33 @@ async function fetchCrops() {
         crop.stocks = [];
 
         if (!stockSnapshot.empty) {
-          // Extract stock data as arrays
           const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
             const stockData = stockDoc.data();
             return stockData.stocks || []; // Access the nested stocks array if available
           });
-
-          // Filter stock data for the authenticated user based on user_type
-          const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-
-          if (userStockData.length > 0) {
-            crop.stocks = userStockData;  // Save user-specific stock data as an array
+        
+          if (stockDataArray.length > 0) {
+            // Filter stock data for the authenticated user based on user_type
+            const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
+        
+            if (userStockData.length > 0) {
+              crop.stocks = userStockData;  // Save user-specific stock data as an array
+            } else {
+              // Stocks exist but not for the current user_type
+              crop.stocks = [{
+                stock_date: null,
+                current_stock: "",
+                unit: "Stock has not been updated yet",
+                owned_by: "No stock record found for the current user type"
+              }];
+            }
           } else {
-            // No stock for the authenticated user
+            // `stocks` array is empty for all users
             crop.stocks = [{
               stock_date: null,
               current_stock: "",
               unit: "Stock has not been updated yet",
-              owned_by: "No stock record found for the current user type"
+              owned_by: "No stock record found for any user type"
             }];
           }
         } else {
@@ -134,8 +142,7 @@ async function fetchCrops() {
             unit: "Stock has not been updated yet",
             owned_by: "No stock record found for any user type"
           }];
-        }
-
+        }        
         return crop;
       }));
 
@@ -150,6 +157,7 @@ async function fetchCrops() {
     console.error("Error fetching crops:", error);
   }
 }
+
 
 // Display crops in the table
 function displayCrops(cropsList) {
@@ -215,7 +223,6 @@ function displayCrops(cropsList) {
 }
 // Initialize fetches when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  authenticateUser(); // Fetch the current user's user_name
   fetchCropNames();
   fetchCrops();
 });
@@ -337,6 +344,7 @@ document.getElementById("crop-bulk-delete").addEventListener("click", async () =
 
   let selectedCropTypeIds = [];
   let hasInvalidId = false;
+  let hasStocks = false;  // Flag to track if stocks exist
 
   for (const checkbox of selectedCheckboxes) {
       const cropTypeId = checkbox.getAttribute("data-crop-id");
@@ -358,16 +366,35 @@ document.getElementById("crop-bulk-delete").addEventListener("click", async () =
               break;
           }
 
+          // Check if there are stocks for this crop_type_id by querying tb_crop_stock
+          const stockQuery = query(collection(db, "tb_crop_stock"), where("crop_type_id", "==", Number(cropTypeId)));
+          const stockSnapshot = await getDocs(stockQuery);
+
+          if (!stockSnapshot.empty) {
+              for (const stockDoc of stockSnapshot.docs) {
+                  const stocksArray = stockDoc.data().stocks;
+                  if (Array.isArray(stocksArray) && stocksArray.length > 0) {
+                      hasStocks = true;
+                      console.error(`ERROR: Crop ID ${cropTypeId} has stocks and cannot be deleted.`);
+                      break;
+                  }
+              }
+          }
+
+          if (hasStocks) break;  // Stop further checks if stocks are found
+
           selectedCropTypeIds.push(cropTypeId);
       } catch (error) {
-          console.error("Error fetching crop records:", error);
+          console.error("Error fetching crop records or stocks:", error);
           hasInvalidId = true;
           break;
       }
   }
 
   if (hasInvalidId) {
-      showDeleteMessage("ERROR: crop ID of one or more selected records are invalid", false);
+      showDeleteMessage("ERROR: Crop ID of one or more selected records are invalid", false);
+  } else if (hasStocks) {
+      showDeleteMessage("ERROR: One or more selected crops have existing stocks", false);
   } else {
       document.getElementById("crop-bulk-panel").style.display = "block"; // Show confirmation panel
   }
@@ -378,7 +405,7 @@ document.getElementById("cancel-crop-delete").addEventListener("click", () => {
   document.getElementById("crop-bulk-panel").style.display = "none";
 });
 
-// Function to delete selected crops from Firestore
+// Function to delete selected crops from both tb_crop_types and tb_crop_stock in Firestore
 async function deleteSelectedCrops() {
   if (selectedCrops.length === 0) {
     return;
@@ -386,30 +413,48 @@ async function deleteSelectedCrops() {
 
   try {
     const cropsCollection = collection(db, "tb_crop_types");
+    const stocksCollection = collection(db, "tb_crop_stock");
+    const batch = writeBatch(db);  // Create a batch for efficient deletions
 
     for (const cropTypeId of selectedCrops) {
+      // Delete from tb_crop_types
       const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
-      const querySnapshot = await getDocs(cropQuery);
+      const cropSnapshot = await getDocs(cropQuery);
 
-      if (!querySnapshot.empty) {
-        for (const docSnapshot of querySnapshot.docs) {
-          console.log("Deleting document ID:", docSnapshot.id);
-          await deleteDoc(doc(db, "tb_crop_types", docSnapshot.id));
+      if (!cropSnapshot.empty) {
+        for (const docSnapshot of cropSnapshot.docs) {
+          console.log("Deleting document ID from tb_crop_types:", docSnapshot.id);
+          batch.delete(doc(db, "tb_crop_types", docSnapshot.id));  // Add to batch
         }
       } else {
-        console.error(`ERROR: Crop ID ${cropTypeId} does not exist.`);
+        console.error(`ERROR: Crop ID ${cropTypeId} does not exist in tb_crop_types.`);
+      }
+
+      // Delete from tb_crop_stock
+      const stockQuery = query(stocksCollection, where("crop_type_id", "==", Number(cropTypeId)));
+      const stockSnapshot = await getDocs(stockQuery);
+
+      if (!stockSnapshot.empty) {
+        for (const stockDoc of stockSnapshot.docs) {
+          console.log("Deleting document ID from tb_crop_stock:", stockDoc.id);
+          batch.delete(doc(db, "tb_crop_stock", stockDoc.id));  // Add to batch
+        }
+      } else {
+        console.warn(`WARNING: No matching stocks found for Crop ID ${cropTypeId} in tb_crop_stock.`);
       }
     }
 
-    console.log("Deleted Crops:", selectedCrops);
-    showDeleteMessage("All selected Crop records successfully deleted!", true);
+    // Commit all deletions in a batch
+    await batch.commit();
+    console.log("Deleted Crops and Stocks:", selectedCrops);
+    showDeleteMessage("All selected Crop records and their stocks successfully deleted!", true);
     selectedCrops = [];  // Clear selection AFTER successful deletion
     document.getElementById("crop-bulk-panel").style.display = "none";
     fetchCrops();  // Refresh the table
 
   } catch (error) {
-    console.error("Error deleting crops:", error);
-    showDeleteMessage("Error deleting crops!", false);
+    console.error("Error deleting crops or stocks:", error);
+    showDeleteMessage("Error deleting crops or stocks!", false);
   }
 }
 

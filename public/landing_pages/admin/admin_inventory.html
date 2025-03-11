@@ -203,7 +203,6 @@
       // Close when clicking outside
       document.addEventListener("click", (event) => {
         if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-          console.log("Clicked outside, closing panel...");
           closeAccountPanel();
         }
       });
