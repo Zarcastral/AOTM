@@ -37,6 +37,10 @@ body {
     margin-right: auto; /* Center the panel horizontally */
 }
 
+.search-bar input, .search-bar select {
+  box-sizing: border-box;
+}
+
   .search-bar {
     justify-content: space-between;
     align-items: center;
@@ -59,27 +63,26 @@ body {
 /* Updated table styles */
 
 /* New table container for responsiveness */
-.table-container {
-  overflow-x: auto; /* Enable horizontal scroll on small screens */
-  margin: 0 auto; /* Center the table container */
-  max-width: 100%; /* Ensure it fits within the panel */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
-  max-width: 100%; /* Prevents overflow */
   border-collapse: collapse;
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
-  margin: 0 auto; /* Center the table */
 }
+
+
 
 th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #E5E7EB;
-  word-break: break-word; /* Prevent text overflow */
 }
 
 th {
@@ -92,16 +95,23 @@ tbody tr:hover {
   background-color: #F3F4F6;
 }
 
-  .checkbox {
-    justify-content: center;
-    align-items: center;
-  }
+/* Centering Text in Table Cells */
+.panel table th, .panel table td {
+  text-align: center;
+  vertical-align: middle;
+}
 
-  .checkbox input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
+/* Checkbox Styles */
+.checkbox {
+  justify-content: center;
+  align-items: center;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
 
 .table-selector {
     display: flex;

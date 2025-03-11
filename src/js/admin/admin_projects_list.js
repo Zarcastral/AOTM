@@ -142,6 +142,9 @@ function updateTable() {
                 <button class="action-btn view-btn" data-id="${data.project_id}" title="View">
                     <img src="../../images/eye.png" alt="View">
                 </button>
+                <button class="action-btn delete-btn" data-id="${data.project_id}" title="View">
+                    <img src="../../images/delete.png" alt="View">
+                </button>
             </td>
         `;
         tableBody.appendChild(row);
@@ -185,14 +188,14 @@ tableBody.addEventListener("click", (event) => {
     if (!target) return;
 
     const project_id = target.getAttribute("data-id");
-    console.log("Clicked Edit Button - Project ID:", project_id); // Debugging
+    console.log("Clicked Button - Project ID:", project_id); // Debugging
 
     if (target.classList.contains("edit-btn")) {
         editUserAccount(project_id);
     } else if (target.classList.contains("view-btn")) {
         viewUserAccount(project_id);
     } else if (target.classList.contains("delete-btn")) {
-        deleteUserAccount(project_id);
+        deleteProjects(project_id);
     }
 });
 
@@ -241,24 +244,37 @@ function viewUserAccount(projectId) {
     window.location.href = "viewproject.html"; // Redirect to viewproject.html
 }
 
-
-
-
 // <------------- DELETE BUTTON EVENT LISTENER ------------->
-async function deleteUserAccount(project_id) {
+async function deleteProjects(project_id) {
     try {
-
         const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            confirmationPanel.style.display = "flex";
-            editFormContainer.style.pointerEvents = "none";
+            // Retrieve the first matching document
+            const docSnapshot = querySnapshot.docs[0];
+            const docRef = docSnapshot.ref;
+            const projectData = docSnapshot.data();
+
+            // Convert status to lowercase for case-insensitive comparison
+            const status = projectData.status ? projectData.status.toLowerCase() : "";
+
+            // Check the status field
+            if (status === "ongoing") {
+                showDeleteMessage("Project cannot be deleted because it is already ongoing.", false);
+                return;
+            } else if (status === "pending") {
+                selectedRowId = docRef.id; // Store the document ID for deletion
+                confirmationPanel.style.display = "flex";
+                editFormContainer.style.pointerEvents = "none";
+            } else {
+                console.error("Invalid project status. Deletion not allowed.");
+            }
         } else {
-            showDeleteMessage("No project_id is found, Unable to proceed with the deleting the record", false);
+            showDeleteMessage("No project_id found, unable to proceed with deleting the record", false);
         }
     } catch (error) {
-        console.log("Error deleting User Account:", error);
+        console.error("Error finding project:", error);
     }
 }
 
@@ -272,23 +288,11 @@ const deleteMessage = document.getElementById("delete-message");
 confirmDeleteButton.addEventListener("click", async () => {
     if (selectedRowId) {
         try {
+            const projectDocRef = doc(db, "tb_projects", selectedRowId);
+            await deleteDoc(projectDocRef);
+            showDeleteMessage("Record deleted successfully!", true);
 
-            const userDocRef = doc(db, "tb_projects", selectedRowId);
-            await deleteDoc(userDocRef);
-            console.log("Record deleted successfully!");
-
-            fetch_projects();
-
-            deleteMessage.style.display = "block";
-            setTimeout(() => {
-                deleteMessage.style.opacity = "1";
-                setTimeout(() => {
-                    deleteMessage.style.opacity = "0";
-                    setTimeout(() => {
-                        deleteMessage.style.display = "none";
-                    }, 300);
-                }, 3000);
-            }, 0);
+            fetch_projects(); // Refresh table   
         } catch (error) {
             console.error("Error deleting record:", error);
         }
@@ -296,11 +300,13 @@ confirmDeleteButton.addEventListener("click", async () => {
 
     confirmationPanel.style.display = "none";
     editFormContainer.style.pointerEvents = "auto";
+    selectedRowId = null; // Reset selection after deletion
 });
 
 cancelDeleteButton.addEventListener("click", () => {
     confirmationPanel.style.display = "none";
     editFormContainer.style.pointerEvents = "auto";
+    selectedRowId = null;
 });
 
 // EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
