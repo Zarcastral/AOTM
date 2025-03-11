@@ -1,71 +1,67 @@
 import {
   collection,
-  getDocs, doc, updateDoc,
+  doc,
+  getDocs,
   getFirestore,
   query,
+  updateDoc,
   where,
 } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-const storage = getStorage(app);
-
-import app from "../../config/firebase_config.js"; // Ensure the correct Firebase config path
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import app from "../../config/firebase_config.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const db = getFirestore(app);
+  const storage = getStorage(app);
+
   const userType = sessionStorage.getItem("user_type");
   const userEmail = sessionStorage.getItem("userEmail");
 
-  console.log("Session User Type:", userType);
-  console.log("Session Email:", userEmail);
+  if (!userType || !userEmail) return;
 
-  if (!userType || !userEmail) {
-    console.error("⚠️ Missing user session data. Ensure login sets these values.");
-    return;
-  }
+  await populateBarangayDropdown(db);
 
-  // Fetch and set barangay options
-  await fetchBarangays(db);
-
-  // Fetch user data from the appropriate Firestore collection
   if (["Admin", "Supervisor"].includes(userType)) {
     await fetchUserData(db, "tb_users", userEmail);
   } else if (["Farmer", "Farm President", "Head Farmer"].includes(userType)) {
     await fetchFarmerData(db, "tb_farmers", userEmail);
-  } else {
-    console.error("⚠️ Unknown user type.");
   }
 
-  // Handle Profile Picture Selection & Removal
-  setupProfilePictureHandler();
+  document
+    .getElementById("profile-form")
+    .addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await updateUserProfile(db, storage, userType, userEmail);
+    });
 });
 
 /**
- * Fetch all barangays from `tb_barangay` and populate the select dropdown.
+ * Fetches all barangay names from `tb_barangay` and populates the dropdown.
  */
-async function fetchBarangays(db) {
+async function populateBarangayDropdown(db) {
   try {
-    const barangaySelect = document.getElementById("barangay");
-    barangaySelect.innerHTML = `<option value="">Select Barangay</option>`; // Reset dropdown
+    const barangayDropdown = document.getElementById("barangay");
+    if (!barangayDropdown) return;
 
     const barangayRef = collection(db, "tb_barangay");
     const querySnapshot = await getDocs(barangayRef);
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const option = document.createElement("option");
-      option.value = data.barangay_name;
-      option.textContent = data.barangay_name;
-      barangaySelect.appendChild(option);
-    });
+    barangayDropdown.innerHTML = "";
 
-    console.log("✅ Barangay list loaded.");
+    querySnapshot.forEach((doc) => {
+      const barangayData = doc.data();
+      const option = document.createElement("option");
+      option.value = barangayData.barangay_name;
+      option.textContent = barangayData.barangay_name;
+      barangayDropdown.appendChild(option);
+    });
   } catch (error) {
-    console.error("❌ Error fetching barangays:", error);
+    console.error("Error fetching barangay list:", error);
   }
 }
 
 /**
- * Fetch user data from `tb_users` and populate form fields.
+ * Fetch user data from Firestore and populate form fields.
  */
 async function fetchUserData(db, collectionName, email) {
   try {
@@ -73,170 +69,105 @@ async function fetchUserData(db, collectionName, email) {
     const q = query(usersRef, where("email", "==", email));
     const querySnapshot = await getDocs(q);
 
-    if (querySnapshot.empty) {
-      console.error("⚠️ No user record found.");
-      return;
+    if (!querySnapshot.empty) {
+      fillFormFields(querySnapshot.docs[0].data());
     }
-
-    querySnapshot.forEach((doc) => {
-      const userData = doc.data();
-      console.log("User Data:", userData);
-      fillFormFields(userData);
-    });
   } catch (error) {
-    console.error("❌ Error fetching user data:", error);
+    console.error("Error fetching user data:", error);
   }
 }
 
-/**
- * Fetch farmer data from `tb_farmers`, replace username with Farmer ID, and populate form fields.
- */
 async function fetchFarmerData(db, collectionName, email) {
   try {
     const farmersRef = collection(db, collectionName);
     const q = query(farmersRef, where("email", "==", email));
     const querySnapshot = await getDocs(q);
 
-    if (querySnapshot.empty) {
-      console.error("⚠️ No farmer record found.");
-      return;
-    }
-
-    querySnapshot.forEach((doc) => {
-      const farmerData = doc.data();
-      console.log("Farmer Data:", farmerData);
-
+    if (!querySnapshot.empty) {
+      const farmerData = querySnapshot.docs[0].data();
       replaceUsernameWithFarmerId(farmerData.farmer_id);
       fillFormFields(farmerData);
-    });
+    }
   } catch (error) {
-    console.error("❌ Error fetching farmer data:", error);
+    console.error("Error fetching farmer data:", error);
   }
 }
 
-/**
- * Populates form fields dynamically based on fetched data.
- */
 function fillFormFields(data) {
   for (const [key, value] of Object.entries(data)) {
     let fieldId = key;
-
-    // Map Firestore keys to form field IDs
     if (key === "barangay_name") fieldId = "barangay";
     if (key === "user_type") fieldId = "user_type";
 
     const field = document.getElementById(fieldId);
-    if (field) {
-      field.value = value;
-
-      // Select correct barangay in dropdown
-      if (fieldId === "barangay") {
-        const barangayOptions = field.options;
-        for (let i = 0; i < barangayOptions.length; i++) {
-          if (barangayOptions[i].value === value) {
-            field.selectedIndex = i;
-            break;
-          }
-        }
-      }
-    }
+    if (field) field.value = value;
   }
 
-  // Handle user profile picture if the field exists
-  const userPictureField = document.getElementById("profile-picture");
-  if (userPictureField && data.user_picture) {
-    userPictureField.src = data.user_picture; // Assuming an `img` element
+  selectUserBarangay(data.barangay_name);
+
+  const profilePictureField = document.getElementById("profile-picture");
+  if (profilePictureField && data.user_picture) {
+    profilePictureField.src = data.user_picture;
   }
 }
 
-/**
- * Replaces the username input with a readonly Farmer ID field.
- */
-function replaceUsernameWithFarmerId(farmerId) {
-  const usernameField = document.getElementById("user_name");
-  if (!usernameField) {
-    console.error("⚠️ Username field not found.");
-    return;
-  }
+function selectUserBarangay(userBarangay) {
+  const barangayDropdown = document.getElementById("barangay");
+  if (!barangayDropdown) return;
 
-  usernameField.value = farmerId;
-  usernameField.disabled = true;
-}
-
-/**
- * Handles profile picture selection and removal.
- */
-function setupProfilePictureHandler() {
-  const fileInput = document.getElementById("profile_picture");
-  const removeButton = document.getElementById("remove-file");
-
-  fileInput.addEventListener("change", async function () {
-    if (fileInput.files.length > 0) {
-      console.log("✅ File selected:", fileInput.files[0].name);
-      removeButton.style.display = "inline"; // Show remove button
-
-      // Upload the file and get the download URL
-      const userId = sessionStorage.getItem("userEmail"); // Assuming email is the unique ID
-      try {
-        const profileUrl = await uploadProfilePicture(fileInput.files[0], userId);
-        sessionStorage.setItem("profile_picture", profileUrl); // Store it temporarily
-        console.log("✅ Profile picture uploaded:", profileUrl);
-      } catch (error) {
-        console.error("❌ Failed to upload profile picture:", error);
-      }
+  Array.from(barangayDropdown.options).forEach((option) => {
+    if (option.value === userBarangay) {
+      option.selected = true;
     }
   });
-
-  removeButton.addEventListener("click", function () {
-    fileInput.value = ""; // Clear file input
-    removeButton.style.display = "none"; // Hide remove button
-    sessionStorage.removeItem("profile_picture"); // Remove temp storage
-    console.log("🗑️ File selection cleared.");
-  });
 }
 
-
-async function uploadProfilePicture(file, userId) {
+async function updateUserProfile(db, storage, userType, userEmail) {
   try {
-    const storageRef = ref(storage, `profile_pictures/${userId}`);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
+    const collectionName = ["Admin", "Supervisor"].includes(userType)
+      ? "tb_users"
+      : "tb_farmers";
+    const userDocId = await getUserDocumentId(db, collectionName, userEmail);
+    if (!userDocId) return;
+
+    const formData = {
+      contact: document.getElementById("contact").value,
+      barangay_name: document.getElementById("barangay").value,
+    };
+
+    const profilePictureInput = document.getElementById("profile_picture");
+    if (profilePictureInput.files.length > 0) {
+      const file = profilePictureInput.files[0];
+      formData.user_picture = await uploadProfilePicture(
+        storage,
+        file,
+        userDocId
+      );
+    }
+
+    await updateUserData(db, collectionName, userDocId, formData);
+    alert("Profile updated successfully!");
+    window.location.reload();
   } catch (error) {
-    console.error("❌ Error uploading profile picture:", error);
-    throw error;
+    console.error("Error updating profile:", error);
   }
 }
 
-async function updateUserProfile(userId, updatedData) {
-  try {
-    const userRef = doc(db, "tb_users", userId);
-    await updateDoc(userRef, updatedData);
-    console.log("✅ Profile updated successfully!");
-    alert("✅ Profile updated successfully!");
-  } catch (error) {
-    console.error("❌ Error updating profile:", error);
-    alert("❌ Failed to update profile.");
-  }
+async function getUserDocumentId(db, collectionName, email) {
+  const usersRef = collection(db, collectionName);
+  const q = query(usersRef, where("email", "==", email));
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.empty ? null : querySnapshot.docs[0].id;
 }
 
-document.getElementById("profile-form").addEventListener("submit", async (event) => {
-  event.preventDefault(); // Prevent default form submission
+async function uploadProfilePicture(storage, file, userId) {
+  const fileRef = ref(storage, `profile_pictures/${userId}`);
+  await uploadBytes(fileRef, file);
+  return getDownloadURL(fileRef);
+}
 
-  const userId = sessionStorage.getItem("userEmail"); // Assuming email is used as ID
-  const profileUrl = sessionStorage.getItem("profile_picture") || ""; // Get uploaded URL
-
-  // Collect updated user details
-  const updatedData = {
-    full_name: document.getElementById("full_name").value,
-    contact_number: document.getElementById("contact_number").value,
-    barangay_name: document.getElementById("barangay").value,
-    user_picture: profileUrl, // Update profile picture URL
-  };
-
-  try {
-    await updateUserProfile(userId, updatedData);
-  } catch (error) {
-    console.error("❌ Profile update failed:", error);
-  }
-});
-
+async function updateUserData(db, collectionName, docId, formData) {
+  const userRef = doc(db, collectionName, docId);
+  await updateDoc(userRef, formData);
+}
