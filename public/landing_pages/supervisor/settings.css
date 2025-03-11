@@ -1,6 +1,5 @@
 body, .main-content {
     margin: 0;
-    padding-top: 60px; /* Adds space for the fixed header */
     font-family: 'Poppins', sans-serif;
 }
 button {

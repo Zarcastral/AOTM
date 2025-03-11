@@ -11,16 +11,9 @@
 </head>
 
 <body>
-  <div class="header">
-    <div class="header-title">Reports</div>
-    <div class="header-icons">
-      <!-- Notification Icon with Badge -->
-      <div class="notification-icon">
-        <img src="../../images/Bell.png" alt="Notifications" />
-      </div>
-      <img id="account-icon" src="../../images/Union.png" alt="Account" style="cursor: pointer;" />
-    </div>
-  </div>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  
   <div class="main-content">
     <div class="table-container">
       <!-- Search Bar inside the table container -->
@@ -126,6 +119,8 @@
       }
     });
   </script>
+   <!-- Import the reusable script from src/auth -->
+   <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 
 </html>

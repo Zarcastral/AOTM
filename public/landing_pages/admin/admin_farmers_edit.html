@@ -9,17 +9,8 @@
   <link rel="stylesheet" href="/src/style/admin/admin_farmers_edit.css">
 </head>
 <body>
-     <!-- Header Section -->
-     <div class="header">
-      <div class="header-title">    
-  
-      </div>
-  
-      <div class="header-icons">
-        <img src="../../images/Bell.png" alt="Notifications">
-        <img id="account-icon" src="../../images/Union.png" alt="Account">
-      </div>
-    </div>
+     <!-- Placeholder for Header -->
+      <div id="header-container"></div> <!-- This will hold the header content dynamically -->
   <div class="container">
     <h2>Farmer Profile</h2>
     <form id="admin_farmers_edit" method="POST">
@@ -110,6 +101,7 @@
   <img class="modal-content" id="modalImage">
   <div id="caption"></div>
 </div>
-
+ <!-- Import the reusable script from src/auth -->
+ <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 </html>

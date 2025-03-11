@@ -13,13 +13,9 @@
 </head>
 
 <body>
-  <div class="header">
-    <div class="header-title">Harvest</div>
-    <div class="header-icons">
-      <img src="../../images/Bell.png" alt="Notifications" />
-      <img id="account-icon" src="../../images/Union.png" alt="Account" />
-    </div>
-  </div>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
   <div class="main-content">
     <div class="table-container">
       <h2 class="text-xl font-bold mb-4" style="color: #41A186; font-size: 35px;">Task List</h2>
@@ -101,6 +97,8 @@
       }
     });
   </script>
+   <!-- Import the reusable script from src/auth -->
+   <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 
 </html>

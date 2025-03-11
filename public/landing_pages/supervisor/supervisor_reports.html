@@ -13,13 +13,8 @@
 <body class="h-screen flex flex-col">
   
   <!-- Header -->
-  <header class="bg-white shadow-md py-3 px-6 flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-green-700"></h1>
-    <div class="flex items-center gap-4">
-      <img src="../../images/Bell.png" alt="Notifications" class="w-6 h-6 cursor-pointer">
-      <img src="../../images/Union.png" alt="Account" class="w-6 h-6 cursor-pointer">
-    </div>
-  </header>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
   <!-- Main Content -->
   <main class="flex-grow p-6 overflow-auto">
@@ -104,6 +99,8 @@
       <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500">Download PDF</button>
     </div>
   </main>
+  <!-- Import the reusable script from src/auth -->
+  <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 
 </html>
