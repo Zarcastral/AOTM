@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Activity Log</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../src/style/admin_archive.css">
+  <link rel="stylesheet" href="../../../src/style/admin/admin_archive.css">
 </head>
 
 <body>
@@ -15,80 +15,56 @@
 
 
   <div class="table-selector">
-    <span class="archive-table"><a href="admin_activitylog.html">Go to Activity Log</a></span>
+    <span class="activitylog-table"><a href="admin_activitylog.html">Go to Activity Log</a></span>
   </div>
-  
   <div class="panel">
     <div class="search-bar">
-      <input type="text" placeholder="Search">
-      <select>
-        <option>Barangay</option>
-        <option>Barangay 1</option>
-        <option>Barangay 2</option>
+      <input type="text" id="search-bar" placeholder="Search" /> 
+      <select id="barangay-select">
+          <option value="">Select User</option>
+          <!-- record will be dynamically added here -->
       </select>
     </div>
     <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th class="checkbox"></th>
-            <th>#</th>
-            <th>User's Name</th>
-            <th>User Role</th>
-            <th>Activity</th>
-            <th>Date</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="checkbox"><input type="checkbox"></td>
-            <td>1</td>
-            <td>Rhandy Gian Baradas</td>
-            <td>Admin</td>
-            <td>add user</td>
-            <td>10-15-2024</td>
-            <td>1:20 AM</td>
-          </tr>
-          <tr>
-            <td class="checkbox"><input type="checkbox"></td>
-            <td>2</td>
-            <td>Adrian Bernal</td>
-            <td>Head Farmer</td>
-            <td>task done</td>
-            <td>10-15-2024</td>
-            <td>3:27 PM</td>
-          </tr>
-          <tr>
-            <td class="checkbox"><input type="checkbox"></td>
-            <td>3</td>
-            <td>Maria Geenea Armonelo</td>
-            <td>Farm President</td>
-            <td>add task</td>
-            <td>10-15-2024</td>
-            <td>1:20 AM</td>
-          </tr>
-          <tr>
-            <td class="checkbox"><input type="checkbox"></td>
-            <td>4</td>
-            <td>Ned Christian Ibanez</td>
-            <td>Head Farmer</td>
-            <td>task done</td>
-            <td>10-15-2024</td>
-            <td>3:27 PM</td>
-          </tr>
-          <tr>
-            <td class="checkbox"><input type="checkbox"></td>
-            <td>5</td>
-            <td>Irwin James Julio</td>
-            <td>Farmer</td>
-            <td>logged in</td>
-            <td>10-15-2024</td>
-            <td>1:20 AM</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th class="checkbox-delete" > 
+                <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
+              </th>
+              <th>#</th>
+              <th>User's Name</th>
+              <th>User Role</th>
+              <th>Activity</th>
+              <th>Date</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+              <!-- record will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
     </div>
+      <div class="pagination-container">
+        <span id="page-number">Page 1</span>
+        <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
+        <button id="next-page" class="pagination-btn">&gt;</button>
+      </div>
+  </div>
+
+    <div id="bulk-delete-panel" class="bulk-delete-panel">
+        <div class="confirm-bulk-delete-message">
+            <p>Are you sure you want to delete the selected records?</p>
+            <button id="confirm-bulk-delete" class="bulk-confirm-btn">Confirm</button>
+            <button id="cancel-bulk-delete" class="bulk-cancel-btn">Cancel</button>
+        </div>
+    </div>
+        
+    <!-- Bulk Delete Message Panel -->
+    <div id="delete-message" class="delete-message">
+      <p>Record has been successfully deleted!</p>
   </div>
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="../../../src/auth/header.js"></script>
