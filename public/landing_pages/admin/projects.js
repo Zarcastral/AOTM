@@ -53,31 +53,58 @@ const db = getFirestore(app);
             });
         }
 
-         window.loadCrops = async function() {
-            const querySnapshot = await getDocs(collection(db, "tb_crops"));
+        window.loadCrops = async function() {
+            const userType = sessionStorage.getItem("user_type"); // Get user_type from session storage
+            if (!userType) return; // Exit if user_type is not set
+        
+            const querySnapshot = await getDocs(collection(db, "tb_crop_stock"));
             const cropsSelect = document.getElementById('crops');
             cropsSelect.innerHTML = '<option value="">Select Crop</option>';
+        
             querySnapshot.forEach(doc => {
-                const option = document.createElement('option');
-                option.value = doc.data().crop_name;
-                option.textContent = doc.data().crop_name;
-                cropsSelect.appendChild(option);
+                const cropData = doc.data();
+                const stocksArray = cropData.stocks || []; // Ensure stocks array exists
+        
+                // Check if any object inside 'stocks' has 'owned_by' matching userType
+                const isOwnedByUser = stocksArray.some(stock => stock.owned_by === userType);
+        
+                if (isOwnedByUser) {
+                    const option = document.createElement('option');
+                    option.value = cropData.crop_name;
+                    option.textContent = cropData.crop_name;
+                    cropsSelect.appendChild(option);
+                }
             });
-        }
+        };
+        
+        
 
-        window.loadCropTypes = async function(cropName) {
-            if (!cropName) return;
-            const q = query(collection(db, "tb_crop_types"), where("crop_name", "==", cropName));
-            const querySnapshot = await getDocs(q);
+        window.loadCropTypes = async function(selectedCrop) {
+            if (!selectedCrop) return; // Exit if no crop is selected
+        
+            const querySnapshot = await getDocs(collection(db, "tb_crop_stock"));
             const cropTypeSelect = document.getElementById('crop-type');
             cropTypeSelect.innerHTML = '<option value="">Select Crop Type</option>';
+        
             querySnapshot.forEach(doc => {
-                const option = document.createElement('option');
-                option.value = doc.data().crop_type_name;
-                option.textContent = doc.data().crop_type_name;
-                cropTypeSelect.appendChild(option);
+                const cropData = doc.data();
+                
+                // Check if crop_name matches the selected crop
+                if (cropData.crop_name === selectedCrop) {
+                    const cropTypeName = cropData.crop_type_name;
+                    if (cropTypeName) { // Ensure crop_type_name exists
+                        const option = document.createElement('option');
+                        option.value = cropTypeName;
+                        option.textContent = cropTypeName;
+                        cropTypeSelect.appendChild(option);
+                    }
+                }
             });
-        }
+        };
+        
+        
+        
+        
 
 
         window.fetchFertilizerTypes = async function () {
@@ -360,7 +387,7 @@ window.saveProject = async function () {
         });
 
         document.getElementById('cancel-button').addEventListener('click', function() {
-            window.location.href = "index.html"; // Redirect to the homepage or previous page
+            window.location.href = "admin_projects_list.html"; // Redirect to the homepage or previous page
         });
 
         window.onload = function() {
