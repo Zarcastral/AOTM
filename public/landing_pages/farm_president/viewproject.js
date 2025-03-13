@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs,orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs,orderBy, addDoc, serverTimestamp, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -165,6 +165,106 @@ window.addEventListener("click", (event) => {
         closePopup();
     }
 });
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Open the feedback popup
+    window.openFeedbackPopup = function () {
+        document.getElementById("feedbackPopup").style.display = "flex";
+    };
+
+    // Close the feedback popup
+    window.closeFeedbackPopup = function () {
+        document.getElementById("feedbackPopup").style.display = "none";
+    };
+});
+
+async function getNextFeedbackId() {
+    const counterRef = doc(db, "tb_id_counters", "feedback_id_counter");
+
+    try {
+        const counterSnap = await getDoc(counterRef);
+
+        if (counterSnap.exists()) {
+            const currentCount = counterSnap.data().count || 0;
+            const newCount = currentCount + 1;
+
+            // Update the counter in Firestore
+            await updateDoc(counterRef, { count: newCount });
+
+            return newCount;
+        } else {
+            // If the counter does not exist, create it with initial value 1
+            await setDoc(counterRef, { count: 1 });
+            return 1;
+        }
+    } catch (error) {
+        console.error("Error fetching feedback ID counter:", error);
+        alert("Error generating feedback ID.");
+        return null;
+    }
+}
+
+// Function to submit feedback
+window.submitFeedback = async function () {
+    let concern = document.getElementById("feedbackType").value;
+    let feedback = document.getElementById("feedbackMessage").value.trim();
+
+    if (!feedback) {
+        alert("Please enter a feedback message.");
+        return;
+    }
+
+    // Retrieve user details from sessionStorage
+    let barangay_name = sessionStorage.getItem("barangay_name") || "Unknown";
+    let submitted_by = sessionStorage.getItem("userFullName") || "Anonymous";
+    let submitted_by_picture = sessionStorage.getItem("userPicture") || "";
+
+    // Retrieve and convert project_id to an integer
+    let project_id = parseInt(sessionStorage.getItem("selectedProjectId"), 10) || 0;
+
+    // Get the next available feedback_id
+    let feedback_id = await getNextFeedbackId();
+    if (feedback_id === null) return; // Stop if there's an error
+
+    // Prepare feedback data object
+    let feedbackData = {
+        feedback_id: feedback_id, // Auto-incrementing feedback ID
+        project_id: project_id,   // Ensure project ID is stored as an integer
+        barangay_name: barangay_name,
+        concern: concern,
+        feedback: feedback,
+        status: "Pending",
+        submitted_by: submitted_by,
+        submitted_by_picture: submitted_by_picture,
+        timestamp: serverTimestamp()
+    };
+
+    try {
+        // Save feedback to Firestore
+        await addDoc(collection(db, "tb_feedbacks"), feedbackData);
+
+        alert("Feedback submitted successfully!");
+        closeFeedbackPopup(); // Close the popup
+
+        // Clear textarea after submitting
+        document.getElementById("feedbackMessage").value = "";
+    } catch (error) {
+        console.error("Error saving feedback:", error);
+        alert("Failed to submit feedback. Please try again.");
+    }
+};
+
+
+
+
+
+
+
+
 
 
 
