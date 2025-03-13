@@ -11,8 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   waitForElement("#logout-button", (logoutButton) => {
-    console.log("Logout button found!");
-
     // Retrieve session data
     const profileName = document.querySelector(".profile-name");
     const profilePicture = document.querySelector(".profile-picture");
@@ -45,11 +43,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handle profile link click
     waitForElement(".panel-item", (profileItem) => {
-      console.log("Profile button found!"); // Debugging log
-
       profileItem.addEventListener("click", (event) => {
         event.preventDefault();
-        console.log("Profile clicked, sending message to parent"); // Debugging log
         window.parent.postMessage("navigateToProfile", "*");
       });
     });
