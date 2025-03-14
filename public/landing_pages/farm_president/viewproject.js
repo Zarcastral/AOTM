@@ -209,6 +209,7 @@ async function getNextFeedbackId() {
 }
 
 // Function to submit feedback
+// Function to submit feedback
 window.submitFeedback = async function () {
     let concern = document.getElementById("feedbackType").value;
     let feedback = document.getElementById("feedbackMessage").value.trim();
@@ -221,7 +222,7 @@ window.submitFeedback = async function () {
     // Retrieve user details from sessionStorage
     let barangay_name = sessionStorage.getItem("barangay_name") || "Unknown";
     let submitted_by = sessionStorage.getItem("userFullName") || "Anonymous";
-    let submitted_by_picture = sessionStorage.getItem("userPicture") || "";
+    let submitted_by_picture = sessionStorage.getItem("userPicture") || "default-profile.png";
 
     // Retrieve and convert project_id to an integer
     let project_id = parseInt(sessionStorage.getItem("selectedProjectId"), 10) || 0;
@@ -229,6 +230,9 @@ window.submitFeedback = async function () {
     // Get the next available feedback_id
     let feedback_id = await getNextFeedbackId();
     if (feedback_id === null) return; // Stop if there's an error
+
+    // Create a timestamp
+    let timestamp = serverTimestamp();
 
     // Prepare feedback data object
     let feedbackData = {
@@ -240,38 +244,74 @@ window.submitFeedback = async function () {
         status: "Pending",
         submitted_by: submitted_by,
         submitted_by_picture: submitted_by_picture,
-        timestamp: serverTimestamp()
+        timestamp: timestamp
     };
 
     try {
         // Save feedback to Firestore
-        await addDoc(collection(db, "tb_feedbacks"), feedbackData);
+        let docRef = await addDoc(collection(db, "tb_feedbacks"), feedbackData);
 
         alert("Feedback submitted successfully!");
         closeFeedbackPopup(); // Close the popup
 
         // Clear textarea after submitting
         document.getElementById("feedbackMessage").value = "";
+
+        // Manually append feedback to the feedback list (without refreshing the page)
+        addFeedbackToUI({
+            ...feedbackData,
+            timestamp: new Date() // Use local timestamp for immediate UI update
+        });
+
     } catch (error) {
         console.error("Error saving feedback:", error);
         alert("Failed to submit feedback. Please try again.");
     }
 };
 
+// Function to append submitted feedback to UI immediately
+function addFeedbackToUI(feedback) {
+    const feedbackListContainer = document.getElementById("feedbackList");
 
+    // Convert timestamp correctly
+    let formattedTimestamp = "Unknown Date";
+    if (feedback.timestamp) {
+        if (feedback.timestamp.toDate) {
+            // Firestore Timestamp object
+            formattedTimestamp = feedback.timestamp.toDate().toLocaleString();
+        } else {
+            // If already a JS Date object or a string
+            formattedTimestamp = new Date(feedback.timestamp).toLocaleString();
+        }
+    }
 
+    const feedbackItem = document.createElement("div");
+    feedbackItem.classList.add("feedback-item");
 
+    feedbackItem.innerHTML = `
+        <img src="${feedback.submitted_by_picture || 'default-profile.png'}" class="feedback-avatar" alt="User">
+        <div class="feedback-content">
+            <div class="feedback-header">
+                <span class="feedback-user">${feedback.submitted_by}</span>
+                <span class="timestamp">${formattedTimestamp}</span>
+            </div>
+            <p class="feedback-text"><strong>Concern:</strong> ${feedback.concern}</p>
+            <p class="feedback-text"><strong>Feedback:</strong> ${feedback.feedback}</p>
+            <p class="feedback-status">Status: ${feedback.status}</p>
+        </div>
+    `;
 
+    // If there are no feedbacks yet, remove the "No feedbacks available" message
+    let noFeedbackMessage = document.querySelector("#feedbackList p");
+    if (noFeedbackMessage && noFeedbackMessage.innerText.includes("No feedbacks available")) {
+        noFeedbackMessage.remove();
+    }
 
+    // Insert the new feedback at the top of the list
+    feedbackListContainer.prepend(feedbackItem);
+}
 
-
-
-
-
-
-
-
-// Fetch and display feedbacks
+// Function to fetch and display feedbacks
 async function displayFeedbacks() {
     let projectId = sessionStorage.getItem("selectedProjectId");
 
@@ -344,10 +384,15 @@ async function displayFeedbacks() {
     }
 }
 
-// Load feedbacks when the page loads
+// Load project details and teams when the page loads
 document.addEventListener("DOMContentLoaded", () => {
+    fetchProjectDetails();
+    fetchTeams();
     displayFeedbacks();
 });
+
+
+
 
 
 
@@ -356,4 +401,5 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
     fetchProjectDetails();
     fetchTeams();
+    displayFeedbacks();
 });
