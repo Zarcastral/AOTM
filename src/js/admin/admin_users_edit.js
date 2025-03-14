@@ -278,6 +278,25 @@ function showConfirmationPanel() {
     document.body.removeChild(confirmationPanel);
   });
 }
+
+// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
+const deleteMessage = document.getElementById("delete-message-panel");
+
+function showDeleteMessage(message, success) {
+  deleteMessage.textContent = message;
+  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  deleteMessage.style.opacity = '1';
+  deleteMessage.style.display = 'block';
+
+  setTimeout(() => {
+    deleteMessage.style.opacity = '0';
+    setTimeout(() => {
+      deleteMessage.style.display = 'none';
+    }, 300);
+  }, 4000);
+}
+
+
 async function saveProfilePicture(username) {
   if (!username) {
     console.error("Username is undefined or empty");
@@ -330,46 +349,57 @@ async function saveProfilePicture(username) {
 }
 
 async function saveChanges() {
-  const username = document.getElementById("user_name").value;
+  const username = document.getElementById("user_name").value.trim();
   console.log("Searching for user_name:", username, "Type:", typeof username);
 
   if (!username) {
-    alert("Please provide a valid username.");
+    showDeleteMessage("Please provide a valid username.", false);
     return;
   }
 
-  // Get all form data
+  function capitalizeWords(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  // Get all form data with capitalized names
   const updatedData = {
-    first_name: document.getElementById("first_name").value,
-    middle_name: document.getElementById("middle_name").value,
-    last_name: document.getElementById("last_name").value,
-    contact: document.getElementById("contact").value,
-    email: document.getElementById("email").value,
-    birthday: document.getElementById("birthday").value,
-    sex: document.getElementById("sex").value,
-    user_type: document.getElementById("user_type").value,
-    barangay: document.getElementById("barangay").value,
-    user_name: document.getElementById("user_name").value,
-  };
+    first_name: capitalizeWords(document.getElementById("first_name").value.trim()),
+    middle_name: capitalizeWords(document.getElementById("middle_name").value.trim()),
+    last_name: capitalizeWords(document.getElementById("last_name").value.trim()),
+    contact: document.getElementById("contact").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    birthday: document.getElementById("birthday").value.trim(),
+    sex: capitalizeWords(document.getElementById("sex").value.trim()),
+    user_type: capitalizeWords(document.getElementById("user_type").value.trim()),
+    barangay_name: capitalizeWords(document.getElementById("barangay").value.trim()),
+    user_name: document.getElementById("user_name").value.trim(),
+};
 
   const colRef = collection(db, "tb_users");
   const q = query(colRef, where("user_name", "==", username));
 
   const querySnapshot = await getDocs(q);
   if (!querySnapshot.empty) {
-    const docRef = querySnapshot.docs[0].ref;
+      const docRef = querySnapshot.docs[0].ref;
 
-    await saveProfilePicture(username); // Ensure picture is uploaded first
-    await updateDoc(docRef, updatedData);
-    alert("Changes saved successfully!");
-    window.location.href = "admin_users.html";
+      await saveProfilePicture(username); // Ensure picture is uploaded first
+      await updateDoc(docRef, updatedData);
+      
+      showDeleteMessage("Changes saved successfully!", true);
+
+      // Delay before redirecting
+      setTimeout(() => {
+          window.location.href = "admin_users.html";
+      }, 2000); // 2-second delay
+
   } else {
-    alert("Account with this username does not exist.");
+      showDeleteMessage("Account with this username does not exist.", false);
   }
 
   // Remove confirmation panel
   const confirmationPanel = document.getElementById("confirmationPanel");
   if (confirmationPanel) {
-    document.body.removeChild(confirmationPanel);
+      document.body.removeChild(confirmationPanel);
   }
+
 }

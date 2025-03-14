@@ -334,16 +334,20 @@ async function saveChanges() {
         return;
     }
 
+    function capitalizeWords(str) {
+        return str.replace(/\b\w/g, char => char.toUpperCase());
+    }
+
     const updatedData = {
-        first_name: document.getElementById("first_name").value,
-        middle_name: document.getElementById("middle_name").value,
-        last_name: document.getElementById("last_name").value,
-        contact: document.getElementById("contact").value,
-        email: document.getElementById("email").value,
-        birthday: document.getElementById("birthday").value,
-        sex: document.getElementById("sex").value,
-        user_type: document.getElementById("user_type").value,
-        barangay: document.getElementById("barangay").value,
+        first_name: capitalizeWords(document.getElementById("first_name").value.trim()),
+        middle_name: capitalizeWords(document.getElementById("middle_name").value.trim()),
+        last_name: capitalizeWords(document.getElementById("last_name").value.trim()),
+        contact: document.getElementById("contact").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        birthday: document.getElementById("birthday").value.trim(),
+        sex: capitalizeWords(document.getElementById("sex").value.trim()),
+        user_type: capitalizeWords(document.getElementById("user_type").value.trim()),
+        barangay_name: capitalizeWords(document.getElementById("barangay").value.trim()),
     };
 
     const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
@@ -354,16 +358,12 @@ async function saveChanges() {
         await saveProfilePicture(farmerId);
         await updateDoc(docRef, updatedData);
         console.log("User details updated successfully.");
-        
-        // Save profile picture if a new file was selected
-        
+
         alert("Changes saved successfully!");
         window.location.href = "admin_farmers.html";
     } else {
         alert("Account with this Farmer ID does not exist.");
     }
-
-
 
     // Remove confirmation panel
     const confirmationPanel = document.getElementById("confirmationPanel");
