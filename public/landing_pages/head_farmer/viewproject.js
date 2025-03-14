@@ -16,31 +16,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Function to fetch and display project details
+// Function to fetch and display a specific project based on barangay_name and lead_farmer
 async function fetchProjectDetails() {
-    let projectId = sessionStorage.getItem("selectedProjectId");
+    let barangayName = sessionStorage.getItem("barangay_name");
+    let userFullName = sessionStorage.getItem("userFullName");
 
-    if (!projectId) {
-        console.error("❌ No project ID found in sessionStorage.");
+    if (!barangayName || !userFullName) {
+        console.error("❌ Missing barangay_name or userFullName in sessionStorage.");
         return;
     }
 
-    projectId = parseInt(projectId, 10);
-    console.log("📌 Retrieved project_id (after conversion):", projectId, "Type:", typeof projectId);
-
-    if (isNaN(projectId)) {
-        console.error("⚠️ Invalid project ID (not a number).");
-        return;
-    }
+    console.log("📌 Retrieved barangay_name:", barangayName);
+    console.log("📌 Retrieved userFullName:", userFullName);
 
     try {
-        // Query Firestore for the document where project_id matches
+        // Query Firestore for the project that matches the barangay_name and lead_farmer
         const projectsRef = collection(db, "tb_projects");
-        const q = query(projectsRef, where("project_id", "==", projectId));
+        const q = query(
+            projectsRef,
+            where("barangay_name", "==", barangayName),
+            where("lead_farmer", "==", userFullName)
+        );
+
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            const projectData = querySnapshot.docs[0].data();
+            const projectData = querySnapshot.docs[0].data(); // Get the first matching project
             console.log("✅ Project Data Retrieved:", projectData);
 
             // Populate project details in HTML
@@ -54,12 +55,14 @@ async function fetchProjectDetails() {
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
         } else {
-            console.error("❌ Project not found in Firestore.");
+            console.error("❌ No projects found for barangay:", barangayName, "with lead farmer:", userFullName);
+            document.getElementById("projectName").textContent = "No assigned projects found";
         }
     } catch (error) {
         console.error("🔥 Error fetching project data:", error);
     }
 }
+
 
 // Fetch and display teams
 async function fetchTeams() {
