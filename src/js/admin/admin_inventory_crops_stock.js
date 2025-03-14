@@ -24,7 +24,21 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchCrops();
 });
 
-async function saveActivityLog(action) {
+async function saveActivityLog(action, description) {
+  // Define allowed actions
+  const allowedActions = ["create", "update", "delete"];
+  
+  // Validate action
+  if (!allowedActions.includes(action)) {
+    console.error("Invalid action. Allowed actions are: create, update, delete.");
+    return;
+  }
+
+  // Ensure description is provided
+  if (!description || typeof description !== "string") {
+    console.error("Activity description is required and must be a string.");
+    return;
+  }
 
   // Use onAuthStateChanged to wait for authentication status
   onAuthStateChanged(auth, async (user) => {
@@ -65,11 +79,12 @@ async function saveActivityLog(action) {
         await updateDoc(counterDocRef, { value: newCounter });
 
         // Use the incremented counter as activity_log_id
-        const docRef = await addDoc(activityLogCollection, {
+        await addDoc(activityLogCollection, {
           activity_log_id: newCounter, // Use counter instead of a placeholder
           username: userName,
           user_type: userType,
           activity: action,
+          activity_desc: description, // Add descriptive message
           date: date,
           time: time
         });
@@ -480,7 +495,7 @@ async function deleteSelectedCrops() {
     // Get the current authenticated user's user_type
     const user = auth.currentUser;
     const userDoc = await getDoc(doc(db, "tb_users", user.uid));
-    const userType = userDoc.data().user_type;  // Replaced user_name with user_type
+    const userType = userDoc.data().user_type;  
 
     const stockCollection = collection(db, "tb_crop_stock");
     let deletedCropNames = [];
@@ -494,7 +509,7 @@ async function deleteSelectedCrops() {
         const docRef = doc(db, "tb_crop_stock", docSnapshot.id);
 
         // Filter stocks to get only those matching the user_type
-        const stocksToRemove = stockData.stocks.filter(stock => stock.owned_by === userType);  // Replaced user_name with user_type
+        const stocksToRemove = stockData.stocks.filter(stock => stock.owned_by === userType);  
 
         if (stocksToRemove.length > 0) {
           for (const stock of stocksToRemove) {
@@ -507,9 +522,13 @@ async function deleteSelectedCrops() {
       }
     }
 
-    console.log("Deleted Crops:", deletedCropNames);
-    await saveActivityLog(`Deleted Crops: ${deletedCropNames.join(", ")}`);
-    showDeleteMessage("All selected Crop records successfully deleted!", true);
+    if (deletedCropNames.length > 0) {
+      console.log("Deleted Crops:", deletedCropNames);
+      await saveActivityLog("delete", `Deleted Crop Stocks`); //${deletedCropNames.join(", ")}
+      showDeleteMessage("All selected Crop records successfully deleted!", true);
+    } else {
+      showDeleteMessage("No crops were deleted.", false);
+    }
 
     selectedCrops = [];
     document.getElementById("crop-bulk-panel").style.display = "none";
@@ -769,7 +788,7 @@ saveBtn.addEventListener("click", async function () {
                 });
             }
 
-            await saveActivityLog(`Added Crop Stock for ${cropTypeName} with quantity of ${cropStock}`);
+            await saveActivityLog("update", `Added Crop Stock for ${cropTypeName} with quantity of ${cropStock}`);
             showCropStockMessage("Crop Stock has been added successfully!", true);
             closeStockPanel();
         } else {

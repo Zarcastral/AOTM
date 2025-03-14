@@ -16,32 +16,43 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Function to fetch and display a specific project based on barangay_name and lead_farmer
+// Function to fetch and display a specific project based on lead_farmer_email
 async function fetchProjectDetails() {
-    let barangayName = sessionStorage.getItem("barangay_name");
-    let userFullName = sessionStorage.getItem("userFullName");
+    let userEmail = sessionStorage.getItem("userEmail"); // Ensure correct key is used
 
-    if (!barangayName || !userFullName) {
-        console.error("❌ Missing barangay_name or userFullName in sessionStorage.");
+    if (!userEmail) {
+        console.error("❌ Missing email in sessionStorage.");
         return;
     }
 
-    console.log("📌 Retrieved barangay_name:", barangayName);
-    console.log("📌 Retrieved userFullName:", userFullName);
+    console.log("📌 Retrieved email:", userEmail);
 
     try {
-        // Query Firestore for the project that matches the barangay_name and lead_farmer
+        // Query Firestore for the farmer's data
+        const farmersRef = collection(db, "tb_farmers");
+        const farmerQuery = query(farmersRef, where("email", "==", userEmail));
+        const farmerSnapshot = await getDocs(farmerQuery);
+
+        if (farmerSnapshot.empty) {
+            console.error("❌ No farmer found with email:", userEmail);
+            return;
+        }
+
+        // Get the farmer's data
+        const farmerData = farmerSnapshot.docs[0].data();
+        const leadFarmerEmail = farmerData.email; // Ensure email is correctly fetched
+
+        // Now query Firestore for the project that matches the lead_farmer_email
         const projectsRef = collection(db, "tb_projects");
-        const q = query(
+        const projectQuery = query(
             projectsRef,
-            where("barangay_name", "==", barangayName),
-            where("lead_farmer", "==", userFullName)
+            where("lead_farmer_email", "==", leadFarmerEmail)
         );
 
-        const querySnapshot = await getDocs(q);
+        const projectSnapshot = await getDocs(projectQuery);
 
-        if (!querySnapshot.empty) {
-            const projectData = querySnapshot.docs[0].data(); // Get the first matching project
+        if (!projectSnapshot.empty) {
+            const projectData = projectSnapshot.docs[0].data(); // Get the first matching project
             console.log("✅ Project Data Retrieved:", projectData);
 
             // Populate project details in HTML
@@ -54,8 +65,11 @@ async function fetchProjectDetails() {
             document.getElementById("equipment").textContent = projectData.equipment || "N/A";
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
+
+            // Fetch the teams associated with this project
+            fetchTeams(projectData.project_id); // Passing project_id to fetch teams related to the project
         } else {
-            console.error("❌ No projects found for barangay:", barangayName, "with lead farmer:", userFullName);
+            console.error("❌ No projects found for lead farmer with email:", leadFarmerEmail);
             document.getElementById("projectName").textContent = "No assigned projects found";
         }
     } catch (error) {
@@ -63,71 +77,14 @@ async function fetchProjectDetails() {
     }
 }
 
-
-// Fetch and display teams
+// Function to fetch and display teams from the selected project in tb_projects
 async function fetchTeams() {
-    const teamsTableBody = document.getElementById("teamsTableBody");
-    teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>Loading...</td></tr>";
 
-    try {
-        const projectId = sessionStorage.getItem("selectedProjectId");
-        if (!projectId) {
-            console.error("❌ No project ID found in sessionStorage.");
-            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No project selected.</td></tr>";
-            return;
-        }
-
-        const projectsRef = collection(db, "tb_projects");
-        const q = query(projectsRef, where("project_id", "==", parseInt(projectId)));
-        const querySnapshot = await getDocs(q);
-
-        teamsTableBody.innerHTML = ""; // Clear loading message
-
-        if (querySnapshot.empty) {
-            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No teams found.</td></tr>";
-            return;
-        }
-
-        let hasTeam = false;
-
-        querySnapshot.forEach(doc => {
-            const project = doc.data();
-
-            if (!project.team_id) {
-                return; // Skip projects without a team_id
-            }
-
-            hasTeam = true; // Mark that at least one team exists
-
-            const teamName = project.team_name || "Unknown Team";
-            const leadFarmer = project.lead_farmer || "No Leader";
-            const farmers = project.farmer_name || []; // List of farmers
-
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${teamName}</td>
-                <td>${leadFarmer}</td>
-                <td>${farmers.length}</td>
-                <td><button class="view-btn">👁️ View</button></td>
-            `;
-
-            // Attach event listener to the button
-            const viewButton = row.querySelector(".view-btn");
-            viewButton.addEventListener("click", () => openPopup(teamName, leadFarmer, farmers));
-
-            teamsTableBody.appendChild(row);
-        });
-
-        // If no team_id was found in any project, display a message
-        if (!hasTeam) {
-            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No selected Team yet.</td></tr>";
-        }
-
-    } catch (error) {
-        console.error("🔥 Error fetching teams:", error);
-        teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>Failed to load teams.</td></tr>";
-    }
 }
+
+
+    
+
 
 // Attach the function globally so HTML can access it
 window.openPopup = function (teamName, leadFarmer, farmers) {
@@ -386,19 +343,6 @@ async function displayFeedbacks() {
         feedbackListContainer.innerHTML = "<p>Error loading feedbacks.</p>";
     }
 }
-
-// Load project details and teams when the page loads
-document.addEventListener("DOMContentLoaded", () => {
-    fetchProjectDetails();
-    fetchTeams();
-    displayFeedbacks();
-});
-
-
-
-
-
-
 
 // Load project details and teams when the page loads
 document.addEventListener("DOMContentLoaded", () => {
