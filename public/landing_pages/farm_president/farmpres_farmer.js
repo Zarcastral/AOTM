@@ -89,10 +89,7 @@ const accountIcon = document.getElementById("account-icon");
 const accountPanel = document.getElementById("account-panel");
 const accountFrame = document.getElementById("account-frame");
 
-accountIcon.addEventListener("click", () => {
-  accountPanel.classList.toggle("active");
-  accountFrame.src = accountPanel.classList.contains("active") ? "logout.html" : "";
-});
+
 
 document.addEventListener("click", (event) => {
   if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
@@ -293,45 +290,71 @@ async function getNextTeamId() {
   }
   
   
-  // Function to save the team
   async function saveTeam() {
     const teamName = document.getElementById("teamName").value.trim();
     const leadFarmer = document.getElementById("leadFarmer").value.trim();
     const farmerBox = document.getElementById("farmerBox");
-  
+
     // Extract all farmer names from the farmerBox
     const farmers = Array.from(farmerBox.getElementsByClassName("farmer-item"))
-      .map(item => item.firstChild.textContent.trim()); // Get the farmer name without the "X" button text
-  
+        .map(item => item.firstChild.textContent.trim());
+
     if (!teamName || !leadFarmer || farmers.length === 0) {
-      alert("Please fill in all fields and select at least one farmer.");
-      return;
+        alert("Please fill in all fields and select at least one farmer.");
+        return;
     }
-  
+
     const teamId = await getNextTeamId();
     if (teamId === null) {
-      alert("Error generating team ID. Please try again.");
-      return;
+        alert("Error generating team ID. Please try again.");
+        return;
     }
-  
-    const teamData = {
-      team_id: teamId,
-      team_name: teamName,
-      lead_farmer: leadFarmer,
-      farmer_name: farmers, // Properly formatted farmer names
-      barangay_name: loggedBarangay
-    };
-  
+
     try {
-      await addDoc(collection(db, "tb_teams"), teamData);
-      alert("Team successfully created!");
-      popup.style.display = "none";
+        // Fetch lead farmer's email by reconstructing their full name
+        const farmersRef = collection(db, "tb_farmers");
+        const querySnapshot = await getDocs(farmersRef);
+
+        let leadFarmerEmail = "";
+        querySnapshot.forEach((doc) => {
+            const farmerData = doc.data();
+            const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
+
+            if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
+                leadFarmerEmail = farmerData.email;
+            }
+        });
+
+        if (!leadFarmerEmail) {
+            alert(`Lead farmer '${leadFarmer}' not found in the database.`);
+            return;
+        }
+
+        const teamData = {
+            team_id: teamId,
+            team_name: teamName,
+            lead_farmer: leadFarmer,
+            lead_farmer_email: leadFarmerEmail,
+            farmer_name: farmers,
+            barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
+        };
+
+        await addDoc(collection(db, "tb_teams"), teamData);
+        alert("Team successfully created!");
+        popup.style.display = "none";
     } catch (error) {
-      console.error("Error saving team:", error);
-      alert("Failed to save team. Please try again.");
+        console.error("Error saving team:", error);
+        alert("Failed to save team. Please try again.");
     }
-  }
+}
+
+
   
   
   // Attach event listener to Save button
   document.getElementById("saveTeamBtn").addEventListener("click", saveTeam);
+
+  accountIcon.addEventListener("click", () => {
+    accountPanel.classList.toggle("active");
+    accountFrame.src = accountPanel.classList.contains("active") ? "logout.html" : "";
+  });

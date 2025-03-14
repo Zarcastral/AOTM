@@ -15,11 +15,11 @@
 
   <div class="container">
     <h2>User Profile</h2>
-  
+
     <div class="profile-picture-container">
       <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
     </div>
-  
+
     <form id="profile-form">
       <div class="form-group file-input-container">
         <label for="profile_picture">Change Profile Picture</label>
@@ -28,68 +28,67 @@
           <span id="remove-file" class="remove-file">&times;</span>
         </div>
       </div>
-  
+
       <div class="form-group">
         <label for="user_name">Username</label>
-        <input type="text" id="user_name" name="user_name" required disabled>
+        <input type="text" id="user_name" name="user_name" disabled>
       </div>
-  
+
       <div class="form-group">
         <label for="first_name">First Name</label>
-        <input type="text" id="first_name" name="first_name" required disabled>
+        <input type="text" id="first_name" name="first_name" disabled>
       </div>
-  
+
       <div class="form-group">
         <label for="middle_name">Middle Name</label>
-        <input type="text" id="middle_name" name="middle_name" required disabled>
+        <input type="text" id="middle_name" name="middle_name" disabled>
       </div>
-  
+
       <div class="form-group">
         <label for="last_name">Last Name</label>
-        <input type="text" id="last_name" name="last_name" required disabled>
+        <input type="text" id="last_name" name="last_name" disabled>
       </div>
-  
+
       <div class="form-group">
         <label for="contact">Contact</label>
-        <input type="text" id="contact" name="contact" required>
+        <input type="text" id="contact" name="contact">
       </div>
-  
+
       <div class="form-group">
         <label for="email">Email</label>
-        <input type="email" id="email" name="email" required readonly>
+        <input type="email" id="email" name="email">
       </div>
-  
+
       <div class="form-group">
         <label for="birthday">Birthday</label>
-        <input type="date" id="birthday" name="birthday" required disabled>
+        <input type="date" id="birthday" name="birthday" disabled>
       </div>
-  
+
       <div class="form-group">
         <label for="sex">Sex</label>
-        <input type="text" id="sex" name="sex" required disabled>
+        <input type="text" id="sex" name="sex" disabled>
       </div>
-  
+
       <div class="form-group">
         <label for="user_type">User Type</label>
-        <input type="text" id="user_type" name="user_type" required disabled>
+        <input type="text" id="user_type" name="user_type" disabled>
       </div>
-  
+
       <div class="form-group">
         <label for="barangay">Barangay</label>
-        <select name="barangay" id="barangay" required>
-          <option value="">Select Barangay</option>
-        </select>
+        <input type="text" id="barangay" name="barangay" disabled>
       </div>
-  
+
+
       <div class="modify-buttons">
         <button type="button" id="close-button">Close</button>
         <button type="submit" id="update-button">Update</button>
       </div>
     </form>
-  
+
     <div id="error-message" style="color: red;"></div>
   </div>
-  
+
 
   <script type="module" src="../../../src/js/components/profile.js"></script>
   <script type="module" src="../../../src/auth/header.js"></script>

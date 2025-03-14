@@ -59,7 +59,7 @@
     </div>
       <div id="crop-bulk-panel" class="crop-bulk-panel">
         <div class="confirm-crop-bulk-message">
-            <p>Are you sure you want to delete the selected records?</p>
+            <p>Are you sure you want to delete the selected Crop records?</p>
             <button id="confirm-crop-delete" class="crop-bulk-confirm-btn">Confirm</button>
             <button id="cancel-crop-delete" class="crop-bulk-cancel-btn">Cancel</button>
         </div>
@@ -108,7 +108,7 @@
     </div>
       <div id="fert-bulk-panel" class="fert-bulk-panel">
         <div class="confirm-fert-bulk-message">
-            <p>Are you sure you want to delete the selected records?</p>
+            <p>Are you sure you want to delete the selected Fertilizer records?</p>
             <button id="confirm-fert-delete" class="fert-bulk-confirm-btn">Confirm</button>
             <button id="cancel-fert-delete" class="fert-bulk-cancel-btn">Cancel</button>
         </div>
@@ -158,7 +158,7 @@
       </div>
         <div id="equip-bulk-panel" class="equip-bulk-panel">
           <div class="confirm-equip-bulk-message">
-              <p>Are you sure you want to delete the selected records?</p>
+              <p>Are you sure you want to delete the selected Equipment records?</p>
               <button id="confirm-equip-delete" class="equip-bulk-confirm-btn">Confirm</button>
               <button id="cancel-equip-delete" class="equip-bulk-cancel-btn">Cancel</button>
           </div>
@@ -198,7 +198,6 @@
       // Close when clicking outside
       document.addEventListener("click", (event) => {
         if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-          console.log("Clicked outside, closing panel...");
           closeAccountPanel();
         }
       });

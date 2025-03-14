@@ -4,22 +4,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script type="module" src="../../../src/js/admin/admin_inventory_crops_stock.js"></script>
-  <script type="module" src="../../../src/js/admin/admin_inventory_equipment_stock.js"></script>
-  <script type="module" src="../../../src/js/admin/admin_inventory_fertilizer_stock.js"></script>
+  <script type="module" src="../../../src/js/supervisor/supervisor_inventory_crops_stock.js"></script>
+  <script type="module" src="../../../src/js/supervisor/supervisor_inventory_equipment_stock.js"></script>
+  <script type="module" src="../../../src/js/supervisor/supervisor_inventory_fertilizer_stock.js"></script>
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../src/style/admin/admin_inventory_stock.css">
+  <link rel="stylesheet" href="../../../src/style/supervisor/supervisor_inventory_stock.css">
 </head>
 
 <body>
-  <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <div class="header">
+    <div class="header-title"></div>
+    <div class="header-icons">
+      <img src="../../images/Bell.png" alt="Notifications" />
+      <img id="account-icon" src="../../images/Union.png" alt="Account" />
+    </div>
+  </div>
 
   <div class="main-content">
       <div class="stock-selector">
-        <span class="inventory-form"><a href="admin_inventory.html">Inventory List</a></span> |
-        <span class="stock-form" ><a href="admin_inventory_stock.html">Manage Inventory</a></span>
+        <span class="inventory-form"><a href="supervisor_inventory.html">Inventory List</a></span> |
+        <span class="stock-form" ><a href="supervisor_inventory_stock.html">Manage Inventory</a></span>
       </div>
     <div class="panel">
       <h2>Crops</h2>
@@ -370,8 +375,6 @@
 });
 
   </script>
-  <!-- Import the reusable script from src/auth -->
-  <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 
 </html>

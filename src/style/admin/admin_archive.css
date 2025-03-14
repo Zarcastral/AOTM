@@ -1,12 +1,13 @@
 body {
-    margin: 0;
-    font-family: 'Poppins';
-    background-color: #F5F6FA;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100vh;
-  }
+  margin: 0;
+  font-family: 'Poppins';
+  background-color: #F5F6FA;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
  
   .header {
     width: 100%;
@@ -47,6 +48,10 @@ body {
     margin-right: auto; /* Center the panel horizontally */
 }
 
+.search-bar input, .search-bar select {
+  box-sizing: border-box;
+}
+
   .search-bar {
     justify-content: space-between;
     align-items: center;
@@ -69,27 +74,26 @@ body {
 /* Updated table styles */
 
 /* New table container for responsiveness */
-.table-container {
-  overflow-x: auto; /* Enable horizontal scroll on small screens */
-  margin: 0 auto; /* Center the table container */
-  max-width: 100%; /* Ensure it fits within the panel */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
-  max-width: 100%; /* Prevents overflow */
   border-collapse: collapse;
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
-  margin: 0 auto; /* Center the table */
 }
+
+
 
 th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #E5E7EB;
-  word-break: break-word; /* Prevent text overflow */
 }
 
 th {
@@ -102,16 +106,23 @@ tbody tr:hover {
   background-color: #F3F4F6;
 }
 
-  .checkbox {
-    justify-content: center;
-    align-items: center;
-  }
+/* Centering Text in Table Cells */
+.panel table th, .panel table td {
+  text-align: center;
+  vertical-align: middle;
+}
 
-  .checkbox input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
+/* Checkbox Styles */
+.checkbox {
+  justify-content: center;
+  align-items: center;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
 
 .table-selector {
     display: flex;
@@ -130,6 +141,162 @@ tbody tr:hover {
     color: #41A186;
     transition: color 0.3s ease;
 }
+
+
+/* Pagination styles */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; /* Aligns vertically */
+  margin-top: 20px;
+  width: 100%;
+  gap: 10px; /* Adds spacing between elements */
+
+}
+#page-number {
+    font-size: 17px;
+    color: #333;
+  }
+
+.pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.pagination-btn:hover {
+    color: #41A186;
+}
+
+.pagination-btn:disabled {
+    color: #bbb;
+    cursor: not-allowed;
+}
+
+
+/* Bulk Delete Button Style */
+#bulk-delete {
+  color: white;
+  padding: 10px 10px;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#bulk-delete:focus {
+  outline: none;
+}
+
+#bulk-delete:disabled {
+  cursor: not-allowed;
+}
+
+/* Bulk Delete Panel Style */
+.bulk-delete-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.bulk-delete-panel.show {
+  display: flex;
+}
+
+/* Confirmation Message Style for Bulk Delete */
+.confirm-bulk-delete-message {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Bulk Confirm and Cancel Button Styles */
+.bulk-confirm-btn, .bulk-cancel-btn {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.bulk-confirm-btn {
+  background-color: #41A186;
+  color: white;
+  border: none;
+}
+
+.bulk-confirm-btn:hover {
+  background-color: #318a71;
+  transition: background-color 0.3s ease;
+}
+
+.bulk-cancel-btn {
+  background-color: slategrey;
+  color: white;
+  border: none;
+}
+
+.bulk-cancel-btn:hover {
+  background-color:rgb(90, 101, 112);
+  transition: background-color 0.3s ease, opacity 0.3s ease; 
+}
+
+/* Bulk Delete Success Message Style */
+.bulk-delete-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Success Message Style */
+.delete-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: transparent; /* Remove the default green */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
