@@ -25,6 +25,7 @@ editFormContainer.id = "edit-form-container";
 editFormContainer.style.display = "none";
 document.body.appendChild(editFormContainer);
 
+
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
@@ -240,16 +241,25 @@ async function editUserAccount(project_id) {
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
                 const projectData = doc.data();
+
+                // Convert status to lowercase and check if it is "ongoing"
+                if (projectData.status && projectData.status.toLowerCase() === "ongoing") {
+                    showDeleteMessage("Editing is not allowed for ongoing projects.", false);
+                    return;
+                }
+
+                // Allow editing if not "ongoing"
                 localStorage.setItem("projectData", JSON.stringify(projectData));
                 window.location.href = "admin_projects_edit.html";
             });
         } else {
-            showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
+            showDeleteMessage("No matching record found, unable to proceed with the requested action.", false);
         }
     } catch (error) {
         console.error("Error fetching user data for edit:", error);
     }
 }
+
 
 // <------------- VIEW BUTTON CODE ------------->
 /*async function viewUserAccount(project_id) {
@@ -502,6 +512,15 @@ function showDeleteMessage(message, success) {
         }, 400);
     }, 4000); 
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const successMessage = localStorage.getItem("successMessage");
+
+    if (successMessage) {
+        showDeleteMessage(successMessage, true);
+        localStorage.removeItem("successMessage"); // Clear after showing
+    }
+});
 
 fetch_projects();
 fetch_status();

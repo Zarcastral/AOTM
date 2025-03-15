@@ -1,13 +1,90 @@
 import {
     collection,
     getDocs,
-    where,
+    doc,
+    setDoc,
+    deleteDoc,
+    updateDoc,
+    getDoc,
     query,
+    where,
     getFirestore
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
-
 const db = getFirestore(app);
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+const auth = getAuth();
+
+// <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
+async function getAuthenticatedUser() {
+    return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+                    const userSnapshot = await getDocs(userQuery);
+
+                    if (!userSnapshot.empty) {
+                        const userData = userSnapshot.docs[0].data();
+                        console.log("Authenticated user data:", userData); // Debugging line
+                        resolve(userData.user_type); // Return ONLY user_type
+                    } else {
+                        console.error("User record not found in tb_users collection.");
+                        reject("User record not found.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user_name:", error);
+                    reject(error);
+                }
+            } else {
+                console.error("User not authenticated. Please log in.");
+                reject("User not authenticated.");
+            }
+        });
+    });
+}
+
+// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE and ERROR MESSAGES ------------------------>
+const confirmationPanel = document.getElementById("confirmation-panel");
+const confirmDeleteButton = document.getElementById("confirm-delete");
+const cancelDeleteButton = document.getElementById("cancel-delete");
+let selectedRowId = null;
+
+const deleteMessage = document.getElementById("delete-message");
+let messageQueue = [];
+let isMessageShowing = false;
+
+function showDeleteMessage(message, success) {
+    messageQueue.push({ message, success });
+
+    if (!isMessageShowing) {
+        processMessageQueue();
+    }
+}
+
+function processMessageQueue() {
+    if (messageQueue.length === 0) {
+        isMessageShowing = false;
+        return;
+    }
+
+    isMessageShowing = true;
+    const { message, success } = messageQueue.shift();
+
+    deleteMessage.textContent = message;
+    deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+    deleteMessage.style.opacity = '1';
+    deleteMessage.style.display = 'block';
+
+    setTimeout(() => {
+        deleteMessage.style.opacity = '0';
+        setTimeout(() => {
+            deleteMessage.style.display = 'none';
+            processMessageQueue(); // Show the next message after this one disappears
+        }, 400);
+    }, 4000);
+}
+
 
 // Function to set the selected value in dropdown
 function setSelectValue(selectElement, value) {
@@ -203,14 +280,18 @@ async function loadFertilizerCategories(selectedFertilizerType = "") {
 
         querySnapshot.forEach(doc => {
             const data = doc.data();
-            const fertilizerType = data.fertilizer_type_name.trim();
+            if (data && data.fertilizer_type) { // Ensure it exists before using trim()
+                const fertilizerType = data.fertilizer_type.trim();
 
-            if (!uniqueFertilizerTypes.has(fertilizerType)) {
-                const option = document.createElement('option');
-                option.value = fertilizerType;
-                option.textContent = fertilizerType;
-                fertilizerCategorySelect.appendChild(option);
-                uniqueFertilizerTypes.add(fertilizerType);
+                if (!uniqueFertilizerTypes.has(fertilizerType)) {
+                    const option = document.createElement('option');
+                    option.value = fertilizerType;
+                    option.textContent = fertilizerType;
+                    fertilizerCategorySelect.appendChild(option);
+                    uniqueFertilizerTypes.add(fertilizerType);
+                }
+            } else {
+                console.warn(`Missing fertilizer_type in document: ${doc.id}`);
             }
         });
 
@@ -225,6 +306,7 @@ async function loadFertilizerCategories(selectedFertilizerType = "") {
     }
 }
 
+
 // Function to populate fertilizer name dropdown based on selected type
 async function loadFertilizerNames(selectedFertilizerType) {
     const fertilizerNameSelect = document.getElementById("fertilizer-name");
@@ -233,7 +315,7 @@ async function loadFertilizerNames(selectedFertilizerType) {
     if (!selectedFertilizerType) return; // Exit if no type is selected
 
     try {
-        const q = query(collection(db, "tb_fertilizer"), where("fertilizer_type_name", "==", selectedFertilizerType));
+        const q = query(collection(db, "tb_fertilizer"), where("fertilizer_type", "==", selectedFertilizerType));
         const querySnapshot = await getDocs(q);
 
         querySnapshot.forEach(doc => {
@@ -288,7 +370,7 @@ async function loadEquipment(selectedEquipment = "") {
     }
 }
 
-// <----------------------------> Funtion To populate fields <----------------------------> //
+// <----------------------------> Function To populate fields <----------------------------> //
 document.addEventListener("DOMContentLoaded", async () => {
     // Retrieve project data from local storage
     const projectData = JSON.parse(localStorage.getItem("projectData"));
@@ -323,7 +405,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 
                 document.getElementById("crop-unit").value = project.crop_unit || "";
                 document.getElementById("quantity-crop-type").value = project.quantity_crop_type || "";
-                document.getElementById("fertilizer-name").value = project.fertilizer_name || "";
+                //document.getElementById("fertilizer-name").value = project.fertilizer_name || "";
+                //document.getElementById("fertilizer-category").value = project.fertilizer_type || "";
                 document.getElementById("quantity-fertilizer-type").value = project.quantity_fertilizer_type || "";
                 document.getElementById("fertilizer-unit").value = project.fertilizer_unit || "";
                 document.getElementById("start-date").value = project.start_date || "";
@@ -333,7 +416,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 loadFarmPresidents(project.farm_president);
                 loadFarmlands(selectedFarmland);
                 loadCropNamesAndTypes(selectedCropName, selectedCropTypeName);
-                loadFertilizerCategories(project.fertilizer_type_name || "");
+                loadFertilizerCategories(project.fertilizer_type || "");
+                loadFertilizerNames(project.fertilizer_type || "");
 
             });
         } else {
@@ -349,3 +433,223 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.location.href = "admin_projects_list.html";
     });
 });
+document.addEventListener("DOMContentLoaded", async () => {
+    const cancelButton = document.getElementById("cancel-button");
+    if (cancelButton) {
+        cancelButton.addEventListener("click", () => {
+            window.location.href = "admin_projects_list.html";
+        });
+    } else {
+        console.error("Cancel button not found! Check your HTML.");
+    }
+
+    let initialQuantityCropType = 0;
+    let initialQuantityFertilizerType = 0;
+
+    // Get project ID from localStorage
+    const projectData = JSON.parse(localStorage.getItem("projectData"));
+    if (!projectData || !projectData.project_id) {
+        alert("Project data is missing in localStorage.");
+        window.location.href = "admin_projects_list.html";
+        return;
+    }
+    const projectId = projectData.project_id;
+
+    try {
+        const projectsRef = collection(db, "tb_projects");
+        const querySnapshot = await getDocs(query(projectsRef, where("project_id", "==", projectId)));
+
+        if (!querySnapshot.empty) {
+            const projectDoc = querySnapshot.docs[0].data();
+            initialQuantityCropType = projectDoc.quantity_crop_type || 0;
+            initialQuantityFertilizerType = projectDoc.quantity_fertilizer_type || 0;
+        } else {
+            alert("Project not found in the database.");
+            window.location.href = "admin_projects_list.html";
+            return;
+        }
+    } catch (error) {
+        console.error("Error fetching initial project data:", error);
+        alert("An error occurred while fetching project data.");
+        window.location.href = "admin_projects_list.html";
+        return;
+    }
+
+    const saveButton = document.getElementById("save-button");
+    if (saveButton) {
+        saveButton.addEventListener("click", async () => {
+            console.log("Save button clicked!");
+    
+            try {
+                const userType = await getAuthenticatedUser(); // Assuming this function exists
+    
+                // Query Firestore again to get the document reference
+                const querySnapshot = await getDocs(query(collection(db, "tb_projects"), where("project_id", "==", projectId)));
+    
+                if (querySnapshot.empty) {
+                    alert("Project not found in the database.");
+                    window.location.href = "admin_projects_list.html";
+                    return;
+                }
+    
+                const projectDoc = querySnapshot.docs[0];
+                const projectRef = doc(db, "tb_projects", projectDoc.id);
+    
+                // Fetch form values
+                const projectName = document.getElementById("project-name")?.value.trim();
+                const cropName = document.getElementById("crops")?.value.trim();
+                const cropTypeName = document.getElementById("crop-type")?.value.trim();
+                const quantityCropType = parseInt(document.getElementById("quantity-crop-type")?.value) || 0;
+    
+                const fertilizerType = document.getElementById("fertilizer-category")?.value.trim();
+                const fertilizerName = document.getElementById("fertilizer-name")?.value.trim();
+                const quantityFertilizerType = parseInt(document.getElementById("quantity-fertilizer-type")?.value) || 0;
+    
+                const status = document.getElementById("status")?.value.trim();
+                const startDate = document.getElementById("start-date")?.value;
+                const endDate = document.getElementById("end-date")?.value;
+    
+                // Basic validation
+                if (!projectName || !cropName || !cropTypeName || !status || !startDate || !endDate) {
+                    alert("Please fill in all required fields.");
+                    return;
+                }
+    
+                // Check if there are changes in quantity fields
+                const cropChanged = quantityCropType !== initialQuantityCropType;
+                const fertilizerChanged = quantityFertilizerType !== initialQuantityFertilizerType;
+    
+                let cropStockUpdated = true;
+                let fertilizerStockUpdated = true;
+    
+                // Validate stock BEFORE updating project data
+                if (cropChanged && typeof updateStock === "function") {
+                    cropStockUpdated = await updateStock("tb_crop_stock", cropTypeName, cropName, quantityCropType, initialQuantityCropType, userType);
+                }
+    
+                if (fertilizerChanged && typeof updateStock === "function") {
+                    fertilizerStockUpdated = await updateStock("tb_fertilizer_stock", fertilizerType, fertilizerName, quantityFertilizerType, initialQuantityFertilizerType, userType);
+                }
+    
+                // Stop if stock validation fails
+                if (!cropStockUpdated || !fertilizerStockUpdated) {
+                    alert("Stock update failed. Cancelling project update.");
+                    return;
+                }
+
+                // Check if there are any changes before proceeding
+                const hasChanges = projectName !== projectDoc.project_name ||
+                    cropName !== projectDoc.crop_name ||
+                    cropTypeName !== projectDoc.crop_type_name ||
+                    quantityCropType !== initialQuantityCropType ||
+                    fertilizerType !== projectDoc.fertilizer_type ||
+                    fertilizerName !== projectDoc.fertilizer_name ||
+                    quantityFertilizerType !== initialQuantityFertilizerType ||
+                    status !== projectDoc.status ||
+                    startDate !== projectDoc.start_date ||
+                    endDate !== projectDoc.end_date;
+    
+                const updateData = {};
+                if (projectName) updateData.project_name = projectName;
+                if (cropName) updateData.crop_name = cropName;
+                if (cropTypeName) updateData.crop_type_name = cropTypeName;
+                if (cropChanged) updateData.quantity_crop_type = quantityCropType;
+                if (fertilizerType) updateData.fertilizer_type = fertilizerType;
+                if (fertilizerName) updateData.fertilizer_name = fertilizerName;
+                if (fertilizerChanged) updateData.quantity_fertilizer_type = quantityFertilizerType;
+                if (status) updateData.status = status;
+                if (startDate) updateData.start_date = startDate;
+                if (endDate) updateData.end_date = endDate;
+    
+                if (hasChanges) {
+                    await updateDoc(projectRef, updateData);
+                    console.log("Project data updated successfully!");
+                    // Store success message in localStorage
+                    localStorage.setItem("successMessage", "Project updated successfully!");
+                } else {
+                    // If no changes were made
+                    localStorage.setItem("successMessage", "No Changes Made");
+                }
+    
+                // Redirect to Admin Projects List
+                window.location.href = "admin_projects_list.html";
+    
+            } catch (error) {
+                console.error("Error updating project:", error);
+                alert("An error occurred while updating the project. Please try again.");
+                window.location.href = "admin_projects_list.html";
+            }
+        });
+    } else {
+        console.error("Save button not found! Check your HTML.");
+    }
+});    
+
+// Function to update inventory stock
+async function updateStock(collectionName, type, name, newQuantity, initialQuantity, userType) {
+    try {
+        // Determine field names dynamically
+        const typeField = collectionName === "tb_crop_stock" ? "crop_type_name" : "fertilizer_type";
+        const nameField = collectionName === "tb_crop_stock" ? "crop_name" : "fertilizer_name";
+
+        // Query Firestore
+        const q = query(collection(db, collectionName), 
+            where(typeField, "==", type), 
+            where(nameField, "==", name)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            console.warn(`No Stock Value found for ${type} - ${name} in ${collectionName}`);
+            showDeleteMessage(`No Stock Value found for ${type} - ${name}.`, false);
+            return false;
+        }
+
+        let updateAllowed = true; // Flag to track if update can proceed
+        let updateSucceeded = false; // Flag to track if any update succeeds
+
+        for (const docSnapshot of querySnapshot.docs) {
+            const stockData = docSnapshot.data();
+            const updatedStocks = stockData.stocks.map(stock => {
+                if (stock.owned_by === userType) {
+                    const difference = newQuantity - initialQuantity;
+                    const currentStock = stock.current_stock || 0;
+
+                    // Validation checks
+                    if (newQuantity < 0) {
+                        showDeleteMessage(`Error: Quantity for ${name} cannot be negative.`, false);
+                        updateAllowed = false;
+                        return stock;
+                    }
+
+                    if (difference > 0 && difference > currentStock) {
+                        showDeleteMessage(`Error: Cannot increase quantity of ${name} (${type}) beyond available stock (${currentStock}).`, false);
+                        updateAllowed = false;
+                        return stock;
+                    }
+
+                    if (difference < 0 && Math.abs(difference) > initialQuantity) {
+                        showDeleteMessage(`Error: Cannot decrease quantity of ${name} (${type}) below zero.`, false);
+                        updateAllowed = false;
+                        return stock;
+                    }
+
+                    updateSucceeded = true; // Mark that an update is successful
+                    return { ...stock, current_stock: currentStock - difference };
+                }
+                return stock;
+            });
+
+            if (updateAllowed && updateSucceeded) {
+                await updateDoc(doc(db, collectionName, docSnapshot.id), { stocks: updatedStocks });
+                console.log(`Updated Stock for ${type} - ${name} in ${collectionName}, owned by ${userType}`);
+            }
+        }
+
+        return updateSucceeded; // Return whether any update succeeded
+
+    } catch (error) {
+        console.error(`Error updating ${collectionName} inventory:`, error);
+        return false;
+    }
+}
