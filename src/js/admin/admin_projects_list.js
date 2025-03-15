@@ -3,15 +3,17 @@ import {
     getDocs,
     doc,
     deleteDoc,
+    updateDoc,
     getDoc,
     query,
     where,
     getFirestore
-  } from "firebase/firestore";
+} from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
-
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+const auth = getAuth();
 const tableBody = document.getElementById("table_body");
 const statusSelect = document.getElementById("status_select");
 const searchBar = document.getElementById("search-bar");
@@ -22,6 +24,36 @@ const editFormContainer = document.createElement("div");
 editFormContainer.id = "edit-form-container";
 editFormContainer.style.display = "none";
 document.body.appendChild(editFormContainer);
+
+// <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
+async function getAuthenticatedUser() {
+    return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+                    const userSnapshot = await getDocs(userQuery);
+
+                    if (!userSnapshot.empty) {
+                        const userData = userSnapshot.docs[0].data();
+                        console.log("Authenticated user data:", userData); // Debugging line
+                        resolve(userData.user_type); // Return ONLY user_type
+                    } else {
+                        console.error("User record not found in tb_users collection.");
+                        reject("User record not found.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user_name:", error);
+                    reject(error);
+                }
+            } else {
+                console.error("User not authenticated. Please log in.");
+                reject("User not authenticated.");
+            }
+        });
+    });
+}
+
 
 let currentPage = 1;
 const rowsPerPage = 5;
@@ -41,11 +73,11 @@ async function fetch_projects(filter = {}) {
             const searchTerm = filter.search?.toLowerCase();
             const matchesSearch = searchTerm
                 ? `${data.project_name || ""}`.toLowerCase().includes(searchTerm) ||
-                  `${data.farm_president || ""}`.toLowerCase().includes(searchTerm) ||
-                  (data.start_date || "").includes(searchTerm) ||
-                  (data.end_date || "").includes(searchTerm) ||
-                  (data.crop_type_name || "").toLowerCase().includes(searchTerm) ||
-                  (data.status || "").toLowerCase().includes(searchTerm)
+                `${data.farm_president || ""}`.toLowerCase().includes(searchTerm) ||
+                (data.start_date || "").includes(searchTerm) ||
+                (data.end_date || "").includes(searchTerm) ||
+                (data.crop_type_name || "").toLowerCase().includes(searchTerm) ||
+                (data.status || "").toLowerCase().includes(searchTerm)
                 : true;
 
             const matchesStatus = filter.status
@@ -279,6 +311,7 @@ async function deleteProjects(project_id) {
 }
 
 // <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
+// <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
 const confirmationPanel = document.getElementById("confirmation-panel");
 const confirmDeleteButton = document.getElementById("confirm-delete");
 const cancelDeleteButton = document.getElementById("cancel-delete");
@@ -288,11 +321,109 @@ const deleteMessage = document.getElementById("delete-message");
 confirmDeleteButton.addEventListener("click", async () => {
     if (selectedRowId) {
         try {
+            // Get authenticated user's user_type
+            const user_type = await getAuthenticatedUser();
+            console.log("Extracted user_type:", user_type);
+            
+            if (!user_type) {
+                console.error("Error: user_type is undefined or null.");
+                return;
+            }
+            
             const projectDocRef = doc(db, "tb_projects", selectedRowId);
-            await deleteDoc(projectDocRef);
-            showDeleteMessage("Record deleted successfully!", true);
+            const projectSnapshot = await getDoc(projectDocRef);
 
-            fetch_projects(); // Refresh table   
+            if (projectSnapshot.exists()) {
+                const projectData = projectSnapshot.data();
+                const { status, crop_type_name, fertilizer_type, quantity_crop_type, quantity_fertilizer_type } = projectData;
+                
+                console.log("Project Data:", projectData);
+
+                // 🔴 Check if status is "pending" (case insensitive)
+                if (!status || status.toLowerCase() !== "pending") {
+                    showDeleteMessage("Project cannot be deleted because it is not in 'Pending' status.", false);
+                    return;
+                }
+
+                let cropUpdated = false;
+                let fertilizerUpdated = false;
+
+                // 🔹 Update crop stock (tb_crop_stock)
+                if (crop_type_name) {
+                    const cropStockQuery = query(collection(db, "tb_crop_stock"), where("crop_type_name", "==", crop_type_name));
+                    const cropStockSnapshot = await getDocs(cropStockQuery);
+
+                    if (!cropStockSnapshot.empty) {
+                        const cropStockDoc = cropStockSnapshot.docs[0]; // Get first matching document
+                        const cropStockRef = doc(db, "tb_crop_stock", cropStockDoc.id);
+                        let cropStockData = cropStockDoc.data();
+                        let stockArray = cropStockData.stocks || [];
+
+                        // Find stock entry by owned_by
+                        const userStockIndex = stockArray.findIndex(stock => stock.owned_by === user_type);
+
+                        if (userStockIndex !== -1) {
+                            // Update current_stock
+                            stockArray[userStockIndex].current_stock += quantity_crop_type;
+                        } else {
+                            console.warn(`No crop stock entry found for owned_by: ${user_type}. Creating new entry.`);
+                            stockArray.push({ owned_by: user_type, current_stock: quantity_crop_type });
+                        }
+
+                        await updateDoc(cropStockRef, { stocks: stockArray });
+                        cropUpdated = true;
+                    } else {
+                        console.error(`Crop stock document with crop_type_name '${crop_type_name}' not found.`);
+                    }
+                } else {
+                    console.error("Error: crop_type_name is undefined.");
+                }
+
+                // 🔹 Update fertilizer stock (tb_fertilizer_stock)
+                if (fertilizer_type) {
+                    const fertilizerStockQuery = query(
+                        collection(db, "tb_fertilizer_stock"),
+                        where("fertilizer_name", "==", fertilizer_type) // Match fertilizer_name in tb_fertilizer_stock
+                    );
+                    const fertilizerStockSnap = await getDocs(fertilizerStockQuery);
+                    
+                    if (!fertilizerStockSnap.empty) {
+                        const fertilizerStockDoc = fertilizerStockSnap.docs[0]; // Get first matching document
+                        const fertilizerStockRef = doc(db, "tb_fertilizer_stock", fertilizerStockDoc.id);
+                        const fertilizerStockData = fertilizerStockDoc.data();
+                        let stockArray = fertilizerStockData.stocks || [];
+                    
+                        // Find stock entry by owned_by
+                        const userStockIndex = stockArray.findIndex(stock => stock.owned_by === user_type);
+                    
+                        if (userStockIndex !== -1) {
+                            // Update current_stock
+                            stockArray[userStockIndex].current_stock += quantity_fertilizer_type;
+                        } else {
+                            console.warn(`No fertilizer stock entry found for owned_by: ${user_type}. Creating new entry.`);
+                            stockArray.push({ owned_by: user_type, current_stock: quantity_fertilizer_type });
+                        }
+                    
+                        await updateDoc(fertilizerStockRef, { stocks: stockArray });
+                        fertilizerUpdated = true;
+                    } else {
+                        console.error(`Fertilizer stock document with fertilizer_name '${fertilizer_type}' not found.`);
+                    }
+                } else {
+                    console.error("Error: fertilizer_type is undefined.");
+                }
+
+                // Proceed with deletion only if both stock updates were successful
+                if (cropUpdated && fertilizerUpdated) {
+                    await deleteDoc(projectDocRef);
+                    showDeleteMessage("Record deleted successfully! Stock updated.", true);
+                    fetch_projects(); // Refresh table
+                } else {
+                    showDeleteMessage("Stock update failed. Project not deleted.", false);
+                }
+            } else {
+                console.error("Project not found.");
+            }
         } catch (error) {
             console.error("Error deleting record:", error);
         }
@@ -308,6 +439,9 @@ cancelDeleteButton.addEventListener("click", () => {
     editFormContainer.style.pointerEvents = "auto";
     selectedRowId = null;
 });
+
+
+// <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
 
 // EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
 searchBar.addEventListener("input", () => {
