@@ -10,6 +10,18 @@ import {
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import app from "../../config/firebase_config.js";
 
+let isFormDirty = false;
+
+function warnUnsavedChanges(event) {
+  if (isFormDirty) {
+    event.preventDefault();
+    event.returnValue = ""; // Show browser warning
+  }
+}
+
+// ✅ Attach the event on page load
+window.addEventListener("beforeunload", warnUnsavedChanges);
+
 document.addEventListener("DOMContentLoaded", async () => {
   const db = getFirestore(app);
   const storage = getStorage(app);
@@ -26,35 +38,58 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const userDocRef = await fetchUserData(db, collectionName, userEmail);
 
+  // ✅ Track form changes
+  let isFormDirty = false;
+  const formElements = document.querySelectorAll("input, select");
+
+  formElements.forEach((element) => {
+    element.addEventListener("change", () => {
+      if (element.type === "file") {
+        // ✅ Only mark as dirty if a new file is selected
+        if (element.files.length > 0) {
+          isFormDirty = true;
+        }
+      } else {
+        isFormDirty = true;
+      }
+    });
+  });
+
+  // ✅ Handle Close button with confirmation
+  document.getElementById("close-button").addEventListener("click", (e) => {
+    if (isFormDirty) {
+      const confirmClose = confirm(
+        "You have unsaved changes. Are you sure you want to close?"
+      );
+      if (!confirmClose) {
+        e.preventDefault();
+        return;
+      }
+    }
+
+    // ✅ Ensure warning is removed before navigating
+    window.removeEventListener("beforeunload", warnUnsavedChanges);
+    isFormDirty = false; // ✅ Mark as clean when closing
+    window.history.back();
+  });
+
+  // ✅ Handle Profile Picture Changes
   document
     .getElementById("profile_picture")
     .addEventListener("change", handleFileSelect);
-
   document
     .getElementById("remove-file")
-    .addEventListener("click", () => removeProfilePicture());
+    .addEventListener("click", removeProfilePicture);
 
-  document
-    .getElementById("update-button")
-    .addEventListener("click", async (e) => {
-      e.preventDefault();
-      await updateUserData(db, storage, userDocRef, auth);
-    });
-
-  document
-    .getElementById("close-button")
-    .addEventListener("click", () => window.history.back());
-
-  // Initially hide the remove button if no file is selected
+  // ✅ Hide "Remove" button initially
   const removeFileButton = document.getElementById("remove-file");
   const fileInput = document.getElementById("profile_picture");
 
   removeFileButton.style.display = "none"; // Hide initially
-
   fileInput.addEventListener("change", handleFileSelect);
   removeFileButton.addEventListener("click", removeProfilePicture);
 
-  // Image Zoom Functionality
+  // ✅ Image Zoom Functionality
   const profilePicture = document.getElementById("profile-picture");
   const modal = document.getElementById("image-modal");
   const modalImg = document.getElementById("modal-image");
@@ -63,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (profilePicture) {
     profilePicture.addEventListener("click", () => {
       if (!profilePicture.src || profilePicture.src.includes("default.jpg"))
-        return; // Prevent zooming for default image
+        return;
       modal.style.display = "block";
       modalImg.src = profilePicture.src;
     });
@@ -75,54 +110,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Close modal when clicking outside the image
+  // ✅ Close modal when clicking outside the image
   modal.addEventListener("click", (e) => {
     if (e.target === modal) {
       modal.style.display = "none";
     }
   });
-  const formElements = document.querySelectorAll("input, select");
-  let isFormDirty = false;
 
-  // Track changes in form fields
-  formElements.forEach((element) => {
-    element.addEventListener("change", () => {
-      isFormDirty = true;
-    });
-  });
-
-  // Warn when user tries to leave the page (only works on refresh/tab close)
-  window.addEventListener("beforeunload", (event) => {
-    if (isFormDirty) {
-      event.preventDefault();
-      event.returnValue = ""; // This shows the browser's default warning
-    }
-  });
-
-  // Handle Close button click (Prevent duplicate alerts)
-  document.getElementById("close-button").addEventListener("click", (e) => {
-    if (isFormDirty) {
-      const confirmClose = confirm(
-        "You have unsaved changes. Are you sure you want to close?"
-      );
-      if (!confirmClose) {
-        e.preventDefault(); // Stop navigation
-        return;
-      }
-    }
-
-    // Remove beforeunload event to prevent double alert
-    window.removeEventListener("beforeunload", () => {});
-    window.history.back();
-  });
-
-  // Reset warning when saving updates
+  // ✅ Handle Update button click
   document
     .getElementById("update-button")
     .addEventListener("click", async (e) => {
       e.preventDefault();
       await updateUserData(db, storage, userDocRef, auth);
-      isFormDirty = false; // Reset after saving
+      isFormDirty = false; // ✅ Reset after saving
     });
 });
 
@@ -243,21 +244,34 @@ async function removeProfilePicture() {
 
   try {
     const userDocRef = await fetchUserData(db, collectionName, userEmail);
-    const userSnapshot = await getDoc(userDocRef); // Use getDoc() to fetch the document
+    const userSnapshot = await getDoc(userDocRef);
 
     if (userSnapshot.exists()) {
       const userData = userSnapshot.data();
-      imgElement.src = userData.user_picture || "../../../images/default.jpg";
+      const originalImage =
+        userData.user_picture || "../../../images/default.jpg";
+
+      imgElement.src = originalImage;
+
+      // ✅ Compare the restored image with the original
+      if (fileInput.value === "" && imgElement.src === originalImage) {
+        isFormDirty = false;
+      }
     } else {
       imgElement.src = "../../../images/default.jpg";
     }
   } catch (error) {
     console.error("Error refetching user picture:", error);
-    imgElement.src = "../../../images/default.jpg"; // Fallback in case of error
+    imgElement.src = "../../../images/default.jpg";
   }
 
   // Hide the remove button
   removeFileBtn.style.display = "none";
+
+  // ✅ Manually reset form change tracking if unchanged
+  if (fileInput.value === "") {
+    isFormDirty = false;
+  }
 }
 
 /**
@@ -267,15 +281,25 @@ async function updateUserData(db, storage, userDocRef, auth) {
   const updateButton = document.getElementById("update-button");
 
   try {
-    // Disable the update button during the update process
-    updateButton.disabled = true;
+    updateButton.disabled = true; // ✅ Disable the button immediately
     updateButton.textContent = "Updating...";
 
     const user = auth.currentUser;
     if (!user) throw new Error("User is not authenticated!");
 
+    const contactInput = document.getElementById("contact");
+    const contactValue = contactInput.value.trim();
+
+    // ✅ Prevent updating if contact is empty or null
+    if (!contactValue) {
+      alert("Contact number cannot be empty.");
+      updateButton.disabled = false; // ✅ Re-enable the button if validation fails
+      updateButton.textContent = "Update";
+      return;
+    }
+
     const updatedData = {
-      contact: document.getElementById("contact").value,
+      contact: contactValue,
     };
 
     const profilePictureInput = document.getElementById("profile_picture");
@@ -287,35 +311,34 @@ async function updateUserData(db, storage, userDocRef, auth) {
       );
     }
 
+    // ✅ Confirm before updating
     if (!confirm("Are you sure you want to update your profile?")) {
-      updateButton.disabled = false;
+      updateButton.disabled = false; // ✅ Re-enable if user cancels
       updateButton.textContent = "Update";
       return;
     }
 
-    // Update Firestore record
+    // ✅ Update Firestore
     await updateDoc(userDocRef, updatedData);
 
-    // ✅ Store in sessionStorage **only after successful Firestore update**
-    // ✅ Store in sessionStorage **only after successful Firestore update**
+    // ✅ Store image in sessionStorage only if updated
     if (updatedData.user_picture) {
       sessionStorage.setItem("userPicture", updatedData.user_picture);
     }
 
-    alert("Profile updated successfully!");
-    window.location.reload();
+    // ✅ Remove unsaved changes warning before reload
+    window.removeEventListener("beforeunload", warnUnsavedChanges);
+    isFormDirty = false;
 
-    // Fetch updated data to refresh barangay_name
-    await fetchUserData(
-      db,
-      userDocRef.parent.id,
-      sessionStorage.getItem("userEmail")
-    );
+    alert("Profile updated successfully!");
+
+    // ✅ Reload safely
+    window.location.reload();
   } catch (error) {
     console.error("Error updating user data:", error);
     displayError("Error updating profile. Please try again.");
   } finally {
-    updateButton.disabled = false;
+    updateButton.disabled = false; // ✅ Ensure re-enabling in case of error
     updateButton.textContent = "Update";
   }
 }
