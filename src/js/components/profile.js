@@ -39,8 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const userDocRef = await fetchUserData(db, collectionName, userEmail);
 
   // ✅ Track form changes
-  let isFormDirty = false;
-  const formElements = document.querySelectorAll("input, select");
+  const formElements = document.querySelectorAll("input, select, textarea");
 
   formElements.forEach((element) => {
     element.addEventListener("change", () => {
@@ -122,6 +121,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     .getElementById("update-button")
     .addEventListener("click", async (e) => {
       e.preventDefault();
+
+      // ✅ Check if there are no changes
+      if (!isFormDirty) {
+        alert("No changes made to update."); // Show message if no changes
+        return;
+      }
+
       await updateUserData(db, storage, userDocRef, auth);
       isFormDirty = false; // ✅ Reset after saving
     });
@@ -216,6 +222,7 @@ function handleFileSelect(event) {
     reader.onload = (e) => (imgElement.src = e.target.result);
     reader.readAsDataURL(file);
     removeFileButton.style.display = "inline"; // Show remove button
+    isFormDirty = true; // ✅ Mark as dirty when a new file is selected
   } else {
     removeFileButton.style.display = "none"; // Hide if no file selected
   }
@@ -255,7 +262,7 @@ async function removeProfilePicture() {
 
       // ✅ Compare the restored image with the original
       if (fileInput.value === "" && imgElement.src === originalImage) {
-        isFormDirty = false;
+        isFormDirty = false; // ✅ Do not mark as dirty when restoring default image
       }
     } else {
       imgElement.src = "../../../images/default.jpg";
@@ -270,7 +277,7 @@ async function removeProfilePicture() {
 
   // ✅ Manually reset form change tracking if unchanged
   if (fileInput.value === "") {
-    isFormDirty = false;
+    isFormDirty = false; // ✅ Do not mark as dirty when removing the file
   }
 }
 
