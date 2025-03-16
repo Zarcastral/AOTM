@@ -31,6 +31,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     .addEventListener("change", handleFileSelect);
 
   document
+    .getElementById("remove-file")
+    .addEventListener("click", () => removeProfilePicture());
+
+  document
     .getElementById("update-button")
     .addEventListener("click", async (e) => {
       e.preventDefault();
@@ -40,6 +44,43 @@ document.addEventListener("DOMContentLoaded", async () => {
   document
     .getElementById("close-button")
     .addEventListener("click", () => window.history.back());
+
+  // Initially hide the remove button if no file is selected
+  const removeFileButton = document.getElementById("remove-file");
+  const fileInput = document.getElementById("profile_picture");
+
+  removeFileButton.style.display = "none"; // Hide initially
+
+  fileInput.addEventListener("change", handleFileSelect);
+  removeFileButton.addEventListener("click", removeProfilePicture);
+
+  // Image Zoom Functionality
+  const profilePicture = document.getElementById("profile-picture");
+  const modal = document.getElementById("image-modal");
+  const modalImg = document.getElementById("modal-image");
+  const closeModal = document.querySelector(".close");
+
+  if (profilePicture) {
+    profilePicture.addEventListener("click", () => {
+      if (!profilePicture.src || profilePicture.src.includes("default.jpg"))
+        return; // Prevent zooming for default image
+      modal.style.display = "block";
+      modalImg.src = profilePicture.src;
+    });
+  }
+
+  if (closeModal) {
+    closeModal.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  }
+
+  // Close modal when clicking outside the image
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  });
 });
 
 /**
@@ -109,6 +150,10 @@ function updateProfilePicture(imageUrl, userName) {
   profilePictureField.src = imageUrl || defaultImage;
   profilePictureField.alt = `${userName || "User"}'s Profile Picture`;
 
+  document.getElementById("remove-file").style.display = imageUrl
+    ? "inline"
+    : "none";
+
   profilePictureField.addEventListener("error", () => {
     profilePictureField.src = defaultImage;
   });
@@ -120,17 +165,58 @@ function updateProfilePicture(imageUrl, userName) {
 function handleFileSelect(event) {
   const file = event.target.files[0];
   const imgElement = document.getElementById("profile-picture");
+  const removeFileButton = document.getElementById("remove-file");
 
   if (file) {
     const reader = new FileReader();
     reader.onload = (e) => (imgElement.src = e.target.result);
     reader.readAsDataURL(file);
+    removeFileButton.style.display = "inline"; // Show remove button
+  } else {
+    removeFileButton.style.display = "none"; // Hide if no file selected
   }
 }
 
 /**
- * Update user data in Firestore, including the profile picture if changed.
+ * Remove selected profile picture and reset to default.
  */
+import { getDoc } from "firebase/firestore";
+
+async function removeProfilePicture() {
+  const imgElement = document.getElementById("profile-picture");
+  const removeFileBtn = document.getElementById("remove-file");
+  const fileInput = document.getElementById("profile_picture");
+
+  // Clear the file input
+  fileInput.value = "";
+
+  // Refetch user data to get the original profile picture
+  const userEmail = sessionStorage.getItem("userEmail");
+  const userType = sessionStorage.getItem("user_type");
+  const db = getFirestore(app);
+  const collectionName = ["Admin", "Supervisor"].includes(userType)
+    ? "tb_users"
+    : "tb_farmers";
+
+  try {
+    const userDocRef = await fetchUserData(db, collectionName, userEmail);
+    const userSnapshot = await getDoc(userDocRef); // Use getDoc() to fetch the document
+
+    if (userSnapshot.exists()) {
+      const userData = userSnapshot.data();
+      imgElement.src = userData.user_picture || "../../../images/default.jpg";
+    } else {
+      imgElement.src = "../../../images/default.jpg";
+    }
+  } catch (error) {
+    console.error("Error refetching user picture:", error);
+    imgElement.src = "../../../images/default.jpg"; // Fallback in case of error
+  }
+
+  // Hide the remove button
+  removeFileBtn.style.display = "none";
+}
+
 /**
  * Update user data in Firestore, including the profile picture if changed.
  */
@@ -147,7 +233,6 @@ async function updateUserData(db, storage, userDocRef, auth) {
 
     const updatedData = {
       contact: document.getElementById("contact").value,
-      email: document.getElementById("email").value,
     };
 
     const profilePictureInput = document.getElementById("profile_picture");
@@ -159,18 +244,34 @@ async function updateUserData(db, storage, userDocRef, auth) {
       );
     }
 
+    if (!confirm("Are you sure you want to update your profile?")) {
+      updateButton.disabled = false;
+      updateButton.textContent = "Update";
+      return;
+    }
+
     // Update Firestore record
     await updateDoc(userDocRef, updatedData);
 
+    // ✅ Store in sessionStorage **only after successful Firestore update**
+    // ✅ Store in sessionStorage **only after successful Firestore update**
+    if (updatedData.user_picture) {
+      sessionStorage.setItem("userPicture", updatedData.user_picture);
+    }
+
     alert("Profile updated successfully!");
+    window.location.reload();
 
     // Fetch updated data to refresh barangay_name
-    await fetchUserData(db, userDocRef.parent.id, updatedData.email);
+    await fetchUserData(
+      db,
+      userDocRef.parent.id,
+      sessionStorage.getItem("userEmail")
+    );
   } catch (error) {
     console.error("Error updating user data:", error);
     displayError("Error updating profile. Please try again.");
   } finally {
-    // Re-enable the update button after alert is confirmed
     updateButton.disabled = false;
     updateButton.textContent = "Update";
   }
@@ -189,6 +290,7 @@ async function uploadProfilePicture(storage, userId, file) {
  * Display an error message to the user.
  */
 function displayError(message) {
+  alert(message); // Show an alert for critical errors
   const errorMessage = document.getElementById("error-message");
   if (errorMessage) errorMessage.textContent = message;
 }
