@@ -37,10 +37,11 @@ async function fetch_user_accounts(filter = {}) {
             const searchTerm = filter.search?.toLowerCase();
             const matchesSearch = searchTerm
                 ? `${data.first_name || ""} ${data.middle_name || ""} ${data.last_name || ""}`
-                      .toLowerCase()
+                    .toLowerCase()
                       .includes(searchTerm) ||
-                  (data.email || "").toLowerCase().includes(searchTerm) ||
+                  //(data.email || "").toLowerCase().includes(searchTerm) ||
                   (data.user_name || "").toLowerCase().includes(searchTerm) ||
+                  (data.barangay_name || "").toLowerCase().includes(searchTerm) ||
                   (data.user_type || "").toLowerCase().includes(searchTerm)
                 : true;
 
@@ -405,7 +406,7 @@ deleteSelectedBtn.addEventListener("click", async () => {
     for (const checkbox of selectedCheckboxes) {
         const user_name = checkbox.getAttribute("data-user-name");
 
-        // Validate usernmae (null, undefined, or empty string)
+        // Validate username (null, undefined, or empty string)
         if (!user_name || user_name.trim() === "") {
             hasInvalidId = true;
             break;

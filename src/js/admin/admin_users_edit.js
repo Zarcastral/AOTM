@@ -9,9 +9,22 @@ import {
 } from "firebase/firestore";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import app from "../../config/firebase_config.js";
-
+let originalValues = {};
 const db = getFirestore(app);
 document.addEventListener("DOMContentLoaded", async () => {
+
+  const userData = localStorage.getItem("userData");
+  if (userData) {
+    const data = JSON.parse(userData);
+
+    // Store original values
+    originalValues = {
+      user_name: data.user_name || "",
+      contact: data.contact || "",
+      email: data.email || ""
+    };
+  }
+
   const auth = getAuth();
   // Check if the user is logged in when the page is loaded
   onAuthStateChanged(auth, (user) => {
@@ -182,24 +195,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 /* ================ Validates if contact, email, and user_name are unique before saving changes ================ */
 async function validateUniqueFields() {
-  const colRef = collection(db, "tb_users"); // Use collection() properly
+  const colRef = collection(db, "tb_users");
   const snapshot = await getDocs(colRef);
   const username = document.getElementById("user_name").value;
   const contact = document.getElementById("contact").value;
   const email = document.getElementById("email").value;
-  const userName = document.getElementById("user_name").value;
 
   try {
     let errors = [];
 
+    // Check for matching records in the collection
     snapshot.forEach((doc) => {
       const data = doc.data();
 
-      if (data.user_name !== username) {
-        if (data.contact === contact) errors.push("Contact is already in use");
-        if (data.email === email) errors.push("Email is already in use");
-        if (data.user_name === userName)
-          errors.push("Username is already in use");
+      // Skip validation if the value is the same as the original value
+      if (data.user_name === originalValues.user_name && data.contact === originalValues.contact && data.email === originalValues.email) {
+        return;
+      }
+
+      // Validate Username
+      if (data.user_name === username && username !== originalValues.user_name) {
+        errors.push("Username is already in use");
+      }
+
+      // Validate Contact
+      if (data.contact === contact && contact !== originalValues.contact) {
+        errors.push("Contact is already in use");
+      }
+
+      // Validate Email
+      if (data.email === email && email !== originalValues.email) {
+        errors.push("Email is already in use");
       }
     });
 
