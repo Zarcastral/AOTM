@@ -180,8 +180,6 @@ iframe {
 #mobile-menu-button {
   display: none;
   position: fixed;
-  top: 10px;
-  left: 10px;
   z-index: 60;
   background-color: #41a186;
   color: white;

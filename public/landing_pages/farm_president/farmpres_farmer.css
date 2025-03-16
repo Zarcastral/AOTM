@@ -255,7 +255,6 @@ select {
   .account-panel {
     width: 100%;
     height: auto;
-    left: 0;
     top: 80px;
     padding: 20px;
   }
