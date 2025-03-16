@@ -81,6 +81,49 @@ document.addEventListener("DOMContentLoaded", async () => {
       modal.style.display = "none";
     }
   });
+  const formElements = document.querySelectorAll("input, select");
+  let isFormDirty = false;
+
+  // Track changes in form fields
+  formElements.forEach((element) => {
+    element.addEventListener("change", () => {
+      isFormDirty = true;
+    });
+  });
+
+  // Warn when user tries to leave the page (only works on refresh/tab close)
+  window.addEventListener("beforeunload", (event) => {
+    if (isFormDirty) {
+      event.preventDefault();
+      event.returnValue = ""; // This shows the browser's default warning
+    }
+  });
+
+  // Handle Close button click (Prevent duplicate alerts)
+  document.getElementById("close-button").addEventListener("click", (e) => {
+    if (isFormDirty) {
+      const confirmClose = confirm(
+        "You have unsaved changes. Are you sure you want to close?"
+      );
+      if (!confirmClose) {
+        e.preventDefault(); // Stop navigation
+        return;
+      }
+    }
+
+    // Remove beforeunload event to prevent double alert
+    window.removeEventListener("beforeunload", () => {});
+    window.history.back();
+  });
+
+  // Reset warning when saving updates
+  document
+    .getElementById("update-button")
+    .addEventListener("click", async (e) => {
+      e.preventDefault();
+      await updateUserData(db, storage, userDocRef, auth);
+      isFormDirty = false; // Reset after saving
+    });
 });
 
 /**
