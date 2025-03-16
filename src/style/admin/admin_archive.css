@@ -203,7 +203,7 @@ tbody tr:hover {
 }
 
 /* Bulk Delete Panel Style */
-.bulk-delete-panel {
+.bulk-delete-panel, .restore-panel {
   position: fixed;
   top: 0;
   left: 0;
@@ -216,12 +216,12 @@ tbody tr:hover {
   z-index: 1000;
 }
 
-.bulk-delete-panel.show {
+.bulk-delete-panel.show, .restore-panel.show {
   display: flex;
 }
 
 /* Confirmation Message Style for Bulk Delete */
-.confirm-bulk-delete-message {
+.confirm-bulk-delete-message, .confirm-restore-message {
   background-color: white;
   padding: 20px;
   border-radius: 12px;
@@ -230,7 +230,8 @@ tbody tr:hover {
 }
 
 /* Bulk Confirm and Cancel Button Styles */
-.bulk-confirm-btn, .bulk-cancel-btn {
+.bulk-confirm-btn, .bulk-cancel-btn, .restore-cancel-btn,
+.restore-confirm-btn{
   margin: 10px;
   padding: 10px 20px;
   font-size: 16px;
@@ -238,30 +239,30 @@ tbody tr:hover {
   cursor: pointer;
 }
 
-.bulk-confirm-btn {
+.bulk-confirm-btn, .restore-confirm-btn {
   background-color: #41A186;
   color: white;
   border: none;
 }
 
-.bulk-confirm-btn:hover {
+.bulk-confirm-btn:hover, .restore-confirm-btn:hover {
   background-color: #318a71;
   transition: background-color 0.3s ease;
 }
 
-.bulk-cancel-btn {
+.bulk-cancel-btn, .restore-cancel-btn {
   background-color: slategrey;
   color: white;
   border: none;
 }
 
-.bulk-cancel-btn:hover {
+.bulk-cancel-btn:hover, .restore-cancel-btn:hover {
   background-color:rgb(90, 101, 112);
   transition: background-color 0.3s ease, opacity 0.3s ease; 
 }
 
 /* Bulk Delete Success Message Style */
-.bulk-delete-message {
+.bulk-delete-message, .restore-message {
   position: fixed;
   top: 20px;
   left: 50%;
@@ -278,7 +279,7 @@ tbody tr:hover {
 }
 
 /* Success Message Style */
-.delete-message {
+.delete-message, .restore-message {
   position: fixed;
   top: 20px;
   left: 50%;
@@ -295,6 +296,13 @@ tbody tr:hover {
   transition: opacity 0.3s ease;
 }
 
+.action-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 20px;
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

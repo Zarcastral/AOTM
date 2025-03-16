@@ -7,6 +7,7 @@ import {
   deleteDoc,
   writeBatch,
   getDoc,
+  setDoc,
   onSnapshot,
   doc
 } from "firebase/firestore";
@@ -405,56 +406,136 @@ document.getElementById("cancel-crop-delete").addEventListener("click", () => {
   document.getElementById("crop-bulk-panel").style.display = "none";
 });
 
-// Function to delete selected crops from both tb_crop_types and tb_crop_stock in Firestore
-async function deleteSelectedCrops() {
-  if (selectedCrops.length === 0) {
+// Function to archive and delete documents from a given collection while managing archive_id_counter
+async function archiveAndDelete(collectionName, matchField, valuesToDelete) {
+  if (valuesToDelete.length === 0) {
+    console.warn("No items selected for deletion.");
     return;
   }
 
   try {
-    const cropsCollection = collection(db, "tb_crop_types");
-    const stocksCollection = collection(db, "tb_crop_stock");
-    const batch = writeBatch(db);  // Create a batch for efficient deletions
+    const mainCollection = collection(db, collectionName);
+    const archiveCollection = collection(db, "tb_archive");
+    const counterDocRef = doc(db, "tb_id_counters", "archive_id_counter"); // Reference for the counter document
+    let hasArchived = false; // Flag to check if at least one document was archived
 
-    for (const cropTypeId of selectedCrops) {
-      // Delete from tb_crop_types
-      const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
-      const cropSnapshot = await getDocs(cropQuery);
+    // Get authenticated user details
+    const user = await getAuthenticatedUser();
+    const userEmail = user.email;
 
-      if (!cropSnapshot.empty) {
-        for (const docSnapshot of cropSnapshot.docs) {
-          console.log("Deleting document ID from tb_crop_types:", docSnapshot.id);
-          batch.delete(doc(db, "tb_crop_types", docSnapshot.id));  // Add to batch
+    // Fetch user details from tb_users collection
+    const userQuery = query(collection(db, "tb_users"), where("email", "==", userEmail));
+    const userSnapshot = await getDocs(userQuery);
+
+    if (userSnapshot.empty) {
+      console.error("User record not found in tb_users collection.");
+      return;
+    }
+
+    const userData = userSnapshot.docs[0].data();
+    const userName = userData.user_name;
+    const userType = userData.user_type;
+
+    // Check if archive_id_counter exists, if not create it with a starting value of 0
+    const counterDocSnap = await getDoc(counterDocRef);
+    let archiveCounter = counterDocSnap.exists() ? counterDocSnap.data().counter : 0;
+
+    // Ensure archiveCounter is a number
+    if (isNaN(archiveCounter)) {
+      archiveCounter = 0;
+    }
+
+    for (const value of valuesToDelete) {
+      const querySnapshot = await getDocs(query(mainCollection, where(matchField, "==", Number(value))));
+
+      if (!querySnapshot.empty) {
+        for (const docSnapshot of querySnapshot.docs) {
+          archiveCounter++; // Increment counter for each archived record
+          const data = docSnapshot.data();
+          const archiveId = archiveCounter; // Assign unique archive ID
+
+          const now = new Date();
+          const archiveDate = now.toISOString().split('T')[0]; // Store archive date
+          const hours = now.getHours();
+          const minutes = now.getMinutes();
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          const archiveTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${ampm}`; // Store archive time in 12-hour format
+
+          const archivedData = {
+            ...data,
+            archive_id: archiveId, // Assign archive ID inside the archived document
+            document_type: data.stocks ? "Inventory Stock" : "Inventory", // Check for stocks array
+            archive_date: archiveDate, // Store archive date
+            archive_time: archiveTime, // Store archive time
+            archived_by: {
+              user_name: userName,
+              user_type: userType
+            }
+          };
+
+          // Create a new document in tb_archive with the assigned archive_id
+          const archiveRef = doc(archiveCollection);
+          await setDoc(archiveRef, archivedData);
+
+          // Delete the original document after archiving
+          await deleteDoc(doc(db, collectionName, docSnapshot.id));
+
+          console.log(`Archived and deleted document ID from ${collectionName}:`, docSnapshot.id);
+          hasArchived = true;
         }
-      } else {
-        console.error(`ERROR: Crop ID ${cropTypeId} does not exist in tb_crop_types.`);
-      }
-
-      // Delete from tb_crop_stock
-      const stockQuery = query(stocksCollection, where("crop_type_id", "==", Number(cropTypeId)));
-      const stockSnapshot = await getDocs(stockQuery);
-
-      if (!stockSnapshot.empty) {
-        for (const stockDoc of stockSnapshot.docs) {
-          console.log("Deleting document ID from tb_crop_stock:", stockDoc.id);
-          batch.delete(doc(db, "tb_crop_stock", stockDoc.id));  // Add to batch
-        }
-      } else {
-        console.warn(`WARNING: No matching stocks found for Crop ID ${cropTypeId} in tb_crop_stock.`);
       }
     }
 
-    // Commit all deletions in a batch
-    await batch.commit();
-    console.log("Deleted Crops and Stocks:", selectedCrops);
-    showDeleteMessage("All selected Crop records and their stocks successfully deleted!", true);
-    selectedCrops = [];  // Clear selection AFTER successful deletion
-    document.getElementById("crop-bulk-panel").style.display = "none";
-    fetchCrops();  // Refresh the table
+    // If at least one document was archived, update the archive_id_counter
+    if (hasArchived) {
+      await setDoc(counterDocRef, { counter: archiveCounter }, { merge: true }); // Create/update counter doc
+    } else {
+      console.warn(`WARNING: No records found in ${collectionName} for deletion.`);
+    }
 
+    const messageType = collectionName.includes("stock") ? "Inventory Stock" : "Inventory";
+    console.log(`Processing complete for ${messageType}:`, valuesToDelete);
+    showDeleteMessage(`Records from ${messageType} have been processed!`, true);
   } catch (error) {
-    console.error("Error deleting crops or stocks:", error);
-    showDeleteMessage("Error deleting crops or stocks!", false);
+    console.error(`Error archiving or deleting records from ${collectionName}:`, error);
+    const messageType = collectionName.includes("stock") ? "Inventory Stock" : "Inventory";
+    showDeleteMessage(`Error processing records from ${messageType}!`, false);
+  }
+}
+
+// Function to archive and delete selected crops from both tb_crop_types and tb_crop_stock
+async function deleteSelectedCrops() {
+  if (selectedCrops.length === 0) {
+    console.warn("No crops selected for deletion.");
+    return;
+  }
+
+  try {
+    let atLeastOneArchived = false; // Track if any record was archived
+
+    // Archive and delete from tb_crop_types
+    await archiveAndDelete("tb_crop_types", "crop_type_id", selectedCrops).then(() => {
+      atLeastOneArchived = true;
+    });
+
+    // Archive and delete from tb_crop_stock (only if it exists)
+    await archiveAndDelete("tb_crop_stock", "crop_type_id", selectedCrops).then(() => {
+      atLeastOneArchived = true;
+    });
+
+    if (atLeastOneArchived) {
+      console.log("Archived and deleted crops:", selectedCrops);
+      showDeleteMessage("All selected Crop records and their stocks successfully archived and deleted!", true);
+    } else {
+      showDeleteMessage("No matching crop records found for deletion!", false);
+    }
+
+    selectedCrops = []; // Clear selection AFTER successful deletion
+    document.getElementById("crop-bulk-panel").style.display = "none";
+    fetchCrops(); // Refresh the table
+  } catch (error) {
+    console.error("Error archiving or deleting crops:", error);
+    showDeleteMessage("Error archiving or deleting crops!", false);
   }
 }
 
@@ -463,10 +544,25 @@ document.getElementById("confirm-crop-delete").addEventListener("click", () => {
   deleteSelectedCrops();
 });
 
+
 // <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
 const deleteMessage = document.getElementById("crop-bulk-message");
+const messageQueue = [];
+let isProcessingQueue = false;
 
 function showDeleteMessage(message, success) {
+  messageQueue.push({ message, success });
+  processQueue();
+}
+
+function processQueue() {
+  if (isProcessingQueue || messageQueue.length === 0) {
+    return;
+  }
+
+  isProcessingQueue = true;
+  const { message, success } = messageQueue.shift();
+
   deleteMessage.textContent = message;
   deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
   deleteMessage.style.opacity = '1';
@@ -476,8 +572,10 @@ function showDeleteMessage(message, success) {
     deleteMessage.style.opacity = '0';
     setTimeout(() => {
       deleteMessage.style.display = 'none';
+      isProcessingQueue = false;
+      processQueue(); // Process the next message in the queue
     }, 300);
-  }, 4000);
+  }, 2000);
 }
 // Search bar event listener for real-time filtering
 document.getElementById("crop-search-bar").addEventListener("input", function () {

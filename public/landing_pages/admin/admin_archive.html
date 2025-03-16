@@ -4,14 +4,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="../../../src/js/admin/admin_archive.js"></script>
   <title>Activity Log</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../src/style/admin/admin_archive.css">
 </head>
 
 <body>
-   <!-- Placeholder for Header -->
-   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
 
   <div class="table-selector">
@@ -20,9 +21,17 @@
   <div class="panel">
     <div class="search-bar">
       <input type="text" id="search-bar" placeholder="Search" /> 
-      <select id="barangay-select">
+      <select id="user-type-select">
+        <option value="">Select User Type</option>
+        <!-- record will be dynamically added here -->
+      </select>
+      <select id="user-select">
           <option value="">Select User</option>
           <!-- record will be dynamically added here -->
+      </select>
+      <select id="document-type-select">
+        <option value="">Select Document Type</option>
+        <!-- record will be dynamically added here -->
       </select>
     </div>
     <div class="table-container">
@@ -34,11 +43,14 @@
                 <button id="bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
               </th>
               <th>#</th>
-              <th>User's Name</th>
-              <th>User Role</th>
-              <th>Activity</th>
-              <th>Date</th>
+              <th>Archived Date</th>
               <th>Time</th>
+              <th>User's Name</th>
+              <th>User's Role</th>
+              <th>Document Id</th>
+              <th>Document Type</th>
+              <th>Document Name</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -61,11 +73,23 @@
             <button id="cancel-bulk-delete" class="bulk-cancel-btn">Cancel</button>
         </div>
     </div>
-        
-    <!-- Bulk Delete Message Panel -->
+          
+      <!-- Bulk Delete Message Panel -->
     <div id="delete-message" class="delete-message">
-      <p>Record has been successfully deleted!</p>
-  </div>
+        <p>Record has been successfully deleted!</p>
+    </div>
+
+    <div id="restore-panel" class="restore-panel">
+      <div class="confirm-restore-message">
+          <p>Are you sure you want to restore the record?</p>
+          <button id="confirm-restore" class="restore-confirm-btn">Confirm</button>
+          <button id="cancel-restore" class="restore-cancel-btn">Cancel</button>
+      </div>
+    </div>
+
+    <div id="restore-message" class="restore-message">
+        <p>Record has been successfully restored!</p>
+    </div>
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="../../../src/auth/header.js"></script>
 </body>

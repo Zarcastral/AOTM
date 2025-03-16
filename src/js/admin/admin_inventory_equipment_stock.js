@@ -24,6 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchEquipments();
 });
 
+function capitalizeWords(str) {
+  return str.replace(/\b\w/g, char => char.toUpperCase());
+}
+
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, async (user) => {
@@ -553,74 +557,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelector(".equipment_table").addEventListener("click", async function (event) {
     if (event.target.classList.contains("add-equip-stock-btn")) {
-      const row = event.target.closest("tr");
-      if (!row) return;
+        const row = event.target.closest("tr");
+        if (!row) return;
 
-      const equipmentId = row.children[1].textContent.trim();
+        const equipmentId = row.children[1].textContent.trim();
 
-      try {
-        const equipmentCollection = collection(db, "tb_equipment");
-        const equipmentQuery = query(equipmentCollection, where("equipment_id", "==", Number(equipmentId)));
-        const querySnapshot = await getDocs(equipmentQuery);
+        try {
+            const equipmentCollection = collection(db, "tb_equipment");
+            const equipmentQuery = query(equipmentCollection, where("equipment_id", "==", Number(equipmentId)));
+            const querySnapshot = await getDocs(equipmentQuery);
 
-        let equipmentCategory = "No category was recorded";
-        let equipmentName = "No name was recorded";
-        let equipmentUnit = "No unit was recorded";
+            let equipmentCategory = "No category was recorded";
+            let equipmentName = "No name was recorded";
+            let equipmentUnit = "No unit was recorded";
 
-        if (!querySnapshot.empty) {
-          const equipmentData = querySnapshot.docs[0].data();
+            if (!querySnapshot.empty) {
+                const equipmentData = querySnapshot.docs[0].data();
 
-          equipmentCategory = equipmentData.equipment_category?.trim() || "No category was recorded";
-          equipmentName = equipmentData.equipment_name?.trim() || "No name was recorded";
-          equipmentUnit = equipmentData.unit?.trim() || "No unit was recorded";
+                equipmentCategory = equipmentData.equipment_category?.trim() || "No category was recorded";
+                equipmentName = equipmentData.equipment_name?.trim() || "No name was recorded";
 
-          // Unit Dropdown Validation
-          const unitDropdown = document.getElementById("equip_unit");
-          unitDropdown.disabled = false; // Temporarily enable
+                // Assign equipmentUnit based on equipmentCategory
+                if (equipmentCategory.toLowerCase() === "tools") {
+                    equipmentUnit = "tools";
+                } else if (["machine", "machinery"].includes(equipmentCategory.toLowerCase())) {
+                    equipmentUnit = "machineries";
+                } else {
+                    equipmentUnit = "No unit was recorded";
+                }
 
-          const unitOptions = Array.from(unitDropdown.options).map(opt => opt.value.toLowerCase());
+                // Unit Dropdown Validation
+                const unitDropdown = document.getElementById("equip_unit");
+                unitDropdown.disabled = false; // Temporarily enable
 
-          if (!equipmentUnit || equipmentUnit === "No unit was recorded") {
-            // Ensure the dropdown has "Invalid Unit"
-            let invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
-            if (!invalidOption) {
-              invalidOption = new Option("Invalid Unit", "Invalid Unit");
-              unitDropdown.add(invalidOption);
+                const unitOptions = Array.from(unitDropdown.options).map(opt => opt.value.toLowerCase());
+
+                if (!equipmentUnit || equipmentUnit === "No unit was recorded") {
+                    let invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
+                    if (!invalidOption) {
+                        invalidOption = new Option("Invalid Unit", "Invalid Unit");
+                        unitDropdown.add(invalidOption);
+                    }
+                    unitDropdown.value = "Invalid Unit";
+                } else {
+                    if (unitOptions.includes(equipmentUnit.toLowerCase())) {
+                        unitDropdown.value = equipmentUnit;
+                    } else {
+                        const invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
+                        if (invalidOption) invalidOption.remove();
+
+                        const invalidOptionElement = new Option("Invalid Unit", "Invalid Unit");
+                        unitDropdown.add(invalidOptionElement);
+                        unitDropdown.value = "Invalid Unit";
+                    }
+                }
+
+                unitDropdown.disabled = true; // Disable it again
             }
-            unitDropdown.value = "Invalid Unit";
-          } else {
-            // Check if the unit exists in the dropdown
-            if (unitOptions.includes(equipmentUnit.toLowerCase())) {
-              unitDropdown.value = equipmentUnit;
-            } else {
-              // Remove existing "Invalid Unit" option if any
-              const invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
-              if (invalidOption) invalidOption.remove();
-          
-              // Add "Invalid Unit" option and select it
-              const invalidOptionElement = new Option("Invalid Unit", "Invalid Unit");
-              unitDropdown.add(invalidOptionElement);
-              unitDropdown.value = "Invalid Unit";
-            }
-          }          
 
-          unitDropdown.disabled = true; // Disable it again
+            // Assign values to the inputs
+            document.getElementById("equip_category").value = equipmentCategory;
+            document.getElementById("equip_name").value = equipmentName;
+            document.getElementById("equip_unit_hidden").value = equipmentUnit;
+
+            // Display the floating panel
+            equipmentStockPanel.style.display = "block";
+            equipmentOverlay.style.display = "block";
+            saveBtn.dataset.equipmentId = equipmentId;
+        } catch (error) {
+            console.error("Error fetching equipment details:", error);
         }
-
-        // Assign values to the inputs
-        document.getElementById("equip_category").value = equipmentCategory;
-        document.getElementById("equip_name").value = equipmentName;
-        document.getElementById("equip_unit_hidden").value = equipmentUnit;
-
-        // Display the floating panel
-        equipmentStockPanel.style.display = "block";
-        equipmentOverlay.style.display = "block";
-        saveBtn.dataset.equipmentId = equipmentId;
-      } catch (error) {
-        console.error("Error fetching equipment details:", error);
-      }
     }
-  });
+});
+
 
   function closeStockPanel() {
     equipmentStockPanel.style.display = "none";
@@ -641,7 +650,7 @@ saveBtn.addEventListener("click", async function () {
   const equipmentCategory = document.getElementById("equip_category").value;  // Still needed for activity log
   const equipmentName = document.getElementById("equip_name").value;           // Still needed for activity log
   const equipmentStock = document.getElementById("equip_stock").value;
-  let unit = document.getElementById("equip_unit").value;
+  let unit = capitalizeWords(document.getElementById("equip_unit").value.trim());
 
   if (!unit || unit === "Invalid Unit") {
     unit = "No unit was recorded";
