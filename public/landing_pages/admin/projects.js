@@ -79,28 +79,66 @@ const db = getFirestore(app);
         
         
 
-        window.loadCropTypes = async function(selectedCrop) {
-            if (!selectedCrop) return; // Exit if no crop is selected
+        window.loadCropTypes = async function (selectedCrop) {
+            if (!selectedCrop) return;
         
-            const querySnapshot = await getDocs(collection(db, "tb_crop_stock"));
             const cropTypeSelect = document.getElementById('crop-type');
             cropTypeSelect.innerHTML = '<option value="">Select Crop Type</option>';
         
+            let cropStockMap = {}; // Store stock for each crop type
+            const userType = sessionStorage.getItem("user_type"); // Get user_type from session storage
+        
+            // Query Firestore for crop stock
+            const querySnapshot = await getDocs(query(collection(db, "tb_crop_stock"), where("crop_name", "==", selectedCrop)));
+        
+            if (querySnapshot.empty) {
+                console.error(`⚠️ No stock records found for crop: ${selectedCrop}`);
+                return;
+            }
+        
             querySnapshot.forEach(doc => {
                 const cropData = doc.data();
-                
-                // Check if crop_name matches the selected crop
-                if (cropData.crop_name === selectedCrop) {
-                    const cropTypeName = cropData.crop_type_name;
-                    if (cropTypeName) { // Ensure crop_type_name exists
-                        const option = document.createElement('option');
-                        option.value = cropTypeName;
-                        option.textContent = cropTypeName;
-                        cropTypeSelect.appendChild(option);
-                    }
+                const cropTypeName = cropData.crop_type_name;
+        
+                // Ensure stocks is an array, otherwise use an empty array
+                const stocksArray = Array.isArray(cropData.stocks) ? cropData.stocks : [];
+        
+                // Find stock entry that matches the logged-in user's userType
+                const userStock = stocksArray.find(stock => stock.owned_by === userType);
+                const currentStock = userStock ? parseInt(userStock.current_stock) : 0;
+        
+                cropStockMap[cropTypeName] = currentStock; // Store stock
+        
+                const option = document.createElement('option');
+                option.value = cropTypeName;
+                option.textContent = `${cropTypeName} ${currentStock === 0 ? "(Out of Stock)" : `(Stock: ${currentStock})`}`;
+                cropTypeSelect.appendChild(option);
+            });
+        
+            // Attach event listener for stock display
+            cropTypeSelect.addEventListener("change", function () {
+                const selectedCropType = this.value;
+                const maxStock = cropStockMap[selectedCropType] || 0;
+                const quantityInput = document.getElementById('quantity-crop-type');
+        
+                quantityInput.max = maxStock;
+                quantityInput.value = ""; // Reset input when crop type changes
+        
+                if (maxStock > 0) {
+                    quantityInput.placeholder = `Max: ${maxStock}`;
+                    quantityInput.disabled = false;
+                } else {
+                    quantityInput.placeholder = "Out of stock";
+                    quantityInput.disabled = true;
                 }
             });
         };
+        
+        
+        
+        
+        
+        
         
         
         
@@ -235,8 +273,8 @@ window.saveProject = async function () {
             return;
         }
 
-        // 🔍 Fetch current stock of the selected crop type from tb_crop_types
-        const cropTypeRef = collection(db, "tb_crop_types");
+        // 🔍 Fetch current stock of the selected crop type from tb_crop_stock
+        const cropTypeRef = collection(db, "tb_crop_stock");
         const cropQuery = query(cropTypeRef, where("crop_type_name", "==", cropTypeName));
         const cropQuerySnapshot = await getDocs(cropQuery);
 
@@ -331,9 +369,9 @@ window.saveProject = async function () {
         // ✅ Save project data to Firestore
         await addDoc(collection(db, "tb_projects"), projectData);
 
-        // ✅ Update the stock in tb_crop_types
+        // ✅ Update the stock in tb_crop_stock
         const newCropStock = currentCropStock - quantityCropType;
-        await updateDoc(doc(db, "tb_crop_types", cropDoc.id), {
+        await updateDoc(doc(db, "tb_crop_stock", cropDoc.id), {
             current_stock: newCropStock
         });
 
@@ -398,3 +436,15 @@ window.saveProject = async function () {
             loadEquipment();
             fetchFertilizerTypes();
         };
+
+
+        document.getElementById('quantity-crop-type').addEventListener("input", function() {
+            const maxStock = parseInt(this.max, 10);
+            const currentValue = parseInt(this.value, 10);
+        
+            if (currentValue > maxStock) {
+                alert(`⚠️ You cannot enter more than ${maxStock}`);
+                this.value = maxStock; // Auto-correct to max stock
+            }
+        });
+        
