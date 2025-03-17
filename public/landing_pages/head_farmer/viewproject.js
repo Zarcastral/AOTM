@@ -36,6 +36,13 @@ async function fetchProjectDetails() {
             const projectData = querySnapshot.docs[0].data();
             console.log("✅ Project Data Retrieved:", projectData);
 
+            // Log project_id to console
+            if (projectData.project_id) {
+                console.log("📌 Project ID:", projectData.project_id);
+            } else {
+                console.warn("⚠️ Project ID not found in the document.");
+            }
+
             // Populate project details in HTML
             document.getElementById("projectName").textContent = projectData.project_name || "No Title";
             document.getElementById("status").textContent = projectData.status || "No Status";
@@ -59,21 +66,30 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-/* Fetch and display teams
+
+// Fetch and display teams
 async function fetchTeams() {
     const teamsTableBody = document.getElementById("teamsTableBody");
     teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>Loading...</td></tr>";
 
     try {
-        const projectId = sessionStorage.getItem("selectedProjectId");
-        if (!projectId) {
-            console.error("❌ No project ID found in sessionStorage.");
-            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No project selected.</td></tr>";
+        // Retrieve logged-in user's email from sessionStorage
+        let userEmail = sessionStorage.getItem("userEmail") || sessionStorage.getItem("farmerEmail");
+
+        if (!userEmail) {
+            console.error("❌ No email found in sessionStorage.");
+            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>User not logged in.</td></tr>";
             return;
         }
 
         const projectsRef = collection(db, "tb_projects");
-        const q = query(projectsRef, where("project_id", "==", parseInt(projectId)));
+
+        // Query projects where the user is the lead farmer or part of the team
+        const q = query(
+            projectsRef,
+            where("lead_farmer_email", "==", userEmail) // Ensure this field exists in Firestore
+        );
+
         const querySnapshot = await getDocs(q);
 
         teamsTableBody.innerHTML = ""; // Clear loading message
@@ -96,13 +112,22 @@ async function fetchTeams() {
 
             const teamName = project.team_name || "Unknown Team";
             const leadFarmer = project.lead_farmer || "No Leader";
-            const farmers = project.farmer_name || []; // List of farmers
+
+            // ✅ Correctly fetch farmer_name array and check its type
+            let farmers = project.farmer_name || [];
+
+            if (!Array.isArray(farmers)) {
+                console.warn(`⚠️ farmer_name is not an array for project: ${teamName}`, farmers);
+                farmers = []; // Ensure it's an array
+            }
+
+            console.log(`📌 Team: ${teamName}, Farmers Count: ${farmers.length}`, farmers); // Debugging Log
 
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${teamName}</td>
                 <td>${leadFarmer}</td>
-                <td>${farmers.length}</td>
+                <td>${farmers.length}</td> <!-- Correctly count farmers -->
                 <td><button class="view-btn">👁️ View</button></td>
             `;
 
@@ -113,9 +138,9 @@ async function fetchTeams() {
             teamsTableBody.appendChild(row);
         });
 
-        // If no team_id was found in any project, display a message
+        // If no teams were found for the user
         if (!hasTeam) {
-            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No selected Team yet.</td></tr>";
+            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No teams found for this user.</td></tr>";
         }
 
     } catch (error) {
@@ -124,7 +149,17 @@ async function fetchTeams() {
     }
 }
 
-// Attach the function globally so HTML can access it
+// Fetch teams when the page loads
+document.addEventListener("DOMContentLoaded", () => {
+    fetchTeams();
+});
+
+
+
+
+
+
+ //Attach the function globally so HTML can access it
 window.openPopup = function (teamName, leadFarmer, farmers) {
     const popup = document.getElementById("viewTeamPopup");
     
@@ -169,50 +204,31 @@ window.addEventListener("click", (event) => {
 
 
 
-// Fetch and display feedbacks
 async function displayFeedbacks() {
-    let projectId = sessionStorage.getItem("selectedProjectId");
-
-    if (!projectId) {
-        console.error("❌ No project selected.");
-        return;
-    }
-
-    projectId = parseInt(projectId, 10);
-    console.log("📌 Fetching feedbacks for project_id:", projectId, "Type:", typeof projectId);
-
-    if (isNaN(projectId)) {
-        console.error("⚠️ Invalid project ID (not a number).");
-        return;
-    }
+    console.log("📌 Fetching all feedbacks...");
 
     const feedbackListContainer = document.getElementById("feedbackList");
     feedbackListContainer.innerHTML = "<p>Loading feedbacks...</p>";
 
     try {
-        // Query feedbacks related to the selected project_id
+        // Fetch all feedbacks
         const feedbackRef = collection(db, "tb_feedbacks");
-        const feedbackQuery = query(feedbackRef, where("project_id", "==", projectId));
-        const querySnapshot = await getDocs(feedbackQuery);
+        const querySnapshot = await getDocs(feedbackRef);
 
         feedbackListContainer.innerHTML = ""; // Clear loading message
 
-        if (querySnapshot.empty) {
-            feedbackListContainer.innerHTML = "<p>No feedbacks available for this project.</p>";
-            return;
-        }
+        let hasFeedback = false;
 
         querySnapshot.forEach((doc) => {
             const feedback = doc.data();
+            hasFeedback = true;
 
             // Convert timestamp correctly
             let formattedTimestamp = "Unknown Date";
             if (feedback.timestamp) {
                 if (feedback.timestamp.toDate) {
-                    // Firestore Timestamp object
                     formattedTimestamp = feedback.timestamp.toDate().toLocaleString();
                 } else {
-                    // If already a JS Date object or a string
                     formattedTimestamp = new Date(feedback.timestamp).toLocaleString();
                 }
             }
@@ -236,6 +252,11 @@ async function displayFeedbacks() {
             feedbackListContainer.appendChild(feedbackItem);
         });
 
+        // If no feedbacks were found
+        if (!hasFeedback) {
+            feedbackListContainer.innerHTML = "<p>No feedbacks available.</p>";
+        }
+
     } catch (error) {
         console.error("🔥 Error fetching feedbacks:", error);
         feedbackListContainer.innerHTML = "<p>Error loading feedbacks.</p>";
@@ -243,15 +264,6 @@ async function displayFeedbacks() {
 }
 
 // Load feedbacks when the page loads
-document.addEventListener("DOMContentLoaded", () => {
-    displayFeedbacks();
+document.addEventListener("DOMContentLoaded", async () => {
+    await displayFeedbacks();
 });
-
-
-
-
-// Load project details and teams when the page loads
-document.addEventListener("DOMContentLoaded", () => {
-    fetchProjectDetails();
-    fetchTeams();
-});*/
