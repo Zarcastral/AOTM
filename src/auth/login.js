@@ -101,65 +101,71 @@ loginForm.addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value.trim();
 
   try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    sessionStorage.setItem("userEmail", user.email);
 
-    // First, try to fetch the user's data from tb_farmers
+    // Separate session storage keys for different tables
+    let userType = "";
+    let barangayName = "";
+    let userFullName = "";
+    let userPicture = "";
+    let sessionEmailKey = ""; // Separate session keys for tb_users and tb_farmers
+
+    // Check in tb_farmers first
     const farmersRef = collection(firestore, "tb_farmers");
     const farmersQuery = query(farmersRef, where("email", "==", email));
     const farmersSnapshot = await getDocs(farmersQuery);
 
     if (!farmersSnapshot.empty) {
       const farmerData = farmersSnapshot.docs[0].data();
-      if (farmerData.user_type) {
-        sessionStorage.setItem("user_type", farmerData.user_type);
-        // Store barangay, full name, and user picture
-        sessionStorage.setItem("barangay_name", farmerData.barangay_name || "");
-        const fullName = `${farmerData.first_name} ${
-          farmerData.middle_name ? farmerData.middle_name + " " : ""
-        }${farmerData.last_name}`.trim();
-        sessionStorage.setItem("userFullName", fullName);
-        sessionStorage.setItem("userPicture", farmerData.user_picture || "");
-        redirectUser(farmerData.user_type);
-        return;
-      }
+      userType = farmerData.user_type;
+      barangayName = farmerData.barangay_name || "";
+      userFullName = `${farmerData.first_name} ${
+        farmerData.middle_name ? farmerData.middle_name + " " : ""
+      }${farmerData.last_name}`.trim();
+      userPicture = farmerData.user_picture || "";
+      sessionEmailKey = "farmerEmail"; // Unique session key for tb_farmers
+
+      sessionStorage.setItem("farmerEmail", email);
+      sessionStorage.setItem("user_type", userType);
+      sessionStorage.setItem("barangay_name", barangayName);
+      sessionStorage.setItem("userFullName", userFullName);
+      sessionStorage.setItem("userPicture", userPicture);
+
+      redirectUser(userType);
+      return;
     }
 
-// If not found in tb_farmers, check in tb_users
-const usersRef = collection(firestore, "tb_users");
-const usersQuery = query(usersRef, where("email", "==", email));
-const usersSnapshot = await getDocs(usersQuery);
+    // If not found in tb_farmers, check in tb_users
+    const usersRef = collection(firestore, "tb_users");
+    const usersQuery = query(usersRef, where("email", "==", email));
+    const usersSnapshot = await getDocs(usersQuery);
 
-if (!usersSnapshot.empty) {
-  const userData = usersSnapshot.docs[0].data();
-  userType = userData.user_type;
-  barangayName = userData.barangay_name || "";
-  userFullName = `${userData.first_name} ${
-    userData.middle_name ? userData.middle_name + " " : ""
-  }${userData.last_name}`.trim();
-  userPicture = userData.user_picture || "";
-  sessionEmailKey = "userEmail"; // Unique session key for tb_users
+    if (!usersSnapshot.empty) {
+      const userData = usersSnapshot.docs[0].data();
+      userType = userData.user_type;
+      barangayName = userData.barangay_name || "";
+      userFullName = `${userData.first_name} ${
+        userData.middle_name ? userData.middle_name + " " : ""
+      }${userData.last_name}`.trim();
+      userPicture = userData.user_picture || "";
+      sessionEmailKey = "userEmail"; // Unique session key for tb_users
 
-  sessionStorage.setItem("userEmail", email);
-  sessionStorage.setItem("user_type", userType);
-  sessionStorage.setItem("barangay_name", barangayName);
-  sessionStorage.setItem("userFullName", userFullName);
-  sessionStorage.setItem("userPicture", userPicture);
+      sessionStorage.setItem("userEmail", email);
+      sessionStorage.setItem("user_type", userType);
+      sessionStorage.setItem("barangay_name", barangayName);
+      sessionStorage.setItem("userFullName", userFullName);
+      sessionStorage.setItem("userPicture", userPicture);
 
-  redirectUser(userType);
-  return;
-}
+      redirectUser(userType);
+      return;
+    }
 
-showErrorModal(); // Show generic error if email is not found in either table
-} catch (error) {
-console.error("Login error:", error);
-showErrorModal();
-} finally {
-toggleLoadingIndicator(false); // Hide loading indicator
-}
+    showErrorModal(); // Show generic error if email is not found in either table
+  } catch (error) {
+    console.error("Login error:", error);
+    showErrorModal();
+  } finally {
+    toggleLoadingIndicator(false); // Hide loading indicator
+  }
 });
