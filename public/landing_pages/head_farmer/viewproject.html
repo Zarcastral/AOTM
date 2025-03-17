@@ -24,66 +24,63 @@
         </div>
 
         <!-- Teams Panel -->
-<div class="panel">
-    <h2>Teams</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Team Name</th>
-                <th>Lead Farmer</th>
-                <th>No. of Farmers</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="teamsTableBody">
-            <tr><td colspan="4">Loading teams...</td></tr>
-        </tbody>
-    </table>
-</div>
+        <div class="panel">
+            <h2>Teams</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th>Lead Farmer</th>
+                        <th>No. of Farmers</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="teamsTableBody">
+                    <tr><td colspan="4">Loading teams...</td></tr>
+                </tbody>
+            </table>
+        </div>
 
         <!-- Feedback Panel (Updated) -->
         <div class="panel">
             <h2>Feedback</h2>
-            <button class="add-feedback-btn" onclick="openFeedbackPopup()">+ Add Feedback</button>
-<!-- Feedback Popup -->
-<div id="feedbackPopup" class="popup">
-    <div class="popup-content">
-        <span class="close-btn" onclick="closeFeedbackPopup()">&times;</span>
-        <h2>Submit Feedback</h2>
+            <!--button class="add-feedback-btn" onclick="document.getElementById('feedbackPopup').style.display='block'">
+                + Add Feedback
+            </button-->
 
-        <label for="feedbackType">Select Concern:</label>
-        <select id="feedbackType">
-            <option value="Request">Request</option>
-            <option value="Complaint">Complaint</option>
-            <option value="Report">Report</option>
-        </select>
+            <div id="feedbackPopup" class="popup">
+                <h2>Submit Feedback</h2>
+                <label for="feedbackType">Feedback Type</label>
+                <select id="feedbackType">
+                    <option value="Suggestion">Suggestion</option>
+                    <option value="Issue">Issue</option>
+                    <option value="Inquiry">Inquiry</option>
+                </select>
 
-        <label for="feedbackMessage">Feedback Message:</label>
-        <textarea id="feedbackMessage" rows="4" placeholder="Enter your feedback here..."></textarea>
+                <label for="feedbackMessage">Message</label>
+                <textarea id="feedbackMessage" rows="4"></textarea>
 
-        <button onclick="submitFeedback()">Submit Feedback</button>
-    </div>
-</div>
-
-
+                <div class="button-container">
+                    <button class="btn btn-cancel" onclick="document.getElementById('feedbackPopup').style.display='none'">Cancel</button>
+                    <button class="btn btn-save" onclick="saveFeedback()">Submit</button>
+                </div>
+            </div>
 
             <div id="feedbackList"></div>
         </div>
     </div>
 
-    
+    <script type="module" src="viewproject.js"></script>
 
     <!-- View Team Details Popup -->
-<div id="viewTeamPopup" class="popup">
-    <div class="popup-content">
-        <h2 id="popupTeamName">Team Details</h2>
-        <span class="close-btn" id="closePopup">&times;</span>
-        <p><strong>Lead Farmer:</strong> <span id="popupLeadFarmer">-</span></p>
-        <p><strong>Farmers:</strong></p>
-        <ul id="popupFarmerList"></ul>
+    <div id="viewTeamPopup" class="popup">
+        <div class="popup-content">
+            <h2 id="popupTeamName">Team Details</h2>
+            <span class="close-btn" id="closePopup">&times;</span>
+            <p><strong>Lead Farmer:</strong> <span id="popupLeadFarmer">-</span></p>
+            <p><strong>Farmers:</strong></p>
+            <ul id="popupFarmerList"></ul>
+        </div>
     </div>
-</div>
-
-    <script type="module" src="viewproject.js"></script>
 </body>
 </html>

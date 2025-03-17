@@ -130,32 +130,36 @@ loginForm.addEventListener("submit", async (e) => {
       }
     }
 
-    // If not found in tb_farmers, try tb_users
-    const usersRef = collection(firestore, "tb_users");
-    const usersQuery = query(usersRef, where("email", "==", email));
-    const usersSnapshot = await getDocs(usersQuery);
+// If not found in tb_farmers, check in tb_users
+const usersRef = collection(firestore, "tb_users");
+const usersQuery = query(usersRef, where("email", "==", email));
+const usersSnapshot = await getDocs(usersQuery);
 
-    if (!usersSnapshot.empty) {
-      const userData = usersSnapshot.docs[0].data();
-      if (userData.user_type) {
-        sessionStorage.setItem("user_type", userData.user_type);
-        sessionStorage.setItem("barangay_name", userData.barangay_name || "");
-        sessionStorage.setItem("email", userData.email || "");
-        const fullName = `${userData.first_name} ${
-          userData.middle_name ? userData.middle_name + " " : ""
-        }${userData.last_name}`.trim();
-        sessionStorage.setItem("userFullName", fullName);
-        sessionStorage.setItem("userPicture", userData.user_picture || "");
-        redirectUser(userData.user_type);
-        return;
-      }
-    }
+if (!usersSnapshot.empty) {
+  const userData = usersSnapshot.docs[0].data();
+  userType = userData.user_type;
+  barangayName = userData.barangay_name || "";
+  userFullName = `${userData.first_name} ${
+    userData.middle_name ? userData.middle_name + " " : ""
+  }${userData.last_name}`.trim();
+  userPicture = userData.user_picture || "";
+  sessionEmailKey = "userEmail"; // Unique session key for tb_users
 
-    showErrorModal(); // Always show generic error
-  } catch (error) {
-    console.error("Login error:", error);
-    showErrorModal(); // Always show generic error
-  } finally {
-    toggleLoadingIndicator(false); // Hide loading indicator
-  }
+  sessionStorage.setItem("userEmail", email);
+  sessionStorage.setItem("user_type", userType);
+  sessionStorage.setItem("barangay_name", barangayName);
+  sessionStorage.setItem("userFullName", userFullName);
+  sessionStorage.setItem("userPicture", userPicture);
+
+  redirectUser(userType);
+  return;
+}
+
+showErrorModal(); // Show generic error if email is not found in either table
+} catch (error) {
+console.error("Login error:", error);
+showErrorModal();
+} finally {
+toggleLoadingIndicator(false); // Hide loading indicator
+}
 });
