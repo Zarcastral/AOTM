@@ -22,19 +22,19 @@ const db = getFirestore(app);
 let globalProjectId = null; // Declare global variable for project_id
 
 async function fetchProjectDetails() {
-    let userEmail = sessionStorage.getItem("userEmail") || sessionStorage.getItem("farmerEmail");
+    let farmerId = sessionStorage.getItem("farmer_id"); // Retrieve farmer_id from session storage
 
-    console.log("📌 Retrieved user email from sessionStorage:", userEmail);
+    console.log("📌 Retrieved farmer_id from sessionStorage:", farmerId);
 
-    if (!userEmail) {
-        console.error("❌ No email found in sessionStorage.");
+    if (!farmerId) {
+        console.error("❌ No farmer_id found in sessionStorage.");
         return;
     }
 
     try {
-        // Query Firestore for projects where lead_farmer_email matches the session email
+        // Query Firestore for projects where lead_farmer_id matches the session farmer_id
         const projectsRef = collection(db, "tb_projects");
-        const q = query(projectsRef, where("lead_farmer_email", "==", userEmail));
+        const q = query(projectsRef, where("lead_farmer_id", "==", parseInt(farmerId, 10))); // Ensure comparison as integer
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
@@ -61,7 +61,7 @@ async function fetchProjectDetails() {
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
         } else {
-            console.error("❌ No projects found for this email.");
+            console.error("❌ No projects found for this farmer_id.");
         }
     } catch (error) {
         console.error("🔥 Error fetching project data:", error);

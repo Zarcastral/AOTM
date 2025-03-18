@@ -109,6 +109,7 @@ loginForm.addEventListener("submit", async (e) => {
     let barangayName = "";
     let userFullName = "";
     let userPicture = "";
+    let farmerId = ""; // Store farmer_id
     let sessionEmailKey = ""; // Separate session keys for tb_users and tb_farmers
 
     // Check in tb_farmers first
@@ -124,6 +125,7 @@ loginForm.addEventListener("submit", async (e) => {
         farmerData.middle_name ? farmerData.middle_name + " " : ""
       }${farmerData.last_name}`.trim();
       userPicture = farmerData.user_picture || "";
+      farmerId = farmerData.farmer_id || ""; // Store farmer_id
       sessionEmailKey = "farmerEmail"; // Unique session key for tb_farmers
 
       sessionStorage.setItem("farmerEmail", email);
@@ -131,6 +133,7 @@ loginForm.addEventListener("submit", async (e) => {
       sessionStorage.setItem("barangay_name", barangayName);
       sessionStorage.setItem("userFullName", userFullName);
       sessionStorage.setItem("userPicture", userPicture);
+      sessionStorage.setItem("farmer_id", farmerId); // Store farmer_id in session
 
       redirectUser(userType);
       return;

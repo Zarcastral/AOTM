@@ -311,17 +311,20 @@ async function getNextTeamId() {
     }
 
     try {
-        // Fetch lead farmer's email by reconstructing their full name
+        // Fetch lead farmer's details
         const farmersRef = collection(db, "tb_farmers");
         const querySnapshot = await getDocs(farmersRef);
 
         let leadFarmerEmail = "";
+        let leadFarmerId = "";
+
         querySnapshot.forEach((doc) => {
             const farmerData = doc.data();
             const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
 
             if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
                 leadFarmerEmail = farmerData.email;
+                leadFarmerId = parseInt(farmerData.farmer_id, 10) || 0; // Convert to integer, default to 0 if NaN
             }
         });
 
@@ -330,10 +333,16 @@ async function getNextTeamId() {
             return;
         }
 
+        if (!leadFarmerId || isNaN(leadFarmerId)) {
+            alert(`Lead farmer '${leadFarmer}' does not have a valid farmer_id.`);
+            return;
+        }
+
         const teamData = {
             team_id: teamId,
             team_name: teamName,
             lead_farmer: leadFarmer,
+            lead_farmer_id: leadFarmerId, // Now stored as an integer
             lead_farmer_email: leadFarmerEmail,
             farmer_name: farmers,
             barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
@@ -348,8 +357,6 @@ async function getNextTeamId() {
     }
 }
 
-
-  
   
   // Attach event listener to Save button
   document.getElementById("saveTeamBtn").addEventListener("click", saveTeam);
