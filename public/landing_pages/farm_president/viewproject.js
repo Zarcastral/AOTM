@@ -269,7 +269,7 @@ window.submitFeedback = async function () {
     }
 };
 
-// Function to append submitted feedback to UI immediately
+//convert
 function addFeedbackToUI(feedback) {
     const feedbackListContainer = document.getElementById("feedbackList");
 
@@ -311,6 +311,10 @@ function addFeedbackToUI(feedback) {
     feedbackListContainer.prepend(feedbackItem);
 }
 
+
+
+
+// Function to append submitted feedback to UI immediately
 // Function to fetch and display feedbacks
 async function displayFeedbacks() {
     let projectId = sessionStorage.getItem("selectedProjectId");
@@ -332,7 +336,6 @@ async function displayFeedbacks() {
     feedbackListContainer.innerHTML = "<p>Loading feedbacks...</p>";
 
     try {
-        // Query feedbacks related to the selected project_id
         const feedbackRef = collection(db, "tb_feedbacks");
         const feedbackQuery = query(feedbackRef, where("project_id", "==", projectId));
         const querySnapshot = await getDocs(feedbackQuery);
@@ -344,19 +347,33 @@ async function displayFeedbacks() {
             return;
         }
 
-        querySnapshot.forEach((doc) => {
-            const feedback = doc.data();
+        let feedbackArray = [];
 
-            // Convert timestamp correctly
+        querySnapshot.forEach((doc) => {
+            feedbackArray.push(doc.data());
+        });
+
+        // Sort feedbacks: Most recent first, "Acknowledged" at the bottom
+        feedbackArray.sort((a, b) => {
+            if (a.status === "Acknowledged" && b.status !== "Acknowledged") return 1;
+            if (b.status === "Acknowledged" && a.status !== "Acknowledged") return -1;
+            return b.timestamp.toMillis() - a.timestamp.toMillis(); // Most recent first
+        });
+
+        feedbackArray.forEach((feedback) => {
             let formattedTimestamp = "Unknown Date";
             if (feedback.timestamp) {
-                if (feedback.timestamp.toDate) {
-                    // Firestore Timestamp object
-                    formattedTimestamp = feedback.timestamp.toDate().toLocaleString();
-                } else {
-                    // If already a JS Date object or a string
-                    formattedTimestamp = new Date(feedback.timestamp).toLocaleString();
-                }
+                formattedTimestamp = feedback.timestamp.toDate
+                    ? feedback.timestamp.toDate().toLocaleString()
+                    : new Date(feedback.timestamp).toLocaleString();
+            }
+
+            // Set status color
+            let statusColor = "black";
+            if (feedback.status === "Pending") {
+                statusColor = "gold"; // Yellow for Pending
+            } else if (feedback.status === "Acknowledged") {
+                statusColor = "green"; // Green for Acknowledged
             }
 
             const feedbackItem = document.createElement("div");
@@ -371,7 +388,7 @@ async function displayFeedbacks() {
                     </div>
                     <p class="feedback-text"><strong>Concern:</strong> ${feedback.concern}</p>
                     <p class="feedback-text"><strong>Feedback:</strong> ${feedback.feedback}</p>
-                    <p class="feedback-status">Status: ${feedback.status}</p>
+                    <p class="feedback-status" style="color: ${statusColor};"><strong>Status:</strong> ${feedback.status}</p>
                 </div>
             `;
 
@@ -383,19 +400,6 @@ async function displayFeedbacks() {
         feedbackListContainer.innerHTML = "<p>Error loading feedbacks.</p>";
     }
 }
-
-// Load project details and teams when the page loads
-document.addEventListener("DOMContentLoaded", () => {
-    fetchProjectDetails();
-    fetchTeams();
-    displayFeedbacks();
-});
-
-
-
-
-
-
 
 // Load project details and teams when the page loads
 document.addEventListener("DOMContentLoaded", () => {
