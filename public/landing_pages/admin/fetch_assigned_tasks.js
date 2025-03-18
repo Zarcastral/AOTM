@@ -98,13 +98,27 @@ window.openEditSubModal = async function openEditSubModal(taskId, taskName) {
 };
 
 // Function to add a subtask to the list
+function addSubtaskToList(subtaskName, index) {
+  const subtaskList = document.getElementById("subtask-list-subtasks");
+
+  const subtaskItem = document.createElement("li");
+  subtaskItem.classList.add("subtask-item");
+  subtaskItem.setAttribute("data-index", index);
+  subtaskItem.innerHTML = `
+      <span class="subtask-text">${subtaskName}</span>
+      <button class="remove-subtask-btn" onclick="removeSubtask(${index})">❌</button>
+  `;
+
+  subtaskList.appendChild(subtaskItem);
+  toggleSaveButton(); // Check if changes occurred
+}
 
 // Function to remove a subtask
 window.removeSubtask = function (index) {
   const subtaskItem = document.querySelector(`[data-index="${index}"]`);
   if (subtaskItem) {
     subtaskItem.remove();
-    document.getElementById("save-subtasks-btn-subtasks").disabled = false;
+    toggleSaveButton();
   }
 };
 
@@ -172,7 +186,6 @@ document
 document.addEventListener("DOMContentLoaded", toggleAddSubtaskButton);
 
 let initialSubtasks = []; // Store the initial state of subtasks
-let subtasksChanged = false; // Track if any subtask has been added or removed
 
 // Function to toggle "Save Changes" button state
 function toggleSaveButton() {
@@ -191,72 +204,6 @@ function toggleSaveButton() {
   // Enable the save button only if there are changes
   saveBtn.disabled = isSameAsInitial;
 }
-
-// Function to open the edit modal and load subtasks
-async function openEditSubModal(taskId, taskName) {
-  const modal = document.getElementById("edit-subtasks-modal");
-  const taskNameDisplay = document.getElementById("edit-task-name-display");
-  const subtaskList = document.getElementById("subtask-list-subtasks");
-  const saveBtn = document.getElementById("save-subtasks-btn-subtasks");
-
-  taskNameDisplay.textContent = `Task Name: ${taskName}`;
-  subtaskList.innerHTML = "";
-  saveBtn.setAttribute("data-id", taskId);
-  saveBtn.disabled = true;
-
-  try {
-    const tasksCollection = collection(db, "tb_task_list");
-    const taskQuery = query(
-      tasksCollection,
-      where("task_id", "==", Number(taskId))
-    );
-    const querySnapshot = await getDocs(taskQuery);
-    if (querySnapshot.empty) return;
-
-    let docId = "";
-    let taskData = {};
-    querySnapshot.forEach((doc) => {
-      docId = doc.id;
-      taskData = doc.data();
-    });
-
-    initialSubtasks = taskData.subtasks || []; // Store initial subtasks
-    initialSubtasks.forEach((subtask, index) =>
-      addSubtaskToList(subtask, index)
-    );
-
-    saveBtn.setAttribute("data-doc-id", docId);
-    modal.style.display = "block";
-    toggleSaveButton(); // Ensure button state is set
-  } catch (error) {
-    console.error("Error fetching task details:", error);
-  }
-}
-
-// Function to add a subtask to the list
-function addSubtaskToList(subtaskName, index) {
-  const subtaskList = document.getElementById("subtask-list-subtasks");
-
-  const subtaskItem = document.createElement("li");
-  subtaskItem.classList.add("subtask-item");
-  subtaskItem.setAttribute("data-index", index);
-  subtaskItem.innerHTML = `
-      <span class="subtask-text">${subtaskName}</span>
-      <button class="remove-subtask-btn" onclick="removeSubtask(${index})">❌</button>
-  `;
-
-  subtaskList.appendChild(subtaskItem);
-  toggleSaveButton(); // Check if changes occurred
-}
-
-// Function to remove a subtask
-window.removeSubtask = function (index) {
-  const subtaskItem = document.querySelector(`[data-index="${index}"]`);
-  if (subtaskItem) {
-    subtaskItem.remove();
-    toggleSaveButton();
-  }
-};
 
 // Function to check if save should be aborted
 document
@@ -373,6 +320,11 @@ async function populateCropDropdown() {
   }
 }
 
+// Variables for Assigned Tasks pagination
+let assignedTasks = [];
+let assignedCurrentPage = 1;
+const assignedRowsPerPage = 5;
+
 // Function to fetch and display assigned tasks
 export async function fetchAssignedTasks() {
   try {
@@ -391,6 +343,8 @@ export async function fetchAssignedTasks() {
     }
 
     const querySnapshot = await getDocs(taskQuery);
+    assignedTasks = []; // Reset the tasks array
+
     querySnapshot.forEach((taskDoc) => {
       const taskData = taskDoc.data();
       const taskId = taskData.task_id || "N/A";
@@ -408,21 +362,22 @@ export async function fetchAssignedTasks() {
         });
       }
 
-      const row = document.createElement("tr");
-      row.innerHTML = `  
-        <td>${taskId}</td>
-        <td>${cropName}</td>
-        <td>${cropTypeName}</td>
-        <td>${taskName}</td>
-        <td>${assignedOn}</td>
-        <td>
-         <button class="edit-btn" data-id="${taskId}" data-task="${taskName}" title="Edit">Edit</button>
-        <button class="delete-btn" data-id="${taskId}" data-task="${taskName}" data-crop="${cropName}" data-crop-type="${cropTypeName}" title="Delete">Delete</button>
-        </td>
-      `;
-      taskListTable.appendChild(row);
+      assignedTasks.push({
+        taskId,
+        cropName,
+        cropTypeName,
+        taskName,
+        assignedOn,
+      });
     });
 
+    // Display the first page of assigned tasks
+    displayAssignedTasks(assignedCurrentPage);
+
+    // Update pagination controls
+    updateAssignedPagination();
+
+    // Add event listeners for edit and delete buttons
     document.querySelectorAll(".edit-btn").forEach((button) => {
       button.addEventListener("click", (event) => {
         const taskId = event.target.getAttribute("data-id");
@@ -444,6 +399,64 @@ export async function fetchAssignedTasks() {
     console.error("Error fetching assigned tasks:", error);
   }
 }
+
+// Function to display assigned tasks for the current page
+function displayAssignedTasks(page) {
+  const taskListTable = document.getElementById("assigned-tasks-table-body");
+  taskListTable.innerHTML = "";
+
+  const startIndex = (page - 1) * assignedRowsPerPage;
+  const endIndex = startIndex + assignedRowsPerPage;
+  const paginatedTasks = assignedTasks.slice(startIndex, endIndex);
+
+  paginatedTasks.forEach((task) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${task.taskId}</td>
+      <td>${task.cropName}</td>
+      <td>${task.cropTypeName}</td>
+      <td>${task.taskName}</td>
+      <td>${task.assignedOn}</td>
+      <td>
+        <button class="edit-btn" data-id="${task.taskId}" data-task="${task.taskName}" title="Edit">Edit</button>
+        <button class="delete-btn" data-id="${task.taskId}" data-task="${task.taskName}" data-crop="${task.cropName}" data-crop-type="${task.cropTypeName}" title="Delete">Delete</button>
+      </td>
+    `;
+    taskListTable.appendChild(row);
+  });
+}
+
+// Function to update pagination controls for Assigned Tasks
+function updateAssignedPagination() {
+  const totalPages = Math.ceil(assignedTasks.length / assignedRowsPerPage);
+  const nextBtn = document.getElementById("assigned-next-page-btn");
+  const prevBtn = document.getElementById("assigned-prev-page-btn");
+  const pageInfo = document.getElementById("assigned-page-info");
+
+  pageInfo.textContent = `Page ${assignedCurrentPage} of ${totalPages || 1}`;
+
+  prevBtn.disabled = assignedCurrentPage === 1;
+  nextBtn.disabled = assignedCurrentPage === totalPages || totalPages === 0;
+}
+
+// Event listeners for Assigned Tasks pagination buttons
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("assigned-next-page-btn").addEventListener("click", () => {
+    if (assignedCurrentPage < Math.ceil(assignedTasks.length / assignedRowsPerPage)) {
+      assignedCurrentPage++;
+      displayAssignedTasks(assignedCurrentPage);
+      updateAssignedPagination();
+    }
+  });
+
+  document.getElementById("assigned-prev-page-btn").addEventListener("click", () => {
+    if (assignedCurrentPage > 1) {
+      assignedCurrentPage--;
+      displayAssignedTasks(assignedCurrentPage);
+      updateAssignedPagination();
+    }
+  });
+});
 
 // Initialize page with crop dropdown and task list
 document.addEventListener("DOMContentLoaded", async () => {

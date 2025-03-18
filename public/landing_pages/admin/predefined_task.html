@@ -12,7 +12,7 @@
 <body>
     <!-- Header Section -->
     <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
     <div class="main-content">
         <!-- Buttons for Adding and Assigning Tasks -->
@@ -34,15 +34,21 @@
                     <!-- Task rows will be populated dynamically -->
                 </tbody>
             </table>
+            <!-- Pagination Controls -->
+            <div class="pagination-container">
+                <button id="next-page-btn" class="pagination-btn" disabled>&gt;</button>
+                <button id="prev-page-btn" class="pagination-btn">&lt;</button>
+                <span id="page-info"></span>
+            </div>
         </div>
 
         <!-- Add Task Modal -->
         <div id="add-task-modal" class="modal">
             <div class="modal-content">
-                <span id="close-add-task-modal" class="close-btn">&times;</span>
+                <span id="close-add-task-modal" class="close-btn">×</span>
                 <h2>Add New Task</h2>
                 <input type="text" id="new-task-input" placeholder="Type a task name">
-                <button id="add-task-btn" class="add-user-btn" >Add Task</button>
+                <button id="add-task-btn" class="add-user-btn">Add Task</button>
                 <ul id="new-task-list"></ul>
                 <button id="save-tasks-btn" class="add-user-btn" disabled>Save Changes</button>
             </div>
@@ -51,11 +57,11 @@
         <!-- Edit Task Modal -->
         <div id="edit-task-modal" class="modal">
             <div class="modal-content">
-                <span id="close-edit-task-modal" class="close-btn">&times;</span>
+                <span id="close-edit-task-modal" class="close-btn">×</span>
                 <h2>Edit Task</h2>
                 <ul id="subtask-list"></ul>
                 <input type="text" id="new-subtask-input" placeholder="Type a subtask name">
-                <button id="add-subtask-btn" class="add-user-btn" >Add Subtask</button>
+                <button id="add-subtask-btn" class="add-user-btn">Add Subtask</button>
                 <br>
                 <button id="save-subtasks-btn" class="addd-user-btn" disabled>Save Changes</button>
             </div>
@@ -91,7 +97,7 @@
         <!-- Assign Task to Crop Type Modal -->
         <div id="assign-task-modal" class="modal">
             <div class="modal-content">
-                <span id="close-assign-task-modal" class="close-btn">&times;</span>
+                <span id="close-assign-task-modal" class="close-btn">×</span>
                 <h2>Assign Tasks to Crop Type</h2>
                 <label for="crop-type-select">Select Crop Type</label>
                 <select id="crop-type-select">
@@ -134,12 +140,18 @@
                     <!-- Task rows will be populated dynamically -->
                 </tbody>
             </table>
+            <!-- Pagination Controls for Assigned Tasks -->
+            <div class="pagination-container">
+                <button id="assigned-next-page-btn" class="pagination-btn" disabled>&gt;</button>
+                <button id="assigned-prev-page-btn" class="pagination-btn" disabled>&lt;</button>
+                <span id="assigned-page-info"></span>
+            </div>
         </div>
 
         <!-- Edit Subtasks Modal -->
         <div id="edit-subtasks-modal" class="modal">
             <div class="modal-content">
-                <span class="close" id="close-edit-subtasks-modal">&times;</span>
+                <span class="close" id="close-edit-subtasks-modal">×</span>
                 <h2>Edit Subtask</h2>
                 <p id="edit-task-name-display"></p>
                 <ul id="subtask-list-subtasks"></ul>
@@ -153,8 +165,8 @@
     </div>
 
     <script type="module" src="predefined_task.js"></script>
-     <!-- Import the reusable script from src/auth -->
-  <script type="module" src="../../../src/auth/header.js"></script>
+    <!-- Import the reusable script from src/auth -->
+    <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 
 </html>
