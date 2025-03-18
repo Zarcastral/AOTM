@@ -1,5 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs,orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getFirestore, collection, query, where, getDocs, orderBy, doc,
+    getDoc, setDoc, updateDoc, runTransaction, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -15,6 +18,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+let globalProjectId = null; // Declare global variable for project_id
 
 async function fetchProjectDetails() {
     let userEmail = sessionStorage.getItem("userEmail") || sessionStorage.getItem("farmerEmail");
@@ -36,9 +41,11 @@ async function fetchProjectDetails() {
             const projectData = querySnapshot.docs[0].data();
             console.log("✅ Project Data Retrieved:", projectData);
 
-            // Log project_id to console
+            // Store project_id globally
             if (projectData.project_id) {
-                console.log("📌 Project ID:", projectData.project_id);
+                globalProjectId = projectData.project_id;
+                console.log("📌 Stored Global Project ID:", globalProjectId);
+                displayFeedbacks(globalProjectId); // Pass project_id to displayFeedbacks
             } else {
                 console.warn("⚠️ Project ID not found in the document.");
             }
@@ -64,6 +71,8 @@ async function fetchProjectDetails() {
 document.addEventListener("DOMContentLoaded", () => {
     fetchProjectDetails();
 });
+
+
 
 
 
@@ -199,31 +208,190 @@ window.addEventListener("click", (event) => {
     }
 });
 
+//FEEDBACK POPUP
+document.addEventListener("DOMContentLoaded", function () {
+    // Open the feedback popup
+    window.openFeedbackPopup = function () {
+        document.getElementById("feedbackPopup").style.display = "flex";
+    };
+
+    // Close the feedback popup
+    window.closeFeedbackPopup = function () {
+        document.getElementById("feedbackPopup").style.display = "none";
+    };
+});
 
 
 
 
+//FEEDBACK_ID
+async function getNextFeedbackId() {
+    const counterRef = doc(db, "tb_id_counters", "feedback_id_counter");
 
-async function displayFeedbacks() {
-    console.log("📌 Fetching all feedbacks...");
+    try {
+        const counterSnap = await getDoc(counterRef);
+
+        if (counterSnap.exists()) {
+            const currentCount = counterSnap.data().count || 0;
+            const newCount = currentCount + 1;
+
+            // Update the counter in Firestore
+            await updateDoc(counterRef, { count: newCount });
+
+            return newCount;
+        } else {
+            // If the counter does not exist, create it with initial value 1
+            await setDoc(counterRef, { count: 1 });
+            return 1;
+        }
+    } catch (error) {
+        console.error("Error fetching feedback ID counter:", error);
+        alert("Error generating feedback ID.");
+        return null;
+    }
+}
+
+
+// SUBMIT FEEDBACK
+window.submitFeedback = async function () {
+    let concern = document.getElementById("feedbackType").value;
+    let feedback = document.getElementById("feedbackMessage").value.trim();
+
+    if (!feedback) {
+        alert("Please enter a feedback message.");
+        return;
+    }
+
+    // Ensure `globalProjectId` is set
+    if (!globalProjectId) {
+        alert("No project selected. Please refresh the page or select a project.");
+        return;
+    }
+
+    // Retrieve user details from sessionStorage
+    let barangay_name = sessionStorage.getItem("barangay_name") || "Unknown";
+    let submitted_by = sessionStorage.getItem("userFullName") || "Anonymous";
+    let submitted_by_picture = sessionStorage.getItem("userPicture") || "default-profile.png";
+
+    // Get the next available feedback_id
+    let feedback_id = await getNextFeedbackId();
+    if (feedback_id === null) return; // Stop if there's an error
+
+    // Create a timestamp
+    let timestamp = serverTimestamp();
+
+    // Prepare feedback data object
+    let feedbackData = {
+        feedback_id: feedback_id, // Auto-incrementing feedback ID
+        project_id: globalProjectId,   // Use globally stored project ID
+        barangay_name: barangay_name,
+        concern: concern,
+        feedback: feedback,
+        status: "Pending",
+        submitted_by: submitted_by,
+        submitted_by_picture: submitted_by_picture,
+        timestamp: timestamp
+    };
+
+    try {
+        // Save feedback to Firestore
+        await addDoc(collection(db, "tb_feedbacks"), feedbackData);
+
+        // If Firestore operation succeeds, show success alert
+        alert("Feedback submitted successfully!");
+        closeFeedbackPopup(); // Close the popup
+
+        // Clear textarea after submitting
+        document.getElementById("feedbackMessage").value = "";
+
+        // Manually append feedback to the feedback list (without refreshing the page)
+        addFeedbackToUI({
+            ...feedbackData,
+            timestamp: new Date() // Use local timestamp for immediate UI update
+        });
+
+    } catch (error) {
+        console.error("Error saving feedback:", error);
+
+        // Show failure alert **only if the Firestore operation fails**
+        alert("Failed to submit feedback. Please try again.");
+    }
+};
+
+//convert
+function addFeedbackToUI(feedback) {
+    const feedbackListContainer = document.getElementById("feedbackList");
+
+    // Convert timestamp correctly
+    let formattedTimestamp = "Unknown Date";
+    if (feedback.timestamp) {
+        if (feedback.timestamp.toDate) {
+            // Firestore Timestamp object
+            formattedTimestamp = feedback.timestamp.toDate().toLocaleString();
+        } else {
+            // If already a JS Date object or a string
+            formattedTimestamp = new Date(feedback.timestamp).toLocaleString();
+        }
+    }
+
+    const feedbackItem = document.createElement("div");
+    feedbackItem.classList.add("feedback-item");
+
+    feedbackItem.innerHTML = `
+        <img src="${feedback.submitted_by_picture || 'default-profile.png'}" class="feedback-avatar" alt="User">
+        <div class="feedback-content">
+            <div class="feedback-header">
+                <span class="feedback-user">${feedback.submitted_by}</span>
+                <span class="timestamp">${formattedTimestamp}</span>
+            </div>
+            <p class="feedback-text"><strong>Concern:</strong> ${feedback.concern}</p>
+            <p class="feedback-text"><strong>Feedback:</strong> ${feedback.feedback}</p>
+            <p class="feedback-status">Status: ${feedback.status}</p>
+        </div>
+    `;
+
+    // If there are no feedbacks yet, remove the "No feedbacks available" message
+    let noFeedbackMessage = document.querySelector("#feedbackList p");
+    if (noFeedbackMessage && noFeedbackMessage.innerText.includes("No feedbacks available")) {
+        noFeedbackMessage.remove();
+    }
+
+    // Insert the new feedback at the top of the list
+    feedbackListContainer.prepend(feedbackItem);
+}
+
+
+//DISPLAY FEEDBACK
+async function displayFeedbacks(projectId) {
+    console.log(`📌 Fetching feedbacks for Project ID: ${projectId}`);
 
     const feedbackListContainer = document.getElementById("feedbackList");
     feedbackListContainer.innerHTML = "<p>Loading feedbacks...</p>";
 
     try {
-        // Fetch all feedbacks
         const feedbackRef = collection(db, "tb_feedbacks");
-        const querySnapshot = await getDocs(feedbackRef);
+        const q = query(feedbackRef, where("project_id", "==", projectId));
+        const querySnapshot = await getDocs(q);
 
         feedbackListContainer.innerHTML = ""; // Clear loading message
 
         let hasFeedback = false;
+        let feedbackArray = [];
 
         querySnapshot.forEach((doc) => {
-            const feedback = doc.data();
+            feedbackArray.push(doc.data());
+        });
+
+        // Sort: Most recent first, Acknowledged feedbacks last
+        feedbackArray.sort((a, b) => {
+            if (a.status === "Acknowledged" && b.status !== "Acknowledged") return 1;
+            if (b.status === "Acknowledged" && a.status !== "Acknowledged") return -1;
+            return b.timestamp.toMillis() - a.timestamp.toMillis(); // Sort by most recent
+        });
+
+        feedbackArray.forEach((feedback) => {
             hasFeedback = true;
 
-            // Convert timestamp correctly
             let formattedTimestamp = "Unknown Date";
             if (feedback.timestamp) {
                 if (feedback.timestamp.toDate) {
@@ -231,6 +399,14 @@ async function displayFeedbacks() {
                 } else {
                     formattedTimestamp = new Date(feedback.timestamp).toLocaleString();
                 }
+            }
+
+            // Set status color based on status value
+            let statusColor = "black"; // Default color
+            if (feedback.status === "Pending") {
+                statusColor = "gold"; // Yellow for Pending
+            } else if (feedback.status === "Acknowledged") {
+                statusColor = "green"; // Green for Acknowledged
             }
 
             const feedbackItem = document.createElement("div");
@@ -245,16 +421,15 @@ async function displayFeedbacks() {
                     </div>
                     <p class="feedback-text"><strong>Concern:</strong> ${feedback.concern}</p>
                     <p class="feedback-text"><strong>Feedback:</strong> ${feedback.feedback}</p>
-                    <p class="feedback-status">Status: ${feedback.status}</p>
+                    <p class="feedback-status" style="color: ${statusColor};"><strong>Status:</strong> ${feedback.status}</p>
                 </div>
             `;
 
             feedbackListContainer.appendChild(feedbackItem);
         });
 
-        // If no feedbacks were found
         if (!hasFeedback) {
-            feedbackListContainer.innerHTML = "<p>No feedbacks available.</p>";
+            feedbackListContainer.innerHTML = "<p>No feedbacks available for this project.</p>";
         }
 
     } catch (error) {
@@ -263,7 +438,5 @@ async function displayFeedbacks() {
     }
 }
 
-// Load feedbacks when the page loads
-document.addEventListener("DOMContentLoaded", async () => {
-    await displayFeedbacks();
-});
+
+
