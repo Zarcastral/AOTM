@@ -1,39 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Project Form</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="projects.css">
-    
+
 </head>
+
 <body>
     <div class="container">
         <div class="panel">
             <h2>New Project</h2>
-         <div class="inline-group2">
-            <div class="form-group1">
-                <label for="project-name">Project Name</label>
-                <input type="text" id="project-name" placeholder="Enter project name">
+            <div class="inline-group2">
+                <div class="form-group1">
+                    <label for="project-name">Project Name</label>
+                    <input type="text" id="project-name" placeholder="Enter project name">
+                </div>
+                <div class="form-group1">
+                    <label for="assign-to">Assign to</label>
+                    <select id="assign-to">
+                        <option value="">Select Farm President</option>
+                    </select>
+                </div>
+                <div class="form-group1">
+                    <label for="status">Status</label>
+                    <input type="text" id="status" value="Pending" disabled>
+                </div>
+                <div class="form-group1">
+                    <label for="crops">Crops</label>
+                    <select id="crops">
+                        <option value="">Select Crop</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group1">
-                <label for="assign-to">Assign to</label>
-                <select id="assign-to">
-                    <option value="">Select Farm President</option>
-                </select>
-            </div>
-            <div class="form-group1">
-                <label for="status">Status</label>
-                <input type="text" id="status" value="Pending" disabled>
-            </div>
-            <div class="form-group1">
-                <label for="crops">Crops</label>
-                <select id="crops">
-                    <option value="">Select Crop</option>
-                </select>
-            </div> 
-          </div>
             <div class="inline-group">
                 <div class="form-group2">
                     <label for="barangay">Barangay</label>
@@ -47,7 +49,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="panel">
             <h2>Resources</h2>
             <div class="inline-group3">
@@ -72,7 +74,6 @@
                     <label for="fertilizer-category">Fertilizer Type</label>
                     <select id="fertilizer-category">
                         <option value="">Select Fertilizer Type</option>
-                        
                     </select>
                 </div>
             </div>
@@ -94,16 +95,16 @@
                     <input type="hidden" name="fertilizer-unit" value="kg">
                 </div>
             </div>
-         <div class="inline-group2">
-            <div class="form-group1">
-                <label for="equipment">Equipment</label>
-                <select id="equipment">
-                    <option value="">Select Equipment</option>
-                </select>
+            <div class="inline-group2">
+                <div class="form-group1">
+                    <label for="equipment">Equipment</label>
+                    <select id="equipment">
+                        <option value="">Select Equipment</option>
+                    </select>
+                </div>
             </div>
         </div>
-        </div>
-        
+
         <div class="panel2">
             <h2>Date</h2>
             <div class="inline-group4">
@@ -126,4 +127,5 @@
 
     <script type="module" src="projects.js"></script>
 </body>
+
 </html>
