@@ -39,6 +39,7 @@ async function fetchProjectDetails() {
             // Log project_id to console
             if (projectData.project_id) {
                 console.log("📌 Project ID:", projectData.project_id);
+                displayFeedbacks(projectData.project_id); // Pass project_id to displayFeedbacks
             } else {
                 console.warn("⚠️ Project ID not found in the document.");
             }
@@ -64,6 +65,7 @@ async function fetchProjectDetails() {
 document.addEventListener("DOMContentLoaded", () => {
     fetchProjectDetails();
 });
+
 
 
 
@@ -204,16 +206,17 @@ window.addEventListener("click", (event) => {
 
 
 
-async function displayFeedbacks() {
-    console.log("📌 Fetching all feedbacks...");
+async function displayFeedbacks(projectId) {
+    console.log(`📌 Fetching feedbacks for Project ID: ${projectId}`);
 
     const feedbackListContainer = document.getElementById("feedbackList");
     feedbackListContainer.innerHTML = "<p>Loading feedbacks...</p>";
 
     try {
-        // Fetch all feedbacks
+        // Query Firestore for feedbacks that match the given project_id
         const feedbackRef = collection(db, "tb_feedbacks");
-        const querySnapshot = await getDocs(feedbackRef);
+        const q = query(feedbackRef, where("project_id", "==", projectId));
+        const querySnapshot = await getDocs(q);
 
         feedbackListContainer.innerHTML = ""; // Clear loading message
 
@@ -254,7 +257,7 @@ async function displayFeedbacks() {
 
         // If no feedbacks were found
         if (!hasFeedback) {
-            feedbackListContainer.innerHTML = "<p>No feedbacks available.</p>";
+            feedbackListContainer.innerHTML = "<p>No feedbacks available for this project.</p>";
         }
 
     } catch (error) {
@@ -262,8 +265,3 @@ async function displayFeedbacks() {
         feedbackListContainer.innerHTML = "<p>Error loading feedbacks.</p>";
     }
 }
-
-// Load feedbacks when the page loads
-document.addEventListener("DOMContentLoaded", async () => {
-    await displayFeedbacks();
-});
