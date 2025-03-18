@@ -32,22 +32,22 @@
 
       <div class="form-group">
         <label for="user_name">Username</label>
-        <input type="text" id="user_name" name="user_name" required>
+        <input type="text" id="user_name" name="user_name" disabled>
       </div>
 
       <div class="form-group">
         <label for="first_name">First Name</label>
-        <input type="text" id="first_name" name="first_name" required>
+        <input type="text" id="first_name" name="first_name">
       </div>
 
       <div class="form-group">
         <label for="middle_name">Middle Name</label>
-        <input type="text" id="middle_name" name="middle_name" required>
+        <input type="text" id="middle_name" name="middle_name">
       </div>
 
       <div class="form-group">
         <label for="last_name">Last Name</label>
-        <input type="text" id="last_name" name="last_name" required>
+        <input type="text" id="last_name" name="last_name">
       </div>
 
       <div class="form-group">
@@ -62,12 +62,12 @@
 
       <div class="form-group">
         <label for="birthday">Birthday</label>
-        <input type="date" id="birthday" name="birthday" required> <!-- Added required -->
+        <input type="date" id="birthday" name="birthday" disabled> <!-- Added disabled -->
       </div>
 
       <div class="form-group">
         <label for="sex">Sex</label>
-        <select name="sex" id="sex" required> <!-- Added required -->
+        <select name="sex" id="sex" disabled> <!-- Added disabled -->
           <option value="">Select Sex</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
@@ -98,10 +98,10 @@
       <div id="error-message" style="color: maroon;"></div>
     </form>
   </div>
-  
+
   <!-- Bulk Delete Message Panel -->
   <div id="delete-message-panel" style="display: none;" class="delete-message-panel">
-      <p>All selected records has been successfully deleted!</p>
+    <p>All selected records has been successfully deleted!</p>
   </div>
 
   <!-- Import the reusable header script -->
@@ -110,12 +110,12 @@
     loadHeader('header-container');
   </script>
 
-    <!-- Modal for displaying larger image -->
-<div id="imageModal" class="modal">
-  <span class="close">&times;</span>
-  <img class="modal-content" id="modalImage">
-  <div id="caption"></div>
-</div>
+  <!-- Modal for displaying larger image -->
+  <div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modalImage">
+    <div id="caption"></div>
+  </div>
 
 </body>
 

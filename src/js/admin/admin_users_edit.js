@@ -12,7 +12,6 @@ import app from "../../config/firebase_config.js";
 let originalValues = {};
 const db = getFirestore(app);
 document.addEventListener("DOMContentLoaded", async () => {
-
   const userData = localStorage.getItem("userData");
   if (userData) {
     const data = JSON.parse(userData);
@@ -21,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     originalValues = {
       user_name: data.user_name || "",
       contact: data.contact || "",
-      email: data.email || ""
+      email: data.email || "",
     };
   }
 
@@ -31,6 +30,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!user) {
       console.error("User is not authenticated!");
       return;
+    }
+  });
+
+  // Add contact input restriction BEFORE it's populated
+  const contactInput = document.getElementById("contact");
+  contactInput.addEventListener("input", function (e) {
+    this.value = this.value.replace(/[^0-9]/g, "");
+    if (this.value.length > 11) {
+      this.value = this.value.slice(0, 11);
+    }
+    // Optional: Check if it starts with 09 (remove if not needed)
+    if (this.value.length >= 2 && !this.value.startsWith("09")) {
+      this.setCustomValidity("Contact number must start with 09");
+    } else {
+      this.setCustomValidity("");
     }
   });
 
@@ -204,26 +218,39 @@ async function validateUniqueFields() {
   try {
     let errors = [];
 
-    // Check for matching records in the collection
+    // Validate contact
+    if (contact.length !== 11) {
+      errors.push("Contact number must be exactly 11 digits");
+    } else if (!/^\d{11}$/.test(contact)) {
+      errors.push("Contact must contain only numbers");
+    } // Optional: Uncomment if you want to enforce starting with "09"
+    else if (!contact.startsWith("09")) {
+      errors.push("Contact number must start with 09");
+    }
+
+    // Existing validation checks
     snapshot.forEach((doc) => {
       const data = doc.data();
 
-      // Skip validation if the value is the same as the original value
-      if (data.user_name === originalValues.user_name && data.contact === originalValues.contact && data.email === originalValues.email) {
+      if (
+        data.user_name === originalValues.user_name &&
+        data.contact === originalValues.contact &&
+        data.email === originalValues.email
+      ) {
         return;
       }
 
-      // Validate Username
-      if (data.user_name === username && username !== originalValues.user_name) {
+      if (
+        data.user_name === username &&
+        username !== originalValues.user_name
+      ) {
         errors.push("Username is already in use");
       }
 
-      // Validate Contact
       if (data.contact === contact && contact !== originalValues.contact) {
         errors.push("Contact is already in use");
       }
 
-      // Validate Email
       if (data.email === email && email !== originalValues.email) {
         errors.push("Email is already in use");
       }
@@ -311,17 +338,16 @@ const deleteMessage = document.getElementById("delete-message-panel");
 function showDeleteMessage(message, success) {
   deleteMessage.textContent = message;
   deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  deleteMessage.style.opacity = '1';
-  deleteMessage.style.display = 'block';
+  deleteMessage.style.opacity = "1";
+  deleteMessage.style.display = "block";
 
   setTimeout(() => {
-    deleteMessage.style.opacity = '0';
+    deleteMessage.style.opacity = "0";
     setTimeout(() => {
-      deleteMessage.style.display = 'none';
+      deleteMessage.style.display = "none";
     }, 300);
   }, 4000);
 }
-
 
 async function saveProfilePicture(username) {
   if (!username) {
@@ -384,48 +410,56 @@ async function saveChanges() {
   }
 
   function capitalizeWords(str) {
-    return str.replace(/\b\w/g, char => char.toUpperCase());
+    return str.replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
   // Get all form data with capitalized names
   const updatedData = {
-    first_name: capitalizeWords(document.getElementById("first_name").value.trim()),
-    middle_name: capitalizeWords(document.getElementById("middle_name").value.trim()),
-    last_name: capitalizeWords(document.getElementById("last_name").value.trim()),
+    first_name: capitalizeWords(
+      document.getElementById("first_name").value.trim()
+    ),
+    middle_name: capitalizeWords(
+      document.getElementById("middle_name").value.trim()
+    ),
+    last_name: capitalizeWords(
+      document.getElementById("last_name").value.trim()
+    ),
     contact: document.getElementById("contact").value.trim(),
     email: document.getElementById("email").value.trim(),
     birthday: document.getElementById("birthday").value.trim(),
     sex: capitalizeWords(document.getElementById("sex").value.trim()),
-    user_type: capitalizeWords(document.getElementById("user_type").value.trim()),
-    barangay_name: capitalizeWords(document.getElementById("barangay").value.trim()),
+    user_type: capitalizeWords(
+      document.getElementById("user_type").value.trim()
+    ),
+    barangay_name: capitalizeWords(
+      document.getElementById("barangay").value.trim()
+    ),
     user_name: document.getElementById("user_name").value.trim(),
-};
+  };
 
   const colRef = collection(db, "tb_users");
   const q = query(colRef, where("user_name", "==", username));
 
   const querySnapshot = await getDocs(q);
   if (!querySnapshot.empty) {
-      const docRef = querySnapshot.docs[0].ref;
+    const docRef = querySnapshot.docs[0].ref;
 
-      await saveProfilePicture(username); // Ensure picture is uploaded first
-      await updateDoc(docRef, updatedData);
-      
-      showDeleteMessage("Changes saved successfully!", true);
+    await saveProfilePicture(username); // Ensure picture is uploaded first
+    await updateDoc(docRef, updatedData);
 
-      // Delay before redirecting
-      setTimeout(() => {
-          window.location.href = "admin_users.html";
-      }, 2000); // 2-second delay
+    showDeleteMessage("Changes saved successfully!", true);
 
+    // Delay before redirecting
+    setTimeout(() => {
+      window.location.href = "admin_users.html";
+    }, 2000); // 2-second delay
   } else {
-      showDeleteMessage("Account with this username does not exist.", false);
+    showDeleteMessage("Account with this username does not exist.", false);
   }
 
   // Remove confirmation panel
   const confirmationPanel = document.getElementById("confirmationPanel");
   if (confirmationPanel) {
-      document.body.removeChild(confirmationPanel);
+    document.body.removeChild(confirmationPanel);
   }
-
 }
