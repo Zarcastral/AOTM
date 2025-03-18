@@ -133,3 +133,24 @@
   margin-top: 20px;
 
 }
+.pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.pagination-btn:disabled {
+  color: #cccccc;
+  cursor: not-allowed;
+}
+
+#assigned-page-info{
+  font-size: 17px;
+  margin-top: 10px;
+}

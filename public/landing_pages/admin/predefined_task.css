@@ -229,7 +229,34 @@ tbody tr:hover {
   color: #bbb;
   cursor: not-allowed;
 }
+/* Pagination Styles */
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+    flex-direction: row-reverse;
+}
 
+.pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.pagination-btn:disabled {
+  color: #cccccc;
+  cursor: not-allowed;
+}
+
+#page-info {
+  font-size: 17px;
+  margin-top: 10px;
+}
 /* Responsive styles */
 @media (max-width: 768px) {
   .header-title {

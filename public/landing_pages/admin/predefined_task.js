@@ -22,9 +22,7 @@ const closeAddTaskModalBtn = document.getElementById("close-add-task-modal");
 const closeEditTaskModalBtn = document.getElementById("close-edit-task-modal");
 const duplicateTaskModal = document.getElementById("duplicate-task-modal");
 const noChangesModal = document.getElementById("no-changes-modal");
-const deleteConfirmationModal = document.getElementById(
-  "delete-confirmation-modal"
-);
+const deleteConfirmationModal = document.getElementById("delete-confirmation-modal");
 const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
 const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
 let taskToDeleteId = null; // Store the task ID for deletion
@@ -38,15 +36,11 @@ duplicateSubtaskModal.innerHTML = `
       <p id="duplicate-subtask-message"></p>
       <button id="close-duplicate-subtask-modal">Okay</button>
     </div>
-  `;
+`;
 document.body.appendChild(duplicateSubtaskModal);
 
-const closeDuplicateSubtaskModal = document.getElementById(
-  "close-duplicate-subtask-modal"
-);
-const closeDuplicateTaskModal = document.getElementById(
-  "close-duplicate-task-modal"
-);
+const closeDuplicateSubtaskModal = document.getElementById("close-duplicate-subtask-modal");
+const closeDuplicateTaskModal = document.getElementById("close-duplicate-task-modal");
 const closeNoChangesModal = document.getElementById("close-no-changes-modal");
 
 const addTaskBtn = document.getElementById("add-task-btn");
@@ -61,6 +55,11 @@ const newSubtaskInput = document.getElementById("new-subtask-input");
 let tasks = [];
 let editingTaskId = null;
 let initialSubtasks = [];
+
+// Pagination variables
+let currentPage = 1;
+const rowsPerPage = 5;
+let allTasks = []; // Store all tasks fetched from Firestore
 
 // ✅ Ensure the "Add Task" button is disabled by default
 addTaskBtn.disabled = true;
@@ -231,20 +230,45 @@ async function fetchTasks() {
   const taskList = document.getElementById("task-list");
   taskList.innerHTML = ""; // Clear existing rows
   const querySnapshot = await getDocs(collection(db, "tb_pretask"));
+
+  // Store all tasks in allTasks array
+  allTasks = [];
   querySnapshot.forEach((doc) => {
-    const taskData = doc.data();
+    allTasks.push({
+      id: doc.id,
+      data: doc.data()
+    });
+  });
+
+  // Calculate total pages
+  const totalPages = Math.ceil(allTasks.length / rowsPerPage);
+
+  // Ensure currentPage is valid
+  if (currentPage < 1) currentPage = 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  // Calculate start and end indices for the current page
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = Math.min(startIndex + rowsPerPage, allTasks.length);
+
+  // Display tasks for the current page
+  for (let i = startIndex; i < endIndex; i++) {
+    const taskData = allTasks[i].data;
     const row = document.createElement("tr");
     row.innerHTML = `
         <td>${taskData.task_name}</td>
         <td>
-         <button class="edit-task-btn" data-id="${doc.id}">Edit</button>
-         <button class="delete-task-btn" data-id="${doc.id}">Delete</button>
+         <button class="edit-task-btn" data-id="${allTasks[i].id}">Edit</button>
+         <button class="delete-task-btn" data-id="${allTasks[i].id}">Delete</button>
         </td>
-      `;
+    `;
     taskList.appendChild(row);
-  });
+  }
 
-  // Add delete task functionality
+  // Update pagination controls
+  updatePaginationControls(totalPages);
+
+  // Add event listeners for delete buttons
   const deleteButtons = document.querySelectorAll(".delete-task-btn");
   deleteButtons.forEach((button) => {
     button.addEventListener("click", (e) => {
@@ -252,6 +276,49 @@ async function fetchTasks() {
       deleteConfirmationModal.style.display = "flex"; // Show the confirmation modal
     });
   });
+
+  // Add event listeners for edit buttons (moved from taskList event listener)
+  const editButtons = document.querySelectorAll(".edit-task-btn");
+  editButtons.forEach((button) => {
+    button.addEventListener("click", async (e) => {
+      editingTaskId = e.target.dataset.id;
+      editTaskModal.style.display = "flex";
+
+      const taskRef = doc(db, "tb_pretask", editingTaskId);
+      const taskSnap = await getDoc(taskRef);
+
+      if (taskSnap.exists()) {
+        const taskData = taskSnap.data();
+        subtaskList.innerHTML = ""; // Clear existing list
+        initialSubtasks = [...taskData.subtasks]; // Store initial subtasks
+
+        taskData.subtasks.forEach((subtask) => {
+          const li = document.createElement("li");
+          li.innerHTML = `${subtask} <button class="delete-subtask-btn">X</button>`;
+          subtaskList.appendChild(li);
+        });
+
+        saveSubtasksBtn.disabled = true;
+        checkSaveButtonState();
+      } else {
+        console.error("Task not found in Firestore");
+      }
+    });
+  });
+}
+
+// Function to update pagination controls
+function updatePaginationControls(totalPages) {
+  const prevBtn = document.getElementById("prev-page-btn");
+  const nextBtn = document.getElementById("next-page-btn");
+  const pageInfo = document.getElementById("page-info");
+
+  // Update page info
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+
+  // Enable/disable buttons
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage === totalPages || totalPages === 0;
 }
 
 // ✅ Handle Confirm Delete
@@ -260,15 +327,12 @@ confirmDeleteBtn.addEventListener("click", async () => {
     // Delete from Firestore
     await deleteDoc(doc(db, "tb_pretask", taskToDeleteId));
 
-    // Remove task from the UI
-    const taskItem = document
-      .querySelector(`[data-id="${taskToDeleteId}"]`)
-      .closest("tr");
-    taskItem.remove();
-
     // Reset taskToDeleteId and hide the modal
     taskToDeleteId = null;
     deleteConfirmationModal.style.display = "none";
+
+    // Refresh tasks
+    fetchTasks();
   }
 });
 
@@ -328,45 +392,10 @@ subtaskList.addEventListener("click", (e) => {
   }
 });
 
-taskList.addEventListener("click", async (e) => {
-  if (e.target.classList.contains("edit-task-btn")) {
-    editingTaskId = e.target.dataset.id;
-    editTaskModal.style.display = "flex";
-
-    const taskRef = doc(db, "tb_pretask", editingTaskId);
-    const taskSnap = await getDoc(taskRef);
-
-    if (taskSnap.exists()) {
-      const taskData = taskSnap.data();
-      subtaskList.innerHTML = ""; // Clear existing list
-      initialSubtasks = [...taskData.subtasks]; // Store initial subtasks
-
-      taskData.subtasks.forEach((subtask) => {
-        const li = document.createElement("li");
-        li.innerHTML = `${subtask} <button class="delete-subtask-btn">X</button>`;
-        subtaskList.appendChild(li);
-      });
-
-      // ✅ Ensure button is initially disabled when opening modal
-      saveSubtasksBtn.disabled = true;
-
-      checkSaveButtonState(); // Call after setting initial state
-    } else {
-      console.error("Task not found in Firestore");
-    }
-  }
-});
-
-fetchTasks();
-
 // New Elements for Assigning Tasks to Crop Type
 const assignTaskModal = document.getElementById("assign-task-modal");
-const openAssignTaskModalBtn = document.getElementById(
-  "open-assign-task-modal"
-);
-const closeAssignTaskModalBtn = document.getElementById(
-  "close-assign-task-modal"
-);
+const openAssignTaskModalBtn = document.getElementById("open-assign-task-modal");
+const closeAssignTaskModalBtn = document.getElementById("close-assign-task-modal");
 const assignTasksBtn = document.getElementById("assign-tasks-btn");
 const cropTypeSelect = document.getElementById("crop-type-select");
 const taskCheckboxesContainer = document.getElementById("task-checkboxes");
@@ -583,3 +612,22 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("add-task-modal").style.display = "none";
     });
 });
+
+// Pagination event listeners
+document.getElementById("prev-page-btn").addEventListener("click", () => {
+  if (currentPage > 1) {
+    currentPage--;
+    fetchTasks();
+  }
+});
+
+document.getElementById("next-page-btn").addEventListener("click", () => {
+  const totalPages = Math.ceil(allTasks.length / rowsPerPage);
+  if (currentPage < totalPages) {
+    currentPage++;
+    fetchTasks();
+  }
+});
+
+// Initial fetch
+fetchTasks();
