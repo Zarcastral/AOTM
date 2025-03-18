@@ -95,12 +95,32 @@
                     <input type="hidden" name="fertilizer-unit" value="kg">
                 </div>
             </div>
-            <div class="inline-group2">
-                <div class="form-group1">
-                    <label for="equipment">Equipment</label>
-                    <select id="equipment">
-                        <option value="">Select Equipment</option>
+            <div class="equipment-form-group">
+                <label for="equipment-textarea">Equipments</label>
+                <textarea id="equipment-textarea" rows="4" placeholder="Enter equipment details..."></textarea>
+                <button type="button" id="open-equipment-popup">Add Equipment</button>
+            </div>
+            
+            <!-- Equipment Popup Modal -->
+            <div id="equipment-popup" class="popup-overlay">
+                <div class="popup-box">
+                    <h3 class="popup-title">Add Equipment</h3>
+                    
+                    <label for="equipment-type-select">Equipment Type</label>
+                    <select id="equipment-type-select" class="popup-select">
+                        <option value="">Select Type</option>
+                        <option value="type1">Type 1</option>
+                        <option value="type2">Type 2</option>
                     </select>
+            
+                    <label for="equipment-name-select">Equipment Name</label>
+                    <select id="equipment-name-select" class="popup-select">
+                        <option value="">Select Equipment</option>
+                        <option value="equipment1">Equipment 1</option>
+                        <option value="equipment2">Equipment 2</option>
+                    </select>
+            
+                    <button type="button" id="close-equipment-popup" class="popup-button">Close</button>
                 </div>
             </div>
         </div>

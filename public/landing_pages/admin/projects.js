@@ -268,6 +268,91 @@ window.loadFertilizerTypes = async function (selectedFertilizer) {
   }
 };
 
+//EQUIPMENT
+document.getElementById("open-equipment-popup").addEventListener("click", function () {
+  document.getElementById("equipment-popup").style.display = "flex";
+});
+
+document.getElementById("close-equipment-popup").addEventListener("click", function () {
+  document.getElementById("equipment-popup").style.display = "none";
+});
+
+
+async function loadEquipmentTypes() {
+  const equipmentTypeSelect = document.getElementById("equipment-type-select");
+  equipmentTypeSelect.innerHTML = `<option value="">Loading...</option>`;
+
+  // Get session user type
+  const sessionUserType = sessionStorage.getItem("user_type");
+  console.log(`📌 Session User Type: ${sessionUserType}`); // ✅ Logs session user type
+
+  try {
+      const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
+      const equipmentTypes = new Set();
+
+      querySnapshot.forEach((doc) => {
+          const data = doc.data();
+
+          // Check if `stocks` exists and has at least one entry
+          if (Array.isArray(data.stocks) && data.stocks.length > 0) {
+              // Iterate through all stock entries (not just index 0)
+              data.stocks.forEach((stockItem, index) => {
+                  if (stockItem.owned_by === sessionUserType) {
+                      console.log(`✅ Match Found! Doc ${doc.id} | Index ${index} | owned_by: ${stockItem.owned_by}`);
+
+                      if (data.equipment_type) {
+                          equipmentTypes.add(data.equipment_type);
+                      }
+                  }
+              });
+          }
+      });
+
+      // Populate dropdown
+      equipmentTypeSelect.innerHTML = `<option value="">Select Type</option>`;
+      equipmentTypes.forEach((type) => {
+          equipmentTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
+      });
+
+      if (equipmentTypes.size === 0) {
+          console.log("⚠️ No matching equipment types found.");
+          equipmentTypeSelect.innerHTML = `<option value="">No Equipment Available</option>`;
+      }
+  } catch (error) {
+      console.error("❌ Error fetching equipment types:", error);
+      equipmentTypeSelect.innerHTML = `<option value="">Error Loading</option>`;
+  }
+}
+
+//CHANGE THIS INTO A SEARCH BAR, SEE IF A COMBOBOX CAN MULTI SELECT
+async function loadEquipmentNames() {
+  const equipmentNameSelect = document.getElementById("equipment-name-select");
+  equipmentNameSelect.innerHTML = `<option value="">Loading...</option>`;
+
+  try {
+      const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
+      let options = `<option value="">Select Equipment</option>`;
+
+      querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          console.log(`📄 Fetched doc (${doc.id}):`, data); // ✅ Logs document data
+
+          if (data.equipment_name) {
+              options += `<option value="${data.equipment_name}">${data.equipment_name}</option>`;
+          }
+      });
+
+      equipmentNameSelect.innerHTML = options;
+  } catch (error) {
+      console.error("❌ Error fetching equipment names:", error);
+      equipmentNameSelect.innerHTML = `<option value="">Error Loading</option>`;
+  }
+}
+
+
+
+
+
 window.loadFertilizers = async function () {
   const selectedType = document.getElementById("fertilizer-category").value;
   const fertilizerSelect = document.getElementById("fertilizer-type");
@@ -362,17 +447,6 @@ document
   .getElementById("fertilizer-category")
   .addEventListener("change", (e) => loadFertilizers(e.target.value));
 
-window.loadEquipment = async function () {
-  const querySnapshot = await getDocs(collection(db, "tb_equipment"));
-  const equipmentSelect = document.getElementById("equipment");
-  equipmentSelect.innerHTML = '<option value="">Select Equipment</option>';
-  querySnapshot.forEach((doc) => {
-    const option = document.createElement("option");
-    option.value = doc.data().equipment_name;
-    option.textContent = doc.data().equipment_name;
-    equipmentSelect.appendChild(option);
-  });
-};
 
 window.getNextProjectID = async function () {
   const counterRef = doc(db, "tb_id_counters", "projects_id_counter");
@@ -509,22 +583,9 @@ window.saveProject = async function () {
       return;
     }
 
-    // 🔍 Fetch equipment category from tb_equipment
-    const equipmentRef = collection(db, "tb_equipment");
-    const equipmentQuery = query(
-      equipmentRef,
-      where("equipment_name", "==", equipment)
-    );
-    const equipmentQuerySnapshot = await getDocs(equipmentQuery);
 
-    if (equipmentQuerySnapshot.empty) {
-      alert(`❌ Equipment '${equipment}' not found in inventory.`);
-      return;
-    }
 
-    const equipmentDoc = equipmentQuerySnapshot.docs[0];
-    const equipmentCategory =
-      equipmentDoc.data().equipment_category || "Unknown";
+
 
     // Fetch the email of the selected farm president from tb_farmers collection using first_name
     const farmersRef = collection(db, "tb_farmers");
@@ -633,7 +694,8 @@ window.onload = function () {
   loadCrops();
   fetchFertilizerTypes(); // Fetch all fertilizer types
   loadFertilizers();
-  loadEquipment();
+  loadEquipmentTypes();
+  loadEquipmentNames();
 };
 
 document
