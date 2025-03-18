@@ -134,29 +134,44 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!querySnapshot.empty) {
           const userData = querySnapshot.docs[0].data();
           const user_picture = userData.user_picture;
+          const userEmail = userData.email; // Get the email from the current record
 
-          if (user_picture) {
+          // Get the email stored in sessionStorage
+          const storedEmail = sessionStorage.getItem("userEmail");
+
+          // Compare the emails
+          if (userEmail && storedEmail && userEmail === storedEmail) {
+            if (user_picture) {
+              const profilePicture = document.getElementById("profile-picture");
+              profilePicture.src = user_picture;
+
+              // Store in sessionStorage only if emails match
+              sessionStorage.setItem("userPicture", user_picture);
+
+              // Add click event listener to the profile picture
+              profilePicture.addEventListener("click", () => {
+                const modal = document.getElementById("imageModal");
+                const modalImg = document.getElementById("modalImage");
+                const captionText = document.getElementById("caption");
+
+                modal.style.display = "block";
+                modalImg.src = profilePicture.src;
+                captionText.innerHTML = "Profile Picture of: " + username;
+
+                const span = document.getElementsByClassName("close")[0];
+                span.onclick = function () {
+                  modal.style.display = "none";
+                };
+              });
+            }
+          } else {
+            console.log(
+              "Emails do not match or are not set. Skipping sessionStorage update."
+            );
             const profilePicture = document.getElementById("profile-picture");
-            profilePicture.src = user_picture;
-
-            // Store in sessionStorage
-            sessionStorage.setItem("userPicture", user_picture);
-            // Add click event listener to the profile picture
-            profilePicture.addEventListener("click", () => {
-              const modal = document.getElementById("imageModal");
-              const modalImg = document.getElementById("modalImage");
-              const captionText = document.getElementById("caption");
-
-              modal.style.display = "block";
-              modalImg.src = profilePicture.src; // Use the current src value of the p
-              captionText.innerHTML = "Profile Picture of: " + username;
-
-              // Close the modal when the close button is clicked
-              const span = document.getElementsByClassName("close")[0];
-              span.onclick = function () {
-                modal.style.display = "none";
-              };
-            });
+            if (user_picture) {
+              profilePicture.src = user_picture; // Still display the picture, but don't store it
+            }
           }
         } else {
           console.log("No user found with the given user_name.");
@@ -164,6 +179,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       } catch (error) {
         console.error("Error fetching profile picture:", error);
       }
+
       // When no file is selected, revert the image back to the original profile picture
       document
         .getElementById("profile_picture")
@@ -171,21 +187,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Function to handle the selected file
       function handleFileSelect(event) {
-        const file = event.target.files[0]; // Get the selected file
+        const file = event.target.files[0];
         const imgElement = document.getElementById("profile-picture");
 
         if (file) {
-          const reader = new FileReader(); // Create a FileReader to read the image
-
-          // When the file is successfully read, update the profile picture preview
+          const reader = new FileReader();
           reader.onload = function (e) {
-            imgElement.src = e.target.result; // Set the new image as the profile picture
+            imgElement.src = e.target.result;
           };
-
-          reader.readAsDataURL(file); // Read the file as a data URL to display it
+          reader.readAsDataURL(file);
         } else {
           // If no file is selected, revert to the original image fetched from Firebase
-          imgElement.src = originalImageSrc;
+          imgElement.src = user_picture || originalImageSrc; // Use user_picture if available
         }
       }
     }
