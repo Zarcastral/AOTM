@@ -106,10 +106,9 @@ body {
   margin-top: 20px;
 }
 .crop-search-bar, .fert-search-bar
-.equp-search-bar {
+.equip-search-bar {
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 .panel table th, .panel table td {
   text-align: center;
@@ -394,10 +393,31 @@ transition: opacity 0.3s ease;
 }
 
 /*------------------------------- STOCK DESIGNS --------------------------------------*/
+.crop-action-btn, .fert-action-btn,
+.equip-action-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Adjust spacing between buttons */
+}
 
 .add-crop-stock-btn, .add-fert-stock-btn,
 .add-equip-stock-btn {
   background-color:  #41A186;
+  color: white;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.delete-crop-stock-btn, .delete-fert-stock-btn,
+.delete-equip-stock-btn {
+  background-color:  maroon;
   color: white;
   padding: 12px 20px;
   font-size: 14px;
@@ -433,16 +453,19 @@ transition: opacity 0.3s ease;
 
 /* Floating Panel */
 .crop-panel, .fert-panel,
-.equip-panel {
+.equip-panel, .crop-delete-panel {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 90vw; /* Make it responsive to viewport width */
-  max-width: 500px; /* Maximum width */
+  max-width: 650px; /* Maximum width */
   min-width: 300px; /* Prevents it from getting too small */
   background: white;
-  padding: 20px;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 20px;
+  padding-bottom: 20px;
   border-radius: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   display: none;
@@ -453,10 +476,10 @@ transition: opacity 0.3s ease;
 
 /* Content styles */
 .crop-content, .fert-content,
-.equip-content {
+.equip-content, .crop-delete-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: px;
   box-sizing: border-box;
 }
 
@@ -495,7 +518,13 @@ transition: opacity 0.3s ease;
   width: 100%;
   flex-wrap: wrap; /* Allows items to wrap on smaller screens */
 }
-
+.crop-stock-row, .fert-stock-row,
+.equip-stock-row {
+  display: flex;
+  align-items: flex-start;
+  width: 65%;
+  flex-wrap: wrap;
+}
 /* Adjust input widths */
 #crop_name, #fert_name,
 #equip_name {
@@ -520,7 +549,7 @@ transition: opacity 0.3s ease;
 
 /* Ensure labels are above inputs */
 .crop-row > div, .fert-row > div,
-.equip-row > div {
+.equip-row > div, .crop-stock-row > div {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -530,7 +559,7 @@ transition: opacity 0.3s ease;
 
 /* Label Styling */
 .crop-row label, .fert-row label,
-.equip-row label {
+.equip-row label, .crop-stock-row label {
   font-size: 20px; /* Increase label size */
   color: #333; /* Ensure good readability */
   margin-bottom: 5px;
@@ -569,6 +598,19 @@ transition: opacity 0.3s ease;
   color: white;
 }
 
+.crop-delete, .fert-delete,
+.equip-delete{
+  background: maroon;
+  color: white;
+}
+
+.crop-delete:hover,
+.fert-delete:hover,
+.equip-delete:hover {
+  background: rgb(104, 1, 1);
+  color: white;
+}
+
 .crop-cancel,
 .fert-cancel,
 .equip-cancel {
@@ -600,6 +642,33 @@ z-index: 1001;
 opacity: 0;
 transition: opacity 0.3s ease;
 }
+
+
+/*------------------------------- DELETE STOCK DESIGN --------------------------------------*/
+/* Hide delete-stock-title by default */
+.crop-delete-stock-title, .fert-delete-stock-title,
+.equip-delete-stock-title {
+  display: none;
+}
+
+/* Hide crop-delete-cancel button by default */
+.crop-delete-btn.crop-cancel, .fert-delete-btn.fert-cancel,
+.equip-delete-btn.equip-cancel {
+  display: none;
+}
+
+/* Hide crop-delete-save button by default */
+.crop-delete-btn.crop-delete, .fert-delete-btn.fert-delete,
+.equip-delete-btn.equip-delete {
+  display: none;
+}
+
+/* Hide crop-delete-message by default */
+.crop-delete-message, .fert-delete-message,
+.equip-delete-message {
+  display: none;
+}
+/*------------------------------- END OF DELETE STOCK DESIGN --------------------------------------*/
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {

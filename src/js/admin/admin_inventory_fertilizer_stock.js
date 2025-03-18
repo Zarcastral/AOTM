@@ -22,6 +22,7 @@ const auth = getAuth();
 document.addEventListener("DOMContentLoaded", () => {
   fetchFertilizerNames();
   fetchFertilizers();
+  addFertStock();
 });
 
 async function saveActivityLog(action) {
@@ -129,15 +130,14 @@ async function getAuthenticatedUser() {
           const userSnapshot = await getDocs(userQuery);
 
           if (!userSnapshot.empty) {
-            const userName = userSnapshot.docs[0].data().user_name;
-            console.log("Authenticated user's user_name:", userName);
-            resolve(user); // Resolve with user object if needed
+            const userData = userSnapshot.docs[0].data();
+            resolve({ ...user, user_type: userData.user_type }); // ✅ Ensure user_type is returned
           } else {
             console.error("User record not found in tb_users collection.");
             reject("User record not found.");
           }
         } catch (error) {
-          console.error("Error fetching user_name:", error);
+          console.error("Error fetching user_type:", error);
           reject(error);
         }
       } else {
@@ -173,7 +173,7 @@ async function fetchFertilizers() {
         const fertilizer = doc.data();
         const fertilizerId = fertilizer.fertilizer_id;
 
-        // Fetch related stock data from tb_fertilizer_stock based on fertilizer_id
+        // Fetch related stock data from tb_fertilizer_stock based on fertilizer_type_id
         const stockCollection = collection(db, "tb_fertilizer_stock");
         const stockQuery = query(stockCollection, where("fertilizer_id", "==", fertilizerId));
         const stockSnapshot = await getDocs(stockQuery);
@@ -186,28 +186,36 @@ async function fetchFertilizers() {
             const stockData = stockDoc.data();
             return stockData.stocks || []; // Access the nested stocks array if available
           });
-        
+
           if (stockDataArray.length > 0) {
             // Filter stock data for the authenticated user based on user_type
             const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-        
+
             if (userStockData.length > 0) {
+              // Check if any stock has `current_stock` equal to 0
+              userStockData.forEach(stock => {
+                if (stock.current_stock === 0) {
+                  stock.current_stock = `No available stock for ${userType}`;
+                  stock.unit = ""; // Clear the unit if stock is 0
+                }
+              });
+
               fertilizer.stocks = userStockData;  // Save user-specific stock data as an array
             } else {
               // Stocks exist but not for the current user_type
               fertilizer.stocks = [{
                 stock_date: null,
-                current_stock: "",
-                unit: "Stock has not been updated yet",
-                owned_by: "No stock record found for the current user type"
+                current_stock: `Stock has not been updated yet for ${userType}`,
+                unit: "",
+                owned_by: `No stock record found for ${userType}`
               }];
             }
           } else {
             // `stocks` array is empty for all users
             fertilizer.stocks = [{
               stock_date: null,
-              current_stock: "",
-              unit: "Stock has not been updated yet",
+              current_stock: "Stock has not been updated yet",
+              unit: "",
               owned_by: "No stock record found for any user type"
             }];
           }
@@ -215,12 +223,11 @@ async function fetchFertilizers() {
           // No stock data found at all
           fertilizer.stocks = [{
             stock_date: null,
-            current_stock: "",
-            unit: "Stock has not been updated yet",
+            current_stock: "Stock has not been updated yet",
+            unit: "",
             owned_by: "No stock record found for any user type"
           }];
-        }  
-
+        }
         return fertilizer;
       }));
 
@@ -279,30 +286,25 @@ function displayFertilizers(fertilizersList) {
         ? (stock.stock_date.toDate ? stock.stock_date.toDate().toLocaleDateString() : new Date(stock.stock_date).toLocaleDateString())
         : "Stock has not been updated";
       const currentStock = stock.current_stock || "";
-      const unit = stock.unit || "Units";
+      const unit = stock.unit || "";
       const owned_by = stock.owned_by || "Owner not Recorded";
 
       row.innerHTML = `
-        <td class="checkbox">
-            <input type="checkbox" data-fertilizer-id="${fertilizerId}">
-        </td>
         <td>${fertilizerId}</td>
         <td>${fertilizerName}</td>
         <td>${fertilizerType}</td>
         <td>${stock_date}</td>
         <td>${currentStock} ${unit}</td>
         <td>${owned_by}</td>
-        <td>
-          <button class="add-fert-stock-btn" id="add-fert-stock-btn" data-id="${fertilizerId}">+ Add Stock</button>
+        <td class="fert-action-btn">
+          <button class="add-fert-stock-btn" data-id="${fertilizerId}">+ Add Stock</button>
+          <button class="delete-fert-stock-btn" data-id="${fertilizerId}">Delete Stock</button>
         </td>
       `;
       tableBody.appendChild(row);
     });
   });
-
-  addCheckboxListeners();
   updatePagination();
-  toggleBulkDeleteButton();
 }
 
 
@@ -376,160 +378,8 @@ document.querySelector(".fertilizer_select").addEventListener("change", function
   displayFertilizers(filteredFertilizers); // Update the table with filtered fertilizers
 });
 
-// ---------------------------- FERTILIZER BULK DELETE CODES ---------------------------- //
-const deletemessage = document.getElementById("fert-bulk-message"); // delete message panel
 
-// CHECKBOX CHANGE EVENT HANDLER
-function handleCheckboxChange(event) {
-  const checkbox = event.target;
-  const row = checkbox.closest("tr");
-  if (!row) return;
-
-  const fertilizerId = checkbox.getAttribute("data-fertilizer-id");
-
-  if (checkbox.checked) {
-    if (!selectedFertilizers.includes(fertilizerId)) {
-      selectedFertilizers.push(fertilizerId);
-    }
-  } else {
-    selectedFertilizers = selectedFertilizers.filter(item => item !== fertilizerId);
-  }
-
-  console.log("Selected Fertilizers:", selectedFertilizers);
-  toggleBulkDeleteButton();
-}
-
-// Enable/Disable the Bulk Delete button
-function toggleBulkDeleteButton() {
-  const bulkDeleteButton = document.getElementById("fert-bulk-delete");
-  bulkDeleteButton.disabled = selectedFertilizers.length === 0;
-}
-
-// Attach event listener to checkboxes
-function addCheckboxListeners() {
-  document.querySelectorAll(".fertilizer_table input[type='checkbox']").forEach(checkbox => {
-    checkbox.addEventListener("change", handleCheckboxChange);
-  });
-}
-
-// <------------- BULK DELETE BUTTON CODE ---------------> //
-document.getElementById("fert-bulk-delete").addEventListener("click", async () => {
-  const selectedCheckboxes = document.querySelectorAll(".fertilizer_table input[type='checkbox']:checked");
-
-  let selectedfertilizerIds = [];
-  let hasInvalidId = false;
-
-  for (const checkbox of selectedCheckboxes) {
-    const fertilizerId = checkbox.getAttribute("data-fertilizer-id");
-
-    if (!fertilizerId || fertilizerId.trim() === "") {
-      hasInvalidId = true;
-      break;
-    }
-
-    try {
-      const q = query(collection(db, "tb_fertilizer_stock"), where("fertilizer_id", "==", Number(fertilizerId)));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        hasInvalidId = true;
-        console.error(`ERROR: Fertilizer ID ${fertilizerId} does not exist in the database.`);
-        break;
-      }
-
-      selectedfertilizerIds.push(fertilizerId);
-    } catch (error) {
-      console.error("Error fetching Fertilizer records:", error);
-      hasInvalidId = true;
-      break;
-    }
-  }
-
-  if (hasInvalidId) {
-    showDeleteMessage("ERROR: Fertilizer ID of one or more selected records are invalid", false);
-  } else {
-    document.getElementById("fert-bulk-panel").style.display = "block";
-  }
-});
-
-// Close the Bulk Delete Panel
-document.getElementById("cancel-fert-delete").addEventListener("click", () => {
-  document.getElementById("fert-bulk-panel").style.display = "none";
-});
-
-// Function to delete selected Fertilizers from tb_Fertilizer_stock's stocks array based on owned_by
-async function deleteSelectedFertilizers() {
-  if (selectedFertilizers.length === 0) {
-    return;
-  }
-
-  try {
-    // Get the current authenticated user's user_type
-    const user = auth.currentUser;
-    const userDoc = await getDoc(doc(db, "tb_users", user.uid));
-    const userType = userDoc.data().user_type;
-
-    const stockCollection = collection(db, "tb_fertilizer_stock");
-    let deletedFertilizerNames = [];
-
-    for (const fertilizerId of selectedFertilizers) {
-      const stockQuery = query(stockCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-      const stockSnapshot = await getDocs(stockQuery);
-
-      for (const docSnapshot of stockSnapshot.docs) {
-        const stockData = docSnapshot.data();
-        const docRef = doc(db, "tb_fertilizer_stock", docSnapshot.id);
-
-        // Filter stocks to get only those matching the user_type
-        const stocksToRemove = stockData.stocks.filter(stock => stock.owned_by === userType);
-
-        if (stocksToRemove.length > 0) {
-          for (const stock of stocksToRemove) {
-            await updateDoc(docRef, {
-              stocks: arrayRemove(stock)
-            });
-            deletedFertilizerNames.push(stock.fertilizer_name);
-          }
-        }
-      }
-    }
-
-    console.log("Deleted Fertilizers:", deletedFertilizerNames);
-    await saveActivityLog(`Deleted Fertilizers: ${deletedFertilizerNames.join(", ")}`);
-    showDeleteMessage("All selected Fertilizer records successfully deleted!", true);
-
-    selectedFertilizers = [];
-    document.getElementById("fert-bulk-panel").style.display = "none";
-    fetchFertilizers();
-
-  } catch (error) {
-    console.error("Error deleting fertilizers:", error);
-    showDeleteMessage("Error deleting fertilizers!", false);
-  }
-}
-
-// Confirm Deletion and Call Delete Function
-document.getElementById("confirm-fert-delete").addEventListener("click", () => {
-  deleteSelectedFertilizers();
-});
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
-const deleteMessage = document.getElementById("fert-bulk-message");
-
-function showDeleteMessage(message, success) {
-  deleteMessage.textContent = message;
-  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  deleteMessage.style.opacity = '1';
-  deleteMessage.style.display = 'block';
-
-  setTimeout(() => {
-    deleteMessage.style.opacity = '0';
-    setTimeout(() => {
-      deleteMessage.style.display = 'none';
-    }, 300);
-  }, 4000);
-}
-
-// Search bar event listener for real-time filtering
+// <------------------- PAGINATION ---------------------->
 document.getElementById("fert-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
 
@@ -563,213 +413,338 @@ function showFertilizerStockMessage(message, success) {
   }, 4000);
 }
 // <------------------ FUNCTION TO DISPLAY ADD STOCK FLOATING PANEL ------------------------>
-
-document.addEventListener("DOMContentLoaded", () => {
-  const fertilizerStockPanel = document.getElementById("fert-stock-panel");
-  const fertilizerOverlay = document.getElementById("fert-overlay");
-  const cancelBtn = document.getElementById("fert-cancel-stock");
-  const saveBtn = document.getElementById("fert-save-stock");
-
+const saveBtn = document.getElementById("fert-save-stock");
+const fertilizerStockPanel = document.getElementById("fert-stock-panel");
+const fertilizerOverlay = document.getElementById("fert-overlay");
+const cancelBtn = document.getElementById("fert-cancel-stock");
+const fertilizerStockTitle = document.getElementById("fert-stock-title")
+;
+const deleteStockTitle = document.getElementById("fert-delete-stock-title");
+const deleteStockBtn = document.getElementById("fert-delete-stock");
+function addFertStock() {
   document.querySelector(".fertilizer_table").addEventListener("click", async function (event) {
-    if (event.target.classList.contains("add-fert-stock-btn")) {
-      const row = event.target.closest("tr");
-      if (!row) return;
+      if (event.target.classList.contains("add-fert-stock-btn") || event.target.classList.contains("delete-fert-stock-btn")) {
+          const fertilizerId = event.target.dataset.id; 
+          const isDelete = event.target.classList.contains("delete-fert-stock-btn");
 
-      const fertilizerId = row.children[1].textContent.trim();
+          try {
+              const user = await getAuthenticatedUser();
+              if (!user || !user.user_type) {
+                  console.error("No authenticated user or user type found.");
+                  return;
+              }
 
-      try {
-        const fertilizerCollection = collection(db, "tb_fertilizer");
-        const fertilizerQuery = query(fertilizerCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-        const querySnapshot = await getDocs(fertilizerQuery);
+              const userType = user.user_type.trim();
 
-        let fertilizertype = "No category was recorded";
-        let fertilizerName = "No name was recorded";
-        let fertilizerUnit = "No unit was recorded";
+              let fertilizerType = "No category was recorded";
+              let fertilizerName = "No name was recorded";
+              let fertilizerUnit = "No unit was recorded"; 
+              let currentStock = "No stock recorded"; 
+              let stockUnit = ""; 
 
-        if (!querySnapshot.empty) {
-          const fertilizerData = querySnapshot.docs[0].data();
+              const fertilizersCollection = collection(db, "tb_fertilizer");
+              const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
+              const fertilizerSnapshot = await getDocs(fertilizerQuery);
 
-          fertilizertype = fertilizerData.fertilizer_type?.trim() || "No category was recorded";
-          fertilizerName = fertilizerData.fertilizer_name?.trim() || "No name was recorded";
-          fertilizerUnit = fertilizerData.unit?.trim() || "No unit was recorded";
+              if (!fertilizerSnapshot.empty) {
+                  const fertilizerData = fertilizerSnapshot.docs[0].data();
+                  fertilizerName = fertilizerData.fertilizer_name?.trim() || "No name was recorded";
+                  fertilizerType = fertilizerData.fertilizer_type?.trim() || "No category was recorded";
+                  fertilizerUnit = fertilizerData.unit?.trim() || "No unit was recorded";
+              }
 
-          // Unit Dropdown Validation
-          const unitDropdown = document.getElementById("fert_unit");
-          unitDropdown.disabled = false; // Temporarily enable
+              const stockCollection = collection(db, "tb_fertilizer_stock");
+              const stockQuery = query(stockCollection, where("fertilizer_id", "==", Number(fertilizerId)));
+              const stockSnapshot = await getDocs(stockQuery);
 
-          const unitOptions = Array.from(unitDropdown.options).map(opt => opt.value.toLowerCase());
+              if (!stockSnapshot.empty) {
+                  const stockData = stockSnapshot.docs[0].data();
 
-          if (!fertilizerUnit || fertilizerUnit === "No unit was recorded") {
-            // Ensure the dropdown has "Invalid Unit"
-            let invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
-            if (!invalidOption) {
-              invalidOption = new Option("Invalid Unit", "Invalid Unit");
-              unitDropdown.add(invalidOption);
-            }
-            unitDropdown.value = "Invalid Unit";
-          } else {
-            // Check if the unit exists in the dropdown
-            if (unitOptions.includes(fertilizerUnit.toLowerCase())) {
-              unitDropdown.value = fertilizerUnit;
-            } else {
-              // Remove existing "Invalid Unit" option if any
-              const invalidOption = unitDropdown.querySelector("option[value='Invalid Unit']");
-              if (invalidOption) invalidOption.remove();
-          
-              // Add "Invalid Unit" option and select it
-              const invalidOptionElement = new Option("Invalid Unit", "Invalid Unit");
-              unitDropdown.add(invalidOptionElement);
-              unitDropdown.value = "Invalid Unit";
-            }
-          }          
+                  if (stockData.stocks && Array.isArray(stockData.stocks)) {
+                      const matchingStock = stockData.stocks.find(stock => stock.owned_by === userType);
 
-          unitDropdown.disabled = true; // Disable it again
-        }
+                      if (matchingStock) {
+                          currentStock = matchingStock.current_stock || "No stock recorded";
+                          stockUnit = matchingStock.unit?.trim() || "";
+                      }
+                  }
+              }
 
-        // Assign values to the inputs
-        document.getElementById("fert_category").value = fertilizertype;
-        document.getElementById("fert_name").value = fertilizerName;
-        document.getElementById("fert_unit_hidden").value = fertilizerUnit;
+              document.getElementById("fert_name").value = fertilizerName;
+              document.getElementById("fert_type").value = fertilizerType;
+              document.getElementById("fert_unit_hidden").value = fertilizerUnit;
+              document.getElementById("current_fert_stock").value = currentStock + (stockUnit ? ` ${stockUnit}` : "");
 
-        fertilizerStockPanel.style.display = "block";
-        fertilizerOverlay.style.display = "block";
-        saveBtn.dataset.fertilizerId = fertilizerId;
-      } catch (error) {
-        console.error("Error fetching fertilizer details:", error);
+              fertilizerStockPanel.style.display = "block";
+              fertilizerOverlay.style.display = "block";
+
+              saveBtn.dataset.fertilizerId = fertilizerId;
+              deleteStockBtn.dataset.fertilizerId = fertilizerId;
+
+              // Toggle between add and delete mode
+              if (isDelete) {
+                  fertilizerStockTitle.style.display = "none";
+                  deleteStockTitle.style.display = "block";
+                  saveBtn.style.display = "none";
+                  deleteStockBtn.style.display = "block";
+              } else {
+                  fertilizerStockTitle.style.display = "block";
+                  deleteStockTitle.style.display = "none";
+                  saveBtn.style.display = "block";
+                  deleteStockBtn.style.display = "none";
+              }
+
+          } catch (error) {
+              console.error("Error fetching Fertilizer details:", error);
+          }
       }
-    }
   });
 
-  function closeStockPanel() {
-    fertilizerStockPanel.style.display = "none";
-    fertilizerOverlay.style.display = "none";
-    document.getElementById("fert_category").value = "";
-    document.getElementById("fert_name").value = "";
-    document.getElementById("fert_stock").value = "";
-    document.getElementById("fert_unit_hidden").value = "";
-    fetchFertilizers();
-  }
-
+  // Close panel events
   cancelBtn.addEventListener("click", closeStockPanel);
   fertilizerOverlay.addEventListener("click", closeStockPanel);
 
-// <--------------------------------> FUNCTION TO SAVE <-------------------------------->
-saveBtn.addEventListener("click", async function () {
-  const fertilizerId = saveBtn.dataset.fertilizerId;
-  const fertilizerType = document.getElementById("fert_category").value;  // Now used as an identifier
-  const fertilizerName = document.getElementById("fert_name").value;      // Now used as an identifier
-  const fertilizerStock = document.getElementById("fert_stock").value;
-  let unit = document.getElementById("fert_unit").value;
+  // Flag to prevent multiple clicks
+  let isSaving = false;
+  let isDeleting = false;
+
+  // Button event listeners
+  saveBtn.addEventListener("click", async () => {
+      if (isSaving) return;  // Prevent multiple clicks
+      isSaving = true;
+      saveBtn.disabled = true; // Disable button
+
+      try {
+          await saveStock(); // Call save function
+      } catch (error) {
+          console.error("Error saving stock:", error);
+      } finally {
+          isSaving = false;
+          saveBtn.disabled = false; // Re-enable button
+      }
+  });
+
+  deleteStockBtn.addEventListener("click", async () => {
+      if (isDeleting) return;  // Prevent multiple clicks
+      isDeleting = true;
+      deleteStockBtn.disabled = true; // Disable button
+
+      try {
+          await deleteStock(); // Call delete function
+      } catch (error) {
+          console.error("Error deleting stock:", error);
+      } finally {
+          isDeleting = false;
+          deleteStockBtn.disabled = false; // Re-enable button
+      }
+  });
+}
+
+function closeStockPanel() {
+  fertilizerStockPanel.style.display = "none";
+  fertilizerOverlay.style.display = "none";
+  document.getElementById("fert_type").value = "";
+  document.getElementById("fert_name").value = "";
+  document.getElementById("fert_stock").value = "";
+  document.getElementById("fert_unit_hidden").value = "";
+  fetchFertilizers();
+}
+
+async function saveStock() {
+  const fertilizerId = Number(saveBtn.dataset.fertilizerId); // Ensure it's a number
+  const fertilizerType = document.getElementById("fert_type").value.trim();
+  const fertilizerName = document.getElementById("fert_name").value.trim();
+  const fertilizerStock = Number(document.getElementById("fert_stock").value);
+  let unit = document.getElementById("fert_unit").value.trim();
 
   if (!unit || unit === "Invalid Unit") {
-    unit = "No unit was recorded";
+      unit = "No unit was recorded";
   }
 
   if (!fertilizerStock || isNaN(fertilizerStock) || fertilizerStock <= 0) {
-    showFertilizerStockMessage("Please enter a valid fertilizer stock quantity.", false);
-    return;
+      showFertilizerStockMessage("Please enter a valid Fertilizer stock quantity.", false);
+      return;
   }
 
   try {
-    // Get the authenticated user
-    const user = await getAuthenticatedUser().catch((error) => {
-      showFertilizerStockMessage(error, false);
-      throw new Error(error);
-    });
+      // ✅ Get authenticated user
+      const user = await getAuthenticatedUser();
+      if (!user) {
+          showFertilizerStockMessage("User not authenticated.", false);
+          return;
+      }
 
-    // Fetch user_type from tb_users based on the authenticated email
-    const usersCollection = collection(db, "tb_users");
-    const userQuery = query(usersCollection, where("email", "==", user.email));
-    const userSnapshot = await getDocs(userQuery);
+      // ✅ Fetch user_type from tb_users
+      const usersCollection = collection(db, "tb_users");
+      const userQuery = query(usersCollection, where("email", "==", user.email));
+      const userSnapshot = await getDocs(userQuery);
 
-    if (userSnapshot.empty) {
-      showFertilizerStockMessage("User not found in the database.", false);
-      return;
-    }
+      if (userSnapshot.empty) {
+          showFertilizerStockMessage("User not found in the database.", false);
+          return;
+      }
 
-    // Get user_type from the fetched user document
-    const userType = userSnapshot.docs[0].data().user_type;
+      const userType = userSnapshot.docs[0].data().user_type;
 
-    // Fetch fertilizer data from tb_fertilizer
-    const fertilizersCollection = collection(db, "tb_fertilizer");
-    const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-    const querySnapshot = await getDocs(fertilizerQuery);
-
-    if (!querySnapshot.empty) {
-      const docRef = querySnapshot.docs[0].ref;
-      const existingStock = querySnapshot.docs[0].data().current_stock || 0;
-      const newStock = existingStock + Number(fertilizerStock);
-
-      // Update stock in tb_fertilizer
-      await updateDoc(docRef, {
-        stock_date: Timestamp.now(),
-        current_stock: newStock,
-        unit: unit
-      });
-
-      // Check if record already exists in tb_fertilizer_stock for the same fertilizer_id, fertilizer_type, and fertilizer_name
+      // ✅ Fetch stock from tb_Fertilizer_stock by Fertilizer_type_id
       const inventoryCollection = collection(db, "tb_fertilizer_stock");
       const inventoryQuery = query(
-        inventoryCollection, 
-        where("fertilizer_id", "==", Number(fertilizerId)),
-        where("fertilizer_type", "==", fertilizerType),
-        where("fertilizer_name", "==", fertilizerName)
+          inventoryCollection, 
+          where("fertilizer_id", "==", fertilizerId)
       );
       const inventorySnapshot = await getDocs(inventoryQuery);
 
       if (!inventorySnapshot.empty) {
-        // Record exists, update the stocks array
-        const inventoryDocRef = inventorySnapshot.docs[0].ref;
-        const inventoryData = inventorySnapshot.docs[0].data();
-        const stocks = inventoryData.stocks || [];
+          // ✅ Existing document found, update stock
+          const inventoryDocRef = inventorySnapshot.docs[0].ref;
+          const inventoryData = inventorySnapshot.docs[0].data();
+          const stocks = inventoryData.stocks || [];
 
-        // Check if owned_by already exists in the stocks array
-        const userStockIndex = stocks.findIndex(stock => stock.owned_by === userType);
+          // ✅ Check if the userType already exists in the stocks array
+          const userStockIndex = stocks.findIndex(stock => stock.owned_by === userType);
 
-        if (userStockIndex !== -1) {
-          // Update existing stock for this user_type
-          stocks[userStockIndex].current_stock += Number(fertilizerStock);
-          stocks[userStockIndex].stock_date = Timestamp.now();
-          stocks[userStockIndex].unit = unit;
-        } else {
-          // Add a new stock entry for this user_type
-          stocks.push({
-            owned_by: userType,
-            current_stock: Number(fertilizerStock),
-            stock_date: Timestamp.now(),
-            unit: unit
+          if (userStockIndex !== -1) {
+              // Update existing stock for this user_type
+              stocks[userStockIndex].current_stock += fertilizerStock;
+              stocks[userStockIndex].stock_date = Timestamp.now();
+              stocks[userStockIndex].unit = unit;
+          } else {
+              // Add a new stock entry for this user_type
+              stocks.push({
+                  owned_by: userType,
+                  current_stock: fertilizerStock,
+                  stock_date: Timestamp.now(),
+                  unit: unit
+              });
+          }
+
+          // ✅ Update the document with the modified stocks array
+          await updateDoc(inventoryDocRef, { 
+              stocks: stocks,
+              fertilizer_type: fertilizerType // Ensure fertilizer_type is saved
           });
-        }
 
-        // Update the document with the modified stocks array
-        await updateDoc(inventoryDocRef, { stocks: stocks });
       } else {
-        // Record does not exist, create a new document with all identifiers and stocks array
-        await addDoc(inventoryCollection, {
-          fertilizer_id: Number(fertilizerId),
-          fertilizer_type: fertilizerType, // Added to uniquely identify the record
-          fertilizer_name: fertilizerName, // Added to uniquely identify the record
-          stocks: [
-            {
-              owned_by: userType,
-              current_stock: Number(fertilizerStock),
-              stock_date: Timestamp.now(),
-              unit: unit
-            }
-          ]
-        });
+          // ✅ Create a new document if it doesn't exist
+          await addDoc(inventoryCollection, {
+              fertilizer_id: fertilizerId,
+              fertilizer_name: fertilizerName,
+              fertilizer_type: fertilizerType,
+              stocks: [
+                  {
+                      owned_by: userType,
+                      current_stock: fertilizerStock,
+                      stock_date: Timestamp.now(),
+                      unit: unit
+                  }
+              ]
+          });
       }
 
-      await saveActivityLog("update", `Added Fertilizer Stock for ${fertilizerType} - ${fertilizerName} with quantity of ${fertilizerStock}`);
+      // ✅ Save activity log
+      await saveActivityLog("update", `Added ${fertilizerStock} stock for ${fertilizerName} by ${userType}`);
       showFertilizerStockMessage("Fertilizer Stock has been added successfully!", true);
       closeStockPanel();
-    } else {
-      showFertilizerStockMessage("ERROR: Invalid Fertilizer Name, unable to save data", false);
-    }
-  } catch (error) {
-    console.error("Error updating fertilizer stock:", error);
-    showFertilizerStockMessage("An error occurred while updating fertilizer stock.", false);
-  }
-});
 
-});
+  } catch (error) {
+      console.error("Error saving Fertilizer stock:", error);
+      showFertilizerStockMessage("An error occurred while saving Fertilizer stock.", false);
+  }
+}
+
+async function deleteStock() {
+  const fertilizerId = Number(deleteStockBtn.dataset.fertilizerId); // Ensure it's a number
+  const fertilizerType = document.getElementById("fert_type").value.trim();
+  const fertilizerName = document.getElementById("fert_name").value.trim();
+  const fertilizerStock = Number(document.getElementById("fert_stock").value);
+  let unit = document.getElementById("fert_unit").value.trim();
+
+  if (!unit || unit === "Invalid Unit") {
+      unit = "No unit was recorded";
+  }
+
+  if (!fertilizerStock || isNaN(fertilizerStock) || fertilizerStock <= 0) {
+      showFertilizerStockMessage("Please enter a valid Fertilizer stock quantity.", false);
+      return;
+  }
+
+  try {
+      // Get authenticated user
+      const user = await getAuthenticatedUser();
+      if (!user) {
+          showFertilizerStockMessage("User not authenticated.", false);
+          return;
+      }
+
+      // Fetch user_type from tb_users
+      const usersCollection = collection(db, "tb_users");
+      const userQuery = query(usersCollection, where("email", "==", user.email));
+      const userSnapshot = await getDocs(userQuery);
+
+      if (userSnapshot.empty) {
+          showFertilizerStockMessage("User not found in the database.", false);
+          return;
+      }
+
+      const userType = userSnapshot.docs[0].data().user_type;
+
+      // Fetch stock from tb_fertilizer_stock by fertilizer_id
+      const inventoryCollection = collection(db, "tb_fertilizer_stock");
+      const inventoryQuery = query(
+          inventoryCollection, 
+          where("fertilizer_id", "==", fertilizerId)
+      );
+      const inventorySnapshot = await getDocs(inventoryQuery);
+
+      if (inventorySnapshot.empty) {
+          showFertilizerStockMessage("No stock record found to delete.", false);
+          return;
+      }
+
+      // Extract the stocks array from the matching document
+      const inventoryDocRef = inventorySnapshot.docs[0].ref;
+      const inventoryData = inventorySnapshot.docs[0].data();
+      let stocks = inventoryData.stocks || [];
+
+      // Find the matching map with the authenticated user's user_type
+      const userStockIndex = stocks.findIndex(stock => stock.owned_by === userType);
+
+      if (userStockIndex === -1) {
+          showFertilizerStockMessage("No stock entry found for this user type.", false);
+          return;
+      }
+
+      // Retrieve the current_stock for this user
+      const existingStock = stocks[userStockIndex].current_stock || 0;
+      const newStock = existingStock - fertilizerStock;
+
+      if (newStock < 0) {
+          showFertilizerStockMessage("Not enough stock available", false);
+          return;
+      }
+
+      if (newStock === 0) {
+          // If the current_stock reaches 0, remove the entire map
+          stocks.splice(userStockIndex, 1);
+      } else {
+          // Otherwise, update the stock values
+          stocks[userStockIndex].current_stock = newStock;
+          stocks[userStockIndex].stock_date = Timestamp.now();
+          stocks[userStockIndex].unit = unit;
+      }
+
+      // Save the updated document
+      await updateDoc(inventoryDocRef, {
+          stocks: stocks,
+          fertilizer_type: fertilizerType // Ensure fertilizer_type is saved
+      });
+
+      await saveActivityLog("delete", `Deleted ${fertilizerStock} of ${fertilizerType} for ${userType}`);
+      showFertilizerStockMessage("Fertilizer Stock has been deleted successfully!", true);
+      closeStockPanel();
+
+  } catch (error) {
+      console.error("Error deleting Fertilizer stock:", error);
+      showFertilizerStockMessage("An error occurred while deleting Fertilizer stock.", false);
+  }
+}
