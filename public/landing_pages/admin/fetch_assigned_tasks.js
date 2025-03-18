@@ -33,7 +33,7 @@ function showDeleteConfirmationModal(taskId, taskName, cropTypeName) {
   }
 }
 
-// Function to delete a task
+// Function to delete a task and adjust pagination if necessary
 async function deleteTask(taskId) {
   try {
     const tasksCollection = collection(db, "tb_task_list");
@@ -43,16 +43,36 @@ async function deleteTask(taskId) {
     );
     const querySnapshot = await getDocs(taskQuery);
 
-    if (!querySnapshot.empty) {
-      querySnapshot.forEach(async (taskDoc) => {
-        await deleteDoc(doc(db, "tb_task_list", taskDoc.id));
-      });
-
-      alert("Task deleted successfully!");
-      fetchAssignedTasks();
+    if (querySnapshot.empty) {
+      console.warn(`No task found with task_id: ${taskId}`);
+      alert("Task not found!");
+      return;
     }
+
+    // Delete all matching documents
+    const deletePromises = querySnapshot.docs.map((taskDoc) =>
+      deleteDoc(doc(db, "tb_task_list", taskDoc.id))
+    );
+    await Promise.all(deletePromises);
+
+    alert("Task deleted successfully!");
+
+    // Refresh tasks and adjust pagination
+    await fetchAssignedTasks();
+
+    // Check if the current page is empty and adjust
+    const totalPages = Math.ceil(assignedTasks.length / assignedRowsPerPage);
+    if (assignedTasks.length === 0) {
+      assignedCurrentPage = 1; // Reset to page 1 if no tasks remain
+    } else if (assignedCurrentPage > totalPages) {
+      assignedCurrentPage = totalPages; // Move to the last available page
+    }
+
+    displayAssignedTasks(assignedCurrentPage);
+    updateAssignedPagination();
   } catch (error) {
     console.error("Error deleting task:", error);
+    alert("Failed to delete task. Please try again.");
   }
 }
 
@@ -84,14 +104,14 @@ window.openEditSubModal = async function openEditSubModal(taskId, taskName) {
       taskData = doc.data();
     });
 
-    initialSubtasks = taskData.subtasks || []; // Store initial subtasks
+    initialSubtasks = taskData.subtasks || [];
     initialSubtasks.forEach((subtask, index) =>
       addSubtaskToList(subtask, index)
     );
 
     saveBtn.setAttribute("data-doc-id", docId);
     modal.style.display = "block";
-    toggleSaveButton(); // Ensure button state is set
+    toggleSaveButton();
   } catch (error) {
     console.error("Error fetching task details:", error);
   }
@@ -110,7 +130,7 @@ function addSubtaskToList(subtaskName, index) {
   `;
 
   subtaskList.appendChild(subtaskItem);
-  toggleSaveButton(); // Check if changes occurred
+  toggleSaveButton();
 }
 
 // Function to remove a subtask
@@ -170,10 +190,10 @@ function toggleAddSubtaskButton() {
 
   if (newSubtaskInput.value.trim() === "") {
     addSubtaskBtn.disabled = true;
-    addSubtaskBtn.classList.add("disabled-btn"); // Apply the disabled style
+    addSubtaskBtn.classList.add("disabled-btn");
   } else {
     addSubtaskBtn.disabled = false;
-    addSubtaskBtn.classList.remove("disabled-btn"); // Remove the disabled style
+    addSubtaskBtn.classList.remove("disabled-btn");
   }
 }
 
@@ -185,23 +205,20 @@ document
 // Ensure the button is disabled when the page loads
 document.addEventListener("DOMContentLoaded", toggleAddSubtaskButton);
 
-let initialSubtasks = []; // Store the initial state of subtasks
+let initialSubtasks = [];
 
 // Function to toggle "Save Changes" button state
 function toggleSaveButton() {
   const saveBtn = document.getElementById("save-subtasks-btn-subtasks");
   const subtaskList = document.getElementById("subtask-list-subtasks");
 
-  // Get the current list of subtasks
   const currentSubtasks = Array.from(subtaskList.children).map((item) =>
     item.querySelector(".subtask-text").textContent.trim()
   );
 
-  // Check if the current subtasks are the same as the initial list
   const isSameAsInitial =
     JSON.stringify(currentSubtasks) === JSON.stringify(initialSubtasks);
 
-  // Enable the save button only if there are changes
   saveBtn.disabled = isSameAsInitial;
 }
 
@@ -213,14 +230,13 @@ document
       "new-subtask-input-subtasks"
     );
 
-    // Prevent saving if the input contains text
     if (newSubtaskInput.value.trim() !== "") {
       if (!window.alertDisplayed) {
         alert(
           "You might want to add the subtask or clear the input field before saving."
         );
-        window.alertDisplayed = true; // Prevent duplicate alerts
-        setTimeout(() => (window.alertDisplayed = false), 2000); // Reset after 2s
+        window.alertDisplayed = true;
+        setTimeout(() => (window.alertDisplayed = false), 2000);
       }
       return;
     }
@@ -234,7 +250,6 @@ document
       return;
     }
 
-    // Disable button immediately to prevent multiple clicks
     saveBtn.disabled = true;
 
     try {
@@ -243,35 +258,28 @@ document
         item.querySelector(".subtask-text").textContent.trim()
       );
 
-      // If no changes were made, prevent saving
       if (JSON.stringify(subtasks) === JSON.stringify(initialSubtasks)) {
         if (!window.alertDisplayed) {
           alert("No changes were made to the subtasks.");
           window.alertDisplayed = true;
           setTimeout(() => (window.alertDisplayed = false), 2000);
         }
-        saveBtn.disabled = false; // Re-enable since no changes were made
+        saveBtn.disabled = false;
         return;
       }
 
-      // Reference to Firestore document
       const taskRef = doc(db, "tb_task_list", docId);
-
-      // Update Firestore document with new subtasks
       await updateDoc(taskRef, { subtasks });
 
-      // Alert user once
       if (!window.alertDisplayed) {
         alert("Subtasks saved successfully!");
         window.alertDisplayed = true;
         setTimeout(() => (window.alertDisplayed = false), 2000);
       }
 
-      // Update initial subtasks after saving
       initialSubtasks = subtasks;
       toggleSaveButton();
 
-      // Close the modal after saving
       document.getElementById("edit-subtasks-modal").style.display = "none";
     } catch (error) {
       console.error("Error saving subtasks:", error);
@@ -280,7 +288,7 @@ document
         window.alertDisplayed = true;
         setTimeout(() => (window.alertDisplayed = false), 2000);
       }
-      saveBtn.disabled = false; // Re-enable in case of failure
+      saveBtn.disabled = false;
     }
   });
 
@@ -300,7 +308,7 @@ async function populateCropDropdown() {
       return;
     }
 
-    cropDropdown.innerHTML = `<option value="">All Crops</option>`; // Default option
+    cropDropdown.innerHTML = `<option value="">All Crops</option>`;
 
     const cropsSnapshot = await getDocs(collection(db, "tb_crops"));
     cropsSnapshot.forEach((cropDoc) => {
@@ -313,7 +321,6 @@ async function populateCropDropdown() {
       cropDropdown.appendChild(option);
     });
 
-    // Add event listener to filter tasks when crop is selected
     cropDropdown.addEventListener("change", fetchAssignedTasks);
   } catch (error) {
     console.error("Error fetching crop names:", error);
@@ -335,7 +342,7 @@ export async function fetchAssignedTasks() {
     }
 
     taskListTable.innerHTML = "";
-    const selectedCrop = document.getElementById("crop-filter")?.value || ""; // Get selected crop
+    const selectedCrop = document.getElementById("crop-filter")?.value || "";
 
     let taskQuery = collection(db, "tb_task_list");
     if (selectedCrop) {
@@ -343,7 +350,7 @@ export async function fetchAssignedTasks() {
     }
 
     const querySnapshot = await getDocs(taskQuery);
-    assignedTasks = []; // Reset the tasks array
+    assignedTasks = [];
 
     querySnapshot.forEach((taskDoc) => {
       const taskData = taskDoc.data();
@@ -371,30 +378,16 @@ export async function fetchAssignedTasks() {
       });
     });
 
-    // Display the first page of assigned tasks
+    // Adjust current page if it exceeds total pages after fetch
+    const totalPages = Math.ceil(assignedTasks.length / assignedRowsPerPage);
+    if (assignedCurrentPage > totalPages && totalPages > 0) {
+      assignedCurrentPage = totalPages;
+    } else if (assignedTasks.length === 0) {
+      assignedCurrentPage = 1;
+    }
+
     displayAssignedTasks(assignedCurrentPage);
-
-    // Update pagination controls
     updateAssignedPagination();
-
-    // Add event listeners for edit and delete buttons
-    document.querySelectorAll(".edit-btn").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        const taskId = event.target.getAttribute("data-id");
-        const taskName = event.target.getAttribute("data-task");
-        openEditSubModal(taskId, taskName);
-      });
-    });
-
-    document.querySelectorAll(".delete-btn").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        const taskId = event.target.getAttribute("data-id");
-        const taskName = event.target.getAttribute("data-task");
-        const cropName = event.target.getAttribute("data-crop");
-        const cropTypeName = event.target.getAttribute("data-crop-type");
-        showDeleteConfirmationModal(taskId, taskName, cropName, cropTypeName);
-      });
-    });
   } catch (error) {
     console.error("Error fetching assigned tasks:", error);
   }
@@ -404,6 +397,13 @@ export async function fetchAssignedTasks() {
 function displayAssignedTasks(page) {
   const taskListTable = document.getElementById("assigned-tasks-table-body");
   taskListTable.innerHTML = "";
+
+  if (assignedTasks.length === 0) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="6" style="text-align: center;">No tasks available</td>`;
+    taskListTable.appendChild(row);
+    return;
+  }
 
   const startIndex = (page - 1) * assignedRowsPerPage;
   const endIndex = startIndex + assignedRowsPerPage;
@@ -439,8 +439,31 @@ function updateAssignedPagination() {
   nextBtn.disabled = assignedCurrentPage === totalPages || totalPages === 0;
 }
 
-// Event listeners for Assigned Tasks pagination buttons
-document.addEventListener("DOMContentLoaded", () => {
+// Event listeners for Assigned Tasks pagination buttons and initialization
+document.addEventListener("DOMContentLoaded", async () => {
+  await populateCropDropdown();
+  fetchAssignedTasks();
+
+  // Event delegation for delete buttons
+  document.getElementById("assigned-tasks-table-body").addEventListener("click", (event) => {
+    if (event.target.classList.contains("delete-btn")) {
+      const taskId = event.target.getAttribute("data-id");
+      const taskName = event.target.getAttribute("data-task");
+      const cropTypeName = event.target.getAttribute("data-crop-type");
+      showDeleteConfirmationModal(taskId, taskName, cropTypeName);
+    }
+  });
+
+  // Event delegation for edit buttons
+  document.getElementById("assigned-tasks-table-body").addEventListener("click", (event) => {
+    if (event.target.classList.contains("edit-btn")) {
+      const taskId = event.target.getAttribute("data-id");
+      const taskName = event.target.getAttribute("data-task");
+      openEditSubModal(taskId, taskName);
+    }
+  });
+
+  // Pagination controls
   document.getElementById("assigned-next-page-btn").addEventListener("click", () => {
     if (assignedCurrentPage < Math.ceil(assignedTasks.length / assignedRowsPerPage)) {
       assignedCurrentPage++;
@@ -456,10 +479,4 @@ document.addEventListener("DOMContentLoaded", () => {
       updateAssignedPagination();
     }
   });
-});
-
-// Initialize page with crop dropdown and task list
-document.addEventListener("DOMContentLoaded", async () => {
-  await populateCropDropdown();
-  fetchAssignedTasks();
 });
