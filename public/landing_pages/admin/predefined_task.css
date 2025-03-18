@@ -3,7 +3,7 @@ body {
   margin: 0;
   height: 100vh;
   background-color: #F5F6FA;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins';
   display: flex;
   flex-direction: column;
 }
@@ -62,14 +62,15 @@ body {
 .add-user-btn {
   background-color: #41A186;
   color: white;
-  padding: 9px 10px;
-  font-size: 16px;
+  padding: 12px 20px;
+  font-size: 18px;
   font-weight: bold;
   text-align: center;
   border-radius: 20px;
   cursor: pointer;
-  border: none;
   transition: background-color 0.3s ease;
+  border: none;
+  text-decoration: none;
 }
 .dell-user-btn {
   background-color: #e0e0e0;
@@ -141,11 +142,18 @@ tbody tr:hover {
 
 .search-container {
   display: flex;
-  gap: 10px;
+  gap: 20px;
   margin-bottom: 20px;
 }
 
 #crop-filter {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  outline: none;
+}
+#crop-type-filter {
   padding: 8px;
   font-size: 16px;
   border: 1px solid lightgray;

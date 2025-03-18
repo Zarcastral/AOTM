@@ -321,9 +321,55 @@ async function populateCropDropdown() {
       cropDropdown.appendChild(option);
     });
 
-    cropDropdown.addEventListener("change", fetchAssignedTasks);
+    // Add event listener to update crop types and fetch tasks when crop changes
+    cropDropdown.addEventListener("change", async () => {
+      const selectedCrop = cropDropdown.value;
+      await populateCropTypeDropdown(selectedCrop); // Update crop types based on selected crop
+      fetchAssignedTasks(); // Fetch tasks with the new filters
+    });
   } catch (error) {
     console.error("Error fetching crop names:", error);
+  }
+}
+
+// Function to populate the crop type dropdown based on the selected crop
+async function populateCropTypeDropdown(selectedCrop = "") {
+  try {
+    const cropTypeDropdown = document.getElementById("crop-type-filter");
+    if (!cropTypeDropdown) {
+      console.error("Crop type dropdown not found.");
+      return;
+    }
+
+    cropTypeDropdown.innerHTML = `<option value="">All Crop Types</option>`;
+
+    const tasksSnapshot = await getDocs(collection(db, "tb_task_list"));
+    const cropTypes = new Set(); // Use a Set to avoid duplicates
+
+    tasksSnapshot.forEach((taskDoc) => {
+      const taskData = taskDoc.data();
+      const cropName = taskData.crop_name || "N/A";
+      const cropTypeName = taskData.crop_type_name || "Unknown Crop Type";
+
+      // Only add crop types that match the selected crop (if any)
+      if (!selectedCrop || cropName === selectedCrop) {
+        cropTypes.add(cropTypeName);
+      }
+    });
+
+    // Convert Set to Array and sort alphabetically
+    const sortedCropTypes = Array.from(cropTypes).sort();
+    sortedCropTypes.forEach((cropType) => {
+      const option = document.createElement("option");
+      option.value = cropType;
+      option.textContent = cropType;
+      cropTypeDropdown.appendChild(option);
+    });
+
+    // Add event listener for filtering
+    cropTypeDropdown.addEventListener("change", fetchAssignedTasks);
+  } catch (error) {
+    console.error("Error fetching crop types:", error);
   }
 }
 
@@ -343,10 +389,15 @@ export async function fetchAssignedTasks() {
 
     taskListTable.innerHTML = "";
     const selectedCrop = document.getElementById("crop-filter")?.value || "";
+    const selectedCropType = document.getElementById("crop-type-filter")?.value || "";
 
     let taskQuery = collection(db, "tb_task_list");
-    if (selectedCrop) {
-      taskQuery = query(taskQuery, where("crop_name", "==", selectedCrop));
+    if (selectedCrop || selectedCropType) {
+      taskQuery = query(
+        taskQuery,
+        ...(selectedCrop ? [where("crop_name", "==", selectedCrop)] : []),
+        ...(selectedCropType ? [where("crop_type_name", "==", selectedCropType)] : [])
+      );
     }
 
     const querySnapshot = await getDocs(taskQuery);
@@ -441,7 +492,8 @@ function updateAssignedPagination() {
 
 // Event listeners for Assigned Tasks pagination buttons and initialization
 document.addEventListener("DOMContentLoaded", async () => {
-  await populateCropDropdown();
+  await populateCropDropdown(); // Populate crop names first
+  await populateCropTypeDropdown(); // Populate crop types (initially all)
   fetchAssignedTasks();
 
   // Event delegation for delete buttons
