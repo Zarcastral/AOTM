@@ -228,8 +228,6 @@ function displayFertilizers(fertilizersList) {
   });
 });
   updatePagination();
-  toggleBulkDeleteButton();
-
 }
 
 // Update pagination display

@@ -228,8 +228,6 @@ function displayEquipments(equipmentsList) {
   });
 });
   updatePagination();
-  toggleBulkDeleteButton();
-
 }
 
 // Update pagination display

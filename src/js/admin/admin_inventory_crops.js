@@ -223,7 +223,6 @@ function displayCrops(cropsList) {
     });
   });
   updatePagination();
-  toggleBulkDeleteButton();
 }
 // Initialize fetches when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
