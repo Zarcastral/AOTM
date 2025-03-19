@@ -419,32 +419,37 @@ document
     quantityInput.value = "";
   });
 
-document
-  .getElementById("save-equipment-btn")
-  .addEventListener("click", function () {
-    const equipmentList = document.getElementById("equipment-list");
-    const equipmentTextarea = document.getElementById("equipment-textarea");
+document.addEventListener("DOMContentLoaded", function () {
+  const saveButton = document.getElementById("save-equipment-btn"); // ✅ Corrected ID
 
-    // Collect all listed equipment
-    const equipmentItems = [];
-    equipmentList.querySelectorAll("li").forEach((li) => {
-      equipmentItems.push(li.textContent);
+  if (saveButton) {
+    saveButton.addEventListener("click", function () {
+      const equipmentTextarea = document.getElementById("equipment-textarea");
+      const equipmentList = document.getElementById("equipment-list").children;
+
+      let equipmentText = "";
+
+      // Loop through the list and construct the text format
+      for (let item of equipmentList) {
+        equipmentText += item.textContent + "\n"; // Append each bullet item
+      }
+
+      // Append new equipment to the existing textarea content
+      equipmentTextarea.value +=
+        (equipmentTextarea.value ? "\n" : "") + equipmentText;
+
+      // Clear selected inputs after saving
+      document.getElementById("equipment-type-select").value = "";
+      document.getElementById("equipment-name-select").value = "";
+      document.getElementById("equipment-quantity").value = "";
+
+      // Clear the displayed list after saving
+      document.getElementById("equipment-list").innerHTML = "";
     });
-
-    if (equipmentItems.length === 0) {
-      alert("No equipment to save.");
-      return;
-    }
-
-    // Display in textarea
-    equipmentTextarea.value = equipmentItems.join("\n");
-
-    // Clear inputs and list
-    document.getElementById("equipment-type-select").value = "";
-    document.getElementById("equipment-name-select").value = "";
-    document.getElementById("equipment-quantity").value = "";
-    equipmentList.innerHTML = ""; // Clear list
-  });
+  } else {
+    console.error("❌ 'save-equipment-btn' button not found in the DOM.");
+  }
+});
 
 window.loadFertilizers = async function () {
   const selectedType = document.getElementById("fertilizer-category").value;
