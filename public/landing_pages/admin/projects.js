@@ -393,63 +393,97 @@ async function loadEquipmentNames() {
 document
   .getElementById("add-equipment-btn")
   .addEventListener("click", function () {
-    const equipmentNameSelect = document.getElementById(
-      "equipment-name-select"
-    );
+    const equipmentNameSelect = document.getElementById("equipment-name-select");
+    const equipmentTypeSelect = document.getElementById("equipment-type-select");
     const quantityInput = document.getElementById("equipment-quantity");
     const equipmentList = document.getElementById("equipment-list");
 
     const selectedEquipment = equipmentNameSelect.value;
+    const selectedType = equipmentTypeSelect.value;
     const quantity = quantityInput.value;
 
-    if (!selectedEquipment || quantity <= 0) {
-      alert("Please select equipment and enter a valid quantity.");
+    if (!selectedEquipment || !selectedType || quantity <= 0) {
+      alert("Please select equipment, type, and enter a valid quantity.");
       return;
     }
 
-    // Create list item
-    const listItem = document.createElement("li");
-    listItem.textContent = `${selectedEquipment}, ${quantity}`;
+    // Create list item container
+    const listItem = document.createElement("div");
+    listItem.classList.add("equipment-entry");
+
+    // Create separate elements for each field
+    const nameElement = document.createElement("span");
+    nameElement.textContent = selectedEquipment;
+
+    const typeElement = document.createElement("span");
+    typeElement.textContent = selectedType;
+
+    const quantityElement = document.createElement("span");
+    quantityElement.textContent = quantity;
+
+    // Append elements to list item
+    listItem.appendChild(nameElement);
+    listItem.appendChild(document.createTextNode(" | "));
+    listItem.appendChild(typeElement);
+    listItem.appendChild(document.createTextNode(" | "));
+    listItem.appendChild(quantityElement);
 
     // Append to the list
     equipmentList.appendChild(listItem);
 
     // Clear input fields for next entry
     equipmentNameSelect.value = "";
+    equipmentTypeSelect.value = "";
     quantityInput.value = "";
   });
 
-document.addEventListener("DOMContentLoaded", function () {
-  const saveButton = document.getElementById("save-equipment-btn"); // ✅ Corrected ID
 
-  if (saveButton) {
-    saveButton.addEventListener("click", function () {
-      const equipmentTextarea = document.getElementById("equipment-textarea");
-      const equipmentList = document.getElementById("equipment-list").children;
 
-      let equipmentText = "";
 
-      // Loop through the list and construct the text format
-      for (let item of equipmentList) {
-        equipmentText += item.textContent + "\n"; // Append each bullet item
-      }
+  document.addEventListener("DOMContentLoaded", function () {
+    const saveButton = document.getElementById("save-equipment-btn");
+    const equipmentTableBody = document.querySelector("#equipment-table tbody");
 
-      // Append new equipment to the existing textarea content
-      equipmentTextarea.value +=
-        (equipmentTextarea.value ? "\n" : "") + equipmentText;
+    if (saveButton) {
+        saveButton.addEventListener("click", function () {
+            const equipmentList = document.getElementById("equipment-list").children;
 
-      // Clear selected inputs after saving
-      document.getElementById("equipment-type-select").value = "";
-      document.getElementById("equipment-name-select").value = "";
-      document.getElementById("equipment-quantity").value = "";
+            // Loop through the list and add each equipment as a table row
+            for (let item of equipmentList) {
+                const [equipmentName, quantity] = item.textContent.split(", ");
 
-      // Clear the displayed list after saving
-      document.getElementById("equipment-list").innerHTML = "";
-    });
-  } else {
-    console.error("❌ 'save-equipment-btn' button not found in the DOM.");
-  }
+                // Create a new row
+                const newRow = document.createElement("tr");
+
+                // Create equipment cell
+                const equipmentCell = document.createElement("td");
+                equipmentCell.textContent = equipmentName;
+
+                // Create quantity cell
+                const quantityCell = document.createElement("td");
+                quantityCell.textContent = quantity;
+
+                // Append cells to the row
+                newRow.appendChild(equipmentCell);
+                newRow.appendChild(quantityCell);
+
+                // Append row to the table body
+                equipmentTableBody.appendChild(newRow);
+            }
+
+            // Clear selected inputs after saving
+            document.getElementById("equipment-type-select").value = "";
+            document.getElementById("equipment-name-select").value = "";
+            document.getElementById("equipment-quantity").value = "";
+
+            // Clear the displayed list after saving
+            document.getElementById("equipment-list").innerHTML = "";
+        });
+    } else {
+        console.error("❌ 'save-equipment-btn' button not found in the DOM.");
+    }
 });
+
 
 window.loadFertilizers = async function () {
   const selectedType = document.getElementById("fertilizer-category").value;
@@ -605,28 +639,51 @@ window.saveProject = async function () {
       .getElementById("fertilizer-unit")
       .value.trim();
 
-    const equipment = document.getElementById("equipment").value;
+    const equipmentType = document.getElementById("equipment-type-select").value;
+
+    // ✅ Extract equipment data from the table
+    const equipmentTable = document
+      .getElementById("equipment-table")
+      .getElementsByTagName("tbody")[0];
+    const equipmentRows = equipmentTable.getElementsByTagName("tr");
+
+    let equipmentData = [];
+    for (let row of equipmentRows) {
+      const equipmentName = row.cells[0].textContent.trim();
+      const equipmentQuantity = parseInt(row.cells[1].textContent.trim());
+
+      if (equipmentName && !isNaN(equipmentQuantity)) {
+        equipmentData.push({
+          name: equipmentName,
+          quantity: equipmentQuantity,
+        });
+      }
+    }
+
     const startDate = document.getElementById("start-date").value;
     const endDate = document.getElementById("end-date").value;
 
-    // ✅ Check if required fields are empty
-    if (
-      !projectName ||
-      !farmPresidentName ||
-      !cropName ||
-      !barangayName ||
-      !farmlandName ||
-      !cropTypeName ||
-      isNaN(quantityCropType) ||
-      !cropUnit ||
-      !fertilizerType ||
-      isNaN(quantityFertilizerType) ||
-      !fertilizerUnit ||
-      !equipment ||
-      !startDate ||
-      !endDate
-    ) {
-      alert("⚠️ Please fill out all required fields before saving.");
+    // ✅ Check if required fields are empty and log them
+    let missingFields = [];
+    if (!projectName) missingFields.push("Project Name");
+    if (!farmPresidentName) missingFields.push("Farm President");
+    if (!cropName) missingFields.push("Crop Name");
+    if (!barangayName) missingFields.push("Barangay");
+    if (!farmlandName) missingFields.push("Farmland");
+    if (!cropTypeName) missingFields.push("Crop Type");
+    if (isNaN(quantityCropType)) missingFields.push("Crop Quantity");
+    if (!cropUnit) missingFields.push("Crop Unit");
+    if (!fertilizerType) missingFields.push("Fertilizer Type");
+    if (isNaN(quantityFertilizerType)) missingFields.push("Fertilizer Quantity");
+    if (!fertilizerUnit) missingFields.push("Fertilizer Unit");
+    if (!equipmentType) missingFields.push("Equipment Type");
+    if (equipmentData.length === 0) missingFields.push("Equipment List");
+    if (!startDate) missingFields.push("Start Date");
+    if (!endDate) missingFields.push("End Date");
+
+    if (missingFields.length > 0) {
+      console.warn("⚠️ Missing Fields:", missingFields);
+      alert(`⚠️ Please fill out the following fields before saving:\n- ${missingFields.join("\n- ")}`);
       return;
     }
 
@@ -684,7 +741,7 @@ window.saveProject = async function () {
     const farmersRef = collection(db, "tb_farmers");
     const farmersQuery = query(
       farmersRef,
-      where("first_name", "==", farmPresidentName)
+      where("first_name", "==", farmPresidentName) // ⚠️ Consider matching by full name or ID
     );
     const farmersQuerySnapshot = await getDocs(farmersQuery);
 
@@ -698,10 +755,9 @@ window.saveProject = async function () {
     const farmPresidentDoc = farmersQuerySnapshot.docs[0];
     const farmPresidentEmail = farmPresidentDoc.data().email;
 
-    // Generate a new project ID
+    // ✅ Generate a new project ID AFTER validation
     const projectID = await getNextProjectID();
 
-    // Create project data object
     const projectData = {
       project_id: projectID,
       project_name: projectName,
@@ -712,17 +768,16 @@ window.saveProject = async function () {
       farm_land: farmlandName,
       farmland_id: farmlandId,
       crop_type_name: cropTypeName,
-      quantity_crop_type: quantityCropType, // Stored as an integer
-      crop_unit: cropUnit, // Stored separately
+      quantity_crop_type: quantityCropType,
+      crop_unit: cropUnit,
       fertilizer_type: fertilizerType,
-      quantity_fertilizer_type: quantityFertilizerType, // Stored as an integer
-      fertilizer_unit: fertilizerUnit, // Stored separately
-      equipment: equipment,
-      equipment_category: equipmentCategory, // ✅ New field added
+      quantity_fertilizer_type: quantityFertilizerType,
+      fertilizer_unit: fertilizerUnit,
+      equipment_type: equipmentType, // ✅ Adjusted to match new field
+      equipment: equipmentData, // ✅ Saved as an array
       start_date: startDate,
       end_date: endDate,
       date_created: new Date(),
-      email: farmPresidentEmail, // Use the email of the selected farm president
     };
 
     // ✅ Save project data to Firestore
@@ -740,13 +795,14 @@ window.saveProject = async function () {
       current_stock: newFertilizerStock,
     });
 
-    alert("✅ Project saved successfully! Crop, Fertilizer stock updated.");
+    alert("✅ Project saved successfully!");
     resetForm();
   } catch (error) {
-    console.error("❌ Error saving project: ", error);
+    console.error("❌ Error saving project:", error);
     alert("Failed to save project. Please try again.");
   }
 };
+
 
 //PAMBURA
 window.resetForm = function () {
@@ -754,18 +810,31 @@ window.resetForm = function () {
   document.getElementById("assign-to").selectedIndex = 0;
   document.getElementById("status").value = "pending";
   document.getElementById("crops").selectedIndex = 0;
-  document.getElementById("barangay").value = "";
+  document.getElementById("barangay").value = ""; // Keeps its value based on farm president
   document.getElementById("farmland").innerHTML =
     '<option value="">Select Farmland</option>';
   document.getElementById("crop-type").innerHTML =
     '<option value="">Select Crop Type</option>';
   document.getElementById("quantity-crop-type").value = "";
+  document.getElementById("crop-unit").value = ""; // Clears the crop unit field
+
   document.getElementById("fertilizer-type").selectedIndex = 0;
   document.getElementById("quantity-fertilizer-type").value = "";
-  document.getElementById("equipment").selectedIndex = 0;
+  document.getElementById("fertilizer-unit").value = ""; // Clears the fertilizer unit field
+
+  document.getElementById("equipment-type-select").selectedIndex = 0; // ✅ Reset equipment type
   document.getElementById("start-date").value = "";
   document.getElementById("end-date").value = "";
+
+  // ✅ Clear the Equipment Table
+  const equipmentTable = document
+    .getElementById("equipment-table")
+    .getElementsByTagName("tbody")[0];
+  equipmentTable.innerHTML = ""; // Clears all rows
+
+  alert("🧹 Form has been reset successfully!");
 };
+
 
 document.getElementById("save-button").addEventListener("click", saveProject);
 

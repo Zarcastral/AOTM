@@ -95,12 +95,28 @@
                     <input type="hidden" name="fertilizer-unit" value="kg">
                 </div>
             </div>
+            
             <!-- Equipment Display Area -->
             <div class="equipment-form-group">
-                <label for="equipment-textarea">Equipments</label>
-                <textarea id="equipment-textarea" rows="4" placeholder="Enter equipment details..."></textarea>
+                <label for="equipment-table">Equipments</label>
+                <div id="equipment-table-container">
+                    <table id="equipment-table">
+                        <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Equipment entries will be added here -->
+                        </tbody>
+                    </table>
+                </div>
                 <button type="button" id="open-equipment-popup">Add Equipment</button>
             </div>
+            
+
 
 
             <!-- Equipment Popup Modal -->
@@ -126,7 +142,7 @@
 
                     <button id="save-equipment-btn" class="popup-button save-btn">Save</button>
 
-                    <ul id="equipment-list" class="equipment-list"></ul>
+                    <!--ul id="equipment-list" class="equipment-list"></ul-->
 
 
 
