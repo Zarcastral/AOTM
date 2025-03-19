@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 function sortFertilizersById() {
-   filteredFertilizers.sort((a, b) => {
+  filteredFertilizers.sort((a, b) => {
     const dateA = parseDate(a.dateAdded);
     const dateB = parseDate(b.dateAdded);
     return dateB - dateA; // Sort latest to oldest
@@ -99,7 +99,7 @@ async function fetchFertilizers() {
         const fertilizer = doc.data();
         const fertilizerId = fertilizer.fertilizer_id;
 
-        // Fetch related stock data from tb_fertilizer_stock based on fertilizer_id
+        // Fetch related stock data from tb_fertilizer_stock based on fertilizer_type_id
         const stockCollection = collection(db, "tb_fertilizer_stock");
         const stockQuery = query(stockCollection, where("fertilizer_id", "==", fertilizerId));
         const stockSnapshot = await getDocs(stockQuery);
@@ -112,28 +112,36 @@ async function fetchFertilizers() {
             const stockData = stockDoc.data();
             return stockData.stocks || []; // Access the nested stocks array if available
           });
-        
+
           if (stockDataArray.length > 0) {
             // Filter stock data for the authenticated user based on user_type
             const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-        
+
             if (userStockData.length > 0) {
+              // Check if any stock has `current_stock` equal to 0
+              userStockData.forEach(stock => {
+                if (stock.current_stock === 0) {
+                  stock.current_stock = `No available stock for ${userType}`;
+                  stock.unit = ""; // Clear the unit if stock is 0
+                }
+              });
+
               fertilizer.stocks = userStockData;  // Save user-specific stock data as an array
             } else {
               // Stocks exist but not for the current user_type
               fertilizer.stocks = [{
                 stock_date: null,
-                current_stock: "",
-                unit: "Stock has not been updated yet",
-                owned_by: "No stock record found for the current user type"
+                current_stock: `Stock has not been updated yet for ${userType}`,
+                unit: "",
+                owned_by: `No stock record found for ${userType}`
               }];
             }
           } else {
             // `stocks` array is empty for all users
             fertilizer.stocks = [{
               stock_date: null,
-              current_stock: "",
-              unit: "Stock has not been updated yet",
+              current_stock: "Stock has not been updated yet",
+              unit: "",
               owned_by: "No stock record found for any user type"
             }];
           }
@@ -141,12 +149,11 @@ async function fetchFertilizers() {
           // No stock data found at all
           fertilizer.stocks = [{
             stock_date: null,
-            current_stock: "",
-            unit: "Stock has not been updated yet",
+            current_stock: "Stock has not been updated yet",
+            unit: "",
             owned_by: "No stock record found for any user type"
           }];
-        }  
-
+        }
         return fertilizer;
       }));
 
@@ -204,14 +211,11 @@ function displayFertilizers(fertilizersList) {
       : "Date not recorded";
     fertilizer.stocks.forEach((stock) => {
       const currentStock = stock.current_stock || "";
-      const unit = stock.unit || "Units";
+      const unit = stock.unit || "";
       const owned_by = stock.owned_by || "Owner not Recorded";
 
 
     row.innerHTML = `
-        <td class="checkbox">
-            <input type="checkbox" data-fertilizer-id="${fertilizerId}">
-        </td>
         <td>${fertilizerId}</td>
         <td>${fertilizerName}</td>
         <td>${fertilizerType}</td>
@@ -223,10 +227,7 @@ function displayFertilizers(fertilizersList) {
     tableBody.appendChild(row);
   });
 });
-  addCheckboxListeners();
   updatePagination();
-  toggleBulkDeleteButton();
-
 }
 
 // Update pagination display
@@ -286,7 +287,7 @@ function populateFertilizerDropdown(fertilizerNames) {
   });
 }
 
-// Event listener to filter fertilizers based on dropdown selection
+// <--------------------------------- PAGINATION CODE --------------------------------->
 document.querySelector(".fertilizer_select").addEventListener("change", function () {
   const selectedFertilizer = this.value.toLowerCase();
   // Filter fertilizers based on selected value
@@ -298,190 +299,6 @@ document.querySelector(".fertilizer_select").addEventListener("change", function
   sortFertilizersById();
   displayFertilizers(filteredFertilizers); // Update the table with filtered fertilizers
 });
-
-// ---------------------------- FERTILIZER BULK DELETE CODES ---------------------------- //
-const deletemessage = document.getElementById("fert-bulk-message");
-
-// CHECKBOX CHANGE EVENT HANDLER
-function handleCheckboxChange(event) {
-  const checkbox = event.target; // The checkbox that triggered the event
-  const row = checkbox.closest("tr"); // Get the row of the checkbox
-  if (!row) return;
-
-  // Get fertilizer ID from the data attribute
-  const fertilizerId = checkbox.getAttribute("data-fertilizer-id");
-
-  if (checkbox.checked) {
-    // Add to selected list if checked
-    if (!selectedFertilizers.includes(fertilizerId)) {
-      selectedFertilizers.push(fertilizerId);
-    }
-  } else {
-    // Remove from list if unchecked
-    selectedFertilizers = selectedFertilizers.filter(item => item !== fertilizerId);
-  }
-
-  console.log("Selected Fertilizers:", selectedFertilizers);
-  toggleBulkDeleteButton();
-}
-
-
-// BULK DELETE TOGGLE 
-function toggleBulkDeleteButton() {
-  const bulkDeleteButton = document.getElementById("fert-bulk-delete");
-  bulkDeleteButton.disabled = selectedFertilizers.length === 0;
-}
-function addCheckboxListeners() {
-  document.querySelectorAll(".fertilizer_table input[type='checkbox']").forEach(checkbox => {
-    checkbox.addEventListener("change", handleCheckboxChange);
-  });
-}
-
-// BULK DELETE CONFIRM/CANCEL BUTTON CODE
-document.getElementById("confirm-fert-delete").addEventListener("click", () => {
-  deleteSelectedFertilizers();
-});
-
-document.getElementById("cancel-fert-delete").addEventListener("click", () => {
-  document.getElementById("fert-bulk-panel").style.display = "none";
-});
-
-// <------------- BULK DELETE BUTTON CODE ---------------> //
-document.getElementById("fert-bulk-delete").addEventListener("click", async () => {
-  const selectedCheckboxes = document.querySelectorAll(".fertilizer_table input[type='checkbox']:checked");
-
-  let selectedfertilizerIds = [];
-  let hasInvalidId = false;
-  let hasStocks = false;  // Flag to track if stocks exist
-
-  for (const checkbox of selectedCheckboxes) {
-      const fertilizerId = checkbox.getAttribute("data-fertilizer-id");
-
-      // Validate fertilizerId (null, undefined, or empty string)
-      if (!fertilizerId || fertilizerId.trim() === "") {
-          hasInvalidId = true;
-          break;
-      }
-
-      /* Check if the fertilizerType_id exists in the database */
-      try {
-          const q = query(collection(db, "tb_fertilizer"), where("fertilizer_id", "==", Number(fertilizerId)));
-          const querySnapshot = await getDocs(q);
-
-          if (querySnapshot.empty) {
-              hasInvalidId = true;
-              console.error(`ERROR: Fertilizer ID ${fertilizerId} does not exist in the database.`);
-              break;
-          }
-
-          // Check if there are stocks for this Fertilizer_type_id by querying tb_Fertilizer_stock
-          const stockQuery = query(collection(db, "tb_fertilizer_stock"), where("fertilizer_id", "==", Number(fertilizerId)));
-          const stockSnapshot = await getDocs(stockQuery);
-
-          if (!stockSnapshot.empty) {
-              for (const stockDoc of stockSnapshot.docs) {
-                  const stocksArray = stockDoc.data().stocks;
-                  if (Array.isArray(stocksArray) && stocksArray.length > 0) {
-                      hasStocks = true;
-                      console.error(`ERROR: Fertilizer ID ${fertilizerId} has stocks and cannot be deleted.`);
-                      break;
-                  }
-              }
-          }
-
-          if (hasStocks) break;  // Stop further checks if stocks are found
-
-          selectedfertilizerIds.push(fertilizerId);
-      } catch (error) {
-          console.error("Error fetching Fertilizer records or stocks:", error);
-          hasInvalidId = true;
-          break;
-      }
-  }
-
-  if (hasInvalidId) {
-      showDeleteMessage("ERROR: Fertilizer ID of one or more selected records are invalid", false);
-  } else if (hasStocks) {
-      showDeleteMessage("ERROR: One or more selected Fertilizers have existing stocks", false);
-  } else {
-      document.getElementById("fert-bulk-panel").style.display = "block"; // Show confirmation panel
-  }
-});
-
-// Close the Bulk Delete Panel
-document.getElementById("cancel-fert-delete").addEventListener("click", () => {
-  document.getElementById("fert-bulk-panel").style.display = "none";
-});
-
-// Function to delete selected Fertilizers from both tb_Fertilizer_types and tb_Fertilizer_stock in Firestore
-async function deleteSelectedFertilizers() {
-  if (selectedFertilizers.length === 0) {
-    return;
-  }
-
-  try {
-    const fertilizersCollection = collection(db, "tb_fertilizer");
-    const stocksCollection = collection(db, "tb_fertilizer_stock");
-    const batch = writeBatch(db);  // Create a batch for efficient deletions
-
-    for (const fertilizerId of selectedFertilizers) {
-      // Delete from tb_Fertilizer_types
-      const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-      const fertilizerSnapshot = await getDocs(fertilizerQuery);
-
-      if (!fertilizerSnapshot.empty) {
-        for (const docSnapshot of fertilizerSnapshot.docs) {
-          console.log("Deleting document ID from tb_fertilizer:", docSnapshot.id);
-          batch.delete(doc(db, "tb_fertilizer", docSnapshot.id));  // Add to batch
-        }
-      } else {
-        console.error(`ERROR: Fertilizer ID ${fertilizerId} does not exist in tb_fertilizer.`);
-      }
-
-      // Delete from tb_fertilizer_stock
-      const stockQuery = query(stocksCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-      const stockSnapshot = await getDocs(stockQuery);
-
-      if (!stockSnapshot.empty) {
-        for (const stockDoc of stockSnapshot.docs) {
-          console.log("Deleting document ID from tb_fertilizer_stock:", stockDoc.id);
-          batch.delete(doc(db, "tb_fertilizer_stock", stockDoc.id));  // Add to batch
-        }
-      } else {
-        console.warn(`WARNING: No matching stocks found for Fertilizer ID ${fertilizerId} in tb_fertilizer_stock.`);
-      }
-    }
-
-    // Commit all deletions in a batch
-    await batch.commit();
-    console.log("Deleted ferts and Stocks:", selectedFertilizers);
-    showDeleteMessage("All selected Fertilizer records and their stocks successfully deleted!", true);
-    selectedFertilizers = [];  // Clear selection AFTER successful deletion
-    document.getElementById("fert-bulk-panel").style.display = "none";
-    fetchFertilizers();  // Refresh the table
-
-  } catch (error) {
-    console.error("Error deleting Fertilizers or stocks:", error);
-    showDeleteMessage("Error deleting Fertilizers or stocks!", false);
-  }
-}
-
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
-const deleteMessage = document.getElementById("fert-bulk-message");
-
-function showDeleteMessage(message, success) {
-  deleteMessage.textContent = message;
-  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  deleteMessage.style.opacity = '1';
-  deleteMessage.style.display = 'block';
-
-  setTimeout(() => {
-    deleteMessage.style.opacity = '0';
-    setTimeout(() => {
-      deleteMessage.style.display = 'none';
-    }, 300);
-  }, 4000);
-}
 
 // Search bar event listener for real-time filtering
 document.getElementById("fert-search-bar").addEventListener("input", function () {

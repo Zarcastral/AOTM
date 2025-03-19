@@ -11,16 +11,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../src/style/supervisor/supervisor_inventory_stock.css">
 </head>
-
 <body>
   <!-- Placeholder for Header -->
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
   <div class="main-content">
-      <div class="stock-selector">
-        <span class="inventory-form"><a href="supervisor_inventory.html">Inventory List</a></span> |
-        <span class="stock-form" ><a href="supervisor_inventory_stock.html">Manage Inventory</a></span>
-      </div>
+    <div class="stock-selector">
+      <span class="inventory-form"><a href="supervisor_inventory.html">Inventory List</a></span> |
+      <span class="stock-form"><a href="supervisor_inventory_stock.html">Manage Inventory</a></span>
+    </div>
+
     <div class="panel">
       <h2>Crops</h2>
       <div class="crop-search-bar">
@@ -33,91 +33,87 @@
         <table>
           <thead>
             <tr>
-              <tr>
-                <th class="crop-checkbox-bulk-delete" > 
-                  <button id="crop-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-              </th> 
               <th>#</th>
               <th>Crop Type</th>
               <th>Crops</th>
-              <th>Date Added</th>
+              <th>Stock Date</th>
               <th>Stock</th>
-              <th>Owned By</th>
+              <th>Added By</th>
               <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Crops will be populated here -->
-        </tbody>
-      </table>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Crops will be populated here -->
+          </tbody>
+        </table>
         <div class="crops-pagination">
           <span id="crop-page-number">Page 1</span>
           <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
           <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
-      </div>
-    </div>
-      <div id="crop-bulk-panel" class="crop-bulk-panel">
-        <div class="confirm-crop-bulk-message">
-            <p>Are you sure you want to delete the selected stock's records?</p>
-            <button id="confirm-crop-delete" class="crop-bulk-confirm-btn">Confirm</button>
-            <button id="cancel-crop-delete" class="crop-bulk-cancel-btn">Cancel</button>
         </div>
-    </div>
-      <!-- Bulk Delete Message Panel -->
-      <div id="crop-bulk-message" style="display: none;" class="crop-bulk-message">
-          <p>All selected records has been successfully deleted!</p>
       </div>
 
-<!-- Background Overlay -->
-<div id="crop-overlay" class="crop-overlay"></div>
+      <!------------------------------- ADD STOCK FLOATING PANEL ---------------------------------------->
+      <!-- Background Overlay -->
+      <div id="crop-overlay" class="crop-overlay"></div>
 
-<!-- Floating Panel -->
-<div id="crop-stock-panel" class="crop-panel">
-  <div class="crop-content">
-      <h3>Add Stock</h3>
+      <div id="crop-stock-panel" class="crop-panel">
+        <div class="crop-content">
+          <h3 class="crop-stock-title" id="crop-stock-title">Add Stock</h3>
+          <h3 class="crop-delete-stock-title" id="crop-delete-stock-title">Delete Stock</h3>
 
-      <!-- First row with three inputs -->
-      <div class="crop-row">
-          <div>
+          <!-- First row with three inputs -->
+          <div class="crop-stock-row">
+            <label for="current_crop_stock">Current Stock</label>
+            <input type="text" id="current_crop_stock" class="crop-input" readonly>
+          </div>
+          <div class="crop-row">
+            <div>
               <label for="crops">Crop Name</label>
               <input type="text" id="crops" class="crop-input" readonly>
-          </div>
+            </div>
 
-          <div>
+            <div>
               <label for="crop_stock">Stock</label>
               <input type="text" id="crop_stock" class="crop-input">
-          </div>
+            </div>
 
-          <div>
+            <div>
               <label for="crop_unit">Unit</label>
               <select id="crop_unit" class="crop-select" disabled>
-                  <option value="kg">kg</option>
+                <option value="kg">kg</option>
               </select>
               <input type="hidden" name="crop_unit" id="crop_unit_hidden">
+            </div>
           </div>
-      </div>
 
-      <!-- Second row with crops input -->
-      <div class="crop-row">
-          <div>
+          <!-- Second row with crops input -->
+          <div class="crop-row">
+            <div>
               <label for="crop_name">Crops</label>
               <input type="text" id="crop_name" class="crop-input" readonly>
+            </div>
           </div>
+
+          <!-- Buttons aligned to the right -->
+          <div class="crop-actions">
+            <button id="crop-cancel-stock" class="crop-btn crop-cancel">Cancel</button>
+            <button id="crop-save-stock" class="crop-btn crop-save">Save</button>
+            <button id="crop-delete-stock" class="crop-btn crop-delete">Delete</button>
+          </div>
+        </div>
       </div>
 
-      <!-- Buttons aligned to the right -->
-      <div class="crop-actions">
-          <button id="crop-cancel-stock" class="crop-btn crop-cancel">Cancel</button>
-          <button id="crop-save-stock" class="crop-btn crop-save">Save</button>
+      <!-- Crop Stock Success Message Panel -->
+      <div id="crop-stock-message" style="display: none;" class="crop-stock-message">
+        <p>Stock has been added successfully!</p>
       </div>
+      <!-- Crop Stock Success Message Panel -->
+      <div id="crop-delete-message" style="display: none;" class="crop-delete-message">
+        <p>Stock has been deleted successfully!</p>
+      </div>
+      <!------------------------------- END OF ADD STOCK FLOATING PANEL ---------------------------------------->
     </div>
-  </div>
-  <!-- Crop Stock Success Message Panel -->
-<div id="crop-stock-message" style="display: none;" class="crop-stock-message">
-    <p>Stock has been added successfully!</p>
-</div>
-
-  </div>
 
     <!-- Farmers Activity Panel -->
     <div class="panel">
@@ -129,91 +125,89 @@
         </select>
       </div>
       <div class="fertilizer_table">
-      <table>
-        <thead>
-          <tr>
-              <th class="fertilizer-checkbox-bulk-delete" > 
-                <button id="fert-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-            </th>
-            <th>#</th>
-            <th>Fertilizer Name</th>
-            <th>Category</th>
-            <th>Date Added</th>
-            <th>Stock</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- will be populated here -->
-        </tbody>
-      </table>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fertilizer Name</th>
+              <th>Category</th>
+              <th>Stock Date</th>
+              <th>Stock</th>
+              <th>Added By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- will be populated here -->
+          </tbody>
+        </table>
         <div class="fertilizer-pagination">
           <span id="fertilizer-page-number">Page 1</span>
           <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
           <button id="fertilizer-next-page" class="fertilizer-pagination-btn">&gt;</button>
-      </div>
-    </div>
-      <div id="fert-bulk-panel" class="fert-bulk-panel">
-        <div class="confirm-fert-bulk-message">
-            <p>Are you sure you want to delete the selected stock's records?</p>
-            <button id="confirm-fert-delete" class="fert-bulk-confirm-btn">Confirm</button>
-            <button id="cancel-fert-delete" class="fert-bulk-cancel-btn">Cancel</button>
         </div>
-    </div>
-      <!-- Bulk Delete Message Panel -->
-      <div id="fert-bulk-message" style="display: none;" class="fert-bulk-message">
-          <p>All selected records has been successfully deleted!</p>
-      </div>
-      <!-- Background Overlay -->
-<div id="fert-overlay" class="fert-overlay"></div>
 
-<!-- Floating Panel -->
-<div id="fert-stock-panel" class="fert-panel">
-  <div class="fert-content">
-      <h3>Add Stock</h3>
+        <!-- Floating Panel -->
+        <!-- Background Overlay -->
+        <div id="fert-overlay" class="fert-overlay"></div>
+        <div id="fert-stock-panel" class="fert-panel">
+          <div class="fert-content">
+            <h3 class="fert-stock-title" id="fert-stock-title">Add Stock</h3>
+            <h3 class="fert-delete-stock-title" id="fert-delete-stock-title">Delete Stock</h3>
 
-      <!-- First row with three inputs -->
-      <div class="fert-row">
-          <div>
-              <label for="fert_name">Fertilizer Name</label>
-              <input type="text" id="fert_name" class="fert-input" readonly>
-          </div>
+            <!-- First row with three inputs -->
+            <div class="fert-stock-row">
+              <label for="current_fert_stock">Current Stock</label>
+              <input type="text" id="current_fert_stock" class="fert-input" readonly>
+            </div>
+            <div class="fert-row">
+              <div>
+                <label for="fert_name">Fertilizer Name</label>
+                <input type="text" id="fert_name" class="fert-input" readonly>
+              </div>
 
-          <div>
-              <label for="fert_stock">Stock</label>
-              <input type="text" id="fert_stock" class="fert-input">
-          </div>
+              <div>
+                <label for="fert_stock">Stock</label>
+                <input type="text" id="fert_stock" class="fert-input">
+              </div>
 
-          <div>
-              <label for="fert_unit">Unit</label>
-              <select id="fert_unit" class="fert-select" disabled>
+              <div>
+                <label for="fert_unit">Unit</label>
+                <select id="fert_unit" class="fert-select" disabled>
                   <option value="kg">kg</option>
-              </select>
-              <input type="hidden" name="fert_unit" id="fert_unit_hidden">
-          </div>
-      </div>
+                </select>
+                <input type="hidden" name="fert_unit" id="fert_unit_hidden">
+              </div>
+            </div>
 
-      <!-- Second row with fert input -->
-      <div class="fert-row">
-          <div>
-              <label for="fert_category">Category</label>
-              <input type="text" id="fert_category" class="fert-input" readonly>
-          </div>
-      </div>
+            <!-- Second row with fert input -->
+            <div class="fert-row">
+              <div>
+                <label for="fert_type">Category</label>
+                <input type="text" id="fert_type" class="fert-input" readonly>
+              </div>
+            </div>
 
-      <!-- Buttons aligned to the right -->
-      <div class="fert-actions">
-          <button id="fert-cancel-stock" class="fert-btn fert-cancel">Cancel</button>
-          <button id="fert-save-stock" class="fert-btn fert-save">Save</button>
+            <!-- Buttons aligned to the right -->
+            <div class="fert-actions">
+              <button id="fert-cancel-stock" class="fert-btn fert-cancel">Cancel</button>
+              <button id="fert-save-stock" class="fert-btn fert-save">Save</button>
+              <button id="fert-delete-stock" class="fert-btn fert-delete">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- fert Stock Success Message Panel -->
+        <div id="fert-stock-message" style="display: none;" class="fert-stock-message">
+          <p>Stock has been added successfully!</p>
+        </div>
+
+        <!-- Fertilizer Stock Success Message Panel -->
+        <div id="fert-delete-message" style="display: none;" class="fert-delete-message">
+          <p>Stock has been deleted successfully!</p>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- fert Stock Success Message Panel -->
-<div id="fert-stock-message" style="display: none;" class="fert-stock-message">
-    <p>Stock has been added successfully!</p>
-</div>
-
-  </div>
 
     <!-- Equipment Status Panel -->
     <div class="panel">
@@ -224,95 +218,92 @@
           <option value="">Equipment Type</option>
         </select>
       </div>
-      <div class="equipment_table"> 
+      <div class="equipment_table">
         <table>
           <thead>
-              <tr>
-                <th class="equipment-checkbox-bulk-delete" > 
-                  <button id="equip-bulk-delete"> <img src="../../images/Delete.png" alt="DELETE"></button>
-                </th>              
-                <th>#</th>
-                <th>Equipment Name</th>
-                <th>Category</th>
-                <th>Date Added</th>
-                <th>Stock</th>
-                <th>Actions</th>
+            <tr>
+              <th>#</th>
+              <th>Equipment Name</th>
+              <th>Category</th>
+              <th>Stock Date</th>
+              <th>Stock</th>
+              <th>Added By</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <!-- record will be put here -->
-          </tbody>    
+          </tbody>
         </table>
       </div>
-          <div class="equipment-pagination">
-            <span id="equipment-page-number">Page 1</span>
-            <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
-            <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
+      <div class="equipment-pagination">
+        <span id="equipment-page-number">Page 1</span>
+        <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
+        <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
+      </div>
+    </div>
+
+    <!-- Floating Panel -->
+    <!-- Background Overlay -->
+    <div id="equip-overlay" class="equip-overlay"></div>
+    <div id="equip-stock-panel" class="equip-panel">
+      <div class="equip-content">
+        <h3 class="equip-stock-title" id="equip-stock-title">Add Stock</h3>
+        <h3 class="equip-delete-stock-title" id="equip-delete-stock-title">Delete Stock</h3>
+
+        <!-- First row with three inputs -->
+        <div class="equip-stock-row">
+          <label for="current_equip_stock">Current Stock</label>
+          <input type="text" id="current_equip_stock" class="equip-input" readonly>
+        </div>
+        <div class="equip-row">
+          <div>
+            <label for="equip_name">Equipment Name</label>
+            <input type="text" id="equip_name" class="equip-input" readonly>
+          </div>
+
+          <div>
+            <label for="equip_stock">Stock</label>
+            <input type="text" id="equip_stock" class="equip-input">
+          </div>
+
+          <div>
+            <label for="equip_unit">Unit</label>
+            <select id="equip_unit" class="equip-select" disabled>
+              <option value="Machineries">Machineries</option>
+              <option value="tools">Tools</option>
+            </select>
+            <input type="hidden" name="equip_unit" id="equip_unit_hidden">
+          </div>
+        </div>
+
+        <!-- Second row with equip input -->
+        <div class="equip-row">
+          <div>
+            <label for="equip_type">Category</label>
+            <input type="text" id="equip_type" class="equip-input" readonly>
+          </div>
+        </div>
+
+        <!-- Buttons aligned to the right -->
+        <div class="equip-actions">
+          <button id="equip-cancel-stock" class="equip-btn equip-cancel">Cancel</button>
+          <button id="equip-save-stock" class="equip-btn equip-save">Save</button>
+          <button id="equip-delete-stock" class="equip-btn equip-delete">Delete</button>
         </div>
       </div>
-        <div id="equip-bulk-panel" class="equip-bulk-panel">
-          <div class="confirm-equip-bulk-message">
-              <p>Are you sure you want to delete the selected stock's records?</p>
-              <button id="confirm-equip-delete" class="equip-bulk-confirm-btn">Confirm</button>
-              <button id="cancel-equip-delete" class="equip-bulk-cancel-btn">Cancel</button>
-          </div>
-      </div>
-        <!-- Bulk Delete Message Panel -->
-        <div id="equip-bulk-message" style="display: none;" class="equip-bulk-message">
-            <p>All selected records has been successfully deleted!</p>
-        </div>
-                      <!-- Background Overlay -->
-        <div id="equip-overlay" class="equip-overlay"></div>
+    </div>
 
-        <!-- Floating Panel -->
-        <div id="equip-stock-panel" class="equip-panel">
-          <div class="equip-content">
-              <h3>Add Stock</h3>
+    <!-- equip Stock Success Message Panel -->
+    <div id="equip-stock-message" style="display: none;" class="equip-stock-message">
+      <p>Stock has been added successfully!</p>
+    </div>
 
-              <!-- First row with three inputs -->
-              <div class="equip-row">
-                  <div>
-                      <label for="equip_name">Equipment Name</label>
-                      <input type="text" id="equip_name" class="equip-input" readonly>
-                  </div>
-
-                  <div>
-                      <label for="equip_stock">Stock</label>
-                      <input type="text" id="equip_stock" class="equip-input">
-                  </div>
-
-                  <div>
-                      <label for="equip_unit">Unit</label>
-                      <select id="equip_unit" class="equip-select" disabled>
-                          <option value="machinery">Machineries</option>
-                          <option value="tools">Tools</option>
-                      </select>
-                      <input type="hidden" name="equip_unit" id="equip_unit_hidden">
-                  </div>
-              </div>
-
-              <!-- Second row with equip input -->
-              <div class="equip-row">
-                  <div>
-                      <label for="equip_category">Category</label>
-                      <input type="text" id="equip_category" class="equip-input" readonly>
-                  </div>
-              </div>
-
-              <!-- Buttons aligned to the right -->
-              <div class="equip-actions">
-                  <button id="equip-cancel-stock" class="equip-btn equip-cancel">Cancel</button>
-                  <button id="equip-save-stock" class="equip-btn equip-save">Save</button>
-              </div>
-            </div>
-          </div>
-          <!-- equip Stock Success Message Panel -->
-        <div id="equip-stock-message" style="display: none;" class="equip-stock-message">
-            <p>Stock has been added successfully!</p>
-        </div>
+    <!-- Equipment Stock Success Message Panel -->
+    <div id="equip-delete-message" style="display: none;" class="equip-delete-message">
+      <p>Stock has been deleted successfully!</p>
+    </div>
   </div>
-
- 
 
   <!-- Account Panel with iframe to load external content -->
   <div id="account-panel" class="account-panel">
@@ -345,33 +336,33 @@
   </script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-    const stockLinks = document.querySelectorAll(".stock-selector a");
-    
-    // Retrieve stored active link from localStorage
-    const activeLink = localStorage.getItem("activeStockLink");
+      const stockLinks = document.querySelectorAll(".stock-selector a");
 
-    stockLinks.forEach(link => {
+      // Retrieve stored active link from localStorage
+      const activeLink = localStorage.getItem("activeStockLink");
+
+      stockLinks.forEach(link => {
         // If the link matches the stored active link, keep it active
         if (link.href === activeLink) {
-            link.classList.add("active");
+          link.classList.add("active");
         }
 
         link.addEventListener("click", function () {
-            // Remove active class from all links
-            stockLinks.forEach(link => link.classList.remove("active"));
+          // Remove active class from all links
+          stockLinks.forEach(link => link.classList.remove("active"));
 
-            // Add active class to clicked link
-            this.classList.add("active");
+          // Add active class to clicked link
+          this.classList.add("active");
 
-            // Store the active link in localStorage
-            localStorage.setItem("activeStockLink", this.href);
+          // Store the active link in localStorage
+          localStorage.setItem("activeStockLink", this.href);
         });
+      });
     });
-});
-
   </script>
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="../../../src/auth/header.js"></script>
 </body>
+
 
 </html>

@@ -99,70 +99,68 @@ async function fetchEquipments() {
         const equipment = doc.data();
         const equipmentId = equipment.equipment_id;
 
-        // Check if equipmentId is defined
-        if (equipmentId) {
-          const stockCollection = collection(db, "tb_equipment_stock");
-          const stockQuery = query(stockCollection, where("equipment_id", "==", equipmentId));
-          const stockSnapshot = await getDocs(stockQuery);
+        // Fetch related stock data from tb_equipment_stock based on equipment_type_id
+        const stockCollection = collection(db, "tb_equipment_stock");
+        const stockQuery = query(stockCollection, where("equipment_id", "==", equipmentId));
+        const stockSnapshot = await getDocs(stockQuery);
 
-          // Initialize stock array for this equipment
-          equipment.stocks = [];
+        // Initialize stock array for this equipment
+        equipment.stocks = [];
 
-          if (!stockSnapshot.empty) {
-            const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
-              const stockData = stockDoc.data();
-              return stockData.stocks || []; // Access the nested stocks array if available
-            });
-          
-            if (stockDataArray.length > 0) {
-              // Filter stock data for the authenticated user based on user_type
-              const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-          
-              if (userStockData.length > 0) {
-                equipment.stocks = userStockData;  // Save user-specific stock data as an array
-              } else {
-                // Stocks exist but not for the current user_type
-                equipment.stocks = [{
-                  stock_date: null,
-                  current_stock: "",
-                  unit: "Stock has not been updated yet",
-                  owned_by: "No stock record found for the current user type"
-                }];
-              }
+        if (!stockSnapshot.empty) {
+          const stockDataArray = stockSnapshot.docs.flatMap((stockDoc) => {
+            const stockData = stockDoc.data();
+            return stockData.stocks || []; // Access the nested stocks array if available
+          });
+
+          if (stockDataArray.length > 0) {
+            // Filter stock data for the authenticated user based on user_type
+            const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
+
+            if (userStockData.length > 0) {
+              // Check if any stock has `current_stock` equal to 0
+              userStockData.forEach(stock => {
+                if (stock.current_stock === 0) {
+                  stock.current_stock = `No available stock for ${userType}`;
+                  stock.unit = ""; // Clear the unit if stock is 0
+                }
+              });
+
+              equipment.stocks = userStockData;  // Save user-specific stock data as an array
             } else {
-              // `stocks` array is empty for all users
+              // Stocks exist but not for the current user_type
               equipment.stocks = [{
                 stock_date: null,
-                current_stock: "",
-                unit: "Stock has not been updated yet",
-                owned_by: "No stock record found for any user type"
+                current_stock: `Stock has not been updated yet for ${userType}`,
+                unit: "",
+                owned_by: `No stock record found for ${userType}`
               }];
             }
           } else {
-            // No stock data found at all
+            // `stocks` array is empty for all users
             equipment.stocks = [{
               stock_date: null,
-              current_stock: "",
-              unit: "Stock has not been updated yet",
+              current_stock: "Stock has not been updated yet",
+              unit: "",
               owned_by: "No stock record found for any user type"
             }];
           }
         } else {
-          console.error("equipment_id is undefined for:", equipment.equipment_name);
-          // Skip this equipment if equipment_id is missing
-          return null;
+          // No stock data found at all
+          equipment.stocks = [{
+            stock_date: null,
+            current_stock: "Stock has not been updated yet",
+            unit: "",
+            owned_by: "No stock record found for any user type"
+          }];
         }
-
         return equipment;
       }));
 
-      // Filter out null results if any equipment was skipped
-      const validEquipmentsData = equipmentsData.filter(equip => equip !== null);
-
-      equipmentsList = validEquipmentsData;
+      equipmentsList = equipmentsData;
       filteredEquipments = [...equipmentsList];
-      sortEquipmentsById();                  // Sort Equipments by date (latest to oldest)
-      displayEquipments(filteredEquipments);  // Update table display
+      sortEquipmentsById();            // Sort Equipments by date (latest to oldest)
+      displayEquipments(filteredEquipments); // Update table display
     }, (error) => {
       console.error("Error listening to Equipments:", error);
     });
@@ -207,7 +205,7 @@ function displayEquipments(equipmentsList) {
 
     const equipmentName = equipment.equipment_name || "Equipment Name not recorded";
     const equipmentId = equipment.equipment_id || "Equipment Id not recorded";
-    const equipmentType = equipment.equipment_category || "Equipment Category not recorded";
+    const equipmentType = equipment.equipment_type || "Equipment Category not recorded";
     const dateAdded = equipment.dateAdded
       ? equipment.dateAdded.toDate
         ? equipment.dateAdded.toDate().toLocaleDateString()
@@ -215,13 +213,10 @@ function displayEquipments(equipmentsList) {
       : "Date not recorded";
     equipment.stocks.forEach((stock) => {
       const currentStock = stock.current_stock || "";
-      const unit = stock.unit || "Units";
+      const unit = stock.unit || "";
       const owned_by = stock.owned_by || "Owner not Recorded";
 
       row.innerHTML = `
-          <td class="checkbox">
-              <input type="checkbox" data-equipment-id="${equipmentId}">
-          </td>
           <td>${equipmentId}</td>
           <td>${equipmentName}</td>
           <td>${equipmentType}</td>
@@ -232,10 +227,7 @@ function displayEquipments(equipmentsList) {
     tableBody.appendChild(row);
   });
 });
-  addCheckboxListeners();
   updatePagination();
-  toggleBulkDeleteButton();
-
 }
 
 // Update pagination display
@@ -271,7 +263,7 @@ document.getElementById("equipment-next-page").addEventListener("click", () => {
 async function fetchEquipmentNames() {
   const equipmentsCollection = collection(db, "tb_equipment_types");
   const equipmentsSnapshot = await getDocs(equipmentsCollection);
-  const equipmentNames = equipmentsSnapshot.docs.map(doc => doc.data().equipment_type_name);
+  const equipmentNames = equipmentsSnapshot.docs.map(doc => doc.data().equipment_type);
 
   populateEquipmentDropdown(equipmentNames);
 }
@@ -300,190 +292,13 @@ document.querySelector(".equipment_select").addEventListener("change", function 
   const selectedEquipment = this.value.toLowerCase();
   // Filter Equipments based on selected value
   filteredEquipments = selectedEquipment
-    ? equipmentsList.filter(equipment => equipment.equipment_category?.toLowerCase() === selectedEquipment)
+    ? equipmentsList.filter(equipment => equipment.equipment_type?.toLowerCase() === selectedEquipment)
     : equipmentsList; // If no selection, show all equipments
 
   currentPage = 1; // Reset to the first page when filter is applied
   sortEquipmentsById();
   displayEquipments(filteredEquipments); // Update the table with filtered Equipments
 });
-
-
-// ---------------------------- equip BULK DELETE CODES ---------------------------- //
-const deletemessage = document.getElementById("equip-bulk-message"); // delete message panel
-
-// CHECKBOX CHANGE EVENT HANDLER
-function handleCheckboxChange(event) {
-  const checkbox = event.target; // The checkbox that triggered the event
-  const row = checkbox.closest("tr"); // Get the row of the checkbox
-  if (!row) return;
-
-  // Get equipmentType ID from the data attribute
-  const equipmentId = checkbox.getAttribute("data-equipment-id");
-
-  if (checkbox.checked) {
-    // Add to selected list if checked
-    if (!selectedEquipments.includes(equipmentId)) {
-      selectedEquipments.push(equipmentId);
-    }
-  } else {
-    // Remove from list if unchecked
-    selectedEquipments = selectedEquipments.filter(item => item !== equipmentId);
-  }
-
-  console.log("Selected Equipments:", selectedEquipments);
-  toggleBulkDeleteButton();
-}
-
-
-// Enable/Disable the Bulk Delete button
-function toggleBulkDeleteButton() {
-  const bulkDeleteButton = document.getElementById("equip-bulk-delete");
-  bulkDeleteButton.disabled = selectedEquipments.length === 0;
-}
-// Attach event listener to checkboxes (after equipments are displayed)
-function addCheckboxListeners() {
-  document.querySelectorAll(".equipment_table input[type='checkbox']").forEach(checkbox => {
-    checkbox.addEventListener("change", handleCheckboxChange);
-  });
-}
-
-// <------------- BULK DELETE BUTTON CODE ---------------> //
-document.getElementById("equip-bulk-delete").addEventListener("click", async () => {
-  const selectedCheckboxes = document.querySelectorAll(".equipment_table input[type='checkbox']:checked");
-
-  let selectedEquipmentIds = [];
-  let hasInvalidId = false;
-  let hasStocks = false;  // Flag to track if stocks exist
-
-  for (const checkbox of selectedCheckboxes) {
-      const equipmentId = checkbox.getAttribute("data-equipment-id");
-
-      // Validate equipmentId (null, undefined, or empty string)
-      if (!equipmentId || equipmentId.trim() === "") {
-          hasInvalidId = true;
-          break;
-      }
-
-      /* Check if the equipmentType_id exists in the database */
-      try {
-          const q = query(collection(db, "tb_equipment"), where("equipment_id", "==", Number(equipmentId)));
-          const querySnapshot = await getDocs(q);
-
-          if (querySnapshot.empty) {
-              hasInvalidId = true;
-              console.error(`ERROR: equipment ID ${equipmentId} does not exist in the database.`);
-              break;
-          }
-
-          // Check if there are stocks for this equipment_type_id by querying tb_equipment_stock
-          const stockQuery = query(collection(db, "tb_equipment_stock"), where("equipment_id", "==", Number(equipmentId)));
-          const stockSnapshot = await getDocs(stockQuery);
-
-          if (!stockSnapshot.empty) {
-              for (const stockDoc of stockSnapshot.docs) {
-                  const stocksArray = stockDoc.data().stocks;
-                  if (Array.isArray(stocksArray) && stocksArray.length > 0) {
-                      hasStocks = true;
-                      console.error(`ERROR: equipment ID ${equipmentId} has stocks and cannot be deleted.`);
-                      break;
-                  }
-              }
-          }
-
-          if (hasStocks) break;  // Stop further checks if stocks are found
-
-          selectedEquipmentIds.push(equipmentId);
-      } catch (error) {
-          console.error("Error fetching equipment records or stocks:", error);
-          hasInvalidId = true;
-          break;
-      }
-  }
-
-  if (hasInvalidId) {
-      showDeleteMessage("ERROR: Equipment ID of one or more selected records are invalid", false);
-  } else if (hasStocks) {
-      showDeleteMessage("ERROR: One or more selected Equipments have existing stocks", false);
-  } else {
-      document.getElementById("equip-bulk-panel").style.display = "block"; // Show confirmation panel
-  }
-});
-
-// Close the Bulk Delete Panel
-document.getElementById("cancel-equip-delete").addEventListener("click", () => {
-  document.getElementById("equip-bulk-panel").style.display = "none";
-});
-
-// Function to delete selected Equipments from both tb_Equipment_types and tb_Equipment_stock in Firestore
-async function deleteSelectedEquipments() {
-  if (selectedEquipments.length === 0) {
-    return;
-  }
-
-  try {
-    const equipmentsCollection = collection(db, "tb_equipment");
-    const stocksCollection = collection(db, "tb_equipment_stock");
-    const batch = writeBatch(db);  // Create a batch for efficient deletions
-
-    for (const equipmentId of selectedEquipments) {
-      // Delete from tb_Equipment_types
-      const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentId)));
-      const equipmentSnapshot = await getDocs(equipmentQuery);
-
-      if (!equipmentSnapshot.empty) {
-        for (const docSnapshot of equipmentSnapshot.docs) {
-          console.log("Deleting document ID from tb_equipment:", docSnapshot.id);
-          batch.delete(doc(db, "tb_equipment", docSnapshot.id));  // Add to batch
-        }
-      } else {
-        console.error(`ERROR: Equipment ID ${equipmentId} does not exist in tb_equipment.`);
-      }
-
-      // Delete from tb_equipment_stock
-      const stockQuery = query(stocksCollection, where("equipment_id", "==", Number(equipmentId)));
-      const stockSnapshot = await getDocs(stockQuery);
-
-      if (!stockSnapshot.empty) {
-        for (const stockDoc of stockSnapshot.docs) {
-          console.log("Deleting document ID from tb_equipment_stock:", stockDoc.id);
-          batch.delete(doc(db, "tb_equipment_stock", stockDoc.id));  // Add to batch
-        }
-      } else {
-        console.warn(`WARNING: No matching stocks found for Equipment ID ${equipmentId} in tb_equipment_stock.`);
-      }
-    }
-
-    // Commit all deletions in a batch
-    await batch.commit();
-    console.log("Deleted equips and Stocks:", selectedEquipments);
-    showDeleteMessage("All selected Equipment records and their stocks successfully deleted!", true);
-    selectedEquipments = [];  // Clear selection AFTER successful deletion
-    document.getElementById("equip-bulk-panel").style.display = "none";
-    fetchEquipments();  // Refresh the table
-
-  } catch (error) {
-    console.error("Error deleting Equipments or stocks:", error);
-    showDeleteMessage("Error deleting Equipments or stocks!", false);
-  }
-}
-
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
-const deleteMessage = document.getElementById("equip-bulk-message");
-
-function showDeleteMessage(message, success) {
-  deleteMessage.textContent = message;
-  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  deleteMessage.style.opacity = '1';
-  deleteMessage.style.display = 'block';
-
-  setTimeout(() => {
-    deleteMessage.style.opacity = '0';
-    setTimeout(() => {
-      deleteMessage.style.display = 'none';
-    }, 300);
-  }, 4000);
-}
 
 // Search bar event listener for real-time filtering
 document.getElementById("equip-search-bar").addEventListener("input", function () {
@@ -493,7 +308,7 @@ document.getElementById("equip-search-bar").addEventListener("input", function (
   filteredEquipments = equipmentsList.filter(equipment => {
     return (
       equipment.equipment_name?.toLowerCase().includes(searchQuery) ||
-      equipment.equipment_category?.toLowerCase().includes(searchQuery) ||
+      equipment.equipment_type?.toLowerCase().includes(searchQuery) ||
       equipment.equipment_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
     );
   });

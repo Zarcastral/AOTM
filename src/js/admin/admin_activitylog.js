@@ -24,7 +24,7 @@ const prevPageBtn = document.getElementById("prev-page");
 const nextPageBtn = document.getElementById("next-page");
 const pageNumberSpan = document.getElementById("page-number");
 let currentPage = 1;
-const rowsPerPage = 5;
+const rowsPerPage = 10;
 
 // <---------------------------- INITIALIZE ---------------------------->
 document.addEventListener("DOMContentLoaded", () => {

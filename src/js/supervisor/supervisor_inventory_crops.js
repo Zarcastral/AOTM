@@ -7,6 +7,7 @@ import {
   deleteDoc,
   writeBatch,
   getDoc,
+  setDoc,
   onSnapshot,
   doc
 } from "firebase/firestore";
@@ -109,28 +110,36 @@ async function fetchCrops() {
             const stockData = stockDoc.data();
             return stockData.stocks || []; // Access the nested stocks array if available
           });
-        
+
           if (stockDataArray.length > 0) {
             // Filter stock data for the authenticated user based on user_type
             const userStockData = stockDataArray.filter(stock => stock.owned_by === userType);
-        
+
             if (userStockData.length > 0) {
+              // Check if any stock has `current_stock` equal to 0
+              userStockData.forEach(stock => {
+                if (stock.current_stock === 0) {
+                  stock.current_stock = `No available stock for ${userType}`;
+                  stock.unit = ""; // Clear the unit if stock is 0
+                }
+              });
+
               crop.stocks = userStockData;  // Save user-specific stock data as an array
             } else {
               // Stocks exist but not for the current user_type
               crop.stocks = [{
                 stock_date: null,
-                current_stock: "",
-                unit: "Stock has not been updated yet",
-                owned_by: "No stock record found for the current user type"
+                current_stock: `Stock has not been updated yet for ${userType}`,
+                unit: "",
+                owned_by: `No stock record found for ${userType}`
               }];
             }
           } else {
             // `stocks` array is empty for all users
             crop.stocks = [{
               stock_date: null,
-              current_stock: "",
-              unit: "Stock has not been updated yet",
+              current_stock: "Stock has not been updated yet",
+              unit: "",
               owned_by: "No stock record found for any user type"
             }];
           }
@@ -138,11 +147,11 @@ async function fetchCrops() {
           // No stock data found at all
           crop.stocks = [{
             stock_date: null,
-            current_stock: "",
-            unit: "Stock has not been updated yet",
+            current_stock: "Stock has not been updated yet",
+            unit: "",
             owned_by: "No stock record found for any user type"
           }];
-        }        
+        }
         return crop;
       }));
 
@@ -157,7 +166,6 @@ async function fetchCrops() {
     console.error("Error fetching crops:", error);
   }
 }
-
 
 // Display crops in the table
 function displayCrops(cropsList) {
@@ -200,13 +208,10 @@ function displayCrops(cropsList) {
       : "Date not recorded";
       crop.stocks.forEach((stock) => {
       const currentStock = stock.current_stock || "";
-      const unit = stock.unit || "Units";
+      const unit = stock.unit || "";
       const owned_by = stock.owned_by || "Owner not Recorded";
 
       row.innerHTML = `
-        <td class="checkbox">
-            <input type="checkbox" data-crop-id="${cropTypeId}">
-        </td>
         <td>${cropTypeId}</td>
         <td>${cropType}</td>
         <td>${cropName}</td>
@@ -217,9 +222,7 @@ function displayCrops(cropsList) {
       tableBody.appendChild(row);
     });
   });
-  addCheckboxListeners();
   updatePagination();
-  toggleBulkDeleteButton();
 }
 // Initialize fetches when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
@@ -297,188 +300,6 @@ document.querySelector(".crop_select").addEventListener("change", function () {
   displayCrops(filteredCrops); // Update the table with filtered crops
 });
 
-
-
-// ---------------------------- CROP BULK DELETE CODES ---------------------------- //
-const deletemessage = document.getElementById("crop-bulk-message"); // delete message panel
-
-// CHECKBOX CHANGE EVENT HANDLER
-function handleCheckboxChange(event) {
-  const checkbox = event.target; // The checkbox that triggered the event
-  const row = checkbox.closest("tr"); // Get the row of the checkbox
-  if (!row) return;
-
-  // Get cropType ID from the data attribute
-  const cropTypeId = checkbox.getAttribute("data-crop-id");
-
-  if (checkbox.checked) {
-    // Add to selected list if checked
-    if (!selectedCrops.includes(cropTypeId)) {
-      selectedCrops.push(cropTypeId);
-    }
-  } else {
-    // Remove from list if unchecked
-    selectedCrops = selectedCrops.filter(item => item !== cropTypeId);
-  }
-
-  console.log("Selected Crops:", selectedCrops);
-  toggleBulkDeleteButton();
-}
-
-// Enable/Disable the Bulk Delete button
-function toggleBulkDeleteButton() {
-  const bulkDeleteButton = document.getElementById("crop-bulk-delete");
-  bulkDeleteButton.disabled = selectedCrops.length === 0;
-}
-
-// Attach event listener to checkboxes (after crops are displayed)
-function addCheckboxListeners() {
-  document.querySelectorAll(".crop_table input[type='checkbox']").forEach(checkbox => {
-    checkbox.addEventListener("change", handleCheckboxChange);
-  });
-}
-
-// <------------- BULK DELETE BUTTON CODE ---------------> //
-document.getElementById("crop-bulk-delete").addEventListener("click", async () => {
-  const selectedCheckboxes = document.querySelectorAll(".crop_table input[type='checkbox']:checked");
-
-  let selectedCropTypeIds = [];
-  let hasInvalidId = false;
-  let hasStocks = false;  // Flag to track if stocks exist
-
-  for (const checkbox of selectedCheckboxes) {
-      const cropTypeId = checkbox.getAttribute("data-crop-id");
-
-      // Validate cropTypeId (null, undefined, or empty string)
-      if (!cropTypeId || cropTypeId.trim() === "") {
-          hasInvalidId = true;
-          break;
-      }
-
-      /* Check if the cropType_id exists in the database */
-      try {
-          const q = query(collection(db, "tb_crop_types"), where("crop_type_id", "==", Number(cropTypeId)));
-          const querySnapshot = await getDocs(q);
-
-          if (querySnapshot.empty) {
-              hasInvalidId = true;
-              console.error(`ERROR: Crop ID ${cropTypeId} does not exist in the database.`);
-              break;
-          }
-
-          // Check if there are stocks for this crop_type_id by querying tb_crop_stock
-          const stockQuery = query(collection(db, "tb_crop_stock"), where("crop_type_id", "==", Number(cropTypeId)));
-          const stockSnapshot = await getDocs(stockQuery);
-
-          if (!stockSnapshot.empty) {
-              for (const stockDoc of stockSnapshot.docs) {
-                  const stocksArray = stockDoc.data().stocks;
-                  if (Array.isArray(stocksArray) && stocksArray.length > 0) {
-                      hasStocks = true;
-                      console.error(`ERROR: Crop ID ${cropTypeId} has stocks and cannot be deleted.`);
-                      break;
-                  }
-              }
-          }
-
-          if (hasStocks) break;  // Stop further checks if stocks are found
-
-          selectedCropTypeIds.push(cropTypeId);
-      } catch (error) {
-          console.error("Error fetching crop records or stocks:", error);
-          hasInvalidId = true;
-          break;
-      }
-  }
-
-  if (hasInvalidId) {
-      showDeleteMessage("ERROR: Crop ID of one or more selected records are invalid", false);
-  } else if (hasStocks) {
-      showDeleteMessage("ERROR: One or more selected crops have existing stocks", false);
-  } else {
-      document.getElementById("crop-bulk-panel").style.display = "block"; // Show confirmation panel
-  }
-});
-
-// Close the Bulk Delete Panel
-document.getElementById("cancel-crop-delete").addEventListener("click", () => {
-  document.getElementById("crop-bulk-panel").style.display = "none";
-});
-
-// Function to delete selected crops from both tb_crop_types and tb_crop_stock in Firestore
-async function deleteSelectedCrops() {
-  if (selectedCrops.length === 0) {
-    return;
-  }
-
-  try {
-    const cropsCollection = collection(db, "tb_crop_types");
-    const stocksCollection = collection(db, "tb_crop_stock");
-    const batch = writeBatch(db);  // Create a batch for efficient deletions
-
-    for (const cropTypeId of selectedCrops) {
-      // Delete from tb_crop_types
-      const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
-      const cropSnapshot = await getDocs(cropQuery);
-
-      if (!cropSnapshot.empty) {
-        for (const docSnapshot of cropSnapshot.docs) {
-          console.log("Deleting document ID from tb_crop_types:", docSnapshot.id);
-          batch.delete(doc(db, "tb_crop_types", docSnapshot.id));  // Add to batch
-        }
-      } else {
-        console.error(`ERROR: Crop ID ${cropTypeId} does not exist in tb_crop_types.`);
-      }
-
-      // Delete from tb_crop_stock
-      const stockQuery = query(stocksCollection, where("crop_type_id", "==", Number(cropTypeId)));
-      const stockSnapshot = await getDocs(stockQuery);
-
-      if (!stockSnapshot.empty) {
-        for (const stockDoc of stockSnapshot.docs) {
-          console.log("Deleting document ID from tb_crop_stock:", stockDoc.id);
-          batch.delete(doc(db, "tb_crop_stock", stockDoc.id));  // Add to batch
-        }
-      } else {
-        console.warn(`WARNING: No matching stocks found for Crop ID ${cropTypeId} in tb_crop_stock.`);
-      }
-    }
-
-    // Commit all deletions in a batch
-    await batch.commit();
-    console.log("Deleted Crops and Stocks:", selectedCrops);
-    showDeleteMessage("All selected Crop records and their stocks successfully deleted!", true);
-    selectedCrops = [];  // Clear selection AFTER successful deletion
-    document.getElementById("crop-bulk-panel").style.display = "none";
-    fetchCrops();  // Refresh the table
-
-  } catch (error) {
-    console.error("Error deleting crops or stocks:", error);
-    showDeleteMessage("Error deleting crops or stocks!", false);
-  }
-}
-
-// Confirm Deletion and Call Delete Function
-document.getElementById("confirm-crop-delete").addEventListener("click", () => {
-  deleteSelectedCrops();
-});
-
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
-const deleteMessage = document.getElementById("crop-bulk-message");
-
-function showDeleteMessage(message, success) {
-  deleteMessage.textContent = message;
-  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  deleteMessage.style.opacity = '1';
-  deleteMessage.style.display = 'block';
-
-  setTimeout(() => {
-    deleteMessage.style.opacity = '0';
-    setTimeout(() => {
-      deleteMessage.style.display = 'none';
-    }, 300);
-  }, 4000);
-}
 // Search bar event listener for real-time filtering
 document.getElementById("crop-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
