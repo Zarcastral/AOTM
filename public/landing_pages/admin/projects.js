@@ -390,6 +390,62 @@ async function loadEquipmentNames() {
   }
 }
 
+document
+  .getElementById("add-equipment-btn")
+  .addEventListener("click", function () {
+    const equipmentNameSelect = document.getElementById(
+      "equipment-name-select"
+    );
+    const quantityInput = document.getElementById("equipment-quantity");
+    const equipmentList = document.getElementById("equipment-list");
+
+    const selectedEquipment = equipmentNameSelect.value;
+    const quantity = quantityInput.value;
+
+    if (!selectedEquipment || quantity <= 0) {
+      alert("Please select equipment and enter a valid quantity.");
+      return;
+    }
+
+    // Create list item
+    const listItem = document.createElement("li");
+    listItem.textContent = `${selectedEquipment}, ${quantity}`;
+
+    // Append to the list
+    equipmentList.appendChild(listItem);
+
+    // Clear input fields for next entry
+    equipmentNameSelect.value = "";
+    quantityInput.value = "";
+  });
+
+document
+  .getElementById("save-equipment-btn")
+  .addEventListener("click", function () {
+    const equipmentList = document.getElementById("equipment-list");
+    const equipmentTextarea = document.getElementById("equipment-textarea");
+
+    // Collect all listed equipment
+    const equipmentItems = [];
+    equipmentList.querySelectorAll("li").forEach((li) => {
+      equipmentItems.push(li.textContent);
+    });
+
+    if (equipmentItems.length === 0) {
+      alert("No equipment to save.");
+      return;
+    }
+
+    // Display in textarea
+    equipmentTextarea.value = equipmentItems.join("\n");
+
+    // Clear inputs and list
+    document.getElementById("equipment-type-select").value = "";
+    document.getElementById("equipment-name-select").value = "";
+    document.getElementById("equipment-quantity").value = "";
+    equipmentList.innerHTML = ""; // Clear list
+  });
+
 window.loadFertilizers = async function () {
   const selectedType = document.getElementById("fertilizer-category").value;
   const fertilizerSelect = document.getElementById("fertilizer-type");

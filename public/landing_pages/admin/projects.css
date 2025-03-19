@@ -1,252 +1,277 @@
 body {
-    font-family: 'Poppins';
-    background-color: #f4f4f4;
-    padding: 20px;
+  font-family: "Poppins";
+  background-color: #f4f4f4;
+  padding: 20px;
 }
 .container {
-    max-width: 600px;
-    margin: auto;
+  max-width: 600px;
+  margin: auto;
 }
 .panel {
-    background-color: white;
-    padding: 20px;
-    margin-bottom: 50px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 800px; 
-    margin-left: -50px;
+  background-color: white;
+  padding: 20px;
+  margin-bottom: 50px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 800px;
+  margin-left: -50px;
 }
-.panel2{
-    background-color: white;
-    padding: 20px;
-    margin-bottom: 50px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 800px; 
-    margin-left: -50px;
-
+.panel2 {
+  background-color: white;
+  padding: 20px;
+  margin-bottom: 50px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 800px;
+  margin-left: -50px;
 }
 .panel h2 {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 .form-group {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 .form-group label {
-    display: block;
-    margin-bottom: 5px;
+  display: block;
+  margin-bottom: 5px;
 }
 .form-group1 label {
-    display: block;
-    margin-bottom: 5px;
+  display: block;
+  margin-bottom: 5px;
 }
 
 .form-group3 select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 .form-group1 select {
-    width: 92.5%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+  width: 92.5%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 .form-group1 input,
-.form-group input, .form-group select {
-    width: 90%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+.form-group input,
+.form-group select {
+  width: 90%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 .form-group2 select {
-    width: 98%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+  width: 98%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 .form-group2 input {
-    width: 156%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+  width: 156%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
-.form-group select:disabled, .form-group input:disabled {
-    background-color: #f0f0f0;
+.form-group select:disabled,
+.form-group input:disabled {
+  background-color: #f0f0f0;
 }
 .inline-group {
-    display: flex;
-    gap: 199px;
-    margin-left: 50px;
+  display: flex;
+  gap: 199px;
+  margin-left: 50px;
 }
 .inline-group4 {
-    gap: 210px;
-    margin-left: 50px;
+  gap: 210px;
+  margin-left: 50px;
 }
 .inline-group2 {
-    display: flex;
-    gap: 10px;
-    flex-direction: column;
-    margin-left: 50px;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  margin-left: 50px;
 }
 
 .inline-group3 {
-    display: flex;
-    gap: 10px;
-    align-items: center; /* Ensures everything aligns in one line */
-    flex-wrap: nowrap; /* Prevents elements from moving to the next line */
-    width: 100%;
-    margin-left: 50px;
+  display: flex;
+  gap: 10px;
+  align-items: center; /* Ensures everything aligns in one line */
+  flex-wrap: nowrap; /* Prevents elements from moving to the next line */
+  width: 100%;
+  margin-left: 50px;
 }
 
 .form-group3 {
-    flex: 1.5; /* Gives Crop Type & Fertilizer Type more space */
+  flex: 1.5; /* Gives Crop Type & Fertilizer Type more space */
 }
 
 .form-group4 {
-    flex: 1; /* Ensures Quantity & Unit stay aligned */
-    display: flex;
-    flex-direction: column; /* Keeps label above input */
-    margin-left: 10px;
+  flex: 1; /* Ensures Quantity & Unit stay aligned */
+  display: flex;
+  flex-direction: column; /* Keeps label above input */
+  margin-left: 10px;
 }
 
 .form-group5 {
-    flex: 1; /* Ensures Quantity & Unit stay aligned */
-    display: flex;
-    flex-direction: column; /* Keeps label above input */
-    margin-left: -80px;
+  flex: 1; /* Ensures Quantity & Unit stay aligned */
+  display: flex;
+  flex-direction: column; /* Keeps label above input */
+  margin-left: -80px;
 }
 .form-group3 select {
-    width: 100%; /* Prevents it from overflowing */
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+  width: 100%; /* Prevents it from overflowing */
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 .form-group4 input {
-    width: 55.5%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    
+  width: 55.5%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 .form-group5 input {
-    width: 50%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    
+  width: 50%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 .inline-group .form-group {
-    flex: 1;
+  flex: 1;
 }
 .button-group {
-    display: flex;
-    gap: 10px;
-    margin-left: 473px;
-
+  display: flex;
+  gap: 10px;
+  margin-left: 473px;
 }
 .cancel {
-    background-color: #ccc;
-    border: none;
-    padding: 10px 60px;
-    border-radius: 5px;
-    cursor: pointer;
+  background-color: #ccc;
+  border: none;
+  padding: 10px 60px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 .save {
-    background-color: #41A186;
-    color: white;
-    border: none;
-    padding: 10px 60px;
-    border-radius: 5px;
-    cursor: pointer;
+  background-color: #41a186;
+  color: white;
+  border: none;
+  padding: 10px 60px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
- /* Equipment Form Styling */
- .equipment-form-group {
-    margin-bottom: 16px;
+/* Equipment Form Styling */
+.equipment-form-group {
+  margin-bottom: 16px;
 }
 
 #equipment-textarea {
-    width: 100%;
-    height: 100px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+  width: 100%;
+  height: 100px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 #open-equipment-popup {
-    display: block;
-    margin-top: 8px;
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  display: block;
+  margin-top: 8px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 #open-equipment-popup:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
 /* Popup Modal Styling */
 .popup-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
 }
 
 .popup-box {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    width: 300px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .popup-title {
-    margin-bottom: 12px;
-    font-size: 18px;
-    font-weight: bold;
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .popup-select {
-    width: 100%;
-    margin: 10px 0;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+  width: 100%;
+  margin: 10px 0;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .popup-button {
-    margin-top: 12px;
-    padding: 8px 15px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  margin-top: 12px;
+  padding: 8px 15px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .popup-button:hover {
-    background-color: #c82333;
+  background-color: #c82333;
+}
+
+.equipment-input-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.popup-select,
+.popup-input {
+  padding: 8px;
+  font-size: 14px;
+}
+
+.popup-button {
+  margin-top: 10px;
+  padding: 8px 15px;
+  font-size: 14px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.popup-button:hover {
+  background-color: #45a049;
 }
