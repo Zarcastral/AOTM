@@ -2,7 +2,6 @@ import {
   EmailAuthProvider,
   getAuth,
   reauthenticateWithCredential,
-  updateEmail,
   verifyBeforeUpdateEmail,
 } from "firebase/auth";
 import {
@@ -14,6 +13,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import { toggleLoadingIndicator } from "../../../src/auth/loading.js"; // Import loading indicator
 import app from "../../../src/config/firebase_config.js"; // Import Firebase config
 
 const auth = getAuth(app);
@@ -63,17 +63,17 @@ async function updateFirestoreEmail(oldEmail, newEmail) {
     const userSnapshot = await getDocs(userQuery);
 
     if (!userSnapshot.empty) {
-      userSnapshot.forEach(async (docSnap) => {
+      for (const docSnap of userSnapshot.docs) {
         const userDocRef = doc(db, collectionName, docSnap.id);
         await updateDoc(userDocRef, { email: newEmail });
         console.log(`Email updated in ${collectionName}.`);
-        alert(`Your email has been successfully updated in ${collectionName}.`);
-      });
+      }
       return true;
     } else {
       console.warn(
         `No user found in ${collectionName} with email ${oldEmail}.`
       );
+      alert("No matching user found in Firestore.");
       return false;
     }
   } catch (error) {
@@ -81,6 +81,19 @@ async function updateFirestoreEmail(oldEmail, newEmail) {
     alert("Error updating Firestore email: " + error.message);
     return false;
   }
+}
+
+// Function to log out the user using logout.js logic
+function logoutUser() {
+  window.parent.postMessage("closeIframe", "*");
+
+  setTimeout(() => {
+    toggleLoadingIndicator(true);
+    setTimeout(() => {
+      sessionStorage.clear();
+      window.top.location.href = "../../index.html";
+    }, 1500);
+  }, 500);
 }
 
 // Event listener for form submission
@@ -104,7 +117,7 @@ document
     const reauthenticated = await reauthenticateUser(currentPassword);
     if (!reauthenticated) return;
 
-    // Step 2: Update Firestore email **before** changing it in Firebase Auth
+    // Step 2: Update Firestore email before sending verification email
     const firestoreUpdated = await updateFirestoreEmail(oldEmail, newEmail);
     if (!firestoreUpdated) {
       alert("Failed to update email in Firestore. Please try again.");
@@ -116,14 +129,15 @@ document
       await verifyBeforeUpdateEmail(user, newEmail);
       console.log("Verification email sent!");
       alert(
-        "A verification email has been sent to your new email. Please check your inbox and confirm it."
+        "A verification email has been sent to your new email. Please check your inbox and confirm it.\n\n" +
+          "Once you verify your new email, you can log in using it.\n\n" +
+          "You will now be logged out."
       );
 
-      // Step 4: Update email in Firebase Authentication
-      await updateEmail(user, newEmail);
-      console.log("Email successfully updated in Firebase Authentication!");
+      // Step 4: Log the user out using the function from logout.js
+      logoutUser();
     } catch (error) {
-      console.error("Error updating email:", error.message);
+      console.error("Error sending verification email:", error.message);
       alert("Error: " + error.message);
     }
   });
