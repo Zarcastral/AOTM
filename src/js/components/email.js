@@ -13,8 +13,8 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { toggleLoadingIndicator } from "../../../src/auth/loading.js"; // Import loading indicator
-import app from "../../../src/config/firebase_config.js"; // Import Firebase config
+import { toggleLoadingIndicator } from "../../auth/loading.js"; // Import loading indicator
+import app from "../../config/firebase_config.js"; // Import Firebase config
 
 const auth = getAuth(app);
 const db = getFirestore(app);
