@@ -269,14 +269,17 @@ window.loadFertilizerTypes = async function (selectedFertilizer) {
 };
 
 //EQUIPMENT
-document.getElementById("open-equipment-popup").addEventListener("click", function () {
-  document.getElementById("equipment-popup").style.display = "flex";
-});
+document
+  .getElementById("open-equipment-popup")
+  .addEventListener("click", function () {
+    document.getElementById("equipment-popup").style.display = "flex";
+  });
 
-document.getElementById("close-equipment-popup").addEventListener("click", function () {
-  document.getElementById("equipment-popup").style.display = "none";
-});
-
+document
+  .getElementById("close-equipment-popup")
+  .addEventListener("click", function () {
+    document.getElementById("equipment-popup").style.display = "none";
+  });
 
 async function loadEquipmentTypes() {
   const equipmentTypeSelect = document.getElementById("equipment-type-select");
@@ -287,71 +290,105 @@ async function loadEquipmentTypes() {
   console.log(`📌 Session User Type: ${sessionUserType}`); // ✅ Logs session user type
 
   try {
-      const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
-      const equipmentTypes = new Set();
+    const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
+    const equipmentTypes = new Set();
 
-      querySnapshot.forEach((doc) => {
-          const data = doc.data();
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
 
-          // Check if `stocks` exists and has at least one entry
-          if (Array.isArray(data.stocks) && data.stocks.length > 0) {
-              // Iterate through all stock entries (not just index 0)
-              data.stocks.forEach((stockItem, index) => {
-                  if (stockItem.owned_by === sessionUserType) {
-                      console.log(`✅ Match Found! Doc ${doc.id} | Index ${index} | owned_by: ${stockItem.owned_by}`);
+      // Check if `stocks` exists and has at least one entry
+      if (Array.isArray(data.stocks) && data.stocks.length > 0) {
+        data.stocks.forEach((stockItem, index) => {
+          if (stockItem.owned_by === sessionUserType) {
+            console.log(
+              `✅ Match Found! Doc ${doc.id} | Index ${index} | owned_by: ${stockItem.owned_by}`
+            );
 
-                      if (data.equipment_type) {
-                          equipmentTypes.add(data.equipment_type);
-                      }
-                  }
-              });
+            if (data.equipment_type) {
+              equipmentTypes.add(data.equipment_type);
+            }
           }
-      });
-
-      // Populate dropdown
-      equipmentTypeSelect.innerHTML = `<option value="">Select Type</option>`;
-      equipmentTypes.forEach((type) => {
-          equipmentTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
-      });
-
-      if (equipmentTypes.size === 0) {
-          console.log("⚠️ No matching equipment types found.");
-          equipmentTypeSelect.innerHTML = `<option value="">No Equipment Available</option>`;
+        });
       }
+    });
+
+    // Populate dropdown
+    equipmentTypeSelect.innerHTML = `<option value="">Select Type</option>`;
+    equipmentTypes.forEach((type) => {
+      equipmentTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
+    });
+
+    if (equipmentTypes.size === 0) {
+      console.log("⚠️ No matching equipment types found.");
+      equipmentTypeSelect.innerHTML = `<option value="">No Equipment Available</option>`;
+    }
   } catch (error) {
-      console.error("❌ Error fetching equipment types:", error);
-      equipmentTypeSelect.innerHTML = `<option value="">Error Loading</option>`;
+    console.error("❌ Error fetching equipment types:", error);
+    equipmentTypeSelect.innerHTML = `<option value="">Error Loading</option>`;
   }
 }
 
-//CHANGE THIS INTO A SEARCH BAR, SEE IF A COMBOBOX CAN MULTI SELECT
+// Event listener to store selected equipment_type
+document
+  .getElementById("equipment-type-select")
+  .addEventListener("change", function () {
+    const selectedEquipmentType = this.value;
+    sessionStorage.setItem("selected_equipment_type", selectedEquipmentType);
+    console.log(`✅ Stored selected equipment type: ${selectedEquipmentType}`);
+
+    // After selecting equipment type, load equipment names
+    loadEquipmentNames();
+  });
+
+// Function to retrieve selected equipment type
+function getSelectedEquipmentType() {
+  return sessionStorage.getItem("selected_equipment_type") || "";
+}
+
+// Function to load equipment names based on selected equipment type
 async function loadEquipmentNames() {
   const equipmentNameSelect = document.getElementById("equipment-name-select");
   equipmentNameSelect.innerHTML = `<option value="">Loading...</option>`;
 
+  // Get the selected equipment type
+  const selectedEquipmentType = getSelectedEquipmentType();
+
+  // Only proceed if an equipment type is selected
+  if (!selectedEquipmentType) {
+    equipmentNameSelect.innerHTML = `<option value="">Please select an equipment type first</option>`;
+    return; // Exit the function if no equipment type is selected
+  }
+
+  console.log(`📌 Selected Equipment Type: ${selectedEquipmentType}`); // ✅ Logs the selected equipment type
+
   try {
-      const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
-      let options = `<option value="">Select Equipment</option>`;
+    const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
+    let options = `<option value="">Select Equipment</option>`;
 
-      querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          console.log(`📄 Fetched doc (${doc.id}):`, data); // ✅ Logs document data
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      console.log(`📄 Fetched doc (${doc.id}):`, data); // ✅ Logs document data
 
-          if (data.equipment_name) {
-              options += `<option value="${data.equipment_name}">${data.equipment_name}</option>`;
-          }
-      });
+      // If the equipment_type matches the selected equipment type, show the equipment_name
+      if (
+        data.equipment_type === selectedEquipmentType &&
+        data.equipment_name
+      ) {
+        options += `<option value="${data.equipment_name}">${data.equipment_name}</option>`;
+      }
+    });
 
-      equipmentNameSelect.innerHTML = options;
+    // If no equipment is found for the selected type
+    if (options === `<option value="">Select Equipment</option>`) {
+      options = `<option value="">No Equipment Available</option>`;
+    }
+
+    equipmentNameSelect.innerHTML = options;
   } catch (error) {
-      console.error("❌ Error fetching equipment names:", error);
-      equipmentNameSelect.innerHTML = `<option value="">Error Loading</option>`;
+    console.error("❌ Error fetching equipment names:", error);
+    equipmentNameSelect.innerHTML = `<option value="">Error Loading</option>`;
   }
 }
-
-
-
-
 
 window.loadFertilizers = async function () {
   const selectedType = document.getElementById("fertilizer-category").value;
@@ -446,7 +483,6 @@ window.loadFertilizers = async function () {
 document
   .getElementById("fertilizer-category")
   .addEventListener("change", (e) => loadFertilizers(e.target.value));
-
 
 window.getNextProjectID = async function () {
   const counterRef = doc(db, "tb_id_counters", "projects_id_counter");
@@ -582,10 +618,6 @@ window.saveProject = async function () {
       );
       return;
     }
-
-
-
-
 
     // Fetch the email of the selected farm president from tb_farmers collection using first_name
     const farmersRef = collection(db, "tb_farmers");
