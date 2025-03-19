@@ -169,6 +169,7 @@ function fetchArchive(filter = {}) {
             const archiveDocument = (data.document_type || "").toLowerCase();
             const documentId = (data.crop_type_id || "");
             const archiveId = (data.archive_id || ""); // Fetch the archive_id field
+            const documentName = (data.document_name || ""); // Fetch the archive_id field
 
             const archivedBy = data.archived_by || {};
             const userName = (archivedBy.user_name || "").toLowerCase();
@@ -183,7 +184,8 @@ function fetchArchive(filter = {}) {
             const matchesUserType = selectedUserType ? userType === selectedUserType : true;
 
             if (matchesSearch && matchesUser && matchesDocumentType && matchesUserType) {
-                archiveRecords.push({ id: doc.id, archive_id: archiveId, ...data, archive_date: archiveDate, user_name: archivedBy.user_name, user_type: archivedBy.user_type });
+                archiveRecords.push({ id: doc.id, archive_id: archiveId, ...data, archive_date: archiveDate,
+                    user_name: archivedBy.user_name, user_type: archivedBy.user_type, documentName: archivedBy.document_name});
             }
         });
 
@@ -222,12 +224,12 @@ function displayArchiveRecords() {
             <td>${archive.archive_time || "N/A"}</td>
             <td>${archive.user_name || "N/A"}</td>
             <td>${archive.user_type || "N/A"}</td>
-            <td>${archive.crop_type_id || "N/A"}</td>
+            <td>${archive.crop_type_id || archive.email}</td>
             <td>${capitalizeWords(archive.document_type || "N/A")}</td>
-            <td>${archive.crop_type_name}</td>
+            <td>${archive.document_name}</td>
             <td>
-                <button class="action-btn restore-btn" data-id="${archive.archive_id}" title="restore">
-                    <img src="../../images/eye.png" alt="restore">
+                <button class="action-btn restore-btn" data-id="${archive.archive_id}" title="Restore Document">
+                    <img src="../../images/restore.png" alt="restore">
                 </button>
             </td>
         `;
@@ -288,18 +290,18 @@ function toggleBulkDeleteButton() {
         bulkDeleteBtn.disabled = true;
     }
 }
-
+let selectedUserTypeLogId = null;
 // <------------- Checkbox Change Event Listener -------------> 
 tableBody.addEventListener("change", (event) => {
     if (event.target.classList.contains("checkbox")) {
-        const activityLogId = event.target.getAttribute("data-id");
+        const archiveId = event.target.getAttribute("data-id");
         toggleBulkDeleteButton();
         if (event.target.checked) {
-            selectedUserTypeLogId = activityLogId;
-            console.log("Selected activityLogId: ", activityLogId);
+            selectedUserTypeLogId = archiveId;
+            console.log("Selected archiveId: ", archiveId);
         } else {
             selectedUserTypeLogId = null;
-            console.log("Selected activityLogId: ", "activityLogId Unselected");
+            console.log("Selected archiveId: ", "archiveId Unselected");
 
         }
     }
@@ -347,16 +349,16 @@ deleteSelectedBtn.addEventListener("click", async () => {
     let hasInvalidId = false;
 
     for (const checkbox of selectedCheckboxes) {
-        const activityLogId = checkbox.getAttribute("data-id");
+        const archiveId = checkbox.getAttribute("data-id");
 
-        // Validate activityLogId (null, undefined, or empty string)
-        if (!activityLogId || activityLogId.trim() === "") {
+        // Validate archiveId (null, undefined, or empty string)
+        if (!archiveId || archiveId.trim() === "") {
             hasInvalidId = true;
             break;
         }
 
         try {
-            const q = query(collection(db, "tb_activity_log"), where("activity_log_id", "==", Number(activityLogId)));
+            const q = query(collection(db, "tb_archive"), where("archive_id", "==", Number(archiveId)));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
@@ -364,16 +366,16 @@ deleteSelectedBtn.addEventListener("click", async () => {
                 break;
             }
 
-            idsToDelete.push(activityLogId);
+            idsToDelete.push(archiveId);
         } catch (error) {
-            console.error("Error fetching activity log records:", error);
+            console.error("Error fetching archive log records:", error);
             hasInvalidId = true;
             break;
         }
     }
 
     if (hasInvalidId) {
-        showDeleteMessage("ERROR: activityLogId of one or more selected records are invalid", false);
+        showDeleteMessage("ERROR: archiveId of one or more selected records are invalid", false);
     } else {
         bulkDeletePanel.classList.add("show");
     }
@@ -381,14 +383,14 @@ deleteSelectedBtn.addEventListener("click", async () => {
 
 confirmDeleteBtn.addEventListener("click", async () => {
     try {
-        for (const activityLogId of idsToDelete) {
-            const q = query(collection(db, "tb_activity_log"), where("activity_log_id", "==", Number(activityLogId)));
+        for (const archiveId of idsToDelete) {
+            const q = query(collection(db, "tb_archive"), where("archive_id", "==", Number(archiveId)));
             const querySnapshot = await getDocs(q);
 
             for (const docSnapshot of querySnapshot.docs) {
-                const docRef = doc(db, "tb_activity_log", docSnapshot.id);
+                const docRef = doc(db, "tb_archive", docSnapshot.id);
                 await deleteDoc(docRef);
-                console.log(`Log with activityLogId of ${activityLogId} deleted.`);
+                console.log(`Log with archiveId of ${archiveId} deleted.`);
             }
         }
 
@@ -470,7 +472,6 @@ confirmRestoreBtn.addEventListener("click", async () => {
                 const docRef = doc(db, "tb_archive", docSnapshot.id);
 
                 let targetCollection = "";
-
                 if (docData.document_type === "Inventory") {
                     if (docData.crop_type_id) {
                         targetCollection = "tb_crop_types";
@@ -483,6 +484,10 @@ confirmRestoreBtn.addEventListener("click", async () => {
                     } else if (docData.fertilizer_id) {
                         targetCollection = "tb_fertilizer_stock";
                     }
+                } else if (docData.document_type === "User Account") {
+                    targetCollection = "tb_users";
+                } else if (docData.document_type === "Farmer Account") {
+                    targetCollection = "tb_farmers";
                 }
 
                 if (targetCollection) {

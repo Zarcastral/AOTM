@@ -55,8 +55,29 @@ async function getAuthenticatedUser() {
     });
   });
 }
+// <-----------------------ACTIVITY LOG CODE----------------------------->
+/*
+      ACTIVITY LOG RECORD FORMAT
+      await saveActivityLog("Update", `Added ${cropStock} ${unit} of stock for ${cropTypeName} by ${userType}`);
+      await saveActivityLog("Delete", `Deleted ${cropStock} ${unit} of stock for ${cropTypeName} from ${userType} Inventory`);
+      await saveActivityLog("Create", `Deleted ${cropStock} ${unit} of stock for ${cropTypeName} from ${userType} Inventory`);
+*/
+async function saveActivityLog(action, description) {
+  // Define allowed actions
+  const allowedActions = ["Create", "Update", "Delete"];
+  
+  // Validate action
+  if (!allowedActions.includes(action)) {
+    console.error("Invalid action. Allowed actions are: create, update, delete.");
+    return;
+  }
 
-async function saveActivityLog(action) {
+  // Ensure description is provided
+  if (!description || typeof description !== "string") {
+    console.error("Activity description is required and must be a string.");
+    return;
+  }
+
   // Use onAuthStateChanged to wait for authentication status
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -96,11 +117,12 @@ async function saveActivityLog(action) {
         await updateDoc(counterDocRef, { value: newCounter });
 
         // Use the incremented counter as activity_log_id
-        const docRef = await addDoc(activityLogCollection, {
+        await addDoc(activityLogCollection, {
           activity_log_id: newCounter, // Use counter instead of a placeholder
           username: userName,
           user_type: userType,
           activity: action,
+          activity_desc: description, // Add descriptive message
           date: date,
           time: time
         });
@@ -114,6 +136,9 @@ async function saveActivityLog(action) {
     }
   });
 }
+
+// <-----------------------ACTIVITY LOG CODE----------------------------->
+
 
 let equipmentsList = []; // Declare equipmentsList globally for filtering
 let filteredEquipments = equipmentsList; // Declare a variable for filtered equipments
@@ -634,7 +659,8 @@ async function saveStock() {
       }
 
       // ✅ Save activity log
-      await saveActivityLog("update", `Added ${equipmentStock} stock for ${equipmentName} by ${userType}`);
+      await saveActivityLog("Update", `Added ${equipmentStock} ${unit} of stock for ${equipmentName} by ${userType}`);
+
       showEquipmentStockMessage("Equipment Stock has been added successfully!", true);
       closeStockPanel();
 
@@ -731,7 +757,8 @@ async function deleteStock() {
           equipment_type: equipmentType // Ensure equipment_type is saved
       });
 
-      await saveActivityLog("delete", `Deleted ${equipmentStock} of ${equipmentType} for ${userType}`);
+      await saveActivityLog("Delete", `Deleted ${equipmentStock} ${unit} of stock for ${equipmentName} from ${userType} Inventory`);
+
       showEquipmentStockMessage("Equipment Stock has been deleted successfully!", true);
       closeStockPanel();
 

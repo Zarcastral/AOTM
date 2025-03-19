@@ -24,10 +24,16 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchCrops();
   addCropStock();
 });
-
+// <-----------------------ACTIVITY LOG CODE----------------------------->
+/*
+      ACTIVITY LOG RECORD FORMAT
+      await saveActivityLog("Update", `Added ${cropStock} ${unit} of stock for ${cropTypeName} by ${userType}`);
+      await saveActivityLog("Delete", `Deleted ${cropStock} ${unit} of stock for ${cropTypeName} from ${userType} Inventory`);
+      await saveActivityLog("Create", `Deleted ${cropStock} ${unit} of stock for ${cropTypeName} from ${userType} Inventory`);
+*/
 async function saveActivityLog(action, description) {
   // Define allowed actions
-  const allowedActions = ["create", "update", "delete"];
+  const allowedActions = ["Create", "Update", "Delete"];
   
   // Validate action
   if (!allowedActions.includes(action)) {
@@ -99,6 +105,8 @@ async function saveActivityLog(action, description) {
     }
   });
 }
+
+// <-----------------------ACTIVITY LOG CODE----------------------------->
 
 let cropsList = []; // Declare cropsList globally for filtering
 let currentPage = 1;
@@ -667,7 +675,7 @@ async function saveStock() {
       }
 
       // ✅ Save activity log
-      await saveActivityLog("update", `Added ${cropStock} stock for ${cropTypeName} by ${userType}`);
+      await saveActivityLog("Update", `Added ${cropStock} ${unit} of stock for ${cropTypeName} by ${userType}`);
       showCropStockMessage("Crop Stock has been added successfully!", true);
       closeStockPanel();
 
@@ -765,8 +773,8 @@ async function deleteStock() {
           crop_type_name: cropTypeName // Ensure crop_type_name is saved
       });
 
-      await saveActivityLog("delete", `Deleted ${cropStock} of ${cropTypeName} for ${userType}`);
-      showCropStockMessage("Crop Stock has been deleted successfully!", true);
+      await saveActivityLog("Delete", `Deleted ${cropStock} ${unit} of stock for ${cropTypeName} from ${userType} Inventory`);
+      showCropStockMessage("Crop Stock has been Deleted successfully!", true);
       closeStockPanel();
 
   } catch (error) {

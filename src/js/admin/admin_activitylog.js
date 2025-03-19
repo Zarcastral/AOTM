@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Populate user dropdown and maintain filtering consistency
 async function fetchUsers() {
     try {
-        const querySnapshot = await getDocs(collection(db, "tb_users"));
+        const querySnapshot = await getDocs(collection(db, "tb_activity_log"));
         const userSelect = document.getElementById("user-select");
         let addedUsernames = new Set();
 
@@ -45,7 +45,7 @@ async function fetchUsers() {
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const userName = data.user_name;
+            const userName = data.username;
 
             if (userName && !addedUsernames.has(userName.toLowerCase())) {
                 addedUsernames.add(userName.toLowerCase());
@@ -203,21 +203,42 @@ function toggleBulkDeleteButton() {
     }
 }
 
-// <------------- Checkbox Change Event Listener -------------> 
-tableBody.addEventListener("change", (event) => {
-    if (event.target.classList.contains("checkbox")) {
-        const activityLogId = event.target.getAttribute("data-id");
-        toggleBulkDeleteButton();
-        if (event.target.checked) {
-            selectedActivityLogId = activityLogId;
-            console.log("Selected activityLogId: ", activityLogId);
-        } else {
-            selectedActivityLogId = null;
-            console.log("Selected activityLogId: ", "activityLogId Unselected");
+let lastChecked = null;
 
+// <------------- Checkbox Change Event Listener -------------> 
+tableBody.addEventListener("click", (event) => {
+    // Ensure the event only listens for checkboxes
+    if (event.target.matches("input[type='checkbox'].checkbox")) {
+        const checkboxes = Array.from(tableBody.querySelectorAll("input[type='checkbox'].checkbox"));
+
+        if (event.shiftKey && lastChecked) {
+            const start = checkboxes.indexOf(lastChecked);
+            const end = checkboxes.indexOf(event.target);
+
+            const range = [start, end].sort((a, b) => a - b);
+
+            // Apply the state of the last clicked checkbox to the range
+            const isChecked = lastChecked.checked;
+
+            for (let i = range[0]; i <= range[1]; i++) {
+                checkboxes[i].checked = isChecked;
+            }
         }
+
+        lastChecked = event.target;
+
+        // Toggle bulk delete button
+        toggleBulkDeleteButton();
+
+        // Log selected activity log IDs
+        const selectedIds = checkboxes
+            .filter(cb => cb.checked)
+            .map(cb => cb.getAttribute("data-id"));
+
+        console.log("Selected IDs: ", selectedIds);
     }
 });
+
 
 function updatePagination() {
     const totalPages = Math.ceil(activityLogs.length / rowsPerPage) || 1;
@@ -260,8 +281,12 @@ const confirmDeleteBtn = document.getElementById("confirm-bulk-delete");
 const cancelDeleteBtn = document.getElementById("cancel-bulk-delete");
 const deleteMessage = document.getElementById("delete-message");
 let idsToDelete = [];
+let isDeleting = false;  // Flag to prevent multiple clicks
 
 deleteSelectedBtn.addEventListener("click", async () => {
+    if (isDeleting) return;  // Prevent multiple clicks
+    isDeleting = true;        // Set flag to true
+
     const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
 
     idsToDelete = [];
@@ -270,7 +295,6 @@ deleteSelectedBtn.addEventListener("click", async () => {
     for (const checkbox of selectedCheckboxes) {
         const activityLogId = checkbox.getAttribute("data-id");
 
-        // Validate activityLogId (null, undefined, or empty string)
         if (!activityLogId || activityLogId.trim() === "") {
             hasInvalidId = true;
             break;
@@ -298,9 +322,14 @@ deleteSelectedBtn.addEventListener("click", async () => {
     } else {
         bulkDeletePanel.classList.add("show");
     }
+
+    isDeleting = false;  // Reset flag
 });
 
 confirmDeleteBtn.addEventListener("click", async () => {
+    if (isDeleting) return;  // Prevent multiple clicks
+    isDeleting = true;        // Set flag to true
+
     try {
         for (const activityLogId of idsToDelete) {
             const q = query(collection(db, "tb_activity_log"), where("activity_log_id", "==", Number(activityLogId)));
@@ -309,7 +338,7 @@ confirmDeleteBtn.addEventListener("click", async () => {
             for (const docSnapshot of querySnapshot.docs) {
                 const docRef = doc(db, "tb_activity_log", docSnapshot.id);
                 await deleteDoc(docRef);
-                console.log(`Log with activityLogId of ${activityLogId} deleted.`);
+                console.log(`Log with activityLogId of ${activityLogId} deleted.`);  // Only one log per deletion
             }
         }
 
@@ -321,6 +350,7 @@ confirmDeleteBtn.addEventListener("click", async () => {
     }
 
     bulkDeletePanel.classList.remove("show");
+    isDeleting = false;  // Reset flag
 });
 
 cancelDeleteBtn.addEventListener("click", () => {
