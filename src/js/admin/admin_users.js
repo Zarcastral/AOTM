@@ -151,61 +151,70 @@ function fetch_user_accounts(filter = {}) {
     const q = collection(db, "tb_users");
 
     onSnapshot(q, async (querySnapshot) => {
-        userAccounts = [];
+        // Clear the array only once before processing the snapshot
+        const userAccountsTemp = [];
         const missingUsernames = [];
 
-        for (const doc of querySnapshot.docs) {
+        // Use Promise.all to wait for all doc existence checks in parallel
+        const promises = querySnapshot.docs.map(async (doc) => {
             const data = doc.data();
+            
+            try {
+                // Check if the document still exists
+                const docRef = doc.ref;
+                const docSnap = await getDoc(docRef);
 
-            // Check if the document exists (prevents processing deleted ones)
-            const docRef = doc.ref;
-            const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    console.warn(`User data not found in tb_users: ${data.user_name || "Unknown User"}`);
+                    return;
+                }
 
-            if (!docSnap.exists()) {
-                console.warn(`User data not found in tb_users: ${data.user_name || "Unknown User"}`);
-                continue;  // Skip if the document no longer exists
+                const searchTerm = filter.search?.toLowerCase();
+
+                const matchesSearch = searchTerm
+                    ? `${data.first_name || ""} ${data.middle_name || ""} ${data.last_name || ""}`
+                          .toLowerCase()
+                          .includes(searchTerm) ||
+                      (data.user_name || "").toLowerCase().includes(searchTerm) ||
+                      (data.barangay_name || "").toLowerCase().includes(searchTerm) ||
+                      (data.user_type || "").toLowerCase().includes(searchTerm)
+                    : true;
+
+                const matchesBarangay = filter.barangay_name
+                    ? (data.barangay_name || "").toLowerCase() === filter.barangay_name.toLowerCase()
+                    : true;
+
+                if (matchesSearch && matchesBarangay) {
+                    userAccountsTemp.push({ id: doc.id, ...data });
+                }
+            } catch (error) {
+                console.error(`Error processing document: ${doc.id}`, error);
             }
+        });
 
-            const searchTerm = filter.search?.toLowerCase();
-
-            const matchesSearch = searchTerm
-                ? `${data.first_name || ""} ${data.middle_name || ""} ${data.last_name || ""}`
-                      .toLowerCase()
-                      .includes(searchTerm) ||
-                  (data.user_name || "").toLowerCase().includes(searchTerm) ||
-                  (data.barangay_name || "").toLowerCase().includes(searchTerm) ||
-                  (data.user_type || "").toLowerCase().includes(searchTerm)
-                : true;
-
-            const matchesBarangay = filter.barangay_name
-                ? (data.barangay_name || "").toLowerCase() === filter.barangay_name.toLowerCase()
-                : true;
-
-            if (matchesSearch && matchesBarangay) {
-                userAccounts.push({ id: doc.id, ...data });
-            }
-        }
+        await Promise.all(promises);
 
         // Sort the results by username
-        userAccounts.sort((a, b) => {
-            const userNameA = a.user_name;
-            const userNameB = b.user_name;
+        userAccountsTemp.sort((a, b) => {
+            const userNameA = a.user_name || "";
+            const userNameB = b.user_name || "";
             const missName = formatName(a.first_name, a.middle_name, a.last_name);
 
-            if (userNameA === undefined) {
+            if (!userNameA) {
                 missingUsernames.push(missName);
                 return 0;
             }
 
             // Alphabetical Comparison (A-Z)
-            if (isNaN(userNameA) && isNaN(userNameB)) {
-                return String(userNameA).localeCompare(String(userNameB), undefined, {numeric: true, sensitivity: 'base'});
-            }
+            return userNameA.localeCompare(userNameB, undefined, { numeric: true, sensitivity: 'base' });
         });
 
         if (missingUsernames.length > 0) {
             console.log("Usernames are not retrieved for the following User Accounts: " + missingUsernames.join(", "));
         }
+
+        // Update the global userAccounts with the latest data
+        userAccounts = userAccountsTemp;
 
         currentPage = 1;
         updateTable();
@@ -214,6 +223,7 @@ function fetch_user_accounts(filter = {}) {
         console.error("Error Fetching User Accounts:", error);
     });
 }
+
 
 
 // <------------------------ FUNCTION TO CAPTALIZE THE INITIAL LETTERS ------------------------>
