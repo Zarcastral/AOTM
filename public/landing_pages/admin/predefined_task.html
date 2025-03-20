@@ -80,7 +80,7 @@
         <div id="delete-confirmation-modal" class="modal">
             <div class="modal-content">
                 <h2>Are you sure you want to delete this task?</h2>
-                <button id="confirm-delete-btn" class="add-user-btn">Yes, delete</button>
+                <button id="confirm-delete-btn" class="dell1-user-btn">Yes, delete</button>
                 <button id="cancel-delete-btn" class="dell-user-btn">Cancel</button>
             </div>
         </div>
@@ -167,6 +167,71 @@
             </div>
         </div>
     </div>
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirmation-modal" class="modal">
+        <div class="modal-content">
+            <h2>Confirm Deletion</h2>
+            <p id="delete-confirmation-message"></p>
+            <button id="confirm-delete-btn" class="add-user-btn">Yes, delete</button>
+            <button id="cancel-delete-btn" class="dell-user-btn">Cancel</button>
+        </div>
+    </div>
+<!-- Success Modal -->
+<div id="success-modal" class="modal">
+    <div class="modal-content">
+        <h2>Success</h2>
+        <p id="success-message"></p>
+        <button id="close-success-modal" class="add-user-btn">Okay</button>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div id="error-modal" class="modal">
+    <div class="modal-content">
+        <h2>Error Occurred</h2>
+        <p id="error-message"></p>
+        <button id="close-error-modal" class="add-user-btn">Okay</button>
+    </div>
+</div>
+
+<!-- Warning Modal -->
+<div id="warning-modal" class="modal">
+    <div class="modal-content">
+        <h2>Warning</h2>
+        <p id="warning-message"></p>
+        <button id="close-warning-modal" class="add-user-btn">Okay</button>
+    </div>
+</div>
+
+<!-- Info Modal -->
+<div id="info-modal" class="modal">
+    <div class="modal-content">
+        <h2>Information</h2>
+        <p id="info-message"></p>
+        <button id="close-info-modal" class="add-user-btn">Okay</button>
+    </div>
+</div>
+   <!-- Duplicate Tasks Modal -->
+   <div id="duplicate-tasks-modal" class="modal">
+    <div class="modal-content">
+        <h2>Sub Task Already Assigned</h2>
+        <p>The following sub tasks is/are already assigned to</p>
+        <p id="duplicate-crop-type-name" style="font-weight: bold;"></p>
+        <p id="duplicate-tasks-message"></p>
+        <button id="close-duplicate-tasks-modal" class="add-user-btn">Okay</button>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="success-modal" class="modal">
+    <div class="modal-content">
+        <h2>Success</h2>
+        <p id="success-message"> Sub Tasks assigned successfully!</p>
+        <button id="close-success-modal" class="add-user-btn">Okay</button>
+    </div>
+</div>
+
+</div> 
 
     <script type="module" src="predefined_task.js"></script>
     <!-- Import the reusable script from src/auth -->

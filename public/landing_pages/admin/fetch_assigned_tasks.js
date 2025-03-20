@@ -22,15 +22,93 @@ function capitalizeFirstLetter(str) {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-// Function to show delete confirmation modal
-function showDeleteConfirmationModal(taskId, taskName, cropTypeName) {
-  const confirmDelete = confirm(
-    `You are currently deleting the task "${taskName}" on crop type "${cropTypeName}".\nAre you sure you want to delete?`
-  );
+// Functions to show different modals
+function showSuccessPopup(message) {
+  const modal = document.getElementById("success-modal");
+  const messageElement = document.getElementById("success-message");
+  const closeBtn = document.getElementById("close-success-modal");
 
-  if (confirmDelete) {
+  messageElement.textContent = message;
+  modal.style.display = "block";
+
+  closeBtn.onclick = () => (modal.style.display = "none");
+  window.onclick = (event) => {
+    if (event.target === modal) modal.style.display = "none";
+  };
+}
+
+function showErrorPopup(message) {
+  const modal = document.getElementById("error-modal");
+  const messageElement = document.getElementById("error-message");
+  const closeBtn = document.getElementById("close-error-modal");
+
+  messageElement.textContent = message;
+  modal.style.display = "block";
+
+  closeBtn.onclick = () => (modal.style.display = "none");
+  window.onclick = (event) => {
+    if (event.target === modal) modal.style.display = "none";
+  };
+}
+
+function showWarningPopup(message) {
+  const modal = document.getElementById("warning-modal");
+  const messageElement = document.getElementById("warning-message");
+  const closeBtn = document.getElementById("close-warning-modal");
+
+  messageElement.textContent = message;
+  modal.style.display = "block";
+
+  closeBtn.onclick = () => (modal.style.display = "none");
+  window.onclick = (event) => {
+    if (event.target === modal) modal.style.display = "none";
+  };
+}
+
+function showInfoPopup(message) {
+  const modal = document.getElementById("info-modal");
+  const messageElement = document.getElementById("info-message");
+  const closeBtn = document.getElementById("close-info-modal");
+
+  messageElement.textContent = message;
+  modal.style.display = "block";
+
+  closeBtn.onclick = () => (modal.style.display = "none");
+  window.onclick = (event) => {
+    if (event.target === modal) modal.style.display = "none";
+  };
+}
+
+// Function to show delete confirmation modal as a popup
+function showDeleteConfirmationModal(taskId, taskName, cropTypeName) {
+  const modal = document.getElementById("delete-confirmation-modal");
+  const messageElement = document.getElementById("delete-confirmation-message");
+  const confirmBtn = document.getElementById("confirm-delete-btn");
+  const cancelBtn = document.getElementById("cancel-delete-btn");
+
+  // Set the dynamic message
+  messageElement.textContent = `You are currently deleting the task "${taskName}" on crop type "${cropTypeName}". Are you sure you want to delete?`;
+
+  // Display the modal
+  modal.style.display = "block";
+
+  // Event listener for confirm button
+  confirmBtn.onclick = () => {
+    modal.style.display = "none";
     deleteTask(taskId);
-  }
+  };
+
+  // Event listener for cancel button
+  cancelBtn.onclick = () => {
+    modal.style.display = "none";
+  };
+
+  // Close modal when clicking outside
+  window.onclick = (event) => {
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  };
 }
 
 // Function to delete a task and adjust pagination if necessary
@@ -45,34 +123,31 @@ async function deleteTask(taskId) {
 
     if (querySnapshot.empty) {
       console.warn(`No task found with task_id: ${taskId}`);
-      alert("Task not found!");
+      showErrorPopup("Task not found!");
       return;
     }
 
-    // Delete all matching documents
     const deletePromises = querySnapshot.docs.map((taskDoc) =>
       deleteDoc(doc(db, "tb_task_list", taskDoc.id))
     );
     await Promise.all(deletePromises);
 
-    alert("Task deleted successfully!");
+    showSuccessPopup("Task deleted successfully!");
 
-    // Refresh tasks and adjust pagination
     await fetchAssignedTasks();
 
-    // Check if the current page is empty and adjust
     const totalPages = Math.ceil(assignedTasks.length / assignedRowsPerPage);
     if (assignedTasks.length === 0) {
-      assignedCurrentPage = 1; // Reset to page 1 if no tasks remain
+      assignedCurrentPage = 1;
     } else if (assignedCurrentPage > totalPages) {
-      assignedCurrentPage = totalPages; // Move to the last available page
+      assignedCurrentPage = totalPages;
     }
 
     displayAssignedTasks(assignedCurrentPage);
     updateAssignedPagination();
   } catch (error) {
     console.error("Error deleting task:", error);
-    alert("Failed to delete task. Please try again.");
+    showErrorPopup("Failed to delete task. Please try again.");
   }
 }
 
@@ -169,7 +244,9 @@ document
       );
 
       if (existingSubtasks.includes(newSubtaskName.toLowerCase())) {
-        alert("Subtask already exists! Please enter a different subtask.");
+        showWarningPopup(
+          "Subtask already exists! Please enter a different subtask."
+        );
         return;
       }
 
@@ -179,7 +256,7 @@ document
       newSubtaskInput.value = "";
       document.getElementById("save-subtasks-btn-subtasks").disabled = false;
     } else {
-      alert("Please enter a valid subtask.");
+      showInfoPopup("Please enter a valid subtask.");
     }
   });
 
@@ -232,7 +309,7 @@ document
 
     if (newSubtaskInput.value.trim() !== "") {
       if (!window.alertDisplayed) {
-        alert(
+        showWarningPopup(
           "You might want to add the subtask or clear the input field before saving."
         );
         window.alertDisplayed = true;
@@ -260,7 +337,7 @@ document
 
       if (JSON.stringify(subtasks) === JSON.stringify(initialSubtasks)) {
         if (!window.alertDisplayed) {
-          alert("No changes were made to the subtasks.");
+          showInfoPopup("No changes were made to the subtasks.");
           window.alertDisplayed = true;
           setTimeout(() => (window.alertDisplayed = false), 2000);
         }
@@ -272,7 +349,7 @@ document
       await updateDoc(taskRef, { subtasks });
 
       if (!window.alertDisplayed) {
-        alert("Subtasks saved successfully!");
+        showSuccessPopup("Subtasks saved successfully!");
         window.alertDisplayed = true;
         setTimeout(() => (window.alertDisplayed = false), 2000);
       }
@@ -284,7 +361,7 @@ document
     } catch (error) {
       console.error("Error saving subtasks:", error);
       if (!window.alertDisplayed) {
-        alert("Failed to save changes. Please try again.");
+        showErrorPopup("Failed to save changes. Please try again.");
         window.alertDisplayed = true;
         setTimeout(() => (window.alertDisplayed = false), 2000);
       }
@@ -321,11 +398,10 @@ async function populateCropDropdown() {
       cropDropdown.appendChild(option);
     });
 
-    // Add event listener to update crop types and fetch tasks when crop changes
     cropDropdown.addEventListener("change", async () => {
       const selectedCrop = cropDropdown.value;
-      await populateCropTypeDropdown(selectedCrop); // Update crop types based on selected crop
-      fetchAssignedTasks(); // Fetch tasks with the new filters
+      await populateCropTypeDropdown(selectedCrop);
+      fetchAssignedTasks();
     });
   } catch (error) {
     console.error("Error fetching crop names:", error);
@@ -344,20 +420,18 @@ async function populateCropTypeDropdown(selectedCrop = "") {
     cropTypeDropdown.innerHTML = `<option value="">All Crop Types</option>`;
 
     const tasksSnapshot = await getDocs(collection(db, "tb_task_list"));
-    const cropTypes = new Set(); // Use a Set to avoid duplicates
+    const cropTypes = new Set();
 
     tasksSnapshot.forEach((taskDoc) => {
       const taskData = taskDoc.data();
       const cropName = taskData.crop_name || "N/A";
       const cropTypeName = taskData.crop_type_name || "Unknown Crop Type";
 
-      // Only add crop types that match the selected crop (if any)
       if (!selectedCrop || cropName === selectedCrop) {
         cropTypes.add(cropTypeName);
       }
     });
 
-    // Convert Set to Array and sort alphabetically
     const sortedCropTypes = Array.from(cropTypes).sort();
     sortedCropTypes.forEach((cropType) => {
       const option = document.createElement("option");
@@ -366,7 +440,6 @@ async function populateCropTypeDropdown(selectedCrop = "") {
       cropTypeDropdown.appendChild(option);
     });
 
-    // Add event listener for filtering
     cropTypeDropdown.addEventListener("change", fetchAssignedTasks);
   } catch (error) {
     console.error("Error fetching crop types:", error);
@@ -389,14 +462,17 @@ export async function fetchAssignedTasks() {
 
     taskListTable.innerHTML = "";
     const selectedCrop = document.getElementById("crop-filter")?.value || "";
-    const selectedCropType = document.getElementById("crop-type-filter")?.value || "";
+    const selectedCropType =
+      document.getElementById("crop-type-filter")?.value || "";
 
     let taskQuery = collection(db, "tb_task_list");
     if (selectedCrop || selectedCropType) {
       taskQuery = query(
         taskQuery,
         ...(selectedCrop ? [where("crop_name", "==", selectedCrop)] : []),
-        ...(selectedCropType ? [where("crop_type_name", "==", selectedCropType)] : [])
+        ...(selectedCropType
+          ? [where("crop_type_name", "==", selectedCropType)]
+          : [])
       );
     }
 
@@ -429,7 +505,6 @@ export async function fetchAssignedTasks() {
       });
     });
 
-    // Adjust current page if it exceeds total pages after fetch
     const totalPages = Math.ceil(assignedTasks.length / assignedRowsPerPage);
     if (assignedCurrentPage > totalPages && totalPages > 0) {
       assignedCurrentPage = totalPages;
@@ -492,43 +567,51 @@ function updateAssignedPagination() {
 
 // Event listeners for Assigned Tasks pagination buttons and initialization
 document.addEventListener("DOMContentLoaded", async () => {
-  await populateCropDropdown(); // Populate crop names first
-  await populateCropTypeDropdown(); // Populate crop types (initially all)
+  await populateCropDropdown();
+  await populateCropTypeDropdown();
   fetchAssignedTasks();
 
-  // Event delegation for delete buttons
-  document.getElementById("assigned-tasks-table-body").addEventListener("click", (event) => {
-    if (event.target.classList.contains("delete-btn")) {
-      const taskId = event.target.getAttribute("data-id");
-      const taskName = event.target.getAttribute("data-task");
-      const cropTypeName = event.target.getAttribute("data-crop-type");
-      showDeleteConfirmationModal(taskId, taskName, cropTypeName);
-    }
-  });
+  document
+    .getElementById("assigned-tasks-table-body")
+    .addEventListener("click", (event) => {
+      if (event.target.classList.contains("delete-btn")) {
+        const taskId = event.target.getAttribute("data-id");
+        const taskName = event.target.getAttribute("data-task");
+        const cropTypeName = event.target.getAttribute("data-crop-type");
+        showDeleteConfirmationModal(taskId, taskName, cropTypeName);
+      }
+    });
 
-  // Event delegation for edit buttons
-  document.getElementById("assigned-tasks-table-body").addEventListener("click", (event) => {
-    if (event.target.classList.contains("edit-btn")) {
-      const taskId = event.target.getAttribute("data-id");
-      const taskName = event.target.getAttribute("data-task");
-      openEditSubModal(taskId, taskName);
-    }
-  });
+  document
+    .getElementById("assigned-tasks-table-body")
+    .addEventListener("click", (event) => {
+      if (event.target.classList.contains("edit-btn")) {
+        const taskId = event.target.getAttribute("data-id");
+        const taskName = event.target.getAttribute("data-task");
+        openEditSubModal(taskId, taskName);
+      }
+    });
 
-  // Pagination controls
-  document.getElementById("assigned-next-page-btn").addEventListener("click", () => {
-    if (assignedCurrentPage < Math.ceil(assignedTasks.length / assignedRowsPerPage)) {
-      assignedCurrentPage++;
-      displayAssignedTasks(assignedCurrentPage);
-      updateAssignedPagination();
-    }
-  });
+  document
+    .getElementById("assigned-next-page-btn")
+    .addEventListener("click", () => {
+      if (
+        assignedCurrentPage <
+        Math.ceil(assignedTasks.length / assignedRowsPerPage)
+      ) {
+        assignedCurrentPage++;
+        displayAssignedTasks(assignedCurrentPage);
+        updateAssignedPagination();
+      }
+    });
 
-  document.getElementById("assigned-prev-page-btn").addEventListener("click", () => {
-    if (assignedCurrentPage > 1) {
-      assignedCurrentPage--;
-      displayAssignedTasks(assignedCurrentPage);
-      updateAssignedPagination();
-    }
-  });
+  document
+    .getElementById("assigned-prev-page-btn")
+    .addEventListener("click", () => {
+      if (assignedCurrentPage > 1) {
+        assignedCurrentPage--;
+        displayAssignedTasks(assignedCurrentPage);
+        updateAssignedPagination();
+      }
+    });
 });

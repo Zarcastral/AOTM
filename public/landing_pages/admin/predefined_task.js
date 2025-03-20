@@ -64,6 +64,50 @@ let allTasks = []; // Store all tasks fetched from Firestore
 // ✅ Ensure the "Add Task" button is disabled by default
 addTaskBtn.disabled = true;
 
+// ✅ Function to show a generic alert modal
+function showAlert(message) {
+  const alertModal = document.getElementById("generic-alert-modal");
+  const alertMessage = document.getElementById("generic-alert-message");
+  const closeAlertBtn = document.getElementById("close-generic-alert-modal");
+
+  alertMessage.textContent = message;
+  alertModal.style.display = "flex"; // Show the modal
+
+  closeAlertBtn.onclick = () => {
+    alertModal.style.display = "none";
+  };
+}
+
+// ✅ Function to show duplicate tasks modal
+function showDuplicateTasks(duplicateTasks, selectedCropTypeName) {
+  const duplicateTasksModal = document.getElementById("duplicate-tasks-modal");
+  const duplicateCropTypeName = document.getElementById("duplicate-crop-type-name");
+  const duplicateTasksMessage = document.getElementById("duplicate-tasks-message");
+  const closeDuplicateTasksBtn = document.getElementById("close-duplicate-tasks-modal");
+
+  duplicateCropTypeName.textContent = `"${selectedCropTypeName}":`; // Set crop type name
+  duplicateTasksMessage.textContent = duplicateTasks.map((task) => `- ${task}`).join("\n"); // Set task list
+  duplicateTasksModal.style.display = "flex"; // Show the modal
+
+  closeDuplicateTasksBtn.onclick = () => {
+    duplicateTasksModal.style.display = "none";
+  };
+}
+
+// ✅ Function to show success modal
+function showSuccess(message) {
+  const successModal = document.getElementById("success-modal");
+  const successMessage = document.getElementById("success-message");
+  const closeSuccessBtn = document.getElementById("close-success-modal");
+
+  successMessage.textContent = message;
+  successModal.style.display = "flex"; // Show the modal
+
+  closeSuccessBtn.onclick = () => {
+    successModal.style.display = "none";
+  };
+}
+
 // ✅ Duplicate Task Modal Handling
 const duplicateTaskMessage = document.getElementById("duplicate-task-message");
 closeDuplicateTaskModal.addEventListener("click", () => {
@@ -485,7 +529,7 @@ assignTasksBtn.addEventListener("click", async () => {
   ).map((checkbox) => checkbox.value);
 
   if (!selectedCropTypeId || selectedTaskIds.length === 0) {
-    alert("Please select a crop type and at least one task.");
+    showAlert("Please select a crop type and at least one task.");
     assignTasksBtn.disabled = false;
     return;
   }
@@ -497,7 +541,7 @@ assignTasksBtn.addEventListener("click", async () => {
 
     if (!cropSnap.exists()) {
       console.error("Crop type not found in tb_crop_types.");
-      alert("Error: Crop type not found.");
+      showAlert("Error: Crop type not found.");
       assignTasksBtn.disabled = false;
       return;
     }
@@ -572,13 +616,10 @@ assignTasksBtn.addEventListener("click", async () => {
 
     // ✅ Show duplicate message if any tasks were already assigned
     if (duplicateTasks.length > 0) {
-      alert(
-        `The following tasks are already assigned to "${selectedCropTypeName}":\n\n` +
-          duplicateTasks.map((task) => `- ${task}`).join("\n")
-      );
+      showDuplicateTasks(duplicateTasks, selectedCropTypeName);
     }
 
-    // ✅ Clear form if at least one task was assigned
+    // ✅ Clear form and show success if at least one task was assigned
     if (selectedTaskIds.length > duplicateTasks.length) {
       cropTypeSelect.value = "";
       document
@@ -589,11 +630,11 @@ assignTasksBtn.addEventListener("click", async () => {
         fetchAssignedTasks();
       }
 
-      alert("Tasks assigned successfully!");
+      showSuccess("Tasks assigned successfully!");
     }
   } catch (error) {
     console.error("Error assigning tasks:", error);
-    alert("An error occurred while assigning tasks. Please try again.");
+    showAlert("An error occurred while assigning tasks. Please try again.");
   } finally {
     assignTasksBtn.disabled = false;
   }

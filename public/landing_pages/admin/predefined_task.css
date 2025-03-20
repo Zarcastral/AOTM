@@ -85,6 +85,19 @@ body {
   transition: background-color 0.3s ease;
   margin-top: 20px;
 }
+.dell1-user-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 9px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
 .add-user-btn:hover {
   background-color: #318a71;
 }
@@ -264,6 +277,9 @@ tbody tr:hover {
 #page-info {
   font-size: 17px;
   margin-top: 10px;
+}
+#duplicate-tasks-message {
+  white-space: pre-line;
 }
 /* Responsive styles */
 @media (max-width: 768px) {
