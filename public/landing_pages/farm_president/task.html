@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management Table</title>
+    <link rel="stylesheet" href="task.css">
+</head>
+<body>
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <div class="panel-wrapper">
+        <button class="back-btn">
+            <span class="arrow-left">←</span>
+        </button>
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Task</h2>
+                <button class="add-task-btn">+ Add Task</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" placeholder="Search">
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>TASK NAME</th>
+                        <th>NO. OF SUBTASK</th>
+                        <th>START DATE</th>
+                        <th>END DATE</th>
+                        <th>STATUS</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Planting</td>
+                        <td>10</td>
+                        <td>10/20/2023</td>
+                        <td>10/27/2023</td>
+                        <td><span class="status completed">Completed</span></td>
+                        <td>
+                            <button class="action-btn"><img src="../../images/eye.png" alt="View"></button>
+                           <button class="action-btn"><img src="../../images/Edit.png" alt="Edit"></button>
+                           <button class="action-btn"><img src="../../images/Delete.png" alt="Delete"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Fertilizer</td>
+                        <td>10</td>
+                        <td>10/29/2023</td>
+                        <td>10/31/2023</td>
+                        <td><span class="status ongoing">On going</span></td>
+                        <td>
+                            <button class="action-btn"><img src="../../images/eye.png" alt="View"></button>
+                        <button class="action-btn"><img src="../../images/Edit.png" alt="Edit"></button>
+                        <button class="action-btn"><img src="../../images/Delete.png" alt="Delete"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Pest Control</td>
+                        <td>10</td>
+                        <td>--</td>
+                        <td>--</td>
+                        <td><span class="status pending">Pending</span></td>
+                        <td>
+                            <button class="action-btn"><img src="../../images/eye.png" alt="View"></button>
+                        <button class="action-btn"><img src="../../images/Edit.png" alt="Edit"></button>
+                        <button class="action-btn"><img src="../../images/Delete.png" alt="Delete"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Fertilizer II</td>
+                        <td>10</td>
+                        <td>--</td>
+                        <td>--</td>
+                        <td><span class="status pending">Pending</span></td>
+                        <td>
+                            <button class="action-btn"><img src="../../images/eye.png" alt="View"></button>
+                        <button class="action-btn"><img src="../../images/Edit.png" alt="Edit"></button>
+                        <button class="action-btn"><img src="../../images/Delete.png" alt="Delete"></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Import the reusable script from src/auth -->
+    <script type="module" src="../../../src/auth/header.js"></script>
+</body>
+</html>
