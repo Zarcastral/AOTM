@@ -88,6 +88,11 @@
       background-color: #41A186;
     }
 
+    button:disabled {
+      background-color: #a0a0a0;
+      cursor: not-allowed;
+    }
+
     .reminder {
       text-align: center;
       color: #666;
@@ -155,6 +160,7 @@
     .confirm-btn {
       background: #41A186;
     }
+
     /* Media Queries for Responsiveness */
     @media (max-width: 768px) {
       .panel {
@@ -249,6 +255,18 @@
         <button id="confirmBtn" class="modal-btn confirm-btn">Yes</button>
       </div>
     </div>
+  </div>
+
+  <!-- Alert Modal -->
+  <div id="alertModal" class="modal">
+    <div class="modal-content">
+      <h3 id="alertTitle">Notification</h3>
+      <p id="alertMessage" class="modal-text"></p>
+      <div class="modal-buttons">
+        <button id="alertOkBtn" class="modal-btn confirm-btn">OK</button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

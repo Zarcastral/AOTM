@@ -20,21 +20,42 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const userType = sessionStorage.getItem("user_type");
 
+async function checkEmailExists(newEmail) {
+  try {
+    const collectionsToCheck = ["tb_users", "tb_farmers"];
+    for (const collectionName of collectionsToCheck) {
+      const userRef = collection(db, collectionName);
+      const userQuery = query(userRef, where("email", "==", newEmail));
+      const userSnapshot = await getDocs(userQuery);
+      if (!userSnapshot.empty) {
+        console.log(`Email ${newEmail} already exists in ${collectionName}`);
+        return true;
+      }
+    }
+    console.log(`Email ${newEmail} is available`);
+    return false;
+  } catch (error) {
+    console.error("Error checking email existence:", error.message);
+    showAlertModal("Error", "Failed to check email availability: " + error.message);
+    return true; // Assume it exists to prevent proceeding on error
+  }
+}
+
 async function reauthenticateUser(currentPassword) {
   const user = auth.currentUser;
   if (!user) {
-    alert("No user is signed in.");
+    showAlertModal("Error", "No user is signed in.");
     return false;
   }
 
   const credential = EmailAuthProvider.credential(user.email, currentPassword);
   try {
     await reauthenticateWithCredential(user, credential);
-    console.log("Re-authentication successful!");
+    console.log("Re-authentication successful for user:", user.email);
     return true;
   } catch (error) {
     console.error("Re-authentication failed:", error.message);
-    alert("Re-authentication failed. Please check your password.");
+    showAlertModal("Authentication Error", "Incorrect password. Please try again.");
     return false;
   }
 }
@@ -48,7 +69,7 @@ async function updateFirestoreEmail(oldEmail, newEmail) {
       collectionName = "tb_farmers";
     } else {
       console.error("Invalid user_type:", userType);
-      alert("Error: Unknown user type.");
+      showAlertModal("Error", "Unknown user type.");
       return false;
     }
 
@@ -56,34 +77,33 @@ async function updateFirestoreEmail(oldEmail, newEmail) {
     const userQuery = query(userRef, where("email", "==", oldEmail));
     const userSnapshot = await getDocs(userQuery);
 
-    if (!userSnapshot.empty) {
-      for (const docSnap of userSnapshot.docs) {
-        const userDocRef = doc(db, collectionName, docSnap.id);
-        await updateDoc(userDocRef, { email: newEmail });
-        console.log(`Email updated in ${collectionName}.`);
-      }
-      return true;
-    } else {
-      console.warn(`No user found in ${collectionName} with email ${oldEmail}.`);
-      alert("No matching user found in Firestore.");
+    if (userSnapshot.empty) {
+      console.warn(`No user found in ${collectionName} with email ${oldEmail}`);
+      showAlertModal("Error", "User not found in database.");
       return false;
     }
+
+    for (const docSnap of userSnapshot.docs) {
+      const userDocRef = doc(db, collectionName, docSnap.id);
+      await updateDoc(userDocRef, { email: newEmail });
+      console.log(`Email updated in ${collectionName} for ID: ${docSnap.id}`);
+    }
+    return true;
   } catch (error) {
-    console.error("Error updating Firestore email:", error.message);
-    alert("Error updating Firestore email: " + error.message);
+    console.error("Firestore update failed:", error.message);
+    showAlertModal("Error", "Failed to update email in database: " + error.message);
     return false;
   }
 }
 
 function logoutUser() {
+  console.log("Logging out user...");
   window.parent.postMessage("closeIframe", "*");
+  toggleLoadingIndicator(true);
   setTimeout(() => {
-    toggleLoadingIndicator(true);
-    setTimeout(() => {
-      sessionStorage.clear();
-      window.top.location.href = "../../index.html";
-    }, 1500);
-  }, 500);
+    sessionStorage.clear();
+    window.top.location.href = "../../index.html";
+  }, 2000); // Increased timeout to ensure loading indicator shows
 }
 
 function togglePassword() {
@@ -100,21 +120,42 @@ function togglePassword() {
   }
 }
 
+function showAlertModal(title, message) {
+  const alertModal = document.getElementById("alertModal");
+  const alertTitle = document.getElementById("alertTitle");
+  const alertMessage = document.getElementById("alertMessage");
+  
+  alertTitle.textContent = title;
+  alertMessage.textContent = message;
+  alertModal.style.display = "flex";
+}
+
+function hideAlertModal() {
+  const alertModal = document.getElementById("alertModal");
+  alertModal.style.display = "none";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const confirmModal = document.getElementById("confirmModal");
   const modalEmail = document.getElementById("modalEmail");
   const confirmBtn = document.getElementById("confirmBtn");
   const cancelBtn = document.getElementById("cancelBtn");
+  const alertOkBtn = document.getElementById("alertOkBtn");
   let formData = null;
 
   function showConfirmModal(email) {
     modalEmail.textContent = email;
     confirmModal.style.display = "flex";
+    confirmBtn.disabled = false;
   }
 
   function hideConfirmModal() {
     confirmModal.style.display = "none";
     formData = null;
+  }
+
+  if (alertOkBtn) {
+    alertOkBtn.addEventListener("click", hideAlertModal);
   }
 
   const updateEmailForm = document.getElementById("updateEmailForm");
@@ -127,7 +168,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const user = auth.currentUser;
 
       if (!user) {
-        alert("No user is signed in.");
+        showAlertModal("Error", "No user is signed in.");
+        return;
+      }
+
+      if (user.email === newEmail) {
+        showAlertModal("Error", "New email cannot be the same as the current email.");
+        return;
+      }
+
+      const emailExists = await checkEmailExists(newEmail);
+      if (emailExists) {
+        showAlertModal("Error", "This email is already in use. Please choose a different email.");
         return;
       }
 
@@ -140,35 +192,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {
-      if (!formData) return;
+      if (!formData || confirmBtn.disabled) return;
 
+      confirmBtn.disabled = true;
+      toggleLoadingIndicator(true); // Show loading indicator
+
+      // Step 1: Reauthenticate
       const reauthenticated = await reauthenticateUser(formData.currentPassword);
       if (!reauthenticated) {
         hideConfirmModal();
+        confirmBtn.disabled = false;
+        toggleLoadingIndicator(false);
         return;
       }
 
+      // Step 2: Update Firestore
       const firestoreUpdated = await updateFirestoreEmail(formData.oldEmail, formData.newEmail);
       if (!firestoreUpdated) {
-        alert("Failed to update email in Firestore. Please try again.");
         hideConfirmModal();
+        confirmBtn.disabled = false;
+        toggleLoadingIndicator(false);
         return;
       }
 
+      // Step 3: Send verification email
       try {
         await verifyBeforeUpdateEmail(auth.currentUser, formData.newEmail);
-        console.log("Verification email sent!");
-        alert(
-          "A verification email has been sent to your new email. Please check your inbox and confirm it.\n\n" +
-            "Once you verify your new email, you can log in using it.\n\n" +
-            "You will now be logged out."
+        console.log("Verification email sent to:", formData.newEmail);
+        showAlertModal(
+          "Email Verification",
+          "A verification email has been sent to your new email.\n\n"+ "Please verify it to complete the update.\n\n" +
+            "You will be logged out now."
         );
-        logoutUser();
+        alertOkBtn.addEventListener("click", () => {
+          logoutUser();
+        }, { once: true });
       } catch (error) {
         console.error("Error sending verification email:", error.message);
-        alert("Error: " + error.message);
+        showAlertModal("Error", "Failed to send verification email: " + error.message);
+        // Revert Firestore change if verification fails (optional rollback)
+        await updateFirestoreEmail(formData.newEmail, formData.oldEmail);
+        console.log("Reverted Firestore email to:", formData.oldEmail);
       } finally {
         hideConfirmModal();
+        confirmBtn.disabled = false;
+        toggleLoadingIndicator(false);
       }
     });
   }
