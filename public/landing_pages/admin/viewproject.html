@@ -10,78 +10,108 @@
 <body>
     <div class="container">
         <!-- Project Details Panel -->
-        <div class="panel">
-            <h2 id="projectName">Project Details</h2>
+        <div class="panel project-details">
+            <h2>Project</h2>
             <div class="details">
-                <p>Status: <span id="status">-</span></p>
-                <p>Start Date: <span id="startDate">-</span></p>
-                <p>End Date: <span id="endDate">-</span></p>
-                <p>Crop Name: <span id="cropName">-</span></p>
-                <p>Crop Type: <span id="cropType">-</span></p>
-                <p>Equipment: <span id="equipment">-</span></p>
-                <p>Barangay: <span id="barangayName">-</span></p>
-                <p>Farm President: <span id="farmPresident">-</span></p>
+                <div class="detail-item">
+                    <p>PROJECT NAME</p>
+                    <span id="projectName"></span>
+                </div>
+                <div class="detail-item">
+                    <p>START DATE</p>
+                    <span id="startDate">-</span>
+                </div>
+                <div class="detail-item">
+                    <p>END DATE</p>
+                    <span id="endDate">-</span>
+                </div>
+                <div class="detail-item">
+                    <p>EXTENDED DATE</p>
+                    <span id="extendedDate">-</span>
+                </div>
+                <div class="detail-item">
+                    <p>BARANGAY</p>
+                    <span id="barangayName">-</span>
+                </div>
+                <div class="detail-item">
+                    <p>STATUS</p>
+                    <span id="status">-</span>
+                </div>
+                <div class="detail-item">
+                    <p>CROPS</p>
+                    <span id="cropName">-</span>
+                </div>
+                <div class="detail-item">
+                    <p>CROP TYPE</p>
+                    <span id="cropType">-</span>
+                </div>
+                <div class="detail-item">
+                    <p>EQUIPMENT</p>
+                    <span id="equipment">-</span>
+                </div>
+                <div class="detail-item">
+                    <p>FARM PRESIDENT</p>
+                    <span id="farmPresident">-</span>
+                </div>
             </div>
         </div>
 
         <!-- Teams Panel -->
-        <div class="panel">
-            <h2>Teams</h2>
+        <div class="panel teams-panel">
+            <h2>Team</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Team Name</th>
-                        <th>Lead Farmer</th>
-                        <th>No. of Farmers</th>
-                        <th>Actions</th>
+                        <th>TEAM NAME</th>
+                        <th>LEAD FARMER</th>
+                        <th>NO. OF FARMERS</th>
+                        <th>ACTION</th>
                     </tr>
                 </thead>
                 <tbody id="teamsTableBody">
-                    <tr><td colspan="4">Loading teams...</td></tr>
+                    <tr><td colspan="6">Loading teams...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Feedback Panel (Updated) -->
-        <div class="panel">
-            <h2>Feedback</h2>
-            <!--button class="add-feedback-btn" onclick="document.getElementById('feedbackPopup').style.display='block'">
-                + Add Feedback
-            </button-->
-
-            <div id="feedbackPopup" class="popup">
-                <h2>Submit Feedback</h2>
-                <label for="feedbackType">Feedback Type</label>
-                <select id="feedbackType">
-                    <option value="Suggestion">Suggestion</option>
-                    <option value="Issue">Issue</option>
-                    <option value="Inquiry">Inquiry</option>
-                </select>
-
-                <label for="feedbackMessage">Message</label>
-                <textarea id="feedbackMessage" rows="4"></textarea>
-
-                <div class="button-container">
-                    <button class="btn btn-cancel" onclick="document.getElementById('feedbackPopup').style.display='none'">Cancel</button>
-                    <button class="btn btn-save" onclick="saveFeedback()">Submit</button>
-                </div>
-            </div>
-
+        <!-- Feedback Panel -->
+        <div class="panel feedback-panel">
+            <h2>Feedback Log</h2>
             <div id="feedbackList"></div>
         </div>
     </div>
 
-    <script type="module" src="viewproject.js"></script>
+    <!-- Feedback Popup -->
+    <div id="feedbackPopup" class="popup">
+        <div class="popup-content">
+            <h2>Submit Feedback</h2>
+            <span class="close-btn" onclick="document.getElementById('feedbackPopup').style.display='none'">×</span>
+            <label for="feedbackType">Feedback Type</label>
+            <select id="feedbackType">
+                <option value="Suggestion">Suggestion</option>
+                <option value="Issue">Issue</option>
+                <option value="Inquiry">Inquiry</option>
+            </select>
+            <label for="feedbackMessage">Message</label>
+            <textarea id="feedbackMessage" rows="4"></textarea>
+            <div class="button-container">
+                <button class="btn btn-cancel" onclick="document.getElementById('feedbackPopup').style.display='none'">Cancel</button>
+                <button class="btn btn-save" onclick="submitFeedback()">Submit</button>
+            </div>
+        </div>
+    </div>
 
     <!-- View Team Details Popup -->
     <div id="viewTeamPopup" class="popup">
         <div class="popup-content">
             <h2 id="popupTeamName">Team Details</h2>
-            <span class="close-btn" id="closePopup">&times;</span>
+            <span class="close-btn" id="closePopup">×</span>
             <p><strong>Lead Farmer:</strong> <span id="popupLeadFarmer">-</span></p>
             <p><strong>Farmers:</strong></p>
             <ul id="popupFarmerList"></ul>
         </div>
     </div>
+
+    <script type="module" src="viewproject.js"></script>
 </body>
 </html>
