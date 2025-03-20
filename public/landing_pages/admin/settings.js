@@ -236,6 +236,14 @@ window.openPopup = function(id) {
     document.getElementById(id).style.display = 'block';
 }
 
+
+function clearBarangayInputs() {
+    document.getElementById('barangay-name').value = '';
+    document.getElementById('total-plot-size').value = '';
+    document.getElementById('land-area').value = '';
+    document.getElementById('plot-size').value = '';
+}
+
 //add barangay
 window.addBarangay = async function() {
     const barangayName = document.getElementById('barangay-name').value;
@@ -304,6 +312,7 @@ window.addBarangay = async function() {
             barangaySelect.appendChild(option);
 
             alert('Barangay and farmland added successfully');
+            clearBarangayInputs();
             loadData();
             closePopup('add-barangay-popup');
         }
@@ -311,6 +320,12 @@ window.addBarangay = async function() {
         console.error('Error adding barangay and farmland:', error);
     }
 };
+
+
+function clearCropInputs() {
+    document.getElementById('crop-type-name').value = '';
+    document.getElementById('crop-name').selectedIndex = 0;
+}
 
 // Add Crop
 window.addCropType = async function() {
@@ -359,6 +374,7 @@ window.addCropType = async function() {
             dateAdded
         }).then(() => {
             alert('Crop Type added successfully');
+            clearCropInputs();
             loadData();
             closePopup('add-crop-type-popup');
         }).catch(error => {
@@ -367,7 +383,10 @@ window.addCropType = async function() {
     }
 };
 
-
+function clearEquipmentInputs() {
+    document.getElementById('equipment-name').value = '';
+    document.getElementById('equipment-category').selectedIndex = 0;
+}
 
 // Add Equipment
 window.addEquipment = async function() {
@@ -402,6 +421,7 @@ window.addEquipment = async function() {
             dateAdded
         }).then(() => {
             alert('Equipment added successfully');
+          clearEquipmentInputs();
             loadData();
             closePopup('add-equipment-popup');
         }).catch(error => {
@@ -409,6 +429,11 @@ window.addEquipment = async function() {
         });
     }
 };
+
+function clearFertilizerInputs() {
+    document.getElementById('fertilizer-name').value = '';
+        document.getElementById('fertilizer-category').selectedIndex = 0;
+}
 
 
 // Add Fertilizer
@@ -445,6 +470,7 @@ window.addFertilizer = async function() {
             dateAdded
         }).then(() => {
             alert('Fertilizer added successfully');
+            clearFertilizerInputs();
             loadData();
             closePopup('add-fertilizer-popup');
         }).catch(error => {
@@ -522,6 +548,12 @@ function loadFarmlandsForBarangay() {
     // Load farmlands based on the selected barangay (implement your logic here)
 }
 
+function clearFarmlandInputs() {
+    document.getElementById('farmland-name').value = '';
+        document.getElementById('farmland-land-area').value = '';
+}
+
+
 //add farmland
 window.addFarmland = async function () {
     const barangaySelect = document.getElementById("barangay-select");
@@ -583,6 +615,7 @@ window.addFarmland = async function () {
             await db.collection("tb_farmland").add(newFarmland);
 
             alert("Farmland added successfully");
+            clearFarmlandInputs();
             loadData();
             loadFarmlandsForBarangay();
 
