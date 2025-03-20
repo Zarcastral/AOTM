@@ -25,7 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
   addFertStock();
 });
 
-async function saveActivityLog(action) {
+async function saveActivityLog(action, description) {
+  // Define allowed actions
+  const allowedActions = ["Create", "Update", "Delete"];
+  
+  // Validate action
+  if (!allowedActions.includes(action)) {
+    console.error("Invalid action. Allowed actions are: create, update, delete.");
+    return;
+  }
+
+  // Ensure description is provided
+  if (!description || typeof description !== "string") {
+    console.error("Activity description is required and must be a string.");
+    return;
+  }
 
   // Use onAuthStateChanged to wait for authentication status
   onAuthStateChanged(auth, async (user) => {
@@ -66,11 +80,12 @@ async function saveActivityLog(action) {
         await updateDoc(counterDocRef, { value: newCounter });
 
         // Use the incremented counter as activity_log_id
-        const docRef = await addDoc(activityLogCollection, {
+        await addDoc(activityLogCollection, {
           activity_log_id: newCounter, // Use counter instead of a placeholder
           username: userName,
           user_type: userType,
           activity: action,
+          activity_desc: description, // Add descriptive message
           date: date,
           time: time
         });
@@ -642,7 +657,8 @@ async function saveStock() {
       }
 
       // ✅ Save activity log
-      await saveActivityLog("update", `Added ${fertilizerStock} stock for ${fertilizerName} by ${userType}`);
+      await saveActivityLog("Update", `Added ${fertilizerStock} ${unit} of stock for ${fertilizerName} by ${userType}`);
+
       showFertilizerStockMessage("Fertilizer Stock has been added successfully!", true);
       closeStockPanel();
 
@@ -739,7 +755,8 @@ async function deleteStock() {
           fertilizer_type: fertilizerType // Ensure fertilizer_type is saved
       });
 
-      await saveActivityLog("delete", `Deleted ${fertilizerStock} of ${fertilizerType} for ${userType}`);
+      await saveActivityLog("Delete", `Deleted ${fertilizerStock} ${unit} of stock for ${fertilizerName} from ${userType} Inventory`);
+
       showFertilizerStockMessage("Fertilizer Stock has been deleted successfully!", true);
       closeStockPanel();
 

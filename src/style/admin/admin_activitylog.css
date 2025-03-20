@@ -97,7 +97,7 @@ tbody tr:hover {
 
 /* Centering Text in Table Cells */
 .panel table th, .panel table td {
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
 }
 

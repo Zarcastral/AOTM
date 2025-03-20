@@ -2,15 +2,19 @@ import {
     collection,
     getDocs,
     doc,
-    getDoc,
     deleteDoc,
-    where,
+    getDoc,
+    setDoc,
     query,
+    where,
     getFirestore
   } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+const auth = getAuth(app);
+
 
 const tableBody = document.getElementById("table_body");
 const barangaySelect = document.getElementById("barangay-select");
@@ -26,6 +30,35 @@ document.body.appendChild(editFormContainer);
 let currentPage = 1;
 const rowsPerPage = 5;
 let farmerAccounts = [];
+
+async function getAuthenticatedUser() {
+    return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+                    const userSnapshot = await getDocs(userQuery);
+
+                    if (!userSnapshot.empty) {
+                        const userData = userSnapshot.docs[0].data();
+                        const userName = userData.user_name;  
+                        const userType = userData.user_type;  
+                        
+                        resolve({ user_name: userName, email: user.email, user_type: userType });
+                    } else {
+                        console.error("User record not found in tb_users.");
+                        reject("User record not found.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user from tb_users:", error);
+                    reject(error);
+                }
+            } else {
+                reject("No authenticated user.");
+            }
+        });
+    });
+}
 
 async function fetch_farmer_accounts(filter = {}) {
     try {
@@ -391,13 +424,94 @@ function toggleBulkDeleteButton() {
         bulkDeleteBtn.disabled = true;
     }
 }
-
+// <---------------------------- BULK DELETE CODE ---------------------------->
 const deleteSelectedBtn = document.getElementById("bulk-delete");
 const bulkDeletePanel = document.getElementById("bulk-delete-panel");
 const confirmDeleteBtn = document.getElementById("confirm-bulk-delete");
 const cancelDeleteBtn = document.getElementById("cancel-bulk-delete");
 let idsToDelete = [];
 
+// Function to archive and delete documents from a given collection while managing archive_id_counter
+async function archiveAndDelete(collectionName, matchField, valuesToDelete) {
+    if (valuesToDelete.length === 0) {
+        console.warn("No items selected for deletion.");
+        return;
+    }
+
+    try {
+        const mainCollection = collection(db, collectionName);
+        const archiveCollection = collection(db, "tb_archive");
+        const counterDocRef = doc(db, "tb_id_counters", "archive_id_counter");
+        let hasArchived = false;
+
+        // Retrieve the authenticated user's username and type
+        const user = await getAuthenticatedUser();
+        const userName = user.user_name;   // Use fetched user_name
+        const userType = user.user_type;   // Use fetched user_type
+
+        const counterDocSnap = await getDoc(counterDocRef);
+        let archiveCounter = counterDocSnap.exists() ? counterDocSnap.data().counter : 0;
+
+        if (isNaN(archiveCounter)) {
+            archiveCounter = 0;
+        }
+
+        for (const value of valuesToDelete) {
+            const querySnapshot = await getDocs(query(mainCollection, where(matchField, "==", value)));
+
+            if (!querySnapshot.empty) {
+                for (const docSnapshot of querySnapshot.docs) {
+                    archiveCounter++;
+                    const data = docSnapshot.data();
+                    const archiveId = archiveCounter;
+
+                    const now = new Date();
+                    const archiveDate = now.toISOString().split('T')[0];
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const archiveTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+
+                    const archivedData = {
+                        ...data,
+                        archive_id: archiveId,
+                        document_type: "Farmer Account",
+                        document_name: `${data.user_type} Account of ${data.first_name} ${data.middle_name} ${data.last_name}`,
+
+                        archive_date: archiveDate,
+                        archive_time: archiveTime,
+                        archived_by: {
+                            user_name: userName,
+                            user_type: userType
+                        }
+                    };
+
+                    const archiveRef = doc(archiveCollection);
+                    await setDoc(archiveRef, archivedData);
+
+                    await deleteDoc(doc(db, collectionName, docSnapshot.id));
+
+                    console.log(`Archived and deleted document ID from ${collectionName}:`, docSnapshot.id);
+                    hasArchived = true;
+                }
+            }
+        }
+
+        if (hasArchived) {
+            await setDoc(counterDocRef, { counter: archiveCounter }, { merge: true });
+        } else {
+            console.warn(`WARNING: No records found in ${collectionName} for deletion.`);
+        }
+
+        console.log(`Processing complete for Farmer Accounts:`, valuesToDelete);
+        showDeleteMessage(`Farmer accounts have been archived and deleted!`, true);
+    } catch (error) {
+        console.error(`Error archiving or deleting records from ${collectionName}:`, error);
+        showDeleteMessage(`Error processing farmer accounts!`, false);
+    }
+}
+
+// Modify bulk delete functionality to use archiveAndDelete
 deleteSelectedBtn.addEventListener("click", async () => {
     const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
 
@@ -407,16 +521,11 @@ deleteSelectedBtn.addEventListener("click", async () => {
     for (const checkbox of selectedCheckboxes) {
         const farmerId = checkbox.getAttribute("data-farmer-id");
 
-        // Validate farmerId (null, undefined, or empty string)
         if (!farmerId || farmerId.trim() === "") {
             hasInvalidId = true;
             break;
         }
 
-        /*  Check if the farmer_id exists in the database
-            kailangan to for error trapping kasi chine check nya muna kung yung na retrieve na farmer id
-            dun sa mga checkboxes is nag eexist talaga sa firestore database
-        */
         try {
             const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
             const querySnapshot = await getDocs(q);
@@ -441,29 +550,18 @@ deleteSelectedBtn.addEventListener("click", async () => {
     }
 });
 
-
 confirmDeleteBtn.addEventListener("click", async () => {
     try {
-        for (const farmerId of idsToDelete) {
-            const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
-            const querySnapshot = await getDocs(q);
-
-            querySnapshot.forEach(async (docSnapshot) => {
-                const docRef = doc(db, "tb_farmers", docSnapshot.id);
-                await deleteDoc(docRef);
-                console.log(`Farmer with ID ${farmerId} deleted.`);
-            });
-        }
-        
-        showDeleteMessage("Selected farmers have been deleted.", true);
+        await archiveAndDelete("tb_farmers", "farmer_id", idsToDelete);
         fetch_farmer_accounts();
     } catch (error) {
-        console.error("Error deleting farmers:", error);
-        showDeleteMessage("Error deleting farmers. Please try again.", false);
+        console.error("Error archiving or deleting farmers:", error);
+        showDeleteMessage("Error archiving or deleting farmers. Please try again.", false);
     }
 
-    bulkDeletePanel.classList.remove("show"); 
+    bulkDeletePanel.classList.remove("show");
 });
+
 
 cancelDeleteBtn.addEventListener("click", () => {
 

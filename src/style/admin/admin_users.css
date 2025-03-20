@@ -42,6 +42,7 @@ body {
     flex-direction: column;
     padding: 50px; /* Padding around the panels */
     overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Disable horizontal scrolling */
   }
 
 

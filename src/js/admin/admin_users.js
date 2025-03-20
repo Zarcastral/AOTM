@@ -1,16 +1,24 @@
 import {
     collection,
     getDocs,
-    doc,
-    deleteDoc,
     getDoc,
+    getFirestore,
     query,
     where,
-    getFirestore
+    deleteDoc,
+    updateDoc,
+    Timestamp,
+    onSnapshot,
+    setDoc,
+    addDoc,
+    arrayRemove,
+    doc
   } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+const auth = getAuth(app);
 
 const tableBody = document.getElementById("table_body");
 const barangaySelect = document.getElementById("barangay-select");
@@ -27,19 +35,143 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let userAccounts = [];
 
-async function fetch_user_accounts(filter = {}) {
-    try {
-        const querySnapshot = await getDocs(collection(db, "tb_users"));
-        userAccounts = [];
+// <-----------------------ACTIVITY LOG CODE----------------------------->
+/*
+      ACTIVITY LOG RECORD FORMAT
+      await saveActivityLog("Update", `Added ${cropStock} ${unit} of stock for ${cropTypeName} by ${userType}`);
+      await saveActivityLog("Delete", `Deleted ${cropStock} ${unit} of stock for ${cropTypeName} from ${userType} Inventory`);
+      await saveActivityLog("Create", `Deleted ${cropStock} ${unit} of stock for ${cropTypeName} from ${userType} Inventory`);
+*/
+async function saveActivityLog(action, description) {
+  // Define allowed actions
+  const allowedActions = ["Create", "Update", "Delete"];
+  
+  // Validate action
+  if (!allowedActions.includes(action)) {
+    console.error("Invalid action. Allowed actions are: create, update, delete.");
+    return;
+  }
 
-        querySnapshot.forEach((doc) => {
+  // Ensure description is provided
+  if (!description || typeof description !== "string") {
+    console.error("Activity description is required and must be a string.");
+    return;
+  }
+
+  // Use onAuthStateChanged to wait for authentication status
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Fetch authenticated user's data from tb_users collection
+      const userDocRef = doc(db, "tb_users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        console.error("User data not found in tb_users.");
+        return;
+      }
+
+      const userData = userDocSnap.data();
+      const userName = userData.user_name || "Unknown User";
+      const userType = userData.user_type || "Unknown Type";
+
+      const currentTimestamp = Timestamp.now().toDate();
+      const date = currentTimestamp.toLocaleDateString("en-US");
+      const time = currentTimestamp.toLocaleTimeString("en-US");
+
+      const activityLogCollection = collection(db, "tb_activity_log");
+
+      try {
+        // Fetch and increment the activity_log_id_counter
+        const counterDocRef = doc(db, "tb_id_counters", "activity_log_id_counter");
+        const counterDocSnap = await getDoc(counterDocRef);
+
+        if (!counterDocSnap.exists()) {
+          console.error("Counter document not found.");
+          return;
+        }
+
+        let currentCounter = counterDocSnap.data().value || 0;
+        let newCounter = currentCounter + 1;
+
+        // Update the counter in the database
+        await updateDoc(counterDocRef, { value: newCounter });
+
+        // Use the incremented counter as activity_log_id
+        await addDoc(activityLogCollection, {
+          activity_log_id: newCounter, // Use counter instead of a placeholder
+          username: userName,
+          user_type: userType,
+          activity: action,
+          activity_desc: description, // Add descriptive message
+          date: date,
+          time: time
+        });
+
+        console.log("Activity log saved successfully with ID:", newCounter);
+      } catch (error) {
+        console.error("Error saving activity log:", error);
+      }
+    } else {
+      console.error("No authenticated user found.");
+    }
+  });
+}
+
+async function getAuthenticatedUser() {
+    return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+                    const userSnapshot = await getDocs(userQuery);
+
+                    if (!userSnapshot.empty) {
+                        const userData = userSnapshot.docs[0].data();
+                        const userName = userData.user_name;  
+                        const userType = userData.user_type;  
+                        
+                        resolve({ user_name: userName, email: user.email, user_type: userType });
+                    } else {
+                        console.error("User record not found in tb_users.");
+                        reject("User record not found.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user from tb_users:", error);
+                    reject(error);
+                }
+            } else {
+                reject("No authenticated user.");
+            }
+        });
+    });
+}
+
+
+function fetch_user_accounts(filter = {}) {
+    const q = collection(db, "tb_users");
+
+    onSnapshot(q, async (querySnapshot) => {
+        userAccounts = [];
+        const missingUsernames = [];
+
+        for (const doc of querySnapshot.docs) {
             const data = doc.data();
+
+            // Check if the document exists (prevents processing deleted ones)
+            const docRef = doc.ref;
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                console.warn(`User data not found in tb_users: ${data.user_name || "Unknown User"}`);
+                continue;  // Skip if the document no longer exists
+            }
+
             const searchTerm = filter.search?.toLowerCase();
+
             const matchesSearch = searchTerm
                 ? `${data.first_name || ""} ${data.middle_name || ""} ${data.last_name || ""}`
-                    .toLowerCase()
+                      .toLowerCase()
                       .includes(searchTerm) ||
-                  //(data.email || "").toLowerCase().includes(searchTerm) ||
                   (data.user_name || "").toLowerCase().includes(searchTerm) ||
                   (data.barangay_name || "").toLowerCase().includes(searchTerm) ||
                   (data.user_type || "").toLowerCase().includes(searchTerm)
@@ -52,26 +184,25 @@ async function fetch_user_accounts(filter = {}) {
             if (matchesSearch && matchesBarangay) {
                 userAccounts.push({ id: doc.id, ...data });
             }
-        });
+        }
 
-        const missingUsernames = []; // Array to store users with undefined IDs
-        // <------------- FETCHED DATA SORT BY USERNAME ASCENSION ------------->
+        // Sort the results by username
         userAccounts.sort((a, b) => {
             const userNameA = a.user_name;
             const userNameB = b.user_name;
             const missName = formatName(a.first_name, a.middle_name, a.last_name);
-        
+
             if (userNameA === undefined) {
                 missingUsernames.push(missName);
-                return 0; /* Keeps the current order of undefined values kapag ginawang 1 mapupunta lahat ng
-                users na walang id sa pinaka dulo*/
+                return 0;
             }
+
             // Alphabetical Comparison (A-Z)
             if (isNaN(userNameA) && isNaN(userNameB)) {
-                return String(userNameA).localeCompare(String(userNameB), undefined, {numeric: true, sensitivity: 'base' });
+                return String(userNameA).localeCompare(String(userNameB), undefined, {numeric: true, sensitivity: 'base'});
             }
         });
-                // Log missing user IDs in bulk
+
         if (missingUsernames.length > 0) {
             console.log("Usernames are not retrieved for the following User Accounts: " + missingUsernames.join(", "));
         }
@@ -79,10 +210,11 @@ async function fetch_user_accounts(filter = {}) {
         currentPage = 1;
         updateTable();
         updatePagination();
-    } catch (error) {
+    }, (error) => {
         console.error("Error Fetching User Accounts:", error);
-    }
+    });
 }
+
 
 // <------------------------ FUNCTION TO CAPTALIZE THE INITIAL LETTERS ------------------------>
 function capitalizeWords(str) {
@@ -142,11 +274,11 @@ function updateTable() {
             <td>${formattedBarangay || "Barangay not recorded"}</td>
             <td>${data.contact || "Contact number not recorded"}</td>
             <td>
-                <button class="action-btn edit-btn" data-id="${data.user_name}" title="Edit">
-                    <img src="../../images/edit.png" alt="Edit">
-                </button>
                 <button class="action-btn view-btn" data-id="${data.user_name}" title="View">
                     <img src="../../images/eye.png" alt="View">
+                </button>
+                <button class="action-btn edit-btn" data-id="${data.user_name}" title="Edit">
+                    <img src="../../images/edit.png" alt="Edit">
                 </button>
                 <button class="action-btn delete-btn" data-id="${data.user_name}" title="Delete">
                     <img src="../../images/Delete.png" alt="Delete">
@@ -274,15 +406,13 @@ async function viewUserAccount(user_name) {
     }
 }
 
-// <------------- DELETE BUTTON EVENT LISTENER ------------->
+// <------------- DELETE BUTTON EVENT LISTENER ------------->  
 async function deleteUserAccount(user_name) {
     try {
-        // Query Firestore to get the document ID based on user_name
         const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            // Assuming user_name is unique, get the first matched document
             const userDoc = querySnapshot.docs[0];
             const userDocId = userDoc.id;
 
@@ -290,8 +420,12 @@ async function deleteUserAccount(user_name) {
             confirmationPanel.style.display = "flex";
             editFormContainer.style.pointerEvents = "none";
 
-            // Store the selected row ID
+            // Store the selected row ID and user name
             selectedRowId = userDocId;
+
+            // Store the username for deletion
+            confirmDeleteButton.dataset.userName = user_name;
+
         } else {
             showDeleteMessage("No matching record found, unable to delete.", false);
         }
@@ -300,8 +434,7 @@ async function deleteUserAccount(user_name) {
     }
 }
 
-
-// <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
+// <------------- DELETE ROW AND TABLE REFRESH CODE ------------->  
 const confirmationPanel = document.getElementById("confirmation-panel");
 const confirmDeleteButton = document.getElementById("confirm-delete");
 const cancelDeleteButton = document.getElementById("cancel-delete");
@@ -311,13 +444,20 @@ const deleteMessage = document.getElementById("delete-message");
 confirmDeleteButton.addEventListener("click", async () => {
     if (selectedRowId) {
         try {
+            const userName = confirmDeleteButton.dataset.userName;
 
+            // Archive before deleting
+            await archiveAndDelete("tb_users", "user_name", [userName]);
+
+            // Only delete after archiving succeeds
             const userDocRef = doc(db, "tb_users", selectedRowId);
             await deleteDoc(userDocRef);
-            console.log("Record deleted successfully!");
+            
+            console.log(`Archived and deleted: ${userName}`);
 
             fetch_user_accounts();
 
+            // Show success message
             deleteMessage.style.display = "block";
             setTimeout(() => {
                 deleteMessage.style.opacity = "1";
@@ -328,8 +468,10 @@ confirmDeleteButton.addEventListener("click", async () => {
                     }, 300);
                 }, 3000);
             }, 0);
+
         } catch (error) {
-            console.error("Error deleting record:", error);
+            console.error("Error archiving or deleting record:", error);
+            showDeleteMessage("Error archiving or deleting record.", false);
         }
     }
 
@@ -396,7 +538,103 @@ const confirmDeleteBtn = document.getElementById("confirm-bulk-delete");
 const cancelDeleteBtn = document.getElementById("cancel-bulk-delete");
 let idsToDelete = [];
 
+// Function to archive and delete documents from a given collection while managing archive_id_counter
+async function archiveAndDelete(collectionName, matchField, valuesToDelete) {
+    if (valuesToDelete.length === 0) {
+        console.warn("No items selected for deletion.");
+        return;
+    }
 
+    try {
+        const mainCollection = collection(db, collectionName);
+        const archiveCollection = collection(db, "tb_archive");
+        const counterDocRef = doc(db, "tb_id_counters", "archive_id_counter");
+        let hasArchived = false;
+
+        // Retrieve the authenticated user's username and type
+        const user = await getAuthenticatedUser();
+        const userName = user.user_name;   // Use fetched user_name
+        const userType = user.user_type;   // Use fetched user_type
+
+        const counterDocSnap = await getDoc(counterDocRef);
+        let archiveCounter = counterDocSnap.exists() ? counterDocSnap.data().counter : 0;
+
+        if (isNaN(archiveCounter)) {
+            archiveCounter = 0;
+        }
+
+        for (const value of valuesToDelete) {
+            const querySnapshot = await getDocs(query(mainCollection, where(matchField, "==", value)));
+
+            if (!querySnapshot.empty) {
+                for (const docSnapshot of querySnapshot.docs) {
+                    archiveCounter++;
+                    const data = docSnapshot.data();
+                    const archiveId = archiveCounter;
+
+                    const now = new Date();
+                    const archiveDate = now.toISOString().split('T')[0];
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const archiveTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+
+                    const archivedData = {
+                        ...data,
+                        archive_id: archiveId,
+                        document_type: "User Account",
+                        document_name: `${data.user_type} Account of ${data.first_name} ${data.middle_name} ${data.last_name}`,
+                        archive_date: archiveDate,
+                        archive_time: archiveTime,
+                        archived_by: {
+                            user_name: userName,
+                            user_type: userType
+                        }
+                    };
+
+                    const archiveRef = doc(archiveCollection);
+                    await setDoc(archiveRef, archivedData);
+
+                    await deleteDoc(doc(db, collectionName, docSnapshot.id));
+
+                    console.log(`Archived and deleted document ID from ${collectionName}:`, docSnapshot.id);
+                    hasArchived = true;
+                }
+            }
+        }
+
+        if (hasArchived) {
+            await setDoc(counterDocRef, { counter: archiveCounter }, { merge: true });
+        } else {
+            console.warn(`WARNING: No records found in ${collectionName} for deletion.`);
+        }
+
+        await saveActivityLog("Delete", `Archived ${valuesToDelete.length} User Accounts`);
+        console.log(`Processing complete for User Accounts:`, valuesToDelete);
+        showDeleteMessage(`Selected User Accounts have been archived`, true);
+
+    } catch (error) {
+        console.error(`Error archiving or deleting records from ${collectionName}:`, error);
+        showDeleteMessage(`Error processing user accounts!`, false);
+    }
+}
+
+
+// Modify bulk delete functionality to use archiveAndDelete
+// Function to check if the current user is trying to delete their own account
+async function currentAccountChecker(userNamesToDelete) {
+    try {
+        const user = await getAuthenticatedUser();  // Get the current authenticated user
+        const currentUserName = user.user_name;     // Current user's user_name
+
+        return userNamesToDelete.includes(currentUserName);
+    } catch (error) {
+        console.error("Error fetching authenticated user:", error);
+        return false;
+    }
+}
+
+// Bulk delete functionality with self-deletion prevention
 deleteSelectedBtn.addEventListener("click", async () => {
     const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
 
@@ -406,16 +644,11 @@ deleteSelectedBtn.addEventListener("click", async () => {
     for (const checkbox of selectedCheckboxes) {
         const user_name = checkbox.getAttribute("data-user-name");
 
-        // Validate username (null, undefined, or empty string)
         if (!user_name || user_name.trim() === "") {
             hasInvalidId = true;
             break;
         }
 
-        /*  Check if the user_name exists in the database
-            kailangan to for error trapping kasi chine check nya muna kung yung na retrieve na farmer id
-            dun sa mga checkboxes is nag eexist talaga sa firestore database
-        */
         try {
             const q = query(collection(db, "tb_users"), where("user_name", "==", user_name));
             const querySnapshot = await getDocs(q);
@@ -427,7 +660,7 @@ deleteSelectedBtn.addEventListener("click", async () => {
 
             idsToDelete.push(user_name);
         } catch (error) {
-            console.error("Error fetching farmer records:", error);
+            console.error("Error fetching user records:", error);
             hasInvalidId = true;
             break;
         }
@@ -436,37 +669,34 @@ deleteSelectedBtn.addEventListener("click", async () => {
     if (hasInvalidId) {
         showDeleteMessage("ERROR: Username of one or more selected records are invalid", false);
     } else {
-        bulkDeletePanel.classList.add("show");
+        const isDeletingOwnAccount = await currentAccountChecker(idsToDelete);
+
+        if (isDeletingOwnAccount) {
+            showDeleteMessage("You cannot delete your own account while logged in", false);
+        } else {
+            bulkDeletePanel.classList.add("show");
+        }
     }
 });
 
+// Confirm delete with archive functionality
 confirmDeleteBtn.addEventListener("click", async () => {
     try {
-        for (const username of idsToDelete) {
-            const q = query(collection(db, "tb_users"), where("user_name", "==", username));
-            const querySnapshot = await getDocs(q);
-
-            querySnapshot.forEach(async (docSnapshot) => {
-                const docRef = doc(db, "tb_users", docSnapshot.id);
-                await deleteDoc(docRef);
-                console.log(`Account with Username of ${username} deleted.`);
-            });
-        }
-        
-        showDeleteMessage("Selected users have been deleted.", true);
+        await archiveAndDelete("tb_users", "user_name", idsToDelete);
         fetch_user_accounts();
     } catch (error) {
-        console.error("Error deleting users:", error);
-        showDeleteMessage("Error deleting users. Please try again.", false);
+        console.error("Error archiving or deleting users:", error);
+        showDeleteMessage("Error archiving or deleting users. Please try again.", false);
     }
 
-    bulkDeletePanel.classList.remove("show"); 
+    bulkDeletePanel.classList.remove("show");
 });
 
+// Cancel delete action
 cancelDeleteBtn.addEventListener("click", () => {
-
-    bulkDeletePanel.classList.remove("show"); 
+    bulkDeletePanel.classList.remove("show");
 });
+
 
 // <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE and ERROR MESSAGES ------------------------>
 function showDeleteMessage(message, success) {
