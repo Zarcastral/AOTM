@@ -642,7 +642,7 @@ window.saveProject = async function () {
     const startDate = document.getElementById("start-date").value;
     const endDate = document.getElementById("end-date").value;
 
-    // ✅ Extract equipment data (optional, no warning if empty)
+    // ✅ Extract equipment data
     const equipmentList = document.getElementById("equipment-list").children;
     let equipmentData = [];
 
@@ -657,7 +657,7 @@ window.saveProject = async function () {
       }
     }
 
-    // ✅ Check required fields (removed equipment list warning)
+    // ✅ Check required fields
     let missingFields = [];
     if (!projectName) missingFields.push("Project Name");
     if (!farmPresidentName) missingFields.push("Farm President");
@@ -674,7 +674,6 @@ window.saveProject = async function () {
     if (!endDate) missingFields.push("End Date");
 
     if (missingFields.length > 0) {
-      console.warn("⚠️ Missing Fields:", missingFields);
       alert(`⚠️ Please fill out the following fields before saving:\n- ${missingFields.join("\n- ")}`);
       return;
     }
@@ -703,6 +702,7 @@ window.saveProject = async function () {
       );
       return;
     }
+
     // 🔍 Fetch current stock of the selected fertilizer from Firestore
     const fertilizerRef = collection(db, "tb_fertilizer_stock");
     const fertilizerQuery = query(
@@ -737,9 +737,7 @@ window.saveProject = async function () {
     const farmersQuerySnapshot = await getDocs(farmersQuery);
 
     if (farmersQuerySnapshot.empty) {
-      alert(
-        `❌ Farm President '${farmPresidentName}' not found in the database.`
-      );
+      alert(`❌ Farm President '${farmPresidentName}' not found in the database.`);
       return;
     }
 
@@ -748,7 +746,9 @@ window.saveProject = async function () {
 
     // ✅ Generate a new project ID AFTER validation
     const projectID = await getNextProjectID();
-    console.log("Generated Project ID:", projectID);
+
+    // ✅ Get current date and time
+    const currentDateTime = new Date();
 
     const projectData = {
       project_id: projectID,
@@ -767,11 +767,13 @@ window.saveProject = async function () {
       fertilizer_unit: fertilizerUnit,
       start_date: startDate,
       end_date: endDate,
-      date_created: new Date(),
+      crop_date: currentDateTime, // ✅ Added current date for crop
+      fertilizer_date: currentDateTime, // ✅ Added current date for fertilizer
+      equipment_date: currentDateTime, // ✅ Added current date for equipment
+      date_created: currentDateTime,
     };
 
     // ✅ Save project data to Firestore
-    console.log("Project Data Being Saved:", projectData);
     await addDoc(collection(db, "tb_projects"), projectData);
 
     // ✅ Update the stock in tb_crop_stock
@@ -780,7 +782,7 @@ window.saveProject = async function () {
       current_stock: newCropStock,
     });
 
-    // ✅ Update the stock in tb_fertilizer
+    // ✅ Update the stock in tb_fertilizer_stock
     const newFertilizerStock = currentFertilizerStock - quantityFertilizerType;
     await updateDoc(doc(db, "tb_fertilizer_stock", fertilizerDoc.id), {
       current_stock: newFertilizerStock,
@@ -793,6 +795,7 @@ window.saveProject = async function () {
     alert("Failed to save project. Please try again.");
   }
 };
+
 
 
 
