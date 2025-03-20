@@ -62,8 +62,13 @@
       </div>
 
       <div class="file-input-container">
-        <label class="custom-file-label" for="profilePicture">Choose File</label>
-        <input type="file" id="profilePicture" class="file-input" accept="image/*">
+        <label for="profilePicture">Profile Picture</label>
+        <div class="file-input-wrapper">
+          <label id="profilePictureLabel" class="custom-file-label" for="profilePicture">Choose File</label>
+          <input type="file" id="profilePicture" class="file-input" accept="image/*">
+          <span id="remove-file" class="remove-file" style="display: none;">×</span>
+        </div>
+        <span id="profilePictureError" style="color: red;"></span>
       </div>
 
       <div class="form-group">
@@ -83,8 +88,11 @@
 
       <div class="form-group">
         <label for="contact">Contact:</label>
-        <input type="tel" id="contact" required>
+        <input type="tel" id="contact" maxlength="11" required>
+        <p id="contactError" style="color: red;"></p>
+
       </div>
+
 
       <div class="form-group">
         <label for="birthday">Birthday:</label>
