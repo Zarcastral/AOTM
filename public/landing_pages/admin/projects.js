@@ -612,7 +612,7 @@ window.getFarmlandId = async function (farmlandName) {
 
 window.saveProject = async function () {
   try {
-    // Get input values
+    // ✅ Get input values
     const projectName = document.getElementById("project-name").value.trim();
     const assignToSelect = document.getElementById("assign-to");
     const farmPresidentName =
@@ -639,31 +639,25 @@ window.saveProject = async function () {
       .getElementById("fertilizer-unit")
       .value.trim();
 
-    const equipmentType = document.getElementById("equipment-type-select").value;
+    const startDate = document.getElementById("start-date").value;
+    const endDate = document.getElementById("end-date").value;
 
-    // ✅ Extract equipment data from the table
-    const equipmentTable = document
-      .getElementById("equipment-table")
-      .getElementsByTagName("tbody")[0];
-    const equipmentRows = equipmentTable.getElementsByTagName("tr");
-
+    // ✅ Extract equipment data (optional, no warning if empty)
+    const equipmentList = document.getElementById("equipment-list").children;
     let equipmentData = [];
-    for (let row of equipmentRows) {
-      const equipmentName = row.cells[0].textContent.trim();
-      const equipmentQuantity = parseInt(row.cells[1].textContent.trim());
 
-      if (equipmentName && !isNaN(equipmentQuantity)) {
+    for (let item of equipmentList) {
+      const equipmentParts = item.textContent.split("|").map((part) => part.trim());
+      if (equipmentParts.length === 3) {
         equipmentData.push({
-          name: equipmentName,
-          quantity: equipmentQuantity,
+          equipment_name: equipmentParts[0],
+          equipment_type: equipmentParts[1],
+          quantity: parseInt(equipmentParts[2]),
         });
       }
     }
 
-    const startDate = document.getElementById("start-date").value;
-    const endDate = document.getElementById("end-date").value;
-
-    // ✅ Check if required fields are empty and log them
+    // ✅ Check required fields (removed equipment list warning)
     let missingFields = [];
     if (!projectName) missingFields.push("Project Name");
     if (!farmPresidentName) missingFields.push("Farm President");
@@ -676,8 +670,6 @@ window.saveProject = async function () {
     if (!fertilizerType) missingFields.push("Fertilizer Type");
     if (isNaN(quantityFertilizerType)) missingFields.push("Fertilizer Quantity");
     if (!fertilizerUnit) missingFields.push("Fertilizer Unit");
-    if (!equipmentType) missingFields.push("Equipment Type");
-    if (equipmentData.length === 0) missingFields.push("Equipment List");
     if (!startDate) missingFields.push("Start Date");
     if (!endDate) missingFields.push("End Date");
 
@@ -687,7 +679,7 @@ window.saveProject = async function () {
       return;
     }
 
-    // 🔍 Fetch current stock of the selected crop type from tb_crop_stock
+    // 🔍 Fetch current stock of the selected crop type from Firestore
     const cropTypeRef = collection(db, "tb_crop_stock");
     const cropQuery = query(
       cropTypeRef,
@@ -711,9 +703,8 @@ window.saveProject = async function () {
       );
       return;
     }
-
-    // 🔍 Fetch current stock of the selected fertilizer from tb_fertilizer
-    const fertilizerRef = collection(db, "tb_fertilizer");
+    // 🔍 Fetch current stock of the selected fertilizer from Firestore
+    const fertilizerRef = collection(db, "tb_fertilizer_stock");
     const fertilizerQuery = query(
       fertilizerRef,
       where("fertilizer_name", "==", fertilizerType)
@@ -737,11 +728,11 @@ window.saveProject = async function () {
       return;
     }
 
-    // Fetch the email of the selected farm president from tb_farmers collection using first_name
+    // Fetch the email of the selected farm president from Firestore
     const farmersRef = collection(db, "tb_farmers");
     const farmersQuery = query(
       farmersRef,
-      where("first_name", "==", farmPresidentName) // ⚠️ Consider matching by full name or ID
+      where("first_name", "==", farmPresidentName)
     );
     const farmersQuerySnapshot = await getDocs(farmersQuery);
 
@@ -757,6 +748,7 @@ window.saveProject = async function () {
 
     // ✅ Generate a new project ID AFTER validation
     const projectID = await getNextProjectID();
+    console.log("Generated Project ID:", projectID);
 
     const projectData = {
       project_id: projectID,
@@ -773,14 +765,13 @@ window.saveProject = async function () {
       fertilizer_type: fertilizerType,
       quantity_fertilizer_type: quantityFertilizerType,
       fertilizer_unit: fertilizerUnit,
-      equipment_type: equipmentType, // ✅ Adjusted to match new field
-      equipment: equipmentData, // ✅ Saved as an array
       start_date: startDate,
       end_date: endDate,
       date_created: new Date(),
     };
 
     // ✅ Save project data to Firestore
+    console.log("Project Data Being Saved:", projectData);
     await addDoc(collection(db, "tb_projects"), projectData);
 
     // ✅ Update the stock in tb_crop_stock
@@ -791,7 +782,7 @@ window.saveProject = async function () {
 
     // ✅ Update the stock in tb_fertilizer
     const newFertilizerStock = currentFertilizerStock - quantityFertilizerType;
-    await updateDoc(doc(db, "tb_fertilizer", fertilizerDoc.id), {
+    await updateDoc(doc(db, "tb_fertilizer_stock", fertilizerDoc.id), {
       current_stock: newFertilizerStock,
     });
 
@@ -802,6 +793,9 @@ window.saveProject = async function () {
     alert("Failed to save project. Please try again.");
   }
 };
+
+
+
 
 
 //PAMBURA

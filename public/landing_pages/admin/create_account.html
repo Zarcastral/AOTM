@@ -61,12 +61,11 @@
         <p id="passwordMatchMessage" style="display: none; color: green;">✅ Passwords match</p>
       </div>
 
-      <div class="file-input-container">
-        <label for="profilePicture">Profile Picture</label>
+      <div class="form-group file-input-container">
+        <label for="profilePicture">Profile Picture:</label>
         <div class="file-input-wrapper">
-          <label id="profilePictureLabel" class="custom-file-label" for="profilePicture">Choose File</label>
-          <input type="file" id="profilePicture" class="file-input" accept="image/*">
-          <span id="remove-file" class="remove-file" style="display: none;">×</span>
+          <input type="file" id="profilePicture" accept="image/*">
+          <button class="remove-file" id="remove-file" style="display: none;">×</button>
         </div>
         <span id="profilePictureError" style="color: red;"></span>
       </div>
