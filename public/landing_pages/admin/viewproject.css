@@ -1,207 +1,329 @@
 body {
-    background-color: #f3f4f6;
+    background-color: #F5F6FA;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     font-family: 'Poppins';
+    margin: 0;
 }
+
 .container {
     width: 100%;
-    max-width: 600px;
+    max-width: 1200px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 16px;
+    gap: 20px;
+    padding: 20px;
 }
+
 .panel {
     background-color: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    padding: 24px;
-    text-align: center;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
-.panel h2 {
+
+/* Project Details Panel */
+.project-details h2 {
     font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 16px;
+    font-weight: 700;
+    color: #1a3c34;
+    margin-bottom: 20px;
 }
+
 .details {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    row-gap: 8px;
-    column-gap: 12px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
     text-align: left;
 }
-.details p {
+
+.detail-item p {
     margin: 0;
-    font-size: 0.9rem;
-    font-weight: bold;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #41A186;
 }
-.details span {
-    font-weight: normal;
+
+.detail-item span {
+    font-size: 0.9rem;
+    font-weight: 400;
     color: #4b5563;
 }
+
+/* Teams Panel */
+.teams-panel h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a3c34;
+    margin-bottom: 20px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
 }
+
 th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
+    padding: 12px;
     text-align: left;
+    font-size: 0.9rem;
 }
+
 th {
     background-color: #f3f4f6;
-    font-weight: bold;
+    font-weight: 600;
+    color: #1a3c34;
+    text-transform: uppercase;
 }
 
-/* Popup Background */
-.popup {
-display: none;
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0, 0, 0, 0.5);
-justify-content: center;
-align-items: center;
+td {
+    border-bottom: 1px solid #e0e0e0;
 }
 
-/* Popup Panel Styles */
-.popup {
-display: none;
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0, 0, 0, 0.5);
-justify-content: center;
-align-items: center;
+.progress-bar {
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    height: 10px;
+    width: 100%;
+    position: relative;
 }
 
-.popup-content {
-background: white;
-padding: 20px;
-width: 350px;
-position: relative;
-border-radius: 8px;
-box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+.progress-bar div {
+    background-color: #41a186;
+    height: 100%;
+    border-radius: 5px;
 }
 
-/* Close Button (X) Inside Panel */
-.close-btn {
-position: absolute;
-top: 10px;
-right: 15px;
-font-size: 24px;
-font-weight: bold;
-cursor: pointer;
-color: #333;
+.view-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
 }
-
-.close-btn:hover {
-color: red;
-}
-
 
 /* Feedback Panel */
-.feedback-panel {
-    width: 100%;
-    margin-top: 20px;
-    padding: 20px;
-    background: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-}
-
-/* Panel Title */
 .feedback-panel h2 {
-    font-size: 22px;
-    margin-bottom: 10px;
-    color: #41A186; /* Green heading */
-    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a3c34;
+    margin-bottom: 20px;
+    margin-left: 30px;
 }
 
-/* Feedback List */
-.feedback-list {
-    max-height: 350px; /* Increased height for better visibility */
-    overflow-y: auto;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: #f9f9f9;
-}
-
-/* Individual Feedback Item */
 .feedback-item {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 12px;
-    background: white;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #41A186;
+    gap: 15px;
+    padding: 15px 20px;  /* Keep vertical padding, restore horizontal padding */
+    border-top: 4px solid #e0e0e0;  /* Top border */
+    border-bottom: 3px solid #e0e0e0;  /* Bottom border */
+    border-left: none;  /* No left border */
+    border-right: none;  /* No right border */
+    border-radius: 0;  /* No rounding */
+    box-shadow: none;
+    
 }
 
-/* Profile Image */
+.feedback-panel {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding-left: 0;  /* Remove left padding */
+    padding-right: 0;  /* Remove right padding */
+}
+
 .feedback-avatar {
-    width: 50px;
-    height: 50px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #ddd;
 }
 
-/* Feedback Content */
 .feedback-content {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
 }
 
-/* Feedback Header */
 .feedback-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .feedback-user {
-    font-weight: bold;
+    font-weight: 600;
     color: #333;
-    font-size: 16px;
+    font-size: 1rem;
+}
+
+.feedback-team {
+    font-weight: 400;
+    color: #777;
+    font-size: 0.9rem;
+    margin-left: 5px;
 }
 
 .timestamp {
-    font-size: 12px;
+    font-size: 0.8rem;
     color: #777;
 }
 
-/* Feedback Details */
 .feedback-text {
-    font-size: 14px;
+    font-size: 0.9rem;
     color: #555;
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+.feedback-status-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 .feedback-status {
-    font-weight: bold;
-    font-size: 13px;
-    color: #e67e22; /* Orange for pending, green for resolved */
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
+.feedback-status.green {
+    color: #41a186;
+}
 
+.feedback-status.gold {
+    color: #555;
+}
 
+.acknowledge-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.acknowledge-icon {
+    width: 20px; /* Adjust size as needed */
+    height: 20px; /* Adjust size as needed */
+    vertical-align: middle;
+    transition: opacity 0.3s; /* Optional hover effect */
+}
+
+.acknowledge-btn:hover .acknowledge-icon {
+    opacity: 0.7; /* Dim image on hover */
+}
+
+/* Popup Styles */
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background: white;
+    padding: 20px;
+    width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.popup-content h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+}
+
+.close-btn:hover {
+    color: red;
+}
+
+.popup-content label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.popup-content select,
+.popup-content textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-cancel {
+    background-color: #ccc;
+    color: #333;
+}
+
+.btn-save {
+    background-color: #41a186;
+    color: white;
+}
+
+.view-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.view-icon {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
-.feedback-panel {
-width: 100%;
-}
+    .details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .panel {
+        padding: 15px;
+    }
 }
