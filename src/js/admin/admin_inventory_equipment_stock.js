@@ -205,7 +205,7 @@ async function fetchEquipments() {
         const equipment = doc.data();
         const equipmentId = equipment.equipment_id;
 
-        // Fetch related stock data from tb_equipment_stock based on equipment_type_id
+        // Fetch related stock data from tb_equipment_stock based on equipment_category_id
         const stockCollection = collection(db, "tb_equipment_stock");
         const stockQuery = query(stockCollection, where("equipment_id", "==", equipmentId));
         const stockSnapshot = await getDocs(stockQuery);
@@ -312,7 +312,7 @@ function displayEquipments(equipmentsList) {
 
     const equipmentName = equipment.equipment_name || "Equipment Name not recorded";
     const equipmentId = equipment.equipment_id || "Equipment Id not recorded";
-    const equipmentType = equipment.equipment_type || "Equipment Category not recorded";
+    const equipmentCategory = equipment.equipment_category || "Equipment Category not recorded";
     // Iterate through stocks array
     equipment.stocks.forEach((stock) => {
       const stock_date = stock.stock_date
@@ -325,7 +325,7 @@ function displayEquipments(equipmentsList) {
       row.innerHTML = `
       <td>${equipmentId}</td>
       <td>${equipmentName}</td>
-      <td>${equipmentType}</td>
+      <td>${equipmentCategory}</td>
       <td>${stock_date}</td>
       <td>${currentStock} ${unit}</td>
       <td>${owned_by}</td>
@@ -375,7 +375,7 @@ document.getElementById("equipment-next-page").addEventListener("click", () => {
 async function fetchEquipmentNames() {
   const equipmentsCollection = collection(db, "tb_equipment_types");
   const equipmentsSnapshot = await getDocs(equipmentsCollection);
-  const equipmentNames = equipmentsSnapshot.docs.map(doc => doc.data().equipment_type);
+  const equipmentNames = equipmentsSnapshot.docs.map(doc => doc.data().equipment_type_name);
 
   populateEquipmentDropdown(equipmentNames);
 }
@@ -399,19 +399,49 @@ function populateEquipmentDropdown(equipmentNames) {
   });
 }
 
-// Event listener to filter equipments based on dropdown selection
-document.querySelector(".equipment_select").addEventListener("change", function () {
-  const selectedEquipment = this.value.toLowerCase();
-  // Filter Equipments based on selected value
-  filteredEquipments = selectedEquipment
-    ? equipmentsList.filter(equipment => equipment.equipment_type?.toLowerCase() === selectedEquipment)
-    : equipmentsList; // If no selection, show all equipments
+// Initialize filtered list with the full equipment list
+let currentFilteredList = [...equipmentsList];
 
-  currentPage = 1; // Reset to the first page when filter is applied
+// Combined filter function
+function applyFilters() {
+  const selectedEquipment = document.querySelector(".equipment_select").value.toLowerCase().trim();
+  const searchQuery = document.getElementById("equip-search-bar").value.toLowerCase().trim();
+
+  // Start with the full list as the base
+  let filteredList = [...equipmentsList];
+
+  // Apply dropdown filter if a selection is made
+  if (selectedEquipment) {
+    filteredList = filteredList.filter(equipment =>
+      equipment.equipment_type_name?.toLowerCase() === selectedEquipment ||
+      equipment.equipment_category?.toLowerCase() === selectedEquipment
+    );
+  }
+
+  // Apply search filter on the dropdown-filtered list
+  if (searchQuery) {
+    filteredList = filteredList.filter(equipment =>
+      equipment.equipment_name?.toLowerCase().includes(searchQuery) ||
+      equipment.equipment_category?.toLowerCase().includes(searchQuery) ||
+      equipment.equipment_category_id?.toString().includes(searchQuery)
+    );
+  }
+
+  // Update the displayed list
+  currentFilteredList = filteredList;
+  currentPage = 1;  // Reset pagination
   sortEquipmentsById();
-  displayEquipments(filteredEquipments); // Update the table with filtered Equipments
+  displayEquipments(currentFilteredList);
+}
+
+// Event listeners
+document.querySelector(".equipment_select").addEventListener("change", () => {
+  applyFilters();
 });
 
+document.getElementById("equip-search-bar").addEventListener("input", () => {
+  applyFilters();
+});
 
 // <------------------ FUNCTION TO DISPLAY equipment STOCK MESSAGE ------------------------>
 const equipmentStockMessage = document.getElementById("equip-stock-message");
@@ -453,9 +483,9 @@ function addEquipStock() {
 
               const userType = user.user_type.trim();
 
-              let equipmentType = "No category was recorded";
+              let equipmentCategory = "No category was recorded";
               let equipmentName = "No name was recorded";
-              let equipmentUnit = "No unit was recorded"; 
+              let equipmentUnit = ""; 
               let currentStock = "No stock recorded"; 
               let stockUnit = ""; 
 
@@ -466,8 +496,8 @@ function addEquipStock() {
               if (!equipmentSnapshot.empty) {
                   const equipmentData = equipmentSnapshot.docs[0].data();
                   equipmentName = equipmentData.equipment_name?.trim() || "No Equipment Name was recorded";
-                  equipmentType = equipmentData.equipment_type?.trim() || "No Equipment Category was recorded";
-                  equipmentUnit = equipmentData.unit?.trim() || "No Unit was recorded";
+                  equipmentCategory = equipmentData.equipment_category?.trim() || "No Equipment Category was recorded";
+                  equipmentUnit = equipmentData.unit?.trim() || "";
               }
 
               const stockCollection = collection(db, "tb_equipment_stock");
@@ -488,7 +518,7 @@ function addEquipStock() {
               }
 
               document.getElementById("equip_name").value = equipmentName;
-              document.getElementById("equip_type").value = equipmentType;
+              document.getElementById("equip_type").value = equipmentCategory;
               document.getElementById("equip_unit_hidden").value = equipmentUnit;
               document.getElementById("current_equip_stock").value = currentStock + (stockUnit ? ` ${stockUnit}` : "");
 
@@ -569,13 +599,13 @@ function closeStockPanel() {
 
 async function saveStock() {
   const equipmentId = Number(saveBtn.dataset.equipmentId); // Ensure it's a number
-  const equipmentType = document.getElementById("equip_type").value.trim();
+  const equipmentCategory = document.getElementById("equip_type").value.trim();
   const equipmentName = document.getElementById("equip_name").value.trim();
   const equipmentStock = Number(document.getElementById("equip_stock").value);
   let unit = document.getElementById("equip_unit").value.trim();
 
   if (!unit || unit === "Invalid Unit") {
-      unit = "No unit was recorded";
+      unit = "";
   }
 
   if (!equipmentStock || isNaN(equipmentStock) || equipmentStock <= 0) {
@@ -603,7 +633,7 @@ async function saveStock() {
 
       const userType = userSnapshot.docs[0].data().user_type;
 
-      // ✅ Fetch stock from tb_equipment_stock by equipment_type_id
+      // ✅ Fetch stock from tb_equipment_stock by equipment_category_id
       const inventoryCollection = collection(db, "tb_equipment_stock");
       const inventoryQuery = query(
           inventoryCollection, 
@@ -638,7 +668,7 @@ async function saveStock() {
           // ✅ Update the document with the modified stocks array
           await updateDoc(inventoryDocRef, { 
               stocks: stocks,
-              equipment_type: equipmentType // Ensure equipment_type is saved
+              equipment_category: equipmentCategory // Ensure equipment_category is saved
           });
 
       } else {
@@ -646,7 +676,7 @@ async function saveStock() {
           await addDoc(inventoryCollection, {
               equipment_id: equipmentId,
               equipment_name: equipmentName,
-              equipment_type: equipmentType,
+              equipment_category: equipmentCategory,
               stocks: [
                   {
                       owned_by: userType,
@@ -672,13 +702,13 @@ async function saveStock() {
 
 async function deleteStock() {
   const equipmentId = Number(deleteStockBtn.dataset.equipmentId); // Ensure it's a number
-  const equipmentType = document.getElementById("equip_type").value.trim();
+  const equipmentCategory = document.getElementById("equip_type").value.trim();
   const equipmentName = document.getElementById("equip_name").value.trim();
   const equipmentStock = Number(document.getElementById("equip_stock").value);
   let unit = document.getElementById("equip_unit").value.trim();
 
   if (!unit || unit === "Invalid Unit") {
-      unit = "No unit was recorded";
+      unit = "";
   }
 
   if (!equipmentStock || isNaN(equipmentStock) || equipmentStock <= 0) {
@@ -754,7 +784,7 @@ async function deleteStock() {
       // Save the updated document
       await updateDoc(inventoryDocRef, {
           stocks: stocks,
-          equipment_type: equipmentType // Ensure equipment_type is saved
+          equipment_category: equipmentCategory // Ensure equipment_type is saved
       });
 
       await saveActivityLog("Delete", `Deleted ${equipmentStock} ${unit} of stock for ${equipmentName} from ${userType} Inventory`);
