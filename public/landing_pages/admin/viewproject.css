@@ -117,8 +117,8 @@ td {
     align-items: flex-start;
     gap: 15px;
     padding: 15px 20px;  /* Keep vertical padding, restore horizontal padding */
-    border-top: 4px solid #e0e0e0;  /* Top border */
-    border-bottom: 3px solid #e0e0e0;  /* Bottom border */
+    border-top: 4px solid #EFF1F2;  /* Top border */
+    border-bottom: 3px solid #EFF1F2;  /* Bottom border */
     border-left: none;  /* No left border */
     border-right: none;  /* No right border */
     border-radius: 0;  /* No rounding */
