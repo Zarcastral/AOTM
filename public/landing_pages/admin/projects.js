@@ -742,7 +742,7 @@ window.saveProject = async function () {
     }
 
     const farmPresidentDoc = farmersQuerySnapshot.docs[0];
-    const farmPresidentEmail = farmPresidentDoc.data().email;
+    //const farmPresidentEmail = farmPresidentDoc.data().email;
 
     // ✅ Generate a new project ID AFTER validation
     const projectID = await getNextProjectID();
