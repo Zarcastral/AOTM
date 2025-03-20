@@ -27,7 +27,6 @@ const barangaySelect = document.getElementById("barangay");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const profilePictureInput = document.getElementById("profilePicture");
-const profilePictureLabel = document.getElementById("profilePictureLabel");
 const removeFileBtn = document.getElementById("remove-file");
 const submitsButton = form.querySelector(".submit-btn");
 
@@ -95,26 +94,30 @@ function validateForm() {
   submitsButton.disabled = !isValid;
 }
 
-// Function to update the file input label and "×" button visibility
+// Function to update the file input UI (show/hide the "×" button)
 function updateProfilePictureUI() {
   const file = profilePictureInput.files[0];
   if (file) {
-    profilePictureLabel.textContent = file.name; // Show the file name
     removeFileBtn.style.display = "inline-block"; // Show the "×" button
   } else {
-    profilePictureLabel.textContent = "Choose File"; // Reset label
     removeFileBtn.style.display = "none"; // Hide the "×" button
   }
-  validateForm(); // Trigger form validation
+  validateForm();
 }
 
 // Event listener for file input change
 profilePictureInput.addEventListener("change", updateProfilePictureUI);
 
 // Event listener for the "×" button
-removeFileBtn.addEventListener("click", () => {
+removeFileBtn.addEventListener("click", (event) => {
+  event.preventDefault(); // Prevent default behavior
+  event.stopPropagation(); // Stop event bubbling
+
   profilePictureInput.value = ""; // Clear the file input
   updateProfilePictureUI(); // Update the UI
+
+  // Refocus the file input to prevent focus from shifting
+  profilePictureInput.focus();
 });
 
 const updatePasswordValidation = () => {
@@ -138,7 +141,7 @@ const fetchUserRoles = async () => {
       userTypeSelect.innerHTML += `<option value="${user_type}">${user_type}</option>`;
     });
   } catch (error) {
-    console.error("Error fetching user user_types:", error);
+    console.error("Error fetching user types:", error);
   }
 };
 
@@ -280,29 +283,46 @@ function validateEmailFormat(email) {
 }
 
 async function checkEmailExists(email) {
-  if (email.trim() === "") {
+  if (!email || email.trim() === "") {
     emailError.textContent = "";
     return;
   }
 
-  try {
-    const userQuery = query(
-      collection(db, "tb_users"),
-      where("email", "==", email)
-    );
-    const querySnapshot = await getDocs(userQuery);
+  const maxRetries = 3;
+  let attempt = 0;
 
-    if (!querySnapshot.empty) {
-      emailError.textContent = "❌ Email is already in use.";
+  while (attempt < maxRetries) {
+    try {
+      const userQuery = query(
+        collection(db, "tb_users"),
+        where("email", "==", email)
+      );
+      const querySnapshot = await getDocs(userQuery);
+
+      if (!querySnapshot.empty) {
+        emailError.textContent = "❌ Email is already in use.";
+        emailError.style.color = "red";
+      } else {
+        emailError.textContent = "✅ Email is available to use.";
+        emailError.style.color = "green";
+      }
+      return;
+    } catch (error) {
+      console.error(`Attempt ${attempt + 1} - Error checking email:`, error);
+      if (error.name === "BloomFilterError" && attempt < maxRetries - 1) {
+        attempt++;
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        continue;
+      }
+      if (error.name === "BloomFilterError") {
+        emailError.textContent =
+          "❌ Error checking email: Bloom filter issue after retries. Please try again later.";
+      } else {
+        emailError.textContent = "❌ Error checking email.";
+      }
       emailError.style.color = "red";
-    } else {
-      emailError.textContent = "✅ Email is available to use.";
-      emailError.style.color = "green";
+      return;
     }
-  } catch (error) {
-    console.error("Error checking email:", error);
-    emailError.textContent = "❌ Error checking email.";
-    emailError.style.color = "red";
   }
 }
 
@@ -329,33 +349,50 @@ emailInput.addEventListener("input", () => {
 const checkUsernameExists = debounce(async () => {
   const username = usernameInput.value.trim();
 
-  if (!username) {
+  if (!username || username.trim() === "") {
     usernameError.textContent = "";
     validateForm();
     return;
   }
 
-  try {
-    const usernameQuery = query(
-      collection(db, "tb_users"),
-      where("user_name", "==", username)
-    );
-    const querySnapshot = await getDocs(usernameQuery);
+  const maxRetries = 3;
+  let attempt = 0;
 
-    if (!querySnapshot.empty) {
-      usernameError.textContent = "❌ Username is already taken.";
+  while (attempt < maxRetries) {
+    try {
+      const usernameQuery = query(
+        collection(db, "tb_users"),
+        where("user_name", "==", username)
+      );
+      const querySnapshot = await getDocs(usernameQuery);
+
+      if (!querySnapshot.empty) {
+        usernameError.textContent = "❌ Username is already taken.";
+        usernameError.style.color = "red";
+      } else {
+        usernameError.textContent = "✅ Username is available.";
+        usernameError.style.color = "green";
+      }
+      validateForm();
+      return;
+    } catch (error) {
+      console.error(`Attempt ${attempt + 1} - Error checking username:`, error);
+      if (error.name === "BloomFilterError" && attempt < maxRetries - 1) {
+        attempt++;
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        continue;
+      }
+      if (error.name === "BloomFilterError") {
+        usernameError.textContent =
+          "❌ Error checking username: Bloom filter issue after retries. Please try again later.";
+      } else {
+        usernameError.textContent = "Error checking username.";
+      }
       usernameError.style.color = "red";
-    } else {
-      usernameError.textContent = "✅ Username is available.";
-      usernameError.style.color = "green";
+      validateForm();
+      return;
     }
-  } catch (error) {
-    console.error("Error checking username:", error);
-    usernameError.textContent = "Error checking username.";
-    usernameError.style.color = "red";
   }
-
-  validateForm();
 }, 500);
 
 usernameInput.addEventListener("input", checkUsernameExists);
@@ -363,33 +400,53 @@ usernameInput.addEventListener("input", checkUsernameExists);
 const checkFarmerIdExists = debounce(async () => {
   const farmerId = farmerIdInput.value.trim();
 
-  if (!farmerId) {
+  if (!farmerId || farmerId.trim() === "") {
     farmerIdError.textContent = "";
     validateForm();
     return;
   }
 
-  try {
-    const farmerQuery = query(
-      collection(db, "tb_farmers"),
-      where("farmer_id", "==", farmerId)
-    );
-    const querySnapshot = await getDocs(farmerQuery);
+  const maxRetries = 3;
+  let attempt = 0;
 
-    if (!querySnapshot.empty) {
-      farmerIdError.textContent = "❌ Farmer ID is already in use.";
+  while (attempt < maxRetries) {
+    try {
+      const farmerQuery = query(
+        collection(db, "tb_farmers"),
+        where("farmer_id", "==", farmerId)
+      );
+      const querySnapshot = await getDocs(farmerQuery);
+
+      if (!querySnapshot.empty) {
+        farmerIdError.textContent = "❌ Farmer ID is already in use.";
+        farmerIdError.style.color = "red";
+      } else {
+        farmerIdError.textContent = "✅ Farmer ID is available.";
+        farmerIdError.style.color = "green";
+      }
+      validateForm();
+      return;
+    } catch (error) {
+      console.error(
+        `Attempt ${attempt + 1} - Error checking Farmer ID:`,
+        error
+      );
+      if (error.name === "BloomFilterError" && attempt < maxRetries - 1) {
+        attempt++;
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        continue;
+      }
+      if (error.name === "BloomFilterError") {
+        farmerIdError.textContent =
+          "❌ Error checking Farmer ID: Bloom filter issue after retries. Please try again later.";
+      } else {
+        farmerIdError.textContent = "Error checking Farmer ID.";
+      }
       farmerIdError.style.color = "red";
-    } else {
-      farmerIdError.textContent = "✅ Farmer ID is available.";
-      farmerIdError.style.color = "green";
+      validateForm();
+      return;
     }
-  } catch (error) {
-    console.error("Error checking Farmer ID:", error);
-    farmerIdError.textContent = "Error checking Farmer ID.";
-    farmerIdError.style.color = "red";
   }
-
-  validateForm();
 }, 500);
 
 farmerIdInput.addEventListener("input", checkFarmerIdExists);
@@ -511,14 +568,16 @@ if (!form.dataset.listenerAdded) {
 
       // Reset form and UI
       form.reset();
-      updateProfilePictureUI(); // Reset profile picture UI (label and "×" button)
+      updateFormFields(); // Ensure the form fields are updated to their default visibility
+      updateProfilePictureUI(); // Reset the file input UI
+      usernameInput.value = ""; // Explicitly clear the username field
       usernameError.textContent = "";
       farmerIdError.textContent = "";
       emailError.textContent = "";
       confirmPasswordError.style.display = "none";
       passwordMatchMessage.style.display = "none";
-      contactError.textContent = ""; // Clear the "Valid contact number" message
-      document.getElementById("profilePictureError").textContent = ""; // Clear the "Profile picture uploaded" message
+      contactError.textContent = "";
+      document.getElementById("profilePictureError").textContent = "";
 
       // Reset password validation indicators
       Object.entries(passwordChecks).forEach(([id]) => {
@@ -529,7 +588,7 @@ if (!form.dataset.listenerAdded) {
     } catch (error) {
       console.error("Error creating account:", error);
       showError(error.message);
-      submitsButton.disabled = false; // Re-enable on error
+      submitsButton.disabled = false;
     }
   });
 }
@@ -549,6 +608,7 @@ contactInput.addEventListener("input", validateForm);
 document.addEventListener("DOMContentLoaded", () => {
   fetchUserRoles();
   fetchBarangayList();
-  updateProfilePictureUI(); // Initialize the file input UI
-  validateForm(); // Set initial button state
+  updateProfilePictureUI();
+  updateFormFields(); // Ensure the form starts in the default state
+  validateForm();
 });
