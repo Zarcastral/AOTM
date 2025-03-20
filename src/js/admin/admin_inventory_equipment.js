@@ -99,7 +99,7 @@ async function fetchEquipments() {
         const equipment = doc.data();
         const equipmentId = equipment.equipment_id;
 
-        // Fetch related stock data from tb_equipment_stock based on equipment_type_id
+        // Fetch related stock data from tb_equipment_stock based on equipment_category_id
         const stockCollection = collection(db, "tb_equipment_stock");
         const stockQuery = query(stockCollection, where("equipment_id", "==", equipmentId));
         const stockSnapshot = await getDocs(stockQuery);
@@ -205,7 +205,7 @@ function displayEquipments(equipmentsList) {
 
     const equipmentName = equipment.equipment_name || "Equipment Name not recorded";
     const equipmentId = equipment.equipment_id || "Equipment Id not recorded";
-    const equipmentType = equipment.equipment_type || "Equipment Category not recorded";
+    const equipmentType = equipment.equipment_category || "Equipment Category not recorded";
     const dateAdded = equipment.dateAdded
       ? equipment.dateAdded.toDate
         ? equipment.dateAdded.toDate().toLocaleDateString()
@@ -263,7 +263,7 @@ document.getElementById("equipment-next-page").addEventListener("click", () => {
 async function fetchEquipmentNames() {
   const equipmentsCollection = collection(db, "tb_equipment_types");
   const equipmentsSnapshot = await getDocs(equipmentsCollection);
-  const equipmentNames = equipmentsSnapshot.docs.map(doc => doc.data().equipment_type);
+  const equipmentNames = equipmentsSnapshot.docs.map(doc => doc.data().equipment_type_name);
 
   populateEquipmentDropdown(equipmentNames);
 }
@@ -287,33 +287,46 @@ function populateEquipmentDropdown(equipmentNames) {
   });
 }
 
-// Event listener to filter equipments based on dropdown selection
-document.querySelector(".equipment_select").addEventListener("change", function () {
-  const selectedEquipment = this.value.toLowerCase();
-  // Filter Equipments based on selected value
-  filteredEquipments = selectedEquipment
-    ? equipmentsList.filter(equipment => equipment.equipment_type?.toLowerCase() === selectedEquipment)
-    : equipmentsList; // If no selection, show all equipments
+// Initialize filtered list with the full equipment list
+let currentFilteredList = [...equipmentsList];
 
-  currentPage = 1; // Reset to the first page when filter is applied
+// Combined filter function
+function applyFilters() {
+  const selectedEquipment = document.querySelector(".equipment_select").value.toLowerCase().trim();
+  const searchQuery = document.getElementById("equip-search-bar").value.toLowerCase().trim();
+
+  // Start with the full list as the base
+  let filteredList = [...equipmentsList];
+
+  // Apply dropdown filter if a selection is made
+  if (selectedEquipment) {
+    filteredList = filteredList.filter(equipment =>
+      equipment.equipment_type_name?.toLowerCase() === selectedEquipment ||
+      equipment.equipment_category?.toLowerCase() === selectedEquipment
+    );
+  }
+
+  // Apply search filter on the dropdown-filtered list
+  if (searchQuery) {
+    filteredList = filteredList.filter(equipment =>
+      equipment.equipment_name?.toLowerCase().includes(searchQuery) ||
+      equipment.equipment_category?.toLowerCase().includes(searchQuery) ||
+      equipment.equipment_category_id?.toString().includes(searchQuery)
+    );
+  }
+
+  // Update the displayed list
+  currentFilteredList = filteredList;
+  currentPage = 1;  // Reset pagination
   sortEquipmentsById();
-  displayEquipments(filteredEquipments); // Update the table with filtered Equipments
+  displayEquipments(currentFilteredList);
+}
+
+// Event listeners
+document.querySelector(".equipment_select").addEventListener("change", () => {
+  applyFilters();
 });
 
-// Search bar event listener for real-time filtering
-document.getElementById("equip-search-bar").addEventListener("input", function () {
-  const searchQuery = this.value.toLowerCase().trim();
-
-  // Filter Equipments based on searchQuery, excluding stock and date fields
-  filteredEquipments = equipmentsList.filter(equipment => {
-    return (
-      equipment.equipment_name?.toLowerCase().includes(searchQuery) ||
-      equipment.equipment_type?.toLowerCase().includes(searchQuery) ||
-      equipment.equipment_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
-    );
-  });
-
-  currentPage = 1; // Reset pagination
-  sortEquipmentsById();
-  displayEquipments(filteredEquipments); // Update the table with filtered Equipments
+document.getElementById("equip-search-bar").addEventListener("input", () => {
+  applyFilters();
 });

@@ -356,7 +356,7 @@ document.getElementById("fertilizer-next-page").addEventListener("click", () => 
 async function fetchFertilizerNames() {
   const fertilizersCollection = collection(db, "tb_fertilizer_types");
   const fertilizersSnapshot = await getDocs(fertilizersCollection);
-  const fertilizerNames = fertilizersSnapshot.docs.map(doc => doc.data().fertilizer_type);
+  const fertilizerNames = fertilizersSnapshot.docs.map(doc => doc.data().fertilizer_type_name);
 
   populateFertilizerDropdown(fertilizerNames);
 }
