@@ -59,7 +59,7 @@ async function fetch_projects(filter = {}) {
         }
 
         const farmerData = farmerDocSnap.data();
-        const farmerEmail = farmerData.email || "";  // Fetch email from tb_farmers
+        const farmerId = sessionStorage.getItem("farmer_id") || ""; // Fetch farmer_id from sessionStorage
 
         const querySnapshot = await getDocs(collection(db, "tb_projects"));
         projectList = [];
@@ -70,9 +70,10 @@ async function fetch_projects(filter = {}) {
             const projectId = String(data.project_id || "");
 
             // Check email in tb_projects instead of farm_president
-            if ((data.email || "").toLowerCase() !== farmerEmail.toLowerCase()) {
+            if ((data.farmer_id || "").toLowerCase() !== farmerId.toLowerCase()) {
                 return;
             }
+            
 
             projectIdList.push(projectId);
 
@@ -397,10 +398,15 @@ async function teamAssign(project_id) {
 
 
     // Function to reset selection
-    function resetTeamSelection() {
-        panel.style.display = "none";
-        selectedTeam = null;
+    // Function to reset selection and close the popup
+function resetTeamSelection() {
+    const panel = document.getElementById("team-assign-confirmation-panel");
+    if (panel) {
+        panel.style.display = "none"; // Hide the popup
     }
+    selectedTeam = null;
+}
+
 
     // Cancel button event listeners
     setTimeout(() => {
