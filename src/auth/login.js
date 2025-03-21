@@ -101,7 +101,11 @@ loginForm.addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value.trim();
 
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
 
     // Separate session storage keys for different tables
@@ -126,9 +130,9 @@ loginForm.addEventListener("submit", async (e) => {
       }${farmerData.last_name}`.trim();
       userPicture = farmerData.user_picture || "";
       farmerId = farmerData.farmer_id || ""; // Store farmer_id
-      sessionEmailKey = "farmerEmail"; // Unique session key for tb_farmers
+      sessionEmailKey = "userEmail"; // Unique session key for tb_farmers
 
-      sessionStorage.setItem("farmerEmail", email);
+      sessionStorage.setItem("userEmail", email);
       sessionStorage.setItem("user_type", userType);
       sessionStorage.setItem("barangay_name", barangayName);
       sessionStorage.setItem("userFullName", userFullName);
