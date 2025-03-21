@@ -83,7 +83,7 @@ async function fetchTeams() {
 
     try {
         // Retrieve logged-in user's email from sessionStorage
-        let userEmail = sessionStorage.getItem("userEmail") || sessionStorage.getItem("farmerEmail");
+        let userEmail = sessionStorage.getItem("userEmail") /*|| sessionStorage.getItem("farmerEmail")*/;
 
         if (!userEmail) {
             console.error("❌ No email found in sessionStorage.");
