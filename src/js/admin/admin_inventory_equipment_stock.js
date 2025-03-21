@@ -668,7 +668,7 @@ async function saveStock() {
           // ✅ Update the document with the modified stocks array
           await updateDoc(inventoryDocRef, { 
               stocks: stocks,
-              equipment_category: equipmentCategory // Ensure equipment_category is saved
+              equipment_type: equipmentCategory // Ensure equipment_category is saved
           });
 
       } else {
@@ -676,7 +676,7 @@ async function saveStock() {
           await addDoc(inventoryCollection, {
               equipment_id: equipmentId,
               equipment_name: equipmentName,
-              equipment_category: equipmentCategory,
+              equipment_type: equipmentCategory,
               stocks: [
                   {
                       owned_by: userType,
@@ -784,7 +784,7 @@ async function deleteStock() {
       // Save the updated document
       await updateDoc(inventoryDocRef, {
           stocks: stocks,
-          equipment_category: equipmentCategory // Ensure equipment_type is saved
+          equipment_type: equipmentCategory // Ensure equipment_type is saved
       });
 
       await saveActivityLog("Delete", `Deleted ${equipmentStock} ${unit} of stock for ${equipmentName} from ${userType} Inventory`);
