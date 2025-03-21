@@ -69,45 +69,28 @@
                     <input type="hidden" name="crop-unit" value="kg">
                 </div>
             </div>
-            <div class="inline-group2">
-                <div class="form-group1">
-                    <label for="fertilizer-category">Fertilizer Type</label>
-                    <select id="fertilizer-category">
-                        <option value="">Select Fertilizer Type</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="inline-group3">
-                <div class="form-group3">
-                    <label for="fertilizer-type">Fertilizer Name</label>
-                    <select id="fertilizer-type">
-                        <option value="">Select Fertilizer</option>
-                    </select>
-                </div>
-                <div class="form-group4">
-                    <label for="fertilizer-quantity">Quantity</label>
-                    <input type="number" id="quantity-fertilizer-type">
-                </div>
-                <div class="form-group5">
-                    <label for="fertilizer-unit">Unit</label>
-                    <input type="text" id="fertilizer-unit" value="kg" disabled>
-                    <input type="hidden" name="fertilizer-unit" value="kg">
-                </div>
-            </div>
             
 
+            <div class="container">
+                <h2 class="form__title">Fertilizer</h2>
+            
+                <!-- Fertilzier List -->
+                <div id="fertilizer-container" class="fertilizer__container"></div>
+            
+                <!-- Add fertilizer Button -->
+                <button id="btn-add-fertilizer" class="btn btn--add" onclick="addFertilizerForm()">+ Add Fertilizer</button>
+            </div>
 
 
+                <div class="container">
+            <h2 class="form__title">Equipment</h2>
 
-           <div class="container">
-    <h2 class="form__title">Equipment</h2>
+            <!-- Equipment List -->
+            <div id="equipment-container" class="equipment__container"></div>
 
-    <!-- Equipment List -->
-    <div id="equipment-container" class="equipment__container"></div>
-
-    <!-- Add Equipment Button -->
-    <button id="btn-add-equipment" class="btn btn--add" onclick="addEquipmentForm()">+ Add Equipment</button>
+            <!-- Add Equipment Button -->
+            <button id="btn-add-equipment" class="btn btn--add" onclick="addEquipmentForm()">+ Add Equipment</button>
 </div>
 
 
