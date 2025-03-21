@@ -313,11 +313,38 @@ async function addEquipmentForm() {
 }
 
 async function getEquipmentTypes() {
+  const userType = sessionStorage.getItem("user_type"); // Get logged-in user type from session
+
+  if (!userType) {
+      console.error("No user type found in session.");
+      return [];
+  }
+
   const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
   const uniqueTypes = new Set();
-  querySnapshot.forEach(doc => uniqueTypes.add(doc.data().equipment_type));
+
+  querySnapshot.forEach(doc => {
+      const data = doc.data();
+      
+      // Check if the document has a "stocks" array
+      if (Array.isArray(data.stocks)) {
+          // Check if any object in "stocks" has owned_by equal to userType
+          const isOwnedByUser = data.stocks.some(stock => stock.owned_by === userType);
+
+          if (isOwnedByUser) {
+              uniqueTypes.add(data.equipment_type); // Add equipment_type to the set
+          }
+      }
+  });
+
   return Array.from(uniqueTypes);
 }
+
+// Example usage:
+getEquipmentTypes().then(types => console.log("Filtered Equipment Types:", types));
+
+
+
 
 async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown) {
   const selectedType = equipmentTypeDropdown.value;
@@ -350,227 +377,6 @@ window.addEquipmentForm = addEquipmentForm;
 window.removeEquipmentForm = removeEquipmentForm;
 document.addEventListener("DOMContentLoaded", addEquipmentForm);
 
-
-
-
-
-
-/*EQUIPMENT
-document
-  .getElementById("open-equipment-popup")
-  .addEventListener("click", function () {
-    document.getElementById("equipment-popup").style.display = "flex";
-  });
-
-document
-  .getElementById("close-equipment-popup")
-  .addEventListener("click", function () {
-    document.getElementById("equipment-popup").style.display = "none";
-  });
-
-async function loadEquipmentTypes() {
-  const equipmentTypeSelect = document.getElementById("equipment-type-select");
-  equipmentTypeSelect.innerHTML = `<option value="">Loading...</option>`;
-
-  // Get session user type
-  const sessionUserType = sessionStorage.getItem("user_type");
-  console.log(`📌 Session User Type: ${sessionUserType}`); // ✅ Logs session user type
-
-  try {
-    const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
-    const equipmentTypes = new Set();
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-
-      // Check if `stocks` exists and has at least one entry
-      if (Array.isArray(data.stocks) && data.stocks.length > 0) {
-        data.stocks.forEach((stockItem, index) => {
-          if (stockItem.owned_by === sessionUserType) {
-            console.log(
-              `✅ Match Found! Doc ${doc.id} | Index ${index} | owned_by: ${stockItem.owned_by}`
-            );
-
-            if (data.equipment_type) {
-              equipmentTypes.add(data.equipment_type);
-            }
-          }
-        });
-      }
-    });
-
-    // Populate dropdown
-    equipmentTypeSelect.innerHTML = `<option value="">Select Type</option>`;
-    equipmentTypes.forEach((type) => {
-      equipmentTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
-    });
-
-    if (equipmentTypes.size === 0) {
-      console.log("⚠️ No matching equipment types found.");
-      equipmentTypeSelect.innerHTML = `<option value="">No Equipment Available</option>`;
-    }
-  } catch (error) {
-    console.error("❌ Error fetching equipment types:", error);
-    equipmentTypeSelect.innerHTML = `<option value="">Error Loading</option>`;
-  }
-}
-
-// Event listener to store selected equipment_type
-document
-  .getElementById("equipment-type-select")
-  .addEventListener("change", function () {
-    const selectedEquipmentType = this.value;
-    sessionStorage.setItem("selected_equipment_type", selectedEquipmentType);
-    console.log(`✅ Stored selected equipment type: ${selectedEquipmentType}`);
-
-    // After selecting equipment type, load equipment names
-    loadEquipmentNames();
-  });
-
-// Function to retrieve selected equipment type
-function getSelectedEquipmentType() {
-  return sessionStorage.getItem("selected_equipment_type") || "";
-}
-
-// Function to load equipment names based on selected equipment type
-async function loadEquipmentNames() {
-  const equipmentNameSelect = document.getElementById("equipment-name-select");
-  equipmentNameSelect.innerHTML = `<option value="">Loading...</option>`;
-
-  // Get the selected equipment type
-  const selectedEquipmentType = getSelectedEquipmentType();
-
-  // Only proceed if an equipment type is selected
-  if (!selectedEquipmentType) {
-    equipmentNameSelect.innerHTML = `<option value="">Please select an equipment type first</option>`;
-    return; // Exit the function if no equipment type is selected
-  }
-
-  console.log(`📌 Selected Equipment Type: ${selectedEquipmentType}`); // ✅ Logs the selected equipment type
-
-  try {
-    const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
-    let options = `<option value="">Select Equipment</option>`;
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      console.log(`📄 Fetched doc (${doc.id}):`, data); // ✅ Logs document data
-
-      // If the equipment_type matches the selected equipment type, show the equipment_name
-      if (
-        data.equipment_type === selectedEquipmentType &&
-        data.equipment_name
-      ) {
-        options += `<option value="${data.equipment_name}">${data.equipment_name}</option>`;
-      }
-    });
-
-    // If no equipment is found for the selected type
-    if (options === `<option value="">Select Equipment</option>`) {
-      options = `<option value="">No Equipment Available</option>`;
-    }
-
-    equipmentNameSelect.innerHTML = options;
-  } catch (error) {
-    console.error("❌ Error fetching equipment names:", error);
-    equipmentNameSelect.innerHTML = `<option value="">Error Loading</option>`;
-  }
-}
-
-document
-  .getElementById("add-equipment-btn")
-  .addEventListener("click", function () {
-    const equipmentNameSelect = document.getElementById("equipment-name-select");
-    const equipmentTypeSelect = document.getElementById("equipment-type-select");
-    const quantityInput = document.getElementById("equipment-quantity");
-    const equipmentList = document.getElementById("equipment-list");
-
-    const selectedEquipment = equipmentNameSelect.value;
-    const selectedType = equipmentTypeSelect.value;
-    const quantity = quantityInput.value;
-
-    if (!selectedEquipment || !selectedType || quantity <= 0) {
-      alert("Please select equipment, type, and enter a valid quantity.");
-      return;
-    }
-
-    // Create list item container
-    const listItem = document.createElement("div");
-    listItem.classList.add("equipment-entry");
-
-    // Create separate elements for each field
-    const nameElement = document.createElement("span");
-    nameElement.textContent = selectedEquipment;
-
-    const typeElement = document.createElement("span");
-    typeElement.textContent = selectedType;
-
-    const quantityElement = document.createElement("span");
-    quantityElement.textContent = quantity;
-
-    // Append elements to list item
-    listItem.appendChild(nameElement);
-    listItem.appendChild(document.createTextNode(" | "));
-    listItem.appendChild(typeElement);
-    listItem.appendChild(document.createTextNode(" | "));
-    listItem.appendChild(quantityElement);
-
-    // Append to the list
-    equipmentList.appendChild(listItem);
-
-    // Clear input fields for next entry
-    equipmentNameSelect.value = "";
-    equipmentTypeSelect.value = "";
-    quantityInput.value = "";
-  });
-
-
-
-
-  document.addEventListener("DOMContentLoaded", function () {
-    const saveButton = document.getElementById("save-equipment-btn");
-    const equipmentTableBody = document.querySelector("#equipment-table tbody");
-
-    if (saveButton) {
-        saveButton.addEventListener("click", function () {
-            const equipmentList = document.getElementById("equipment-list").children;
-
-            // Loop through the list and add each equipment as a table row
-            for (let item of equipmentList) {
-                const [equipmentName, quantity] = item.textContent.split(", ");
-
-                // Create a new row
-                const newRow = document.createElement("tr");
-
-                // Create equipment cell
-                const equipmentCell = document.createElement("td");
-                equipmentCell.textContent = equipmentName;
-
-                // Create quantity cell
-                const quantityCell = document.createElement("td");
-                quantityCell.textContent = quantity;
-
-                // Append cells to the row
-                newRow.appendChild(equipmentCell);
-                newRow.appendChild(quantityCell);
-
-                // Append row to the table body
-                equipmentTableBody.appendChild(newRow);
-            }
-
-            // Clear selected inputs after saving
-            document.getElementById("equipment-type-select").value = "";
-            document.getElementById("equipment-name-select").value = "";
-            document.getElementById("equipment-quantity").value = "";
-
-            // Clear the displayed list after saving
-            document.getElementById("equipment-list").innerHTML = "";
-        });
-    } else {
-        console.error("❌ 'save-equipment-btn' button not found in the DOM.");
-    }
-});
-*/
 
 
 window.loadFertilizers = async function () {
