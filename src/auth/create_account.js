@@ -530,19 +530,18 @@ if (!form.dataset.listenerAdded) {
         email,
         password
       );
-      console.log("User created with UID:", userCredential.user.uid);
+      const uid = userCredential.user.uid; // Get the UID
+      console.log("User created with UID:", uid);
 
       let profilePictureUrl = "";
       if (profilePicture) {
         console.log("Uploading profile picture...");
-        profilePictureUrl = await uploadProfilePicture(
-          profilePicture,
-          userCredential.user.uid
-        );
+        profilePictureUrl = await uploadProfilePicture(profilePicture, uid);
         console.log("Profile picture uploaded:", profilePictureUrl);
       }
 
       const userData = {
+        uid, // Added UID field
         user_picture: profilePictureUrl,
         first_name: firstName,
         middle_name: middleName,
@@ -557,10 +556,10 @@ if (!form.dataset.listenerAdded) {
 
       if (userType === "Admin" || userType === "Supervisor") {
         userData.user_name = username;
-        await setDoc(doc(db, "tb_users", userCredential.user.uid), userData);
+        await setDoc(doc(db, "tb_users", uid), userData); // Store in tb_users with UID
       } else {
         userData.farmer_id = farmerId;
-        await setDoc(doc(db, "tb_farmers", userCredential.user.uid), userData);
+        await setDoc(doc(db, "tb_farmers", uid), userData); // Store in tb_farmers with UID
       }
 
       console.log("Account created successfully!");
@@ -568,9 +567,9 @@ if (!form.dataset.listenerAdded) {
 
       // Reset form and UI
       form.reset();
-      updateFormFields(); // Ensure the form fields are updated to their default visibility
-      updateProfilePictureUI(); // Reset the file input UI
-      usernameInput.value = ""; // Explicitly clear the username field
+      updateFormFields();
+      updateProfilePictureUI();
+      usernameInput.value = "";
       usernameError.textContent = "";
       farmerIdError.textContent = "";
       emailError.textContent = "";
