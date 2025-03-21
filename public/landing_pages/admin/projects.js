@@ -84,14 +84,15 @@ window.loadCrops = async function () {
 
   querySnapshot.forEach((doc) => {
     const cropData = doc.data();
-    const stocksArray = cropData.stocks || []; // Ensure stocks array exists
+    const stocksArray = Array.isArray(cropData.stocks) ? cropData.stocks : []; // Ensure stocks is an array
 
     // Check if any object inside 'stocks' has 'owned_by' matching userType
     const isOwnedByUser = stocksArray.some(
       (stock) => stock.owned_by === userType
     );
 
-    if (isOwnedByUser) {
+    // Ensure crop_name is valid before appending to dropdown
+    if (isOwnedByUser && cropData.crop_name && cropData.crop_name.trim() !== "") {
       const option = document.createElement("option");
       option.value = cropData.crop_name;
       option.textContent = cropData.crop_name;
@@ -99,6 +100,7 @@ window.loadCrops = async function () {
     }
   });
 };
+
 
 window.loadCropTypes = async function (selectedCrop) {
   if (!selectedCrop) return;
@@ -162,7 +164,7 @@ window.loadCropTypes = async function (selectedCrop) {
   });
 };
 
-window.fetchFertilizerTypes = async function () {
+/*window.fetchFertilizerTypes = async function () {
   try {
     // Query Firestore for all fertilizer types
     const querySnapshot = await getDocs(collection(db, "tb_fertilizer_stock"));
@@ -266,226 +268,234 @@ window.loadFertilizerTypes = async function (selectedFertilizer) {
   } catch (error) {
     console.error("🔥 Error loading fertilizers:", error);
   }
-};
+};*/
 
-//EQUIPMENT
-document
-  .getElementById("open-equipment-popup")
-  .addEventListener("click", function () {
-    document.getElementById("equipment-popup").style.display = "flex";
+
+
+
+// EQUIPMENT TRY
+async function addEquipmentForm() {
+  const container = document.getElementById("equipment-container");
+
+  const div = document.createElement("div");
+  div.classList.add("equipment__group");
+
+  const equipmentTypes = await getEquipmentTypes();
+
+  div.innerHTML = `
+      <div class="form__group">
+          <label class="form__label">Equipment Type:</label>
+          <select class="form__select equipment__type">
+              <option value="">Select Equipment Type</option>
+              ${equipmentTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+          </select>
+      </div>
+
+      <div class="form__group">
+          <label class="form__label">Equipment Name:</label>
+          <select class="form__select equipment__name">
+              <option value="">Select Equipment Type First</option>
+          </select>
+      </div>
+
+      <div class="form__group">
+          <label class="form__label">Equipment Quantity:</label>
+          <input type="number" class="form__input equipment__quantity" min="1" placeholder="Enter quantity">
+      </div>
+
+      <button class="btn btn--remove" onclick="removeEquipmentForm(this)">Remove</button>
+  `;
+
+  container.appendChild(div);
+
+  div.querySelector(".equipment__type").addEventListener("change", function () {
+      loadEquipmentNames(this, div.querySelector(".equipment__name"));
   });
+}
 
-document
-  .getElementById("close-equipment-popup")
-  .addEventListener("click", function () {
-    document.getElementById("equipment-popup").style.display = "none";
-  });
+async function getEquipmentTypes() {
+  const userType = sessionStorage.getItem("user_type"); // Get logged-in user type from session
 
-async function loadEquipmentTypes() {
-  const equipmentTypeSelect = document.getElementById("equipment-type-select");
-  equipmentTypeSelect.innerHTML = `<option value="">Loading...</option>`;
+  if (!userType) {
+      console.error("No user type found in session.");
+      return [];
+  }
 
-  // Get session user type
-  const sessionUserType = sessionStorage.getItem("user_type");
-  console.log(`📌 Session User Type: ${sessionUserType}`); // ✅ Logs session user type
+  const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
+  const uniqueTypes = new Set();
 
-  try {
-    const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
-    const equipmentTypes = new Set();
-
-    querySnapshot.forEach((doc) => {
+  querySnapshot.forEach(doc => {
       const data = doc.data();
+      
+      // Check if the document has a "stocks" array
+      if (Array.isArray(data.stocks)) {
+          // Check if any object in "stocks" has owned_by equal to userType
+          const isOwnedByUser = data.stocks.some(stock => stock.owned_by === userType);
 
-      // Check if `stocks` exists and has at least one entry
-      if (Array.isArray(data.stocks) && data.stocks.length > 0) {
-        data.stocks.forEach((stockItem, index) => {
-          if (stockItem.owned_by === sessionUserType) {
-            console.log(
-              `✅ Match Found! Doc ${doc.id} | Index ${index} | owned_by: ${stockItem.owned_by}`
-            );
-
-            if (data.equipment_type) {
-              equipmentTypes.add(data.equipment_type);
-            }
+          if (isOwnedByUser) {
+              uniqueTypes.add(data.equipment_type); // Add equipment_type to the set
           }
-        });
       }
-    });
-
-    // Populate dropdown
-    equipmentTypeSelect.innerHTML = `<option value="">Select Type</option>`;
-    equipmentTypes.forEach((type) => {
-      equipmentTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
-    });
-
-    if (equipmentTypes.size === 0) {
-      console.log("⚠️ No matching equipment types found.");
-      equipmentTypeSelect.innerHTML = `<option value="">No Equipment Available</option>`;
-    }
-  } catch (error) {
-    console.error("❌ Error fetching equipment types:", error);
-    equipmentTypeSelect.innerHTML = `<option value="">Error Loading</option>`;
-  }
-}
-
-// Event listener to store selected equipment_type
-document
-  .getElementById("equipment-type-select")
-  .addEventListener("change", function () {
-    const selectedEquipmentType = this.value;
-    sessionStorage.setItem("selected_equipment_type", selectedEquipmentType);
-    console.log(`✅ Stored selected equipment type: ${selectedEquipmentType}`);
-
-    // After selecting equipment type, load equipment names
-    loadEquipmentNames();
   });
 
-// Function to retrieve selected equipment type
-function getSelectedEquipmentType() {
-  return sessionStorage.getItem("selected_equipment_type") || "";
+  return Array.from(uniqueTypes);
 }
 
-// Function to load equipment names based on selected equipment type
-async function loadEquipmentNames() {
-  const equipmentNameSelect = document.getElementById("equipment-name-select");
-  equipmentNameSelect.innerHTML = `<option value="">Loading...</option>`;
+// Example usage:
+getEquipmentTypes().then(types => console.log("Filtered Equipment Types:", types));
 
-  // Get the selected equipment type
-  const selectedEquipmentType = getSelectedEquipmentType();
 
-  // Only proceed if an equipment type is selected
-  if (!selectedEquipmentType) {
-    equipmentNameSelect.innerHTML = `<option value="">Please select an equipment type first</option>`;
-    return; // Exit the function if no equipment type is selected
-  }
 
-  console.log(`📌 Selected Equipment Type: ${selectedEquipmentType}`); // ✅ Logs the selected equipment type
 
-  try {
-    const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
-    let options = `<option value="">Select Equipment</option>`;
+async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown) {
+  const selectedType = equipmentTypeDropdown.value;
+  equipmentNameDropdown.innerHTML = '<option value="">Loading...</option>';
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      console.log(`📄 Fetched doc (${doc.id}):`, data); // ✅ Logs document data
-
-      // If the equipment_type matches the selected equipment type, show the equipment_name
-      if (
-        data.equipment_type === selectedEquipmentType &&
-        data.equipment_name
-      ) {
-        options += `<option value="${data.equipment_name}">${data.equipment_name}</option>`;
-      }
-    });
-
-    // If no equipment is found for the selected type
-    if (options === `<option value="">Select Equipment</option>`) {
-      options = `<option value="">No Equipment Available</option>`;
-    }
-
-    equipmentNameSelect.innerHTML = options;
-  } catch (error) {
-    console.error("❌ Error fetching equipment names:", error);
-    equipmentNameSelect.innerHTML = `<option value="">Error Loading</option>`;
-  }
-}
-
-document
-  .getElementById("add-equipment-btn")
-  .addEventListener("click", function () {
-    const equipmentNameSelect = document.getElementById("equipment-name-select");
-    const equipmentTypeSelect = document.getElementById("equipment-type-select");
-    const quantityInput = document.getElementById("equipment-quantity");
-    const equipmentList = document.getElementById("equipment-list");
-
-    const selectedEquipment = equipmentNameSelect.value;
-    const selectedType = equipmentTypeSelect.value;
-    const quantity = quantityInput.value;
-
-    if (!selectedEquipment || !selectedType || quantity <= 0) {
-      alert("Please select equipment, type, and enter a valid quantity.");
+  if (!selectedType) {
+      equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Type First</option>';
       return;
-    }
+  }
 
-    // Create list item container
-    const listItem = document.createElement("div");
-    listItem.classList.add("equipment-entry");
+  const q = query(collection(db, "tb_equipment_stock"), where("equipment_type", "==", selectedType));
+  const querySnapshot = await getDocs(q);
+  equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Name</option>';
 
-    // Create separate elements for each field
-    const nameElement = document.createElement("span");
-    nameElement.textContent = selectedEquipment;
+  querySnapshot.forEach(doc => {
+      const option = document.createElement("option");
+      option.value = doc.data().equipment_name;
+      option.textContent = doc.data().equipment_name;
+      equipmentNameDropdown.appendChild(option);
+  });
+}
 
-    const typeElement = document.createElement("span");
-    typeElement.textContent = selectedType;
+// Function to remove an equipment form entry
+function removeEquipmentForm(button) {
+  button.parentElement.remove();
+}
 
-    const quantityElement = document.createElement("span");
-    quantityElement.textContent = quantity;
+// Ensure functions are globally accessible
+window.addEquipmentForm = addEquipmentForm;
+window.removeEquipmentForm = removeEquipmentForm;
+document.addEventListener("DOMContentLoaded", addEquipmentForm);
 
-    // Append elements to list item
-    listItem.appendChild(nameElement);
-    listItem.appendChild(document.createTextNode(" | "));
-    listItem.appendChild(typeElement);
-    listItem.appendChild(document.createTextNode(" | "));
-    listItem.appendChild(quantityElement);
 
-    // Append to the list
-    equipmentList.appendChild(listItem);
 
-    // Clear input fields for next entry
-    equipmentNameSelect.value = "";
-    equipmentTypeSelect.value = "";
-    quantityInput.value = "";
+
+
+
+
+
+
+//FERTILIZER TRY
+async function addFertilizerForm() {
+  const container = document.getElementById("fertilizer-container");
+
+  const div = document.createElement("div");
+  div.classList.add("fertilizer__group");
+
+  const fertilizerTypes = await getFertilizerTypes();
+
+  div.innerHTML = `
+      <div class="form__group">
+          <label class="form__label">Fertilizer Type:</label>
+          <select class="form__select fertilizer__type">
+              <option value="">Select Fertilizer Type</option>
+              ${fertilizerTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+          </select>
+      </div>
+
+      <div class="form__group">
+          <label class="form__label">Fertilizer Name:</label>
+          <select class="form__select fertilizer__name">
+              <option value="">Select Fertilizer Type First</option>
+          </select>
+      </div>
+
+      <div class="form__group">
+          <label class="form__label">Fertilizer Quantity:</label>
+          <input type="number" class="form__input fertilizer__quantity" min="1" placeholder="Enter quantity">
+      </div>
+
+      <button class="btn btn--remove" onclick="removeFertilizerForm(this)">Remove</button>
+  `;
+
+  container.appendChild(div);
+
+  div.querySelector(".fertilizer__type").addEventListener("change", function () {
+      loadFertilizerNames(this, div.querySelector(".fertilizer__name"));
+  });
+}
+
+async function getFertilizerTypes() {
+  const userType = sessionStorage.getItem("user_type"); // Get logged-in user type from session
+
+  if (!userType) {
+      console.error("No user type found in session.");
+      return [];
+  }
+
+  const querySnapshot = await getDocs(collection(db, "tb_fertilizer_stock"));
+  const uniqueTypes = new Set();
+
+  querySnapshot.forEach(doc => {
+      const data = doc.data();
+      
+      // Check if the document has a "stocks" array
+      if (Array.isArray(data.stocks)) {
+          // Check if any object in "stocks" has owned_by equal to userType
+          const isOwnedByUser = data.stocks.some(stock => stock.owned_by === userType);
+
+          if (isOwnedByUser) {
+              uniqueTypes.add(data.fertilizer_type); // Add fertilizer_type to the set
+          }
+      }
   });
 
+  return Array.from(uniqueTypes);
+}
+
+// Example usage:
+getFertilizerTypes().then(types => console.log("Filtered Fertilizer Types:", types));
 
 
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const saveButton = document.getElementById("save-equipment-btn");
-    const equipmentTableBody = document.querySelector("#equipment-table tbody");
 
-    if (saveButton) {
-        saveButton.addEventListener("click", function () {
-            const equipmentList = document.getElementById("equipment-list").children;
+async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown) {
+  const selectedType = fertilizerTypeDropdown.value;
+  fertilizerNameDropdown.innerHTML = '<option value="">Loading...</option>';
 
-            // Loop through the list and add each equipment as a table row
-            for (let item of equipmentList) {
-                const [equipmentName, quantity] = item.textContent.split(", ");
+  if (!selectedType) {
+    fertilizerNameDropdown.innerHTML = '<option value="">Select Fertilizer Type First</option>';
+      return;
+  }
 
-                // Create a new row
-                const newRow = document.createElement("tr");
+  const q = query(collection(db, "tb_fertilizer_stock"), where("fertilizer_type", "==", selectedType));
+  const querySnapshot = await getDocs(q);
+  fertilizerNameDropdown.innerHTML = '<option value="">Select fertilizer Name</option>';
 
-                // Create equipment cell
-                const equipmentCell = document.createElement("td");
-                equipmentCell.textContent = equipmentName;
+  querySnapshot.forEach(doc => {
+      const option = document.createElement("option");
+      option.value = doc.data().fertilizer_name;
+      option.textContent = doc.data().fertilizer_name;
+      fertilizerNameDropdown.appendChild(option);
+  });
+}
 
-                // Create quantity cell
-                const quantityCell = document.createElement("td");
-                quantityCell.textContent = quantity;
+// Function to remove an fertilizer form entry
+function removeFertilizerForm(button) {
+  button.parentElement.remove();
+}
 
-                // Append cells to the row
-                newRow.appendChild(equipmentCell);
-                newRow.appendChild(quantityCell);
-
-                // Append row to the table body
-                equipmentTableBody.appendChild(newRow);
-            }
-
-            // Clear selected inputs after saving
-            document.getElementById("equipment-type-select").value = "";
-            document.getElementById("equipment-name-select").value = "";
-            document.getElementById("equipment-quantity").value = "";
-
-            // Clear the displayed list after saving
-            document.getElementById("equipment-list").innerHTML = "";
-        });
-    } else {
-        console.error("❌ 'save-equipment-btn' button not found in the DOM.");
-    }
-});
+// Ensure functions are globally accessible
+window.addFertilizerForm = addFertilizerForm;
+window.removeFertilizerForm = removeFertilizerForm;
+document.addEventListener("DOMContentLoaded", addFertilizerForm);
 
 
-window.loadFertilizers = async function () {
+
+
+
+/*window.loadFertilizers = async function () {
   const selectedType = document.getElementById("fertilizer-category").value;
   const fertilizerSelect = document.getElementById("fertilizer-type");
   const userType = sessionStorage.getItem("user_type"); // Get user_type from session storage
@@ -577,7 +587,7 @@ window.loadFertilizers = async function () {
 
 document
   .getElementById("fertilizer-category")
-  .addEventListener("change", (e) => loadFertilizers(e.target.value));
+  .addEventListener("change", (e) => loadFertilizers(e.target.value));*/
 
 window.getNextProjectID = async function () {
   const counterRef = doc(db, "tb_id_counters", "projects_id_counter");
@@ -610,52 +620,98 @@ window.getFarmlandId = async function (farmlandName) {
   return null;
 };
 
+// ✅ Function to get farmer_id based on the selected Farm President's name
+async function getFarmerIdByName(farmPresidentName) {
+  try {
+    const farmersRef = collection(db, "tb_farmers");
+    const farmersQuery = query(farmersRef, where("first_name", "==", farmPresidentName));
+    const farmersQuerySnapshot = await getDocs(farmersQuery);
+
+    if (farmersQuerySnapshot.empty) {
+      console.error(`❌ Farm President '${farmPresidentName}' not found in the database.`);
+      return null;
+    }
+
+    const farmPresidentDoc = farmersQuerySnapshot.docs[0];
+    const farmerId = farmPresidentDoc.data().farmer_id.toString(); // Convert to string
+    return farmerId;
+  } catch (error) {
+    console.error("❌ Error fetching farmer_id:", error);
+    return null;
+  }
+}
+
 window.saveProject = async function () {
   try {
     // ✅ Get input values
     const projectName = document.getElementById("project-name").value.trim();
     const assignToSelect = document.getElementById("assign-to");
-    const farmPresidentName =
-      assignToSelect.options[assignToSelect.selectedIndex].text;
+    const farmPresidentName = assignToSelect.options[assignToSelect.selectedIndex].text;
     const status = document.getElementById("status").value;
     const cropName = document.getElementById("crops").value;
     const barangayName = document.getElementById("barangay").value.trim();
     const farmlandSelect = document.getElementById("farmland");
-    const farmlandName =
-      farmlandSelect.options[farmlandSelect.selectedIndex].text;
+    const farmlandName = farmlandSelect.options[farmlandSelect.selectedIndex].text;
     const farmlandId = await getFarmlandId(farmlandName);
 
     const cropTypeName = document.getElementById("crop-type").value;
-    const quantityCropType = parseInt(
-      document.getElementById("quantity-crop-type").value.trim()
-    );
+    const quantityCropType = parseInt(document.getElementById("quantity-crop-type").value.trim());
     const cropUnit = document.getElementById("crop-unit").value.trim();
 
-    const fertilizerType = document.getElementById("fertilizer-type").value;
-    const quantityFertilizerType = parseInt(
-      document.getElementById("quantity-fertilizer-type").value.trim()
-    );
-    const fertilizerUnit = document
-      .getElementById("fertilizer-unit")
-      .value.trim();
 
     const startDate = document.getElementById("start-date").value;
     const endDate = document.getElementById("end-date").value;
 
+    // ✅ Get farmer_id for the selected Farm President
+    const farmerId = await getFarmerIdByName(farmPresidentName);
+    if (farmerId === null) {
+      alert(`❌ Farm President '${farmPresidentName}' not found. Please select a valid Farm President.`);
+      return;
+    }
+
+
+// ✅ Extract fertilizer data
+const fertilizerGroups = document.querySelectorAll(".fertilizer__group");
+let fertilizerData = [];
+
+fertilizerGroups.forEach((group) => {
+  const type = group.querySelector(".fertilizer__type").value;
+  const name = group.querySelector(".fertilizer__name").value;
+  const quantity = group.querySelector(".fertilizer__quantity").value;
+
+  if (type && name && quantity && quantity > 0) {
+    fertilizerData.push({
+      fertilizer_type: type,
+      fertilizer_name: name,
+      fertilizer_quantity: parseInt(quantity),
+      fertilizer_unit: "kg", // ✅ Added constant fertilizer unit
+    });
+  }
+});
+
+
+
     // ✅ Extract equipment data
-    const equipmentList = document.getElementById("equipment-list").children;
+    const equipmentGroups = document.querySelectorAll(".equipment__group");
     let equipmentData = [];
 
-    for (let item of equipmentList) {
-      const equipmentParts = item.textContent.split("|").map((part) => part.trim());
-      if (equipmentParts.length === 3) {
+    equipmentGroups.forEach((group) => {
+      const type = group.querySelector(".equipment__type").value;
+      const name = group.querySelector(".equipment__name").value;
+      const quantity = group.querySelector(".equipment__quantity").value;
+
+      if (type && name && quantity && quantity > 0) {
         equipmentData.push({
-          equipment_name: equipmentParts[0],
-          equipment_type: equipmentParts[1],
-          quantity: parseInt(equipmentParts[2]),
+          equipment_type: type,
+          equipment_name: name,
+          equipment_quantity: parseInt(quantity),
         });
       }
-    }
+    });
+
+
+        
+
 
     // ✅ Check required fields
     let missingFields = [];
@@ -667,9 +723,6 @@ window.saveProject = async function () {
     if (!cropTypeName) missingFields.push("Crop Type");
     if (isNaN(quantityCropType)) missingFields.push("Crop Quantity");
     if (!cropUnit) missingFields.push("Crop Unit");
-    if (!fertilizerType) missingFields.push("Fertilizer Type");
-    if (isNaN(quantityFertilizerType)) missingFields.push("Fertilizer Quantity");
-    if (!fertilizerUnit) missingFields.push("Fertilizer Unit");
     if (!startDate) missingFields.push("Start Date");
     if (!endDate) missingFields.push("End Date");
 
@@ -680,10 +733,7 @@ window.saveProject = async function () {
 
     // 🔍 Fetch current stock of the selected crop type from Firestore
     const cropTypeRef = collection(db, "tb_crop_stock");
-    const cropQuery = query(
-      cropTypeRef,
-      where("crop_type_name", "==", cropTypeName)
-    );
+    const cropQuery = query(cropTypeRef, where("crop_type_name", "==", cropTypeName));
     const cropQuerySnapshot = await getDocs(cropQuery);
 
     if (cropQuerySnapshot.empty) {
@@ -697,52 +747,10 @@ window.saveProject = async function () {
 
     // ✅ Check if there is enough crop stock
     if (quantityCropType > currentCropStock) {
-      alert(
-        `⚠️ Not enough stock for '${cropTypeName}'. Available: ${currentCropStock}${cropUnit}, Required: ${quantityCropType}${cropUnit}.`
-      );
+      alert(`⚠️ Not enough stock for '${cropTypeName}'. Available: ${currentCropStock}${cropUnit}, Required: ${quantityCropType}${cropUnit}.`);
       return;
     }
 
-    // 🔍 Fetch current stock of the selected fertilizer from Firestore
-    const fertilizerRef = collection(db, "tb_fertilizer_stock");
-    const fertilizerQuery = query(
-      fertilizerRef,
-      where("fertilizer_name", "==", fertilizerType)
-    );
-    const fertilizerQuerySnapshot = await getDocs(fertilizerQuery);
-
-    if (fertilizerQuerySnapshot.empty) {
-      alert(`❌ Fertilizer '${fertilizerType}' not found in inventory.`);
-      return;
-    }
-
-    const fertilizerDoc = fertilizerQuerySnapshot.docs[0];
-    const fertilizerData = fertilizerDoc.data();
-    const currentFertilizerStock = parseInt(fertilizerData.current_stock);
-
-    // ✅ Check if there is enough fertilizer stock
-    if (quantityFertilizerType > currentFertilizerStock) {
-      alert(
-        `⚠️ Not enough stock for '${fertilizerType}'. Available: ${currentFertilizerStock}${fertilizerUnit}, Required: ${quantityFertilizerType}${fertilizerUnit}.`
-      );
-      return;
-    }
-
-    // Fetch the email of the selected farm president from Firestore
-    const farmersRef = collection(db, "tb_farmers");
-    const farmersQuery = query(
-      farmersRef,
-      where("first_name", "==", farmPresidentName)
-    );
-    const farmersQuerySnapshot = await getDocs(farmersQuery);
-
-    if (farmersQuerySnapshot.empty) {
-      alert(`❌ Farm President '${farmPresidentName}' not found in the database.`);
-      return;
-    }
-
-    const farmPresidentDoc = farmersQuerySnapshot.docs[0];
-    //const farmPresidentEmail = farmPresidentDoc.data().email;
 
     // ✅ Generate a new project ID AFTER validation
     const projectID = await getNextProjectID();
@@ -754,6 +762,7 @@ window.saveProject = async function () {
       project_id: projectID,
       project_name: projectName,
       farm_president: farmPresidentName,
+      farmer_id: farmerId, // ✅ Save farmer_id as string
       status: status,
       crop_name: cropName,
       barangay_name: barangayName,
@@ -762,14 +771,13 @@ window.saveProject = async function () {
       crop_type_name: cropTypeName,
       quantity_crop_type: quantityCropType,
       crop_unit: cropUnit,
-      fertilizer_type: fertilizerType,
-      quantity_fertilizer_type: quantityFertilizerType,
-      fertilizer_unit: fertilizerUnit,
       start_date: startDate,
       end_date: endDate,
-      crop_date: currentDateTime, // ✅ Added current date for crop
-      fertilizer_date: currentDateTime, // ✅ Added current date for fertilizer
-      equipment_date: currentDateTime, // ✅ Added current date for equipment
+      fertilizer: fertilizerData,
+      equipment: equipmentData,
+      crop_date: currentDateTime,
+      fertilizer_date: currentDateTime,
+      equipment_date: currentDateTime,
       date_created: currentDateTime,
     };
 
@@ -777,16 +785,10 @@ window.saveProject = async function () {
     await addDoc(collection(db, "tb_projects"), projectData);
 
     // ✅ Update the stock in tb_crop_stock
-    const newCropStock = currentCropStock - quantityCropType;
     await updateDoc(doc(db, "tb_crop_stock", cropDoc.id), {
-      current_stock: newCropStock,
+      current_stock: currentCropStock - quantityCropType,
     });
 
-    // ✅ Update the stock in tb_fertilizer_stock
-    const newFertilizerStock = currentFertilizerStock - quantityFertilizerType;
-    await updateDoc(doc(db, "tb_fertilizer_stock", fertilizerDoc.id), {
-      current_stock: newFertilizerStock,
-    });
 
     alert("✅ Project saved successfully!");
     resetForm();
@@ -801,7 +803,10 @@ window.saveProject = async function () {
 
 
 
-//PAMBURA
+
+
+
+// PAMBURA - Reset form fields
 window.resetForm = function () {
   document.getElementById("project-name").value = "";
   document.getElementById("assign-to").selectedIndex = 0;
@@ -815,22 +820,22 @@ window.resetForm = function () {
   document.getElementById("quantity-crop-type").value = "";
   document.getElementById("crop-unit").value = ""; // Clears the crop unit field
 
-  document.getElementById("fertilizer-type").selectedIndex = 0;
-  document.getElementById("quantity-fertilizer-type").value = "";
-  document.getElementById("fertilizer-unit").value = ""; // Clears the fertilizer unit field
-
-  document.getElementById("equipment-type-select").selectedIndex = 0; // ✅ Reset equipment type
+  
   document.getElementById("start-date").value = "";
   document.getElementById("end-date").value = "";
 
-  // ✅ Clear the Equipment Table
-  const equipmentTable = document
-    .getElementById("equipment-table")
-    .getElementsByTagName("tbody")[0];
-  equipmentTable.innerHTML = ""; // Clears all rows
+  // ✅ Clear all dynamically added equipment groups
+  const equipmentContainer = document.getElementById("equipment-container");
+  equipmentContainer.innerHTML = ""; // Removes all equipment elements
+
+
+    // ✅ Clear all dynamically added fertilizer groups
+    const fertilizerContainer = document.getElementById("fertilizer-container");
+    fertilizerContainer.innerHTML = ""; // Removes all fertilizer elements
 
   alert("🧹 Form has been reset successfully!");
 };
+
 
 
 document.getElementById("save-button").addEventListener("click", saveProject);
@@ -851,10 +856,6 @@ document.getElementById("cancel-button").addEventListener("click", function () {
 window.onload = function () {
   loadFarmPresidents();
   loadCrops();
-  fetchFertilizerTypes(); // Fetch all fertilizer types
-  loadFertilizers();
-  loadEquipmentTypes();
-  loadEquipmentNames();
 };
 
 document

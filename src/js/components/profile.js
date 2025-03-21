@@ -19,6 +19,40 @@ function warnUnsavedChanges(event) {
   }
 }
 
+// Phone number formatting function
+function formatPhoneNumber(input) {
+  // Remove non-digits
+  let cleanInput = input.replace(/\D/g, "");
+
+  // If empty, return empty
+  if (!cleanInput) return "";
+
+  // Ensure starts with 09
+  if (!cleanInput.startsWith("09")) {
+    cleanInput = "09" + cleanInput;
+  }
+
+  // Limit to 11 digits
+  if (cleanInput.length > 11) {
+    cleanInput = cleanInput.slice(0, 11);
+  }
+
+  return cleanInput;
+}
+
+// Phone number validation function
+function validatePhoneNumber(input) {
+  const formatted = formatPhoneNumber(input);
+  return {
+    success: formatted.length === 11,
+    value: formatted,
+    message:
+      formatted.length === 11
+        ? "Valid number"
+        : "Number must be exactly 11 digits starting with 09",
+  };
+}
+
 // ✅ Attach the event on page load
 window.addEventListener("beforeunload", warnUnsavedChanges);
 
@@ -42,16 +76,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   const formElements = document.querySelectorAll("input, select, textarea");
 
   formElements.forEach((element) => {
-    element.addEventListener("change", () => {
-      if (element.type === "file") {
-        // ✅ Only mark as dirty if a new file is selected
-        if (element.files.length > 0) {
+    if (element.id === "contact") {
+      // Add real-time phone number formatting
+      element.addEventListener("input", (e) => {
+        const result = validatePhoneNumber(e.target.value);
+        e.target.value = result.value;
+        isFormDirty = true;
+      });
+    } else {
+      element.addEventListener("change", () => {
+        if (element.type === "file") {
+          if (element.files.length > 0) {
+            isFormDirty = true;
+          }
+        } else {
           isFormDirty = true;
         }
-      } else {
-        isFormDirty = true;
-      }
-    });
+      });
+    }
   });
 
   // ✅ Handle Close button with confirmation
@@ -66,9 +108,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // ✅ Ensure warning is removed before navigating
     window.removeEventListener("beforeunload", warnUnsavedChanges);
-    isFormDirty = false; // ✅ Mark as clean when closing
+    isFormDirty = false;
     window.history.back();
   });
 
@@ -84,7 +125,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const removeFileButton = document.getElementById("remove-file");
   const fileInput = document.getElementById("profile_picture");
 
-  removeFileButton.style.display = "none"; // Hide initially
+  removeFileButton.style.display = "none";
   fileInput.addEventListener("change", handleFileSelect);
   removeFileButton.addEventListener("click", removeProfilePicture);
 
@@ -109,7 +150,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ✅ Close modal when clicking outside the image
   modal.addEventListener("click", (e) => {
     if (e.target === modal) {
       modal.style.display = "none";
@@ -122,14 +162,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     .addEventListener("click", async (e) => {
       e.preventDefault();
 
-      // ✅ Check if there are no changes
       if (!isFormDirty) {
-        alert("No changes made to update."); // Show message if no changes
+        alert("No changes made to update.");
         return;
       }
 
       await updateUserData(db, storage, userDocRef, auth);
-      isFormDirty = false; // ✅ Reset after saving
+      isFormDirty = false;
     });
 });
 
@@ -161,7 +200,13 @@ async function fetchUserData(db, collectionName, email) {
 function fillFormFields(data) {
   for (const [key, value] of Object.entries(data)) {
     const field = document.getElementById(key);
-    if (field) field.value = value;
+    if (field) {
+      if (key === "contact" && value) {
+        field.value = formatPhoneNumber(value); // Format existing contact number
+      } else {
+        field.value = value;
+      }
+    }
   }
 
   const barangayField = document.getElementById("barangay");
@@ -221,10 +266,10 @@ function handleFileSelect(event) {
     const reader = new FileReader();
     reader.onload = (e) => (imgElement.src = e.target.result);
     reader.readAsDataURL(file);
-    removeFileButton.style.display = "inline"; // Show remove button
-    isFormDirty = true; // ✅ Mark as dirty when a new file is selected
+    removeFileButton.style.display = "inline";
+    isFormDirty = true;
   } else {
-    removeFileButton.style.display = "none"; // Hide if no file selected
+    removeFileButton.style.display = "none";
   }
 }
 
@@ -238,10 +283,8 @@ async function removeProfilePicture() {
   const removeFileBtn = document.getElementById("remove-file");
   const fileInput = document.getElementById("profile_picture");
 
-  // Clear the file input
   fileInput.value = "";
 
-  // Refetch user data to get the original profile picture
   const userEmail = sessionStorage.getItem("userEmail");
   const userType = sessionStorage.getItem("user_type");
   const db = getFirestore(app);
@@ -257,12 +300,10 @@ async function removeProfilePicture() {
       const userData = userSnapshot.data();
       const originalImage =
         userData.user_picture || "../../../images/default.jpg";
-
       imgElement.src = originalImage;
 
-      // ✅ Compare the restored image with the original
       if (fileInput.value === "" && imgElement.src === originalImage) {
-        isFormDirty = false; // ✅ Do not mark as dirty when restoring default image
+        isFormDirty = false;
       }
     } else {
       imgElement.src = "../../../images/default.jpg";
@@ -272,12 +313,10 @@ async function removeProfilePicture() {
     imgElement.src = "../../../images/default.jpg";
   }
 
-  // Hide the remove button
   removeFileBtn.style.display = "none";
 
-  // ✅ Manually reset form change tracking if unchanged
   if (fileInput.value === "") {
-    isFormDirty = false; // ✅ Do not mark as dirty when removing the file
+    isFormDirty = false;
   }
 }
 
@@ -288,7 +327,7 @@ async function updateUserData(db, storage, userDocRef, auth) {
   const updateButton = document.getElementById("update-button");
 
   try {
-    updateButton.disabled = true; // ✅ Disable the button immediately
+    updateButton.disabled = true;
     updateButton.textContent = "Updating...";
 
     const user = auth.currentUser;
@@ -296,17 +335,25 @@ async function updateUserData(db, storage, userDocRef, auth) {
 
     const contactInput = document.getElementById("contact");
     const contactValue = contactInput.value.trim();
+    const contactValidation = validatePhoneNumber(contactValue);
 
-    // ✅ Prevent updating if contact is empty or null
+    // Validate phone number before update
+    if (!contactValidation.success) {
+      alert(contactValidation.message);
+      updateButton.disabled = false;
+      updateButton.textContent = "Update";
+      return;
+    }
+
     if (!contactValue) {
       alert("Contact number cannot be empty.");
-      updateButton.disabled = false; // ✅ Re-enable the button if validation fails
+      updateButton.disabled = false;
       updateButton.textContent = "Update";
       return;
     }
 
     const updatedData = {
-      contact: contactValue,
+      contact: contactValidation.value,
     };
 
     const profilePictureInput = document.getElementById("profile_picture");
@@ -318,34 +365,28 @@ async function updateUserData(db, storage, userDocRef, auth) {
       );
     }
 
-    // ✅ Confirm before updating
     if (!confirm("Are you sure you want to update your profile?")) {
-      updateButton.disabled = false; // ✅ Re-enable if user cancels
+      updateButton.disabled = false;
       updateButton.textContent = "Update";
       return;
     }
 
-    // ✅ Update Firestore
     await updateDoc(userDocRef, updatedData);
 
-    // ✅ Store image in sessionStorage only if updated
     if (updatedData.user_picture) {
       sessionStorage.setItem("userPicture", updatedData.user_picture);
     }
 
-    // ✅ Remove unsaved changes warning before reload
     window.removeEventListener("beforeunload", warnUnsavedChanges);
     isFormDirty = false;
 
     alert("Profile updated successfully!");
-
-    // ✅ Reload safely
     window.location.reload();
   } catch (error) {
     console.error("Error updating user data:", error);
     displayError("Error updating profile. Please try again.");
   } finally {
-    updateButton.disabled = false; // ✅ Ensure re-enabling in case of error
+    updateButton.disabled = false;
     updateButton.textContent = "Update";
   }
 }
@@ -363,7 +404,7 @@ async function uploadProfilePicture(storage, userId, file) {
  * Display an error message to the user.
  */
 function displayError(message) {
-  alert(message); // Show an alert for critical errors
+  alert(message);
   const errorMessage = document.getElementById("error-message");
   if (errorMessage) errorMessage.textContent = message;
 }

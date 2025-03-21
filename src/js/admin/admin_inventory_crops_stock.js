@@ -655,6 +655,7 @@ async function saveStock() {
           // ✅ Update the document with the modified stocks array
           await updateDoc(inventoryDocRef, { 
               stocks: stocks,
+              crop_name: cropName,
               crop_type_name: cropTypeName // Ensure crop_type_name is saved
           });
 
@@ -662,6 +663,7 @@ async function saveStock() {
           // ✅ Create a new document if it doesn't exist
           await addDoc(inventoryCollection, {
               crop_type_id: cropTypeId,
+              crop_name: cropName,
               crop_type_name: cropTypeName,
               stocks: [
                   {
@@ -770,6 +772,7 @@ async function deleteStock() {
       // ✅ Save the updated document
       await updateDoc(inventoryDocRef, {
           stocks: stocks,
+          crop_name: cropName,
           crop_type_name: cropTypeName // Ensure crop_type_name is saved
       });
 
