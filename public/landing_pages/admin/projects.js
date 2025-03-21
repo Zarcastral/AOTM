@@ -84,14 +84,15 @@ window.loadCrops = async function () {
 
   querySnapshot.forEach((doc) => {
     const cropData = doc.data();
-    const stocksArray = cropData.stocks || []; // Ensure stocks array exists
+    const stocksArray = Array.isArray(cropData.stocks) ? cropData.stocks : []; // Ensure stocks is an array
 
     // Check if any object inside 'stocks' has 'owned_by' matching userType
     const isOwnedByUser = stocksArray.some(
       (stock) => stock.owned_by === userType
     );
 
-    if (isOwnedByUser) {
+    // Ensure crop_name is valid before appending to dropdown
+    if (isOwnedByUser && cropData.crop_name && cropData.crop_name.trim() !== "") {
       const option = document.createElement("option");
       option.value = cropData.crop_name;
       option.textContent = cropData.crop_name;
@@ -99,6 +100,7 @@ window.loadCrops = async function () {
     }
   });
 };
+
 
 window.loadCropTypes = async function (selectedCrop) {
   if (!selectedCrop) return;
@@ -271,7 +273,6 @@ window.loadFertilizerTypes = async function (selectedFertilizer) {
 
 
 
-// EQUIPMENT TRY
 // EQUIPMENT TRY
 async function addEquipmentForm() {
   const container = document.getElementById("equipment-container");
