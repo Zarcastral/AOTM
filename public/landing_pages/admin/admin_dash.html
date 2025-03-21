@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="../../../src/js/admin/admin_dash.js"></script>
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../../../src/style/admin/admin_dash.css">
 </head>
 
@@ -16,8 +16,94 @@
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
   <div class="main-content">
-    <!-- Main content goes here -->
-  </div>
+    <!-- Top Section: System Stats and Project Status -->
+    <div class="top-section">
+      <!-- System Stats Section -->
+      <div class="system-stats-section">
+        <h4 class="section-title">SYSTEM</h4>
+        <div class="system-stats">
+          <div class="stats-card">
+            <img src="../../../public/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
+            <div class="stats-info">
+              <p>Farmers</p>
+              <div class="number-wrapper">
+                  <h3 id="total-farmers">
+                    <!--Dynamically Updating Records-->
+                  </h3>
+                <span>This Year</span>
+              </div>
+            </div>
+          </div>
+          <div class="stats-card">
+            <img src="../../../public/images/graphBig.png" alt="Projects Icon" class="stats-icon projects-icon">
+            <div class="stats-info">
+              <p>Projects</p>
+              <div class="number-wrapper">
+                  <h3 id="total-projects">
+                    <!--Dynamically Updating Records-->
+                  </h3>
+                <span>This Month</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project Status Section -->
+      <div class="project-status-section">
+        <h4 class="section-title">PROJECT STATUS (THIS YEAR)</h4>
+        <div class="project-status">
+          <div class="status-circles">
+            <div class="circle completed">
+              <span id="total-completed-projects">
+                <!--Dynamically Updating Records-->
+              </span>
+              <p>Completed</p>
+            </div>
+            <div class="circle in-progress">
+              <span id="total-inprogress-projects">
+                <!--Dynamically Updating Records-->
+              </span>
+              <p>In Progress</p>
+            </div>
+            <div class="circle not-started">
+              <span id="total-notstarted-projects">
+                <!--Dynamically Updating Records-->
+              </span>
+              <p>Not Started</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="analytics-section">
+      <h4 class="section-title">ANALYTICS</h4>
+      <div class="analytics">
+        <div class="harvest-info">
+          <h5>Harvest Information (This Year)</h5>
+          <div class="chart-wrapper">
+            <div class="y-axis">
+            </div>
+            <div class="bar-chart">
+              <div class="bar" data-month="Jan"></div>
+              <div class="bar" data-month="Feb"></div>
+              <div class="bar" data-month="Mar"></div>
+              <div class="bar" data-month="Apr"></div>
+              <div class="bar" data-month="May"></div>
+              <div class="bar" data-month="Jun"></div>
+              <div class="bar" data-month="Jul"></div>
+              <div class="bar" data-month="Aug"></div>
+              <div class="bar" data-month="Sep"></div>
+              <div class="bar" data-month="Oct"></div>
+              <div class="bar" data-month="Nov"></div>
+              <div class="bar" data-month="Dec"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="../../../src/auth/header.js"></script>
