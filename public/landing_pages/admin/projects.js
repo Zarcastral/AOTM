@@ -84,14 +84,15 @@ window.loadCrops = async function () {
 
   querySnapshot.forEach((doc) => {
     const cropData = doc.data();
-    const stocksArray = cropData.stocks || []; // Ensure stocks array exists
+    const stocksArray = Array.isArray(cropData.stocks) ? cropData.stocks : []; // Ensure stocks is an array
 
     // Check if any object inside 'stocks' has 'owned_by' matching userType
     const isOwnedByUser = stocksArray.some(
       (stock) => stock.owned_by === userType
     );
 
-    if (isOwnedByUser) {
+    // Ensure crop_name is valid before appending to dropdown
+    if (isOwnedByUser && cropData.crop_name && cropData.crop_name.trim() !== "") {
       const option = document.createElement("option");
       option.value = cropData.crop_name;
       option.textContent = cropData.crop_name;
@@ -99,6 +100,7 @@ window.loadCrops = async function () {
     }
   });
 };
+
 
 window.loadCropTypes = async function (selectedCrop) {
   if (!selectedCrop) return;
@@ -271,7 +273,6 @@ window.loadFertilizerTypes = async function (selectedFertilizer) {
 
 
 
-// EQUIPMENT TRY
 // EQUIPMENT TRY
 async function addEquipmentForm() {
   const container = document.getElementById("equipment-container");
@@ -504,37 +505,57 @@ window.getFarmlandId = async function (farmlandName) {
   return null;
 };
 
+// ✅ Function to get farmer_id based on the selected Farm President's name
+async function getFarmerIdByName(farmPresidentName) {
+  try {
+    const farmersRef = collection(db, "tb_farmers");
+    const farmersQuery = query(farmersRef, where("first_name", "==", farmPresidentName));
+    const farmersQuerySnapshot = await getDocs(farmersQuery);
+
+    if (farmersQuerySnapshot.empty) {
+      console.error(`❌ Farm President '${farmPresidentName}' not found in the database.`);
+      return null;
+    }
+
+    const farmPresidentDoc = farmersQuerySnapshot.docs[0];
+    const farmerId = farmPresidentDoc.data().farmer_id.toString(); // Convert to string
+    return farmerId;
+  } catch (error) {
+    console.error("❌ Error fetching farmer_id:", error);
+    return null;
+  }
+}
+
 window.saveProject = async function () {
   try {
     // ✅ Get input values
     const projectName = document.getElementById("project-name").value.trim();
     const assignToSelect = document.getElementById("assign-to");
-    const farmPresidentName =
-      assignToSelect.options[assignToSelect.selectedIndex].text;
+    const farmPresidentName = assignToSelect.options[assignToSelect.selectedIndex].text;
     const status = document.getElementById("status").value;
     const cropName = document.getElementById("crops").value;
     const barangayName = document.getElementById("barangay").value.trim();
     const farmlandSelect = document.getElementById("farmland");
-    const farmlandName =
-      farmlandSelect.options[farmlandSelect.selectedIndex].text;
+    const farmlandName = farmlandSelect.options[farmlandSelect.selectedIndex].text;
     const farmlandId = await getFarmlandId(farmlandName);
 
     const cropTypeName = document.getElementById("crop-type").value;
-    const quantityCropType = parseInt(
-      document.getElementById("quantity-crop-type").value.trim()
-    );
+    const quantityCropType = parseInt(document.getElementById("quantity-crop-type").value.trim());
     const cropUnit = document.getElementById("crop-unit").value.trim();
 
     const fertilizerType = document.getElementById("fertilizer-type").value;
-    const quantityFertilizerType = parseInt(
-      document.getElementById("quantity-fertilizer-type").value.trim()
-    );
-    const fertilizerUnit = document
-      .getElementById("fertilizer-unit")
-      .value.trim();
+    const quantityFertilizerType = parseInt(document.getElementById("quantity-fertilizer-type").value.trim());
+    const fertilizerUnit = document.getElementById("fertilizer-unit").value.trim();
 
     const startDate = document.getElementById("start-date").value;
     const endDate = document.getElementById("end-date").value;
+
+    // ✅ Get farmer_id for the selected Farm President
+    const farmerId = await getFarmerIdByName(farmPresidentName);
+    if (farmerId === null) {
+      alert(`❌ Farm President '${farmPresidentName}' not found. Please select a valid Farm President.`);
+      return;
+    }
 
     // ✅ Extract equipment data
     const equipmentGroups = document.querySelectorAll(".equipment__group");
@@ -577,10 +598,7 @@ window.saveProject = async function () {
 
     // 🔍 Fetch current stock of the selected crop type from Firestore
     const cropTypeRef = collection(db, "tb_crop_stock");
-    const cropQuery = query(
-      cropTypeRef,
-      where("crop_type_name", "==", cropTypeName)
-    );
+    const cropQuery = query(cropTypeRef, where("crop_type_name", "==", cropTypeName));
     const cropQuerySnapshot = await getDocs(cropQuery);
 
     if (cropQuerySnapshot.empty) {
@@ -594,18 +612,13 @@ window.saveProject = async function () {
 
     // ✅ Check if there is enough crop stock
     if (quantityCropType > currentCropStock) {
-      alert(
-        `⚠️ Not enough stock for '${cropTypeName}'. Available: ${currentCropStock}${cropUnit}, Required: ${quantityCropType}${cropUnit}.`
-      );
+      alert(`⚠️ Not enough stock for '${cropTypeName}'. Available: ${currentCropStock}${cropUnit}, Required: ${quantityCropType}${cropUnit}.`);
       return;
     }
 
     // 🔍 Fetch current stock of the selected fertilizer from Firestore
     const fertilizerRef = collection(db, "tb_fertilizer_stock");
-    const fertilizerQuery = query(
-      fertilizerRef,
-      where("fertilizer_name", "==", fertilizerType)
-    );
+    const fertilizerQuery = query(fertilizerRef, where("fertilizer_name", "==", fertilizerType));
     const fertilizerQuerySnapshot = await getDocs(fertilizerQuery);
 
     if (fertilizerQuerySnapshot.empty) {
@@ -619,26 +632,9 @@ window.saveProject = async function () {
 
     // ✅ Check if there is enough fertilizer stock
     if (quantityFertilizerType > currentFertilizerStock) {
-      alert(
-        `⚠️ Not enough stock for '${fertilizerType}'. Available: ${currentFertilizerStock}${fertilizerUnit}, Required: ${quantityFertilizerType}${fertilizerUnit}.`
-      );
+      alert(`⚠️ Not enough stock for '${fertilizerType}'. Available: ${currentFertilizerStock}${fertilizerUnit}, Required: ${quantityFertilizerType}${fertilizerUnit}.`);
       return;
     }
-
-    // Fetch the email of the selected farm president from Firestore
-    const farmersRef = collection(db, "tb_farmers");
-    const farmersQuery = query(
-      farmersRef,
-      where("first_name", "==", farmPresidentName)
-    );
-    const farmersQuerySnapshot = await getDocs(farmersQuery);
-
-    if (farmersQuerySnapshot.empty) {
-      alert(`❌ Farm President '${farmPresidentName}' not found in the database.`);
-      return;
-    }
-
-    const farmPresidentDoc = farmersQuerySnapshot.docs[0];
 
     // ✅ Generate a new project ID AFTER validation
     const projectID = await getNextProjectID();
@@ -650,6 +646,7 @@ window.saveProject = async function () {
       project_id: projectID,
       project_name: projectName,
       farm_president: farmPresidentName,
+      farmer_id: farmerId, // ✅ Save farmer_id as string
       status: status,
       crop_name: cropName,
       barangay_name: barangayName,
@@ -663,10 +660,10 @@ window.saveProject = async function () {
       fertilizer_unit: fertilizerUnit,
       start_date: startDate,
       end_date: endDate,
-      equipment: equipmentData, // ✅ Added equipment array
-      crop_date: currentDateTime,       // ✅ Added timestamp for crop
-      fertilizer_date: currentDateTime, // ✅ Added timestamp for fertilizer
-      equipment_date: currentDateTime,  // ✅ Added timestamp for equipment
+      equipment: equipmentData,
+      crop_date: currentDateTime,
+      fertilizer_date: currentDateTime,
+      equipment_date: currentDateTime,
       date_created: currentDateTime,
     };
 
@@ -674,15 +671,13 @@ window.saveProject = async function () {
     await addDoc(collection(db, "tb_projects"), projectData);
 
     // ✅ Update the stock in tb_crop_stock
-    const newCropStock = currentCropStock - quantityCropType;
     await updateDoc(doc(db, "tb_crop_stock", cropDoc.id), {
-      current_stock: newCropStock,
+      current_stock: currentCropStock - quantityCropType,
     });
 
     // ✅ Update the stock in tb_fertilizer_stock
-    const newFertilizerStock = currentFertilizerStock - quantityFertilizerType;
     await updateDoc(doc(db, "tb_fertilizer_stock", fertilizerDoc.id), {
-      current_stock: newFertilizerStock,
+      current_stock: currentFertilizerStock - quantityFertilizerType,
     });
 
     alert("✅ Project saved successfully!");
@@ -692,6 +687,7 @@ window.saveProject = async function () {
     alert("Failed to save project. Please try again.");
   }
 };
+
 
 
 
