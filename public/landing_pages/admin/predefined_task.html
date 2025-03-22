@@ -11,18 +11,17 @@
 
 <body>
     <!-- Header Section -->
-    <!-- Placeholder for Header -->
     <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
     <div class="main-content">
         <!-- Buttons for Adding and Assigning Tasks -->
-        <div class="btn-container">
-            <button id="open-add-task-modal" class="add-user-btn">+ Add New Task</button>
-        </div>
+        <h2>Default Task</h2>
 
         <!-- Task List Section -->
         <div class="panel">
-            <h2>Default Task</h2>
+            <div class="btn-container">
+                <button id="open-add-task-modal" class="text-add-btn"> + Add New Task</button>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -47,10 +46,12 @@
             <div class="modal-content">
                 <span id="close-add-task-modal" class="close-btn">×</span>
                 <h2>Add New Task</h2>
-                <input type="text" id="new-task-input" placeholder="Type a task name">
-                <button id="add-task-btn" class="add-user-btn">Add Task</button>
-                <ul id="new-task-list"></ul>
-                <button id="save-tasks-btn" class="add-user-btn" disabled>Save Changes</button>
+                <ul id="new-task-list" class="task-list"></ul>
+                <div class="task-input-container">
+                    <input type="text" id="new-task-input" placeholder="Enter task...">
+                    <button id="add-task-btn" class="add-task-btn">Add Task</button>
+                </div>
+                <button id="save-tasks-btn" class="save-btn" disabled>Save</button>
             </div>
         </div>
 
@@ -59,11 +60,13 @@
             <div class="modal-content">
                 <span id="close-edit-task-modal" class="close-btn">×</span>
                 <h2>Edit Task</h2>
-                <ul id="subtask-list"></ul>
-                <input type="text" id="new-subtask-input" placeholder="Type a subtask name">
-                <button id="add-subtask-btn" class="add-user-btn">Add Subtask</button>
-                <br>
-                <button id="save-subtasks-btn" class="addd-user-btn" disabled>Save Changes</button>
+                <ul id="subtask-list" class="task-list"></ul>
+                <h2>Add SubTask</h2>
+                <div class="task-input-container">
+                    <input type="text" id="new-subtask-input" placeholder="Enter subtask...">
+                    <button id="add-subtask-btn" class="add-task-btn"> + Add Subtask</button>
+                </div>
+                <button id="save-subtasks-btn" class="save-btn" disabled>Save</button>
             </div>
         </div>
 
@@ -80,6 +83,7 @@
         <div id="delete-confirmation-modal" class="modal">
             <div class="modal-content">
                 <h2>Are you sure you want to delete this task?</h2>
+                <p id="delete-confirmation-message"></p>
                 <button id="confirm-delete-btn" class="dell1-user-btn">Yes, delete</button>
                 <button id="cancel-delete-btn" class="dell-user-btn">Cancel</button>
             </div>
@@ -112,27 +116,26 @@
             </div>
         </div>
 
-        <div class="btn-container">
-            <button id="open-assign-task-modal" class="add-user-btn">Assign Tasks to Crop Type</button>
-        </div>
-
+        <h2>Assigned Tasks</h2>
         <!-- Assigned Tasks Table -->
         <div class="panel">
-            <h2>Assigned Tasks</h2>
+            <div class="btn-container">
+                <button id="open-assign-task-modal" class="text-add-btn"> + Assign Tasks to Crop Type</button>
+            </div>
             <div class="search-container">
-                <label for="crop-filter">Filter by Crop Name:</label>
+                <label for="crop-filter"></label>
                 <select id="crop-filter">
-                    <option value="">All Crops</option>
+                    <option value="">Crops</option>
                 </select>
-                <label for="crop-type-filter">Filter by Crop Type:</label>
+                <label for="crop-type-filter"></label>
                 <select id="crop-type-filter">
-                    <option value="">All Crop Types</option>
+                    <option value="">Crop Types</option>
                 </select>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Task ID</th>
+                        <th>#</th>
                         <th>Crop Name</th>
                         <th>Crop Type</th>
                         <th>Task Name</th>
@@ -158,80 +161,63 @@
                 <span class="close" id="close-edit-subtasks-modal">×</span>
                 <h2>Edit Subtask</h2>
                 <p id="edit-task-name-display"></p>
-                <ul id="subtask-list-subtasks"></ul>
-                <div class="subtask-container">
-                    <input type="text" id="new-subtask-input-subtasks" placeholder="Enter subtask..." />
-                    <button id="add-subtask-btn-subtasks" class="adddd-user-btn">Add Subtask</button>
+                <ul id="subtask-list-subtasks" class="task-list"></ul>
+                <h2>Add SubTask</h2>
+                <div class="task-input-container">
+                    <input type="text" id="new-subtask-input-subtasks" placeholder="Enter subtask...">
+                    <button id="add-subtask-btn-subtasks" class="add-task-btn"> + Add Subtask</button>
                 </div>
-                <button id="save-subtasks-btn-subtasks" class="add-user-btn" disabled>Save Changes</button>
+                <button id="save-subtasks-btn-subtasks" class="save-btn" disabled>Save</button>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div id="success-modal" class="modal">
+            <div class="modal-content">
+                <h2>Success</h2>
+                <p id="success-message"></p>
+                <button id="close-success-modal" class="add-user-btn">Okay</button>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="error-modal" class="modal">
+            <div class="modal-content">
+                <h2>Please Select A Crop Type</h2>
+                <p id="error-message"></p>
+                <button id="close-error-modal" class="add-user-btn">Okay</button>
+            </div>
+        </div>
+
+        <!-- Warning Modal -->
+        <div id="warning-modal" class="modal">
+            <div class="modal-content">
+                <h2>Warning</h2>
+                <p id="warning-message"></p>
+                <button id="close-warning-modal" class="add-user-btn">Okay</button>
+            </div>
+        </div>
+
+        <!-- Info Modal -->
+        <div id="info-modal" class="modal">
+            <div class="modal-content">
+                <h2>Information</h2>
+                <p id="info-message"></p>
+                <button id="close-info-modal" class="add-user-btn">Okay</button>
+            </div>
+        </div>
+
+        <!-- Duplicate Tasks Modal -->
+        <div id="duplicate-tasks-modal" class="modal">
+            <div class="modal-content">
+                <h2>Sub Task Already Assigned</h2>
+                <p>The following sub tasks is/are already assigned to</p>
+                <p id="duplicate-crop-type-name" style="font-weight: bold;"></p>
+                <p id="duplicate-tasks-message"></p>
+                <button id="close-duplicate-tasks-modal" class="add-user-btn">Okay</button>
             </div>
         </div>
     </div>
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-confirmation-modal" class="modal">
-        <div class="modal-content">
-            <h2>Confirm Deletion</h2>
-            <p id="delete-confirmation-message"></p>
-            <button id="confirm-delete-btn" class="add-user-btn">Yes, delete</button>
-            <button id="cancel-delete-btn" class="dell-user-btn">Cancel</button>
-        </div>
-    </div>
-<!-- Success Modal -->
-<div id="success-modal" class="modal">
-    <div class="modal-content">
-        <h2>Success</h2>
-        <p id="success-message"></p>
-        <button id="close-success-modal" class="add-user-btn">Okay</button>
-    </div>
-</div>
-
-<!-- Error Modal -->
-<div id="error-modal" class="modal">
-    <div class="modal-content">
-        <h2>Error Occurred</h2>
-        <p id="error-message"></p>
-        <button id="close-error-modal" class="add-user-btn">Okay</button>
-    </div>
-</div>
-
-<!-- Warning Modal -->
-<div id="warning-modal" class="modal">
-    <div class="modal-content">
-        <h2>Warning</h2>
-        <p id="warning-message"></p>
-        <button id="close-warning-modal" class="add-user-btn">Okay</button>
-    </div>
-</div>
-
-<!-- Info Modal -->
-<div id="info-modal" class="modal">
-    <div class="modal-content">
-        <h2>Information</h2>
-        <p id="info-message"></p>
-        <button id="close-info-modal" class="add-user-btn">Okay</button>
-    </div>
-</div>
-   <!-- Duplicate Tasks Modal -->
-   <div id="duplicate-tasks-modal" class="modal">
-    <div class="modal-content">
-        <h2>Sub Task Already Assigned</h2>
-        <p>The following sub tasks is/are already assigned to</p>
-        <p id="duplicate-crop-type-name" style="font-weight: bold;"></p>
-        <p id="duplicate-tasks-message"></p>
-        <button id="close-duplicate-tasks-modal" class="add-user-btn">Okay</button>
-    </div>
-</div>
-
-<!-- Success Modal -->
-<div id="success-modal" class="modal">
-    <div class="modal-content">
-        <h2>Success</h2>
-        <p id="success-message"> Sub Tasks assigned successfully!</p>
-        <button id="close-success-modal" class="add-user-btn">Okay</button>
-    </div>
-</div>
-
-</div> 
 
     <script type="module" src="predefined_task.js"></script>
     <!-- Import the reusable script from src/auth -->

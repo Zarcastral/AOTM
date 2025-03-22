@@ -2,9 +2,9 @@
 #edit-subtasks-modal {
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Black with opacity */
-  overflow: auto; /* Enable scrolling if needed */
-  padding-top: 20px; /* Reduced padding from the top */
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow: auto;
+  padding-top: 20px;
 }
 
 /* Modal Content */
@@ -13,20 +13,16 @@
   margin: auto;
   padding: 20px;
   border: 1px solid #888;
-  width: 30%; /* Adjust the width as needed */
-  max-width: 600px; /* Optional max width */
+  width: 30%;
+  max-width: 600px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
-/* Adjust position to move the modal up */
 #edit-subtasks-modal .modal-content {
   position: relative;
-  top: 10%; /* Move it up to 10% from the top */
-  transform: translateY(0); /* Reset the vertical translation */
+  top: 10%;
+  transform: translateY(0);
 }
 
 /* Close button */
@@ -46,23 +42,13 @@
   cursor: pointer;
 }
 
-#subtask-list-subtasks {
-  list-style-type: none;
-  padding: 0;
-  width: 80%; /* Adjust width to make it more centered */
-  margin: 0 auto 20px auto; /* Center the list horizontally */
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center subtasks inside the list */
-}
-
 .subtask-item {
   display: flex;
   align-items: center;
-  gap: 5px; /* Adjust spacing between text and ❌ button */
+  gap: 5px;
   padding: 8px 12px;
-  width: 100%; /* Make sure items take full width of the list */
-  justify-content: center; /* Center subtasks within the row */
+  width: 100%;
+  justify-content: center;
 }
 
 .remove-subtask-btn {
@@ -76,17 +62,23 @@
 /* Subtask input and button styling */
 .subtask-container {
   display: flex;
-  flex-direction: row; /* Arrange input and button horizontally */
+  flex-direction: row;
   align-items: center;
-  margin-bottom: 20px; /* Space between input and list */
+  margin-bottom: 20px;
 }
 
 #new-subtask-input-subtasks {
   padding: 8px;
-  margin-right: 10px; /* Space between input and button */
-  width: 70%; /* Adjust the width */
+  margin-right: 10px;
+  width: 70%;
   border-radius: 4px;
   border: 1px solid #ccc;
+}
+#edit-subtasks-modal .modal-content ul + h2{
+    font-size: 15px;
+    color: rgb(51, 51, 51);
+    margin-top: 20px;
+    border-top: 3px solid rgb(240, 240, 240);
 }
 .adddd-user-btn {
   background-color: #41A186;
@@ -99,40 +91,34 @@
   border: none;
   transition: background-color 0.3s ease;
 }
-.add-user-btn:disabled,.adddd-user-btn:disabled 
- {
+
+.add-user-btn:disabled, .adddd-user-btn:disabled {
   color: #bbb;
   cursor: not-allowed;
 }
 
-.edit-btn{
-  background-color: #41A186;
-  color: white;
-  padding: 5px 15px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  border-radius: 20px;
-  cursor: pointer;
+/* Updated Edit and Delete button styles */
+.edit-btn, .delete-btn {
+  background: none;
+  padding: 0;
   border: none;
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
-
-}
-.delete-btn {
-  background-color: #e0e0e0;
-  color: white;
-  padding: 5px 15px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  border-radius: 20px;
   cursor: pointer;
-  border: none;
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
-
+  width: 24px;
+  height: 24px;
+  margin: 0 5px;
+  vertical-align: middle;
 }
+
+.edit-btn:hover, .delete-btn:hover {
+  opacity: 0.8;
+}
+
+.edit-btn img, .delete-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .pagination-btn {
   padding: 10px 10px;
   margin: 0;
@@ -150,7 +136,131 @@
   cursor: not-allowed;
 }
 
-#assigned-page-info{
+#assigned-page-info {
   font-size: 17px;
   margin-top: 10px;
+}
+.remove-subtask-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 20px; /* Adjust size as needed */
+  height: 20px;
+}
+
+.remove-subtask-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+#close-edit-subtasks-modal .save-btn {
+  margin: 0 0 0 auto;
+  display: block;
+}
+/* Style for the modal background */
+
+/* Close button */
+#assign-task-modal .close-btn {
+  color: #aaa;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+}
+
+#assign-task-modal .close-btn:hover,
+#assign-task-modal .close-btn:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+
+/* Container for label and dropdown to place them side by side */
+#assign-task-modal .crop-type-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between label and dropdown */
+  margin-bottom: 20px;
+}
+
+/* Label for dropdown */
+#assign-task-modal label {
+  font-size: 14px;
+  color: #666; /* Light gray to match the "Select Crop Type" text */
+  margin-bottom: 0; /* Remove bottom margin since it's now inline */
+  white-space: nowrap; /* Prevent label from wrapping */
+}
+
+/* Dropdown styling */
+#assign-task-modal #crop-type-select {
+  flex: 1; /* Take remaining space */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+  background-color: white;
+  appearance: none; /* Remove default dropdown arrow */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M6 9l6 6 6-6"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  width: 220px;
+}
+
+/* Task selection heading */
+#assign-task-modal h3 {
+  font-size: 20px; /* Matches "Select Task" in the image */
+  color: #333;
+  margin: 20px 0 10px;
+  font-weight: 600;
+  border-top: 3px solid rgb(240, 240, 240);
+}
+
+/* Checkbox container */
+#assign-task-modal #task-checkboxes {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Checkbox styling */
+#assign-task-modal #task-checkboxes input[type="checkbox"] {
+  margin-right: 10px;
+  accent-color: #41A186; /* Green color for checked state */
+}
+
+/* Checkbox labels */
+#assign-task-modal #task-checkboxes label {
+  font-size: 14px;
+  color: #333;
+}
+
+/* Assign Tasks button */
+#assign-task-modal .add-user-btn {
+  background-color: #41A186; /* Green color matching the Save button in the image */
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 20px;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  display: block;
+  margin: 0 0 0 auto; /* Align to the right */
+}
+
+#assign-task-modal .add-user-btn:hover {
+  background-color: #369c7a; /* Slightly darker green on hover */
+}
+
+#assign-task-modal .add-user-btn:disabled {
+  background-color: #cccccc;
+  color: #bbb;
+  cursor: not-allowed;
 }
