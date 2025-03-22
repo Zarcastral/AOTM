@@ -296,6 +296,39 @@ body {
   color: #333;
 }
 
+.year-selector-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.year-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between label and select */
+}
+
+.year-selector-label {
+  font-size: 14px;
+  color: #333; /* Adjust color to match your design */
+  font-weight: 500;
+}
+
+.year-selector {
+  padding: 5px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.year-selector:focus {
+  outline: none;
+  border-color: #41A186;
+}
+
 .bar-chart {
   display: flex;
   gap: 10px;
@@ -329,11 +362,14 @@ body {
   height: var(--bar-height);
   transition: background-color 0.2s ease, transform 0.1s ease;
   z-index: 1; /* Ensure bars are above the horizontal line */
+  
 }
 
 .bar.highlighted {
   background-color: #41A186;
   transition: background-color 0.2s ease;
+  box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2); /* Added shadow */
+
 }
 
 .bar::after {

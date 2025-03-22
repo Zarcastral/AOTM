@@ -138,7 +138,6 @@ async function updateTotalProjectsCount() {
         console.error("Error fetching project count:", error);
     }
 }
-
 // Function to animate the conic gradient
 function animateGradient(element, finalPercentage, color) {
     let currentPercentage = 0;
@@ -166,24 +165,21 @@ async function updateProjectStatus() {
     try {
         const projectsCollection = collection(db, "tb_projects");
 
-        // Get total number of projects
-        const allProjectsSnapshot = await getDocs(projectsCollection);
+        // Get all projects with project_id
+        const allProjectsSnapshot = await getDocs(query(projectsCollection, where("project_id", "!=", null)));
         const totalProjects = allProjectsSnapshot.size;
 
-        // Query for Completed projects
-        const completedQuery = query(projectsCollection, where("status", "==", "Completed"));
-        const completedSnapshot = await getDocs(completedQuery);
-        const completedCount = completedSnapshot.size;
+        // Count statuses with case-insensitive comparison
+        let completedCount = 0;
+        let ongoingCount = 0;
+        let pendingCount = 0;
 
-        // Query for Ongoing projects
-        const ongoingQuery = query(projectsCollection, where("status", "==", "Ongoing"));
-        const ongoingSnapshot = await getDocs(ongoingQuery);
-        const ongoingCount = ongoingSnapshot.size;
-
-        // Query for Pending projects
-        const pendingQuery = query(projectsCollection, where("status", "==", "Pending"));
-        const pendingSnapshot = await getDocs(pendingQuery);
-        const pendingCount = pendingSnapshot.size;
+        allProjectsSnapshot.forEach(doc => {
+            const status = doc.data().status?.toLowerCase();
+            if (status === "completed") completedCount++;
+            else if (status === "ongoing") ongoingCount++;
+            else if (status === "pending") pendingCount++;
+        });
 
         // Calculate percentages
         const completedPercentage = totalProjects > 0 ? (completedCount / totalProjects) * 100 : 0;
@@ -231,20 +227,63 @@ async function updateBarGraph() {
     const yAxis = document.querySelector('.y-axis');
     const barChart = document.querySelector('.bar-chart');
     const analyticsSection = document.querySelector('.analytics-section');
+    const yearSelector = document.querySelector('#year-selector');
 
-    // Create canvas for dashed lines
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.style.position = 'absolute';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '1';
+    // Create canvas for grid lines (behind everything)
+    const gridCanvas = document.createElement('canvas');
+    const gridCtx = gridCanvas.getContext('2d');
+    gridCanvas.style.position = 'absolute';
+    gridCanvas.style.top = '0';
+    gridCanvas.style.left = '0';
+    gridCanvas.style.pointerEvents = 'none';
+    gridCanvas.style.zIndex = '0';
     barChart.style.position = 'relative';
-    barChart.appendChild(canvas);
+    barChart.appendChild(gridCanvas);
 
-    // Fetch data from tb_harvest and aggregate by month
-    const fetchHarvestData = async () => {
+    // Create canvas for dashed lines (on top of everything)
+    const dashCanvas = document.createElement('canvas');
+    const dashCtx = dashCanvas.getContext('2d');
+    dashCanvas.style.position = 'absolute';
+    dashCanvas.style.top = '0';
+    dashCanvas.style.left = '0';
+    dashCanvas.style.pointerEvents = 'none';
+    dashCanvas.style.zIndex = '3';
+    barChart.appendChild(dashCanvas);
+
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.style.position = 'absolute';
+    tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
+    tooltip.style.color = 'white';
+    tooltip.style.padding = '4px 8px';
+    tooltip.style.borderRadius = '4px';
+    tooltip.style.fontSize = '12px';
+    tooltip.style.pointerEvents = 'none';
+    tooltip.style.zIndex = '2';
+    tooltip.style.display = 'none';
+    barChart.appendChild(tooltip);
+
+    let labelPositions = [];
+
+    // Populate year selector with current year + previous 5 years
+    const populateYearSelector = () => {
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        
+        // Add current year and previous 5 years (6 total)
+        for (let i = 0; i < 6; i++) {
+            years.push(currentYear - i);
+        }
+
+        yearSelector.innerHTML = years.map(year => 
+            `<option value="${year}">${year}</option>`
+        ).join('');
+        
+        yearSelector.value = currentYear.toString();
+    };
+
+    // Fetch data from tb_harvest and aggregate by month for selected year
+    const fetchHarvestData = async (selectedYear) => {
         try {
             const harvestCollection = collection(db, 'tb_harvest');
             const harvestSnapshot = await getDocs(harvestCollection);
@@ -265,9 +304,11 @@ async function updateBarGraph() {
                     return;
                 }
 
-                const month = date.getMonth();
-                const totalCrops = Number(data.total_harvested_crops) || 0;
-                monthlyTotals[month] += totalCrops;
+                if (date.getFullYear() === parseInt(selectedYear)) {
+                    const month = date.getMonth();
+                    const totalCrops = Number(data.total_harvested_crops) || 0;
+                    monthlyTotals[month] += totalCrops;
+                }
             });
 
             return monthlyTotals;
@@ -278,8 +319,8 @@ async function updateBarGraph() {
     };
 
     // Set bar heights based on fetched data
-    const setBarHeights = async () => {
-        const monthlyTotals = await fetchHarvestData();
+    const setBarHeights = async (selectedYear) => {
+        const monthlyTotals = await fetchHarvestData(selectedYear);
         const maxDataValue = Math.max(...monthlyTotals);
 
         bars.forEach((bar, index) => {
@@ -291,7 +332,6 @@ async function updateBarGraph() {
         return { monthlyTotals, maxDataValue };
     };
 
-    // Update sizes for canvas and chart
     const updateSizes = async () => {
         const dpr = window.devicePixelRatio || 1;
         const maxDisplayHeight = analyticsSection.clientHeight - 130;
@@ -312,7 +352,11 @@ async function updateBarGraph() {
         else interval = Math.ceil(maxDataValue / 10) * 10 / 5;
 
         const maxValue = Math.ceil(maxDataValue / interval) * interval;
-        const pixelsPerUnit = maxDisplayHeight / maxValue;
+
+        barChart.style.height = `${maxDisplayHeight}px`;
+        yAxis.style.height = `${maxDisplayHeight}px`;
+        const chartHeight = yAxis.clientHeight;
+        const pixelsPerUnit = chartHeight / maxValue;
 
         bars.forEach(bar => {
             const dataValue = parseFloat(bar.dataset.value) || 0;
@@ -321,36 +365,70 @@ async function updateBarGraph() {
             bar.style.height = '0px';
         });
 
-        barChart.style.height = `${maxDisplayHeight}px`;
-        yAxis.style.height = `${maxDisplayHeight}px`;
+        gridCanvas.width = barChart.offsetWidth * dpr;
+        gridCanvas.height = (barChart.offsetHeight - 60) * dpr;
+        gridCanvas.style.width = `${barChart.offsetWidth}px`;
+        gridCanvas.style.height = `${barChart.offsetHeight - 60}px`;
+        gridCtx.scale(dpr, dpr);
 
-        canvas.width = barChart.offsetWidth * dpr;
-        canvas.height = barChart.offsetHeight * dpr;
-        canvas.style.width = `${barChart.offsetWidth}px`;
-        canvas.style.height = `${barChart.offsetHeight}px`;
-        ctx.scale(dpr, dpr);
+        dashCanvas.width = barChart.offsetWidth * dpr;
+        dashCanvas.height = (barChart.offsetHeight - 60) * dpr;
+        dashCanvas.style.width = `${barChart.offsetWidth}px`;
+        dashCanvas.style.height = `${barChart.offsetHeight - 60}px`;
+        dashCtx.scale(dpr, dpr);
 
         return { maxValue, pixelsPerUnit, interval };
     };
 
-    // Update Y-axis labels
+    const drawGridLines = (positions) => {
+        const dpr = window.devicePixelRatio || 1;
+        const chartWidth = barChart.offsetWidth;
+        const chartHeight = barChart.offsetHeight - 60;
+
+        gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+
+        gridCtx.beginPath();
+        gridCtx.setLineDash([0, 0]);
+        gridCtx.strokeStyle = '#d0d0d0';
+        gridCtx.lineWidth = 1.2;
+
+        positions.forEach(position => {
+            const y = chartHeight - position;
+            if (y >= 0 && y <= chartHeight) {
+                gridCtx.moveTo(0, y * dpr);
+                gridCtx.lineTo(chartWidth * dpr, y * dpr);
+            }
+        });
+
+        gridCtx.stroke();
+        gridCtx.setLineDash([]);
+    };
+
     const updateYAxis = (maxValue, pixelsPerUnit, interval) => {
-        const numTicks = Math.floor(maxValue / interval) + 1;
+        const numTicks = 11;
         yAxis.innerHTML = '';
+
+        const displayMax = maxValue > 0 ? maxValue : 100;
+        const stepValue = displayMax / (numTicks - 1);
+
+        labelPositions = [];
 
         for (let i = 0; i < numTicks; i++) {
             const span = document.createElement('span');
-            const labelValue = i * interval;
+            const labelValue = Math.round(i * stepValue);
             span.textContent = labelValue.toString();
             const labelPosition = labelValue * pixelsPerUnit;
             span.style.position = 'absolute';
             span.style.bottom = `${labelPosition}px`;
             span.style.transform = 'translateY(50%)';
             yAxis.appendChild(span);
+
+            labelPositions.push(labelPosition);
         }
+
+        drawGridLines(labelPositions);
     };
 
-    // Animate bar growth
     const animateBarGrowth = () => {
         return new Promise(resolve => {
             const duration = 1000;
@@ -374,12 +452,14 @@ async function updateBarGraph() {
         });
     };
 
-    // Animate dashed line with cancellation support
     const animateDashedLine = (bar) => {
-        let animationId = null; // Local to this function
+        let animationId = null;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (!bar.classList.contains('highlighted')) return;
+        if (!bar.classList.contains('highlighted')) {
+            dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+            drawGridLines(labelPositions);
+            return () => {};
+        }
 
         const barRect = bar.getBoundingClientRect();
         const chartRect = barChart.getBoundingClientRect();
@@ -400,22 +480,23 @@ async function updateBarGraph() {
             const elapsed = timestamp - start;
             progress = Math.min(elapsed / duration, 1);
 
-            // Stop and clear if bar is no longer highlighted
             if (!bar.classList.contains('highlighted')) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+                drawGridLines(labelPositions);
                 return;
             }
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.beginPath();
-            ctx.setLineDash([5, 5]);
-            ctx.strokeStyle = '#41A186';
-            ctx.lineWidth = 2 + Math.sin(progress * Math.PI) * 2;
+            dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+
+            dashCtx.beginPath();
+            dashCtx.setLineDash([5, 5]);
+            dashCtx.strokeStyle = '#41A186';
+            dashCtx.lineWidth = 2 + Math.sin(progress * Math.PI) * 2;
             const lineLength = (yEnd - barX) * progress;
-            ctx.moveTo(barX, barTop);
-            ctx.lineTo(barX + lineLength, barTop);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            dashCtx.moveTo(barX, barTop);
+            dashCtx.lineTo(barX + lineLength, barTop);
+            dashCtx.stroke();
+            dashCtx.setLineDash([]);
 
             if (progress < 1) {
                 animationId = requestAnimationFrame(animate);
@@ -424,16 +505,15 @@ async function updateBarGraph() {
 
         animationId = requestAnimationFrame(animate);
 
-        // Return a function to cancel the animation
         return () => {
             if (animationId) {
                 cancelAnimationFrame(animationId);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+                drawGridLines(labelPositions);
             }
         };
     };
 
-    // Highlight highest bar
     const highlightHighestBar = () => {
         let maxHeight = 0;
         let highestBar = null;
@@ -455,17 +535,28 @@ async function updateBarGraph() {
             highestBar.classList.add('highlighted');
             highestBar.style.backgroundColor = '#41A186';
             animateDashedLine(highestBar);
+        } else {
+            dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+            drawGridLines(labelPositions);
         }
     };
 
-    // Bar interactions
     bars.forEach(bar => {
-        let cancelAnimation = null; // Store the cancel function for each bar
+        let cancelAnimation = null;
 
         bar.addEventListener('mouseenter', () => {
             if (!bar.classList.contains('highlighted')) {
                 bar.style.transition = 'background-color 0.2s ease';
                 bar.style.backgroundColor = '#a8c1b8';
+            }
+            if (bar.classList.contains('highlighted')) {
+                const totalCrops = bar.dataset.value || 0;
+                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.style.display = 'block';
+                const barRect = bar.getBoundingClientRect();
+                const chartRect = barChart.getBoundingClientRect();
+                tooltip.style.left = `${barRect.left - chartRect.left + barRect.width / 2 - tooltip.offsetWidth / 2}px`;
+                tooltip.style.top = `${barRect.top - chartRect.top - tooltip.offsetHeight - 5}px`;
             }
         });
 
@@ -474,6 +565,7 @@ async function updateBarGraph() {
                 bar.style.transition = 'background-color 0.2s ease';
                 bar.style.backgroundColor = '#d3e8e1';
             }
+            tooltip.style.display = 'none';
         });
 
         bar.addEventListener('click', (e) => {
@@ -482,7 +574,12 @@ async function updateBarGraph() {
                 bar.classList.remove('highlighted');
                 bar.style.backgroundColor = '#d3e8e1';
                 bar.style.transform = 'scale(1)';
-                if (cancelAnimation) cancelAnimation(); // Cancel the animation
+                if (cancelAnimation) {
+                    cancelAnimation();
+                }
+                dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+                drawGridLines(labelPositions);
+                tooltip.style.display = 'none';
             } else {
                 bars.forEach(b => {
                     b.classList.remove('highlighted');
@@ -497,12 +594,27 @@ async function updateBarGraph() {
                     bar.style.transition = 'transform 0.1s ease-in';
                     bar.style.transform = 'scale(1)';
                 }, 100);
-                cancelAnimation = animateDashedLine(bar); // Store the cancel function
+                cancelAnimation = animateDashedLine(bar);
+                
+                const totalCrops = bar.dataset.value || 0;
+                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.style.display = 'block';
+                const barRect = bar.getBoundingClientRect();
+                const chartRect = barChart.getBoundingClientRect();
+                tooltip.style.left = `${barRect.left - chartRect.left + barRect.width / 2 - tooltip.offsetWidth / 2}px`;
+                tooltip.style.top = `${barRect.top - chartRect.top - tooltip.offsetHeight - 5}px`;
+            }
+        });
+
+        bar.addEventListener('mousemove', (e) => {
+            if (bar.classList.contains('highlighted')) {
+                const chartRect = barChart.getBoundingClientRect();
+                tooltip.style.left = `${e.clientX - chartRect.left - tooltip.offsetWidth / 2}px`;
+                tooltip.style.top = `${e.clientY - chartRect.top - tooltip.offsetHeight - 5}px`;
             }
         });
     });
 
-    // Clear highlights and animation when clicking outside
     barChart.addEventListener('click', (e) => {
         if (!e.target.classList.contains('bar')) {
             bars.forEach(bar => {
@@ -510,22 +622,36 @@ async function updateBarGraph() {
                 bar.style.backgroundColor = '#d3e8e1';
                 bar.style.transform = 'scale(1)';
             });
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas immediately
+            dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+            drawGridLines(labelPositions);
+            tooltip.style.display = 'none';
         }
     });
 
-    // Initial setup and animation
-    const { monthlyTotals, maxDataValue } = await setBarHeights();
-    const { maxValue, pixelsPerUnit, interval } = await updateSizes();
-    updateYAxis(maxValue, pixelsPerUnit, interval);
-    await animateBarGrowth();
-    highlightHighestBar();
+    const updateChart = async (selectedYear) => {
+        const { monthlyTotals, maxDataValue } = await setBarHeights(selectedYear);
+        const { maxValue, pixelsPerUnit, interval } = await updateSizes();
+        updateYAxis(maxValue, pixelsPerUnit, interval);
+        await animateBarGrowth();
+        highlightHighestBar();
+    };
 
-    // Resize handler
+    // Initial setup
+    populateYearSelector(); // Now independent of chart update
+    updateChart(yearSelector.value);
+
+    yearSelector.addEventListener('change', async (e) => {
+        dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+        drawGridLines(labelPositions);
+        tooltip.style.display = 'none';
+        await updateChart(e.target.value);
+    });
+
     window.addEventListener('resize', async () => {
         const { maxValue: newMax, pixelsPerUnit: newPixelsPerUnit, interval: newInterval } = await updateSizes();
         updateYAxis(newMax, newPixelsPerUnit, newInterval);
         await animateBarGrowth();
         highlightHighestBar();
+        tooltip.style.display = 'none';
     });
 }

@@ -77,33 +77,41 @@
       </div>
     </div>
 
-    <!-- Analytics Section -->
-    <div class="analytics-section">
-      <h4 class="section-title">ANALYTICS</h4>
-      <div class="analytics">
-        <div class="harvest-info">
-          <h5>Harvest Information (This Year)</h5>
-          <div class="chart-wrapper">
-            <div class="y-axis">
-            </div>
-            <div class="bar-chart">
-              <div class="bar" data-month="Jan"></div>
-              <div class="bar" data-month="Feb"></div>
-              <div class="bar" data-month="Mar"></div>
-              <div class="bar" data-month="Apr"></div>
-              <div class="bar" data-month="May"></div>
-              <div class="bar" data-month="Jun"></div>
-              <div class="bar" data-month="Jul"></div>
-              <div class="bar" data-month="Aug"></div>
-              <div class="bar" data-month="Sep"></div>
-              <div class="bar" data-month="Oct"></div>
-              <div class="bar" data-month="Nov"></div>
-              <div class="bar" data-month="Dec"></div>
+<!-- Analytics Section -->
+<div class="analytics-section">
+  <h4 class="section-title">ANALYTICS</h4>
+  <div class="analytics">
+      <div class="harvest-info">
+          <div class="year-selector-wrapper">
+            <h5>Harvest Information</h5>
+            <div class="year-selector-container">
+              <label for="year-selector" class="year-selector-label">Select a Year:</label>
+              <select id="year-selector" class="year-selector">
+                  <!-- Years will be populated dynamically -->
+              </select>
             </div>
           </div>
-        </div>
+          <div class="chart-wrapper">
+              <div class="y-axis">
+              </div>
+              <div class="bar-chart">
+                  <div class="bar" data-month="Jan"></div>
+                  <div class="bar" data-month="Feb"></div>
+                  <div class="bar" data-month="Mar"></div>
+                  <div class="bar" data-month="Apr"></div>
+                  <div class="bar" data-month="May"></div>
+                  <div class="bar" data-month="Jun"></div>
+                  <div class="bar" data-month="Jul"></div>
+                  <div class="bar" data-month="Aug"></div>
+                  <div class="bar" data-month="Sep"></div>
+                  <div class="bar" data-month="Oct"></div>
+                  <div class="bar" data-month="Nov"></div>
+                  <div class="bar" data-month="Dec"></div>
+              </div>
+          </div>
       </div>
-    </div>
+  </div>
+</div>
 
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="../../../src/auth/header.js"></script>
