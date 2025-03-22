@@ -231,7 +231,23 @@ tableBody.addEventListener("click", (event) => {
 });
 
 
+//FETCH PROJECT DETAILS
+async function fetchProjectDetails(project_id) {
+    try {
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
+        const querySnapshot = await getDocs(q);
 
+        if (!querySnapshot.empty) {
+            querySnapshot.forEach((doc) => {
+                console.log("Fetched Project Details:", doc.data());
+            });
+        } else {
+            console.warn("No project found with the given project_id:", project_id);
+        }
+    } catch (error) {
+        console.error("Error fetching project details:", error);
+    }
+}
 
 //TEAM ASSIGN
 async function teamAssign(project_id) {
@@ -241,6 +257,9 @@ async function teamAssign(project_id) {
         return;
     }
     panel.style.display = "flex";
+
+    // Fetch and log project details
+    await fetchProjectDetails(project_id);
 
     try {
         const userBarangay = sessionStorage.getItem("barangay_name");
