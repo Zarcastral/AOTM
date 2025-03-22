@@ -644,6 +644,8 @@ async function getFarmerIdByName(farmPresidentName) {
 window.saveProject = async function () {
   try {
     // ✅ Get input values
+    const userType = sessionStorage.getItem("user_type"); // Get user_type from session storage
+
     const projectName = document.getElementById("project-name").value.trim();
     const assignToSelect = document.getElementById("assign-to");
     const farmPresidentName = assignToSelect.options[assignToSelect.selectedIndex].text;
@@ -762,14 +764,14 @@ fertilizerGroups.forEach((group) => {
       project_id: projectID,
       project_name: projectName,
       farm_president: farmPresidentName,
-      farmer_id: farmerId, // ✅ Save farmer_id as string
+      farmer_id: farmerId,
       status: status,
       crop_name: cropName,
       barangay_name: barangayName,
       farm_land: farmlandName,
       farmland_id: farmlandId,
       crop_type_name: cropTypeName,
-      quantity_crop_type: quantityCropType,
+      crop_type_quantity: quantityCropType,
       crop_unit: cropUnit,
       start_date: startDate,
       end_date: endDate,
@@ -779,6 +781,7 @@ fertilizerGroups.forEach((group) => {
       fertilizer_date: currentDateTime,
       equipment_date: currentDateTime,
       date_created: currentDateTime,
+      project_creator: userType, // ✅ Save userType in the project data
     };
 
     // ✅ Save project data to Firestore

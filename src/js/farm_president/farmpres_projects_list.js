@@ -238,16 +238,151 @@ async function fetchProjectDetails(project_id) {
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
+            let projectData = null;
             querySnapshot.forEach((doc) => {
-                console.log("Fetched Project Details:", doc.data());
+                projectData = doc.data();
             });
-        } else {
-            console.warn("No project found with the given project_id:", project_id);
+
+            if (projectData) {
+                const filteredProjectData = {
+                    project_creator: projectData.project_creator || "N/A",
+                    crop_type_name: projectData.crop_type_name || "N/A",
+                    crop_type_quantity: projectData.crop_type_quantity || 0,
+                    equipment: projectData.equipment || [],
+                    fertilizer: projectData.fertilizer || []
+                };
+
+                console.log("Fetched Project Details:", filteredProjectData);
+                return filteredProjectData;
+            }
         }
+
+        console.warn("No project found with the given project_id:", project_id);
+        return null;
     } catch (error) {
         console.error("Error fetching project details:", error);
+        return null;
     }
 }
+
+
+//CROP STOCK
+async function fetchCropStockByOwner(projectCreator, cropTypeName) {
+    console.log(`Fetching crop stock for project creator: ${projectCreator} with crop type: ${cropTypeName}`);
+
+    try {
+        // Query the tb_crop_stock collection
+        const cropStockQuery = query(collection(db, "tb_crop_stock"));
+        const cropStockSnapshot = await getDocs(cropStockQuery);
+
+        let foundStock = null;
+
+        cropStockSnapshot.forEach((doc) => {
+            const cropStockData = doc.data();
+
+            // Check if crop_type_name matches
+            if (cropStockData.crop_type_name === cropTypeName) {
+                // Find a stock entry where owned_by matches projectCreator
+                const matchingStocks = cropStockData.stocks.filter(stock => stock.owned_by === projectCreator);
+
+                if (matchingStocks.length > 0) {
+                    foundStock = {
+                        crop_name: cropStockData.crop_name || "N/A",
+                        crop_type_id: cropStockData.crop_type_id || "N/A",
+                        crop_type_name: cropStockData.crop_type_name || "N/A",
+                        unit: cropStockData.unit || "N/A",
+                        stocks: matchingStocks.map(stock => ({
+                            current_stock: stock.current_stock || 0,
+                            owned_by: stock.owned_by || "N/A",
+                            stock_date: stock.stock_date || "N/A"
+                        }))
+                    };
+                }
+            }
+        });
+
+        if (foundStock) {
+            console.log("Fetched Crop Stock:", foundStock);
+        } else {
+            console.log(`No crop stock found for project creator: ${projectCreator} with crop type: ${cropTypeName}`);
+        }
+
+        return foundStock;
+    } catch (error) {
+        console.error("Error fetching crop stock:", error);
+        return null;
+    }
+}
+
+
+
+
+
+//DITO SYA MAGBABAWAS NG STOCK HA
+async function updateCropStockAfterAssignment(project_id) {
+    try {
+        // Fetch project details
+        const projectData = await fetchProjectDetails(project_id);
+        if (!projectData || !projectData.project_creator || !projectData.crop_type_name) {
+            console.warn("Missing project details, cannot update stock.");
+            return;
+        }
+
+        // Fetch crop stock for the project creator with crop_type_name
+        const cropStockData = await fetchCropStockByOwner(projectData.project_creator, projectData.crop_type_name);
+        if (!cropStockData || !cropStockData.stocks || cropStockData.stocks.length === 0) {
+            console.warn("No crop stock found for the project creator.");
+            return;
+        }
+
+        const requiredQuantity = projectData.crop_type_quantity;
+        console.log(`Required quantity for project: ${requiredQuantity}`);
+
+        let stockUpdated = false;
+
+        for (let i = 0; i < cropStockData.stocks.length; i++) {
+            let stock = cropStockData.stocks[i];
+
+            if (stock.owned_by === projectData.project_creator) {
+                let updatedStockValue = stock.current_stock - requiredQuantity;
+
+                if (updatedStockValue < 0) {
+                    console.warn(`Not enough stock! Current: ${stock.current_stock}, Required: ${requiredQuantity}`);
+                    return;
+                }
+
+                console.log(`Updating stock for ${stock.owned_by}. New Stock: ${updatedStockValue}`);
+
+                // Update only the specific stock inside the array
+                cropStockData.stocks[i].current_stock = updatedStockValue;
+                stockUpdated = true;
+                break; // Stop after updating the first matching stock
+            }
+        }
+
+        if (stockUpdated) {
+            // Update Firestore
+            const cropStockQuery = query(collection(db, "tb_crop_stock"), 
+                                         where("crop_type_name", "==", projectData.crop_type_name));
+            const cropStockSnapshot = await getDocs(cropStockQuery);
+
+            if (!cropStockSnapshot.empty) {
+                cropStockSnapshot.forEach(async (doc) => {
+                    const cropStockRef = doc.ref;
+                    await updateDoc(cropStockRef, { stocks: cropStockData.stocks });
+                });
+                console.log("Stock updated successfully!");
+            } else {
+                console.warn("Crop stock document not found in the database.");
+            }
+        }
+    } catch (error) {
+        console.error("Error updating crop stock:", error);
+    }
+}
+
+
+
 
 //TEAM ASSIGN
 async function teamAssign(project_id) {
@@ -258,8 +393,25 @@ async function teamAssign(project_id) {
     }
     panel.style.display = "flex";
 
-    // Fetch and log project details
-    await fetchProjectDetails(project_id);
+// Fetch and log project details
+const projectData = await fetchProjectDetails(project_id);
+if (!projectData) {
+    console.error("Error: Failed to fetch project details.");
+    return;
+}
+console.log("Project Details:", projectData);
+
+// Fetch and log crop stock data separately
+if (projectData.project_creator && projectData.crop_type_name) {
+    const cropStock = await fetchCropStockByOwner(projectData.project_creator, projectData.crop_type_name);
+    console.log("Crop Stock by Owner:", cropStock ? cropStock : "No stock found.");
+} else {
+    console.warn("Missing project creator or crop type name, skipping crop stock fetch.");
+}
+
+
+    
+    
 
     try {
         const userBarangay = sessionStorage.getItem("barangay_name");
@@ -396,6 +548,10 @@ async function teamAssign(project_id) {
 
                             alert(`Team "${selectedTeam.team_name}" has been successfully assigned! Project status updated to Ongoing.`);
                             
+// ✅ Call the function to update crop stock after assigning a team
+                await updateCropStockAfterAssignment(project_id);
+
+
                             // Redirect to farmpres_project.html after successful save
                             window.location.href = "farmpres_project.html";
                         });
