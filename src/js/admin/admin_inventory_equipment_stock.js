@@ -330,8 +330,14 @@ function displayEquipments(equipmentsList) {
       <td>${currentStock} ${unit}</td>
       <td>${owned_by}</td>
       <td class="equip-action-btn">
-        <button class="add-equip-stock-btn" data-id="${equipmentId}">+ Add Stock</button>
-        <button class="delete-equip-stock-btn" data-id="${equipmentId}">Delete Stock</button>
+        <button class="add-equip-stock-btn" data-id="${equipmentId}">
+            <img src="../../../public/images/Plus.png" alt="Action Icon" class="action-icon-add">
+            <span>Add Stock</span>
+        </button>
+        <button class="delete-equip-stock-btn" data-id="${equipmentId}">
+            <img src="../../../public/images/Ekis.png" alt="Action Icon" class="action-icon-remove">
+            <span>Delete Stock</span>
+        </button>
       </td>
   `;
 

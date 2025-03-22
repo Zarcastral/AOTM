@@ -329,8 +329,14 @@ function displayCrops(cropsList) {
         <td>${currentStock} ${unit}</td>
         <td>${owned_by}</td>
         <td class="crop-action-btn">
-          <button class="add-crop-stock-btn" id="add-crop-stock-btn" data-id="${cropTypeId}">+ Add Stock</button>
-          <button class="delete-crop-stock-btn" id="delete-crop-stock-btn" data-id="${cropTypeId}">Delete Stock</button>
+          <button class="add-crop-stock-btn" id="add-crop-stock-btn" data-id="${cropTypeId}">
+            <img src="../../../public/images/Plus.png" alt="Action Icon" class="action-icon-add">
+            <span>Add Stock</span>
+          </button>
+          <button class="delete-crop-stock-btn" id="delete-crop-stock-btn" data-id="${cropTypeId}">
+            <img src="../../../public/images/Ekis.png" alt="Action Icon" class="action-icon-remove">
+            <span>Remove Stock</span>
+          </button>
         </td>
       `;
       tableBody.appendChild(row);

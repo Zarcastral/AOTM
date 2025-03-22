@@ -312,8 +312,14 @@ function displayFertilizers(fertilizersList) {
         <td>${currentStock} ${unit}</td>
         <td>${owned_by}</td>
         <td class="fert-action-btn">
-          <button class="add-fert-stock-btn" data-id="${fertilizerId}">+ Add Stock</button>
-          <button class="delete-fert-stock-btn" data-id="${fertilizerId}">Delete Stock</button>
+          <button class="add-fert-stock-btn" data-id="${fertilizerId}">
+            <img src="../../../public/images/Plus.png" alt="Action Icon" class="action-icon-add">
+            <span>Add Stock</span>
+          </button>
+          <button class="delete-fert-stock-btn" data-id="${fertilizerId}">
+            <img src="../../../public/images/Ekis.png" alt="Action Icon" class="action-icon-remove">
+            <span>Delete Stock</span>
+            </button>
         </td>
       `;
       tableBody.appendChild(row);

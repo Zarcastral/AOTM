@@ -77,6 +77,23 @@ th {
     background-color: white;
     color: #333;
 }
+
+th:nth-child(3), td:nth-child(3) {
+    width: 250px; /* Adjusted width for the action column */
+    min-width: 100px; /* Minimum width to ensure usability */
+    text-align: Left; /* Center the content in the column for better appearance */
+}
+
+th:last-child, td:last-child {
+    width: 200px; /* Fixed width for the action column; adjust as needed */
+    min-width: 100px; /* Minimum width to ensure usability */
+}
+
+tbody tr {
+    background-color: white;
+    border-bottom: 4px solid #f0f0f0;
+}
+
 input[type="checkbox"] {
     width: 16px;
     height: 16px;
@@ -85,10 +102,10 @@ input[type="checkbox"] {
     outline: none;
     background-color: white;
     cursor: pointer;
-  }
+}
 tbody tr:hover {
     background-color: #F3F4F6;
-  }
+}
 
 .search-container {
     display: flex;

@@ -91,6 +91,17 @@ th {
   font-weight: 600;
 }
 
+th:nth-child(5), td:nth-child(5) {
+  width: 950px; /* Adjusted width for the action column */
+  min-width: 100px; /* Minimum width to ensure usability */
+  text-align: Left; /* Center the content in the column for better appearance */
+}
+
+th:last-child, td:last-child {
+  width: 100px; /* Fixed width for the action column; adjust as needed */
+  min-width: 100px; /* Minimum width to ensure usability */
+}
+
 tbody tr:hover {
   background-color: #F3F4F6;
 }
