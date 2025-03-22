@@ -1,0 +1,406 @@
+body {
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Poppins';
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px; /* Padding around the panels */
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
+}
+
+/* Account Panel Styles */
+.account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px; /* Set a fixed height here */
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+
+.panel h2 {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+  margin-bottom: 20px;
+}
+
+.account-panel.active {
+  display: block;
+}
+
+.account-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.account-panel ul li {
+  padding: 10px;
+  border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+}
+
+.account-panel ul li:hover {
+  background-color: #F7FAFC;
+}
+
+.account-panel ul li:last-child {
+  border-bottom: none;
+}
+
+.panel {
+  background-color: white;
+  width: 90%;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+/* Ensure the parent container has proper positioning */
+.projects-search-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-and-dropdowns {
+  display: flex;
+  gap: 10px;
+}
+.image-header img {
+  display: block; /* Makes the image block-level for better alignment */
+  margin: 0 auto; /* Centers the image horizontally */
+}
+
+.projects-search-bar input {
+  width: 300px;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+}
+
+.projects-search-bar select {
+  padding: 8px 18px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+}
+
+.calendar-btn-icon {
+  width: 55px; /* Adjust size to match the height of the input and dropdowns */
+  height: 40px;
+  margin-left: 500px;
+  cursor: pointer; /* Make it clickable */
+}
+
+.calendar-icon {
+  position: relative; /* Makes the container the positioning context for the month picker */
+  display: inline-block; /* Ensures the container wraps its content */
+}
+
+
+#month-picker {
+  position: absolute;
+  background-color: #333;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  padding: 10px;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  color: white;
+  display: none;
+  width: 200px; /* Adjust based on your design */
+}
+
+.year-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#year-display {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#prev-year, #next-year {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.month-btn {
+  padding: 8px;
+  border: none;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.month-btn:hover {
+  background-color: #555;
+}
+
+#clear-btn {
+  padding: 8px;
+  border: none;
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
+  margin-top: 10px;
+  border-radius: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+#clear-btn:hover {
+  background-color: #0056b3;
+}
+.panel table th {
+  text-align: center; /* This centers the text */
+  vertical-align: middle;
+}
+
+.panel table td {
+  text-align: center; /* This centers the text */
+  vertical-align: text-top;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 0px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 8px;
+  font-size: 10px;
+  text-align: center;
+  border: 1px solid #848A9C;
+}
+
+th {
+  background-color: white;
+  color: #41A186;
+  font-weight: 600;
+}
+
+th:nth-child(5),
+td:nth-child(5) {
+  width: 150px; /* Adjusted width for the action column */
+  min-width: 150px; /* Minimum width to ensure usability */
+}
+
+th:nth-child(6),
+td:nth-child(6) {
+  width: 150px; /* Adjusted width for the action column */
+  min-width: 150px; /* Minimum width to ensure usability */
+}
+
+th:nth-child(7),
+td:nth-child(7) {
+  width: 150px; /* Adjusted width for the action column */
+  min-width: 150px; /* Minimum width to ensure usability */
+}
+
+th:last-child,
+td:last-child {
+  width: 70px; /* Fixed width for the action column; adjust as needed */
+  min-width: 70px; /* Minimum width to ensure usability */
+}
+
+tbody tr:hover {
+  background-color: #F3F4F6;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.checkbox {
+  justify-content: center;
+  align-items: center;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.btn-new-project {
+  background-color: #41A186;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.button-container {
+  width: 90%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.stock-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.stock-selector a {
+  color: slategray;
+  transition: color 0.3s ease;
+}
+
+.stock-selector a.active {
+  color: #41A186;
+  font-weight: bold;
+}
+
+/* Pagination styles */
+.projects-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; /* Aligns vertically */
+  margin-top: 20px;
+  width: 100%;
+  gap: 10px; /* Adds spacing between elements */
+}
+
+#projects-page-number {
+  font-size: 17px;
+  color: #333;
+}
+
+.projects-pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.projects-pagination-btn:hover {
+  color: #41A186;
+}
+
+.projects-pagination-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.button-container {
+  margin-top: 1rem;
+  text-align: right;
+}
+
+.download-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 20px;
+  font-weight: 700;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.download-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-top: -5px; /* Nudges the icon closer to the text */
+}
+
+.download-btn:hover {
+  background-color: #318a71;
+}
+
+.report-selector {
+  display: flex;
+  font-size: 25px;
+  gap: 30px;
+}
+
+.report-selector a,
+.rando-line {
+  color: slategray;
+  transition: color 0.3s ease;
+}
+
+.report-selector a.active {
+  color: #41A186;
+  font-weight: 500;
+}
+
