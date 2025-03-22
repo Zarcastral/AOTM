@@ -404,3 +404,80 @@ tbody tr:hover {
   font-weight: 500;
 }
 
+/* PDF Preview Panel */
+.pdf-preview-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; /* Full viewport height */
+  background-color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 0; /* Remove border radius for full-screen effect */
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0; /* Remove padding to maximize content area */
+}
+
+#pdf-preview-container {
+  flex: 1;
+  overflow-y: auto;
+  border: none; /* Remove border for full-screen effect */
+  padding: 20px; /* Add padding inside the container for content */
+}
+
+#pdf-preview-container iframe {
+  width: 100%;
+  height: 100%; /* Ensures the iframe fills the container */
+  border: none; /* Removes default iframe border */
+}
+
+.preview-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px; /* Add padding to the button area */
+  background-color: #f5f6fa; /* Match the background color of the main content */
+  border-top: 1px solid #D1D5DB; /* Add a separator line above the buttons */
+}
+
+.preview-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn {
+  background-color: #E2E8F0;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #CBD5E0;
+}
+
+.done-btn {
+  background-color: #41A186;
+  color: white;
+}
+
+.done-btn:hover {
+  background-color: #318a71;
+}
+
+/* Overlay to dim the background when preview is open */
+body.preview-active::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}

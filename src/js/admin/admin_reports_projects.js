@@ -23,7 +23,7 @@ const auth = getAuth();
 let projectsList = []; // Full list of projects
 let filteredProjects = []; // Filtered list of projects
 let currentPage = 1;
-const rowsPerPage = 6;
+const rowsPerPage = 5;
 let selectedProjects = [];
 let originalProjectsList = [];
 let selectedMonth = null;
@@ -413,4 +413,189 @@ document.addEventListener('DOMContentLoaded', () => {
       displayProjects(filteredProjects);
     }
   });
+});
+
+document.getElementById("download-btn").addEventListener("click", async () => {
+  const { jsPDF } = window.jspdf; // Ensure this includes the full jsPDF with image support
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // Prepare table data from the full filteredProjects array
+  const tableData = filteredProjects.map((project, index) => {
+    const projectId = project.project_id || "project Id not recorded";
+    const projectName = project.project_name || "project Name not recorded";
+    const projectStatus = project.status || "N/A";
+    const projectFarmPres = project.farm_president || "N/A";
+    const projectBarangay = project.barangay_name || "N/A";
+    const projectCategory = project.crop_name || "N/A";
+    const projectCropType = project.crop_type_name || "N/A";
+    const projectEquipment = project.equipment || "N/A";
+    const projectStart = project.start_date ? parseDate(project.start_date).toLocaleDateString() : "N/A";
+    const projectEnd = project.end_date ? parseDate(project.end_date).toLocaleDateString() : "N/A";
+
+    return [
+      (index + 1).toString(), // No.
+      projectName,
+      "N/A", // No. of Task
+      projectStatus,
+      projectFarmPres,
+      "N/A", // Lead Farmer/s
+      "N/A", // Farmers
+      projectBarangay,
+      "N/A", // Land Area
+      projectCategory,
+      projectCropType,
+      "N/A", // Fertilizer
+      projectEquipment,
+      `${projectStart} - ${projectEnd}`, // Duration
+    ];
+  });
+
+  const columns = [
+    "No.", "Project Name", "No. of Task", "Status", "Farm President", "Lead Farmer/s",
+    "Farmers", "Barangay", "Land Area", "Category", "Crop Type", "Fertilizer", "Equipment", "Duration",
+  ];
+
+  const columnWidths = [10, 25, 15, 15, 20, 25, 30, 20, 15, 25, 15, 20, 25, 20];
+  const totalTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+  const leftMargin = (pageWidth - totalTableWidth) / 2;
+
+  // Header container
+  const addHeader = (doc) => {
+    const headerImg = "../../../public/images/BarasHeader.png";
+    const headerImgWidth = 60;
+    const headerImgHeight = 40;
+    try {
+      doc.addImage(headerImg, "PNG", (pageWidth - headerImgWidth) / 2, 5, headerImgWidth, headerImgHeight);
+    } catch (e) {
+      console.error("Error adding header image:", e);
+    }
+
+    doc.setLineWidth(0.4);
+    doc.setDrawColor(51, 51, 51);
+    doc.line(10, 45, pageWidth - 10, 45);
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("FOR:", 20, 60);
+    doc.text("FROM:", 20, 70);
+    doc.text("DATE:", 20, 80);
+    doc.text("SUBJECT:", 20, 90);
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("AGRICULTURAL PRODUCTION DATA 2025", pageWidth / 2, 100, { align: "center" });
+  };
+
+  // Body container (table and bottom line)
+  const addBody = (doc, data) => {
+    const tableEndY = data.cursor.y + 35; // Bottom line 35mm below table
+    if (tableEndY < pageHeight - 30) { // Ensure it fits above footer
+      doc.setLineWidth(0.4);
+      doc.setDrawColor(51, 51, 51);
+      doc.line(10, tableEndY, pageWidth - 10, tableEndY);
+    }
+  };
+
+  // Footer container
+  const addFooter = (doc, data) => {
+    const footerImg = "../../../public/images/BarasFooter.png";
+    const footerImgWidth = 140;
+    const footerImgHeight = 15;
+    try {
+      doc.addImage(footerImg, "PNG", (pageWidth - footerImgWidth) / 2, pageHeight - 30, footerImgWidth, footerImgHeight);
+    } catch (e) {
+      console.error("Error adding footer image:", e);
+    }
+
+    const pageCount = doc.internal.getNumberOfPages();
+    const pageNumber = data.pageNumber;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth - 10, pageHeight - 10, { align: "right" });
+  };
+
+  // Pagination logic with table content limit
+  const maxTableHeight = pageHeight - 65; // 65mm reserved (30mm footer + 35mm for bottom line)
+  const rowHeightEstimate = 10; // Increased to 10mm to account for potential wrapping
+  const baseRowsPerPage = Math.floor((maxTableHeight - 105) / rowHeightEstimate); // 105 is startY
+  const rowsPerPage = baseRowsPerPage; // No extra rows, just base to ensure fit
+  let currentPage = 0;
+
+  while (currentPage * rowsPerPage < tableData.length) {
+    const startIndex = currentPage * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, tableData.length);
+    const pageData = tableData.slice(startIndex, endIndex);
+
+    if (currentPage > 0) {
+      doc.addPage();
+    }
+
+    addHeader(doc);
+
+    doc.autoTable({
+      startY: 105,
+      head: [columns],
+      body: pageData,
+      theme: "grid",
+      margin: { top: 55, left: leftMargin, right: leftMargin, bottom: 20 },
+      styles: {
+        fontSize: 7,
+        cellPadding: 1,
+        overflow: "linebreak",
+        font: "helvetica",
+        textColor: [51, 51, 51],
+        lineColor: [132, 138, 156],
+        lineWidth: 0.1,
+        halign: "center",
+        valign: "top",
+      },
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [65, 161, 134],
+        fontSize: 8,
+        font: "helvetica",
+        fontStyle: "bold",
+        lineColor: [132, 138, 156],
+        lineWidth: 0.1,
+        halign: "center",
+        valign: "top",
+      },
+      columnStyles: Object.fromEntries(columns.map((_, i) => [i, { cellWidth: columnWidths[i] }])),
+      didDrawPage: (data) => {
+        addBody(doc, data);
+        addFooter(doc, data);
+      },
+    });
+
+    currentPage++;
+  }
+
+  const pdfBlob = doc.output("blob");
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  const previewPanel = document.getElementById("pdf-preview-panel");
+  const previewContainer = document.getElementById("pdf-preview-container");
+
+  previewContainer.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%"></iframe>`;
+  previewPanel.style.display = "flex";
+  document.body.classList.add("preview-active");
+
+  document.getElementById("preview-cancel-btn").onclick = () => {
+    previewPanel.style.display = "none";
+    document.body.classList.remove("preview-active");
+    URL.revokeObjectURL(pdfUrl);
+  };
+
+  document.getElementById("preview-done-btn").onclick = () => {
+    doc.save(`Project_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+    previewPanel.style.display = "none";
+    document.body.classList.remove("preview-active");
+    URL.revokeObjectURL(pdfUrl);
+  };
 });
