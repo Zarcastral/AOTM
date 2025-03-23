@@ -155,8 +155,8 @@ async function fetchHarvest() {
     // Get user_type from the fetched user document
     const userType = userSnapshot.docs[0].data().user_type;
 
-    // Reference to tb_harvest collection
-    const harvestCollection = collection(db, "tb_harvest");
+    // Reference to tb_harvest_history collection
+    const harvestCollection = collection(db, "tb_harvest_history");
     const harvestQuery = query(harvestCollection);
 
     // Listen for real-time updates

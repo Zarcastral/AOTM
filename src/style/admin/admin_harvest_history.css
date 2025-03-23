@@ -144,6 +144,7 @@ table {
 th,
 td {
   padding: 12px;
+  text-align: left;
   border-bottom: 5px solid #f0f0f0;
 }
 
@@ -162,15 +163,28 @@ td:first-child{
   text-align: middle; /* Center the content in the column for better appearance */
 }
 
-th:nth-child(8), td:nth-child(8) {
-  width: 150px; /* Adjusted width for the action column */
-  min-width: 150px; /* Minimum width to ensure usability */
+th:nth-child(2), td:nth-child(2) {
+  width: 120px; /* Adjusted width for the action column */
+  min-width: 130px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
+}
+
+th:nth-child(6), td:nth-child(6) {
+  width: 170px; /* Adjusted width for the action column */
+  min-width: 170px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
+}
+
+.panel table th:nth-child(8), .panel table td:nth-child(8) {
+  width: 120px; /* Adjusted width for the action column */
+  min-width: 120px; /* Minimum width to ensure usability */
   text-align: center; /* Center the content in the column for better appearance */
 }
 
-th:last-child, td:last-child {
+.panel table th:last-child, .panel table td:last-child {
   width: 100px; /* Fixed width for the action column; adjust as needed */
   min-width: 100px; /* Minimum width to ensure usability */
+  text-align: center;
 }
 
 tbody tr:hover {
