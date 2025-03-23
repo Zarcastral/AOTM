@@ -1,20 +1,32 @@
-body, .main-content {
+/* Basic reset */
+body{
     margin: 0;
+    height: 100vh;
+
+    background-color: #848A9C;
     font-family: 'Poppins';
+    display: flex;
+    flex-direction: column;
 }
+.main-content {
+    padding: 0px;
+}
+/* General button styling */
 button {
     margin: 2px;
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 /* Add button specific styling */
 button.add-button {
     background-color: #41A186;
-    color: white;
+    color: #FFFFFF;
     font-weight: bold;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 10px 15px;
+    border-radius: 20px;
+    box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.2);
     transition: background-color 0.3s ease;
 }
 
@@ -24,17 +36,13 @@ button.add-button:hover {
 
 /* Panel styling */
 .panel {
+    margin: 20px;
     border: 1px solid #ddd;
     padding: 15px;
-    margin-bottom: 20px;
     border-radius: 8px;
-    background-color: #f9f9f9;
+    background-color: #FFFFFF; /* Kept the later definition (#fff) over #f9f9f9 */
 }
-.panel-header > div {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+
 .panel h2 {
     margin-top: 0;
 }
@@ -46,20 +54,32 @@ button.add-button:hover {
     align-items: center;
 }
 
+.panel-header > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .panel-header h2 {
     margin: 0;
+    font-weight: 450;
 }
 
 /* Modal and popup styling */
 .popup {
     position: fixed;
-    z-index: 2;
+    z-index: 1000; /* Higher than the header */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     display: none;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
 }
 
 .popup-content {
@@ -67,22 +87,37 @@ button.add-button:hover {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: white;
+    background-color: #fff;
     padding: 20px;
-    border-radius: 5px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    color: #333333;
 }
 
-.popup button {
-    margin: 5px;
+.popup button  {
+    padding: 8px 30px;
+    margin: 10px;
+    float: right; /* Moves the button to the right */
 }
 
+.popup .cancel-button {
+    padding: 8px 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 10px;
+    float: right; /* Moves the button to the right */
+}
+.popup .cancel-button:hover {
+    background-color: #999898;
+    transition: background-color 0.3s ease;
+}
 /* Ensure item-list displays items in a row */
 .item-list {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     padding: 10px;
-
 }
 
 /* Adjust individual items to stay side by side */
@@ -101,20 +136,10 @@ button.add-button:hover {
     display: flex;
 }
 
-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-
-
-
 /* Styling the action buttons (Edit, Delete) */
 .action-icon {
     width: 20px;
     height: 20px;
-    
     cursor: pointer;
 }
 
@@ -123,82 +148,18 @@ button {
 }
 
 /* Barangay Modal Styling */
-button {
-    margin: 2px;
-}
-
-/* Add button specific styling */
-button.add-button {
-    background-color: #41A186;
-    color: white;
-    font-weight: bold;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
-}
-
-button.add-button:hover {
-    background-color: #358e70;
-}
-
-/* Panel styling */
-.panel {
-    margin: 20px; /* Adds space on both sides of the panel */
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    background-color: #fff; /* Make the panel background white */
-}
-
-.panel h2 {
-    margin-top: 0;
-}
-
-/* Flex container for panel header */
-.panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.panel-header h2 {
-    margin: 0;
-}
-
-/* Modal and popup styling */
-.popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000; /* Higher than the header */
-    padding: 20px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
-}
-
-.popup-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 400px;
-}
-
 .barangay-modal {
     max-width: 400px;
     width: 100%;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 20px 40px;
+    border-radius: 20px;
     background-color: white;
 }
 
 .barangay-modal h3 {
-    font-size: 24px;
+    font-size: 35px;
     font-weight: bold;
+    color: #333333;
 }
 
 .barangay-modal .form-group {
@@ -215,21 +176,24 @@ button.add-button:hover {
 
 .barangay-modal label {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 400;
 }
 
 .barangay-modal input,
 .barangay-modal select {
-    padding: 8px;
+    padding: 10px;
     border-radius: 4px;
     border: 1px solid #ccc;
     width: 100%;
-    
+}
+
+.barangay-modal h4 {
+    font-weight: 500;
 }
 
 .barangay-modal hr {
     border: none;
-    border-top: 1px solid #ddd;
+    border-top: 3px solid #E5E5E5;
     margin: 20px 0;
 }
 
@@ -237,28 +201,38 @@ button.add-button:hover {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+    padding-top: 20px;
 }
 
-.barangay-modal .cancel-button {
-    background-color: #e0e0e0;
-    color: black;
-    padding: 8px 16px;
-    border-radius: 4px;
+.barangay-modal .cancel-button,
+.cancel-button {
+    background-color: #C3C3C3;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: 25px;
     border: none;
     cursor: pointer;
+    font-size: 15px;
+}
+
+.barangay-modal .cancel-button:hover {
+    background-color: #999898;
+    transition: background-color 0.3s ease;
 }
 
 .barangay-modal .save-button {
     background-color: #41A186;
     color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 8px 25px;
+    border-radius: 25px;
     border: none;
     cursor: pointer;
+    font-size: 15px;
 }
 
 .barangay-modal .save-button:hover {
     background-color: #358e70;
+    transition: background-color 0.3s ease;
 }
 
 .area-group .area-input {
@@ -272,24 +246,29 @@ button.add-button:hover {
     color: #555;
 }
 
-/*fertil*/ 
+/* Crop Modal Styling */
+
+
+/* Fertilizer Modal Styling */
 .fertilizer-modal {
     max-width: 450px;
     width: 100%;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 20px 30px;
+    border-radius: 20px;
     background-color: white;
+    color: #333333;
 }
 
 .fertilizer-modal h3 {
-    font-size: 24px;
+    font-size: 35px;
     font-weight: bold;
 }
 
 .fertilizer-modal .form-group {
     display: flex;
-    gap: 35px;
-    margin-bottom: 15px;
+    flex-direction: column; /* Changed from row (default) to column to stack vertically */
+    gap: 30px; /* Reduced gap for a tighter vertical layout */
+    margin-bottom: 35px;
 }
 
 .fertilizer-modal .input-group {
@@ -300,14 +279,16 @@ button.add-button:hover {
 
 .fertilizer-modal label {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .fertilizer-modal input,
 .fertilizer-modal select {
-    padding: 8px;
+    padding: 10px;
     border-radius: 4px;
     border: 1px solid #ccc;
+    width: 100%; /* Ensure both fields take full width */
+    box-sizing: border-box; /* Prevent padding from affecting width */
 }
 
 .fertilizer-modal hr {
@@ -323,56 +304,47 @@ button.add-button:hover {
 }
 
 .fertilizer-modal .cancel-button {
-    background-color: #e0e0e0;
-    color: black;
-    padding: 8px 16px;
-    border-radius: 4px;
+    background-color: #C3C3C3;
+    color: #FFFFFF;
+    padding: 8px 25px;
+    border-radius: 25x;
     border: none;
     cursor: pointer;
+}
+
+.fertilizer-modal .cancel-button:hover {
+    background-color: #999898;
+    transition: background-color 0.3s ease;
 }
 
 .fertilizer-modal .save-button {
     background-color: #41A186;
     color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 10px 25px;
+    border-radius: 25px;
     border: none;
     cursor: pointer;
+    font-size: 15px;
 }
 
 .fertilizer-modal .save-button:hover {
     background-color: #358e70;
+    transition: background-color 0.3s ease;
 }
 
-.area-group .area-input {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.area-group .unit {
-    font-size: 12px;
-    color: #555;
-}
-
-/*header*/
-
-
+/* Header */
 .header {
-     /* Ensures the header takes up the full width */
     height: 60px;
     background-color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px; /* Optional padding, you can adjust if necessary */
+    padding: 0 20px;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    position: fixed; /* Or relative, if needed */
-    top: 0;
     z-index: 10;
 }
 
@@ -441,20 +413,6 @@ button.add-button:hover {
     border-bottom: none;
 }
 
-
-
-.cancel-button {
-    background-color: #e0e0e0;
-    color: black;
-    padding: 8px 16px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-}
-
-
-
-/*farmland*/
 /* Farmland Panel specific styles */
 #barangay-select {
     padding: 8px 12px;

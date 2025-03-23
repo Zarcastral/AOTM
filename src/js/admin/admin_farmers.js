@@ -184,11 +184,11 @@ function updateTable() {
             <td>${formattedBarangay || "Barangay not recorded"}</td>
             <td>${data.contact || "Contact Number not recorded"}</td>
             <td>
-                <button class="action-btn edit-btn" data-id="${data.farmer_id}" title="Edit">
-                    <img src="../../images/edit.png" alt="Edit">
-                </button>
                 <button class="action-btn view-btn" data-id="${data.farmer_id}" title="View">
                     <img src="../../images/eye.png" alt="View">
+                </button>
+                <button class="action-btn edit-btn" data-id="${data.farmer_id}" title="Edit">
+                    <img src="../../images/edit.png" alt="Edit">
                 </button>
                 <button class="action-btn delete-btn" data-id="${data.farmer_id}" title="Delete">
                     <img src="../../images/Delete.png" alt="Delete">

@@ -48,7 +48,7 @@ body {
 
 .panel {
     background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
     padding: 15px;
     border-radius: 8px;
@@ -70,23 +70,29 @@ table {
 th, td {
     padding: 1rem;
     text-align: left; /* aligns only when th, td and th both have text-align: center; do not know why*/
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 5px solid #f0f0f0;
 }
 
 th {
     background-color: white;
+    font-weight: 600;
     color: #333;
 }
 
+th:first-child, td:first-child {
+    text-align: center; /* Center the content in the column for better appearance */
+}
+
 th:nth-child(3), td:nth-child(3) {
-    width: 250px; /* Adjusted width for the action column */
+    width: 200px; /* Adjusted width for the action column */
     min-width: 100px; /* Minimum width to ensure usability */
     text-align: Left; /* Center the content in the column for better appearance */
 }
 
 th:last-child, td:last-child {
-    width: 200px; /* Fixed width for the action column; adjust as needed */
+    width: 170px; /* Fixed width for the action column; adjust as needed */
     min-width: 100px; /* Minimum width to ensure usability */
+    text-align: center;
 }
 
 tbody tr {
@@ -140,6 +146,10 @@ tbody tr:hover {
     cursor: pointer;
     font-size: 16px;
     margin: 0 5px;
+}
+
+.action-btn:hover {
+    opacity: 0.7;
 }
 
 .btn-container {

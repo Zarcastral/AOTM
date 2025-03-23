@@ -166,14 +166,14 @@ function updateTable() {
             <td>${data.start_date || "Start Date not recorded"}</td>
             <td>${data.end_date || "End Date not recorded"}</td>
             <td>${formattedCrop || "Crop not recorded"}</td>
-            <td>${data.project_id || "Project Progress not recorded"}</td>
+            <td>KUNWARI MAY PROGRESS BAR</td>
             <td>${formattedStatus || "Status not recorded"}</td>
             <td>
-                <button class="action-btn edit-btn" data-id="${data.project_id}" title="Edit">
-                    <img src="../../images/edit.png" alt="Edit">
-                </button>
                 <button class="action-btn view-btn" data-id="${data.project_id}" title="View">
                     <img src="../../images/eye.png" alt="View">
+                </button>
+                <button class="action-btn edit-btn" data-id="${data.project_id}" title="Edit">
+                    <img src="../../images/edit.png" alt="Edit">
                 </button>
                 <button class="action-btn delete-btn" data-id="${data.project_id}" title="View">
                     <img src="../../images/delete.png" alt="View">

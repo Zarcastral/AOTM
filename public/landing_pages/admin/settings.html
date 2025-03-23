@@ -14,12 +14,12 @@
 <body>
    <!-- Placeholder for Header -->
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
-
+<div class="main-content">
     <!-- Barangay Panel -->
     <div class="panel">
         <div class="panel-header">
             <h2>Barangays</h2>
-            <button class="add-button" onclick="openAddBarangayPopup()">Add Barangay</button>
+            <button class="add-button" onclick="openAddBarangayPopup()">Add New Barangay</button>
         </div>
         <div id="barangay-list" class="item-list"></div>
     </div>
@@ -29,7 +29,7 @@
     <div class="panel">
         <div class="panel-header">
             <h2>Crop Types</h2>
-            <button class="add-button" onclick="openAddCropTypePopup()">Add Crop Type</button>
+            <button class="add-button" onclick="openAddCropTypePopup()">Add New Crop Type</button>
         </div>
         <div id="crop-type-list" class="item-list"></div>
     </div>
@@ -38,7 +38,7 @@
     <div class="panel">
         <div class="panel-header">
             <h2>Equipment</h2>
-            <button class="add-button" onclick="openAddEquipmentPopup()">Add Equipment</button>
+            <button class="add-button" onclick="openAddEquipmentPopup()">Add New Equipment</button>
         </div>
         <div id="equipment-list" class="item-list"></div>
     </div>
@@ -47,7 +47,7 @@
     <div class="panel">
         <div class="panel-header">
             <h2>Fertilizers</h2>
-            <button class="add-button" onclick="openAddFertilizerPopup()">Add Fertilizer</button>
+            <button class="add-button" onclick="openAddFertilizerPopup()">Add New Fertilizer</button>
         </div>
         <div id="fertilizer-list" class="item-list"></div>
     </div>
@@ -139,16 +139,16 @@
 
 <!-- Modal for Add Crop Type -->
 <div id="add-crop-type-popup" class="popup">
-    <div class="popup-content barangay-modal">
+    <div class="popup-content fertilizer-modal">
         <h3>Add Crop Type</h3>
         <div class="form-group">
             <div class="input-group">
-                <label for="crop-type-name">Crop Type Name</label>
-                <input type="text" id="crop-type-name" required>
-            </div>
-            <div class="input-group">
                 <label for="crop-name">Crop Name</label>
                 <select id="crop-name"></select>
+            </div>
+            <div class="input-group">
+                <label for="crop-type-name">Crop Type Name</label>
+                <input type="text" id="crop-type-name" required>
             </div>
         </div>
         <div class="button-group">
@@ -161,16 +161,16 @@
 
 <!-- Equipment Modal -->
 <div id="add-equipment-popup" class="popup">
-    <div class="popup-content barangay-modal">
+    <div class="popup-content fertilizer-modal">
         <h3>Add Equipment</h3>
         <div class="form-group">
             <div class="input-group">
-                <label for="equipment-name">Equipment Name</label>
-                <input type="text" id="equipment-name" required>
-            </div>
-            <div class="input-group">
                 <label for="equipment-category">Equipment Category</label>
                 <select id="equipment-category"></select>
+            </div>
+            <div class="input-group">
+                <label for="equipment-name">Equipment Name</label>
+                <input type="text" id="equipment-name" required>
             </div>
         </div>
         <div class="button-group">
@@ -188,12 +188,13 @@
         <h3>Add Fertilizer</h3>
         <div class="form-group">
             <div class="input-group">
-                <label for="fertilizer-name">Fertilizer Name</label>
-                <input type="text" id="fertilizer-name" required>
+                <label for="fertilizer-category">Fertilizer Category</label>
+                <select id="fertilizer-category">
+                </select>
             </div>
             <div class="input-group">
-                <label for="fertilizer-category">Fertilizer Category</label>
-                <select id="fertilizer-category"></select>
+                <label for="fertilizer-name">Fertilizer Name</label>
+                <input type="text" id="fertilizer-name" required>
             </div>
         </div>
         <div class="button-group">
@@ -230,8 +231,9 @@
     <div id="account-panel" class="account-panel">
         <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
     </div>
+</div>
     <script type="module" src="settings.js"></script>
-     <!-- Import the reusable script from src/auth -->
-  <script type="module" src="../../../src/auth/header.js"></script>
+        <!-- Import the reusable script from src/auth -->
+    <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 </html>

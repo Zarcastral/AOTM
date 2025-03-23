@@ -96,7 +96,7 @@ body {
   background-color: white;
   width: 90%;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   margin-top: 20px;
 }
@@ -141,6 +141,10 @@ body {
 .calendar-icon {
   position: relative; /* Makes the container the positioning context for the month picker */
   display: inline-block; /* Ensures the container wraps its content */
+}
+
+.calendar-btn-icon:hover {
+  opacity: 0.7;
 }
 
 
@@ -200,7 +204,7 @@ body {
 #clear-btn {
   padding: 8px;
   border: none;
-  background-color: #007BFF;
+  background-color: #41A186;
   color: white;
   cursor: pointer;
   margin-top: 10px;
@@ -210,7 +214,7 @@ body {
 }
 
 #clear-btn:hover {
-  background-color: #0056b3;
+  background-color: #34836c;
 }
 .panel table th {
   text-align: center; /* This centers the text */
@@ -389,12 +393,11 @@ tbody tr:hover {
 
 .report-selector {
   display: flex;
-  font-size: 25px;
   gap: 30px;
+  font-size: 20px;
 }
 
-.report-selector a,
-.rando-line {
+.report-selector a{
   color: slategray;
   transition: color 0.3s ease;
 }
@@ -402,6 +405,11 @@ tbody tr:hover {
 .report-selector a.active {
   color: #41A186;
   font-weight: 500;
+}
+
+.rando-line {
+  color: slategray;
+  transition: color 0.3s ease;
 }
 
 /* PDF Preview Panel */

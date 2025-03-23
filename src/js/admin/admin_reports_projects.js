@@ -18,6 +18,88 @@ import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth();
+// <-----------------------ACTIVITY LOG CODE----------------------------->
+/*
+      ACTIVITY LOG RECORD FORMAT
+      await saveActivityLog("Update", );
+      await saveActivityLog("Delete", );
+      await saveActivityLog("Create", );
+*/
+async function saveActivityLog(action, description) {
+  // Define allowed actions
+  const allowedActions = ["Create", "Update", "Delete"];
+  
+  // Validate action
+  if (!allowedActions.includes(action)) {
+    console.error("Invalid action. Allowed actions are: create, update, delete.");
+    return;
+  }
+
+  // Ensure description is provided
+  if (!description || typeof description !== "string") {
+    console.error("Activity description is required and must be a string.");
+    return;
+  }
+
+  // Use onAuthStateChanged to wait for authentication status
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Fetch authenticated user's data from tb_users collection
+      const userDocRef = doc(db, "tb_users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        console.error("User data not found in tb_users.");
+        return;
+      }
+
+      const userData = userDocSnap.data();
+      const userName = userData.user_name || "Unknown User";
+      const userType = userData.user_type || "Unknown Type";
+
+      const currentTimestamp = Timestamp.now().toDate();
+      const date = currentTimestamp.toLocaleDateString("en-US");
+      const time = currentTimestamp.toLocaleTimeString("en-US");
+
+      const activityLogCollection = collection(db, "tb_activity_log");
+
+      try {
+        // Fetch and increment the activity_log_id_counter
+        const counterDocRef = doc(db, "tb_id_counters", "activity_log_id_counter");
+        const counterDocSnap = await getDoc(counterDocRef);
+
+        if (!counterDocSnap.exists()) {
+          console.error("Counter document not found.");
+          return;
+        }
+
+        let currentCounter = counterDocSnap.data().value || 0;
+        let newCounter = currentCounter + 1;
+
+        // Update the counter in the database
+        await updateDoc(counterDocRef, { value: newCounter });
+
+        // Use the incremented counter as activity_log_id
+        await addDoc(activityLogCollection, {
+          activity_log_id: newCounter, // Use counter instead of a placeholder
+          username: userName,
+          user_type: userType,
+          activity: action,
+          activity_desc: description, // Add descriptive message
+          date: date,
+          time: time
+        });
+
+        console.log("Activity log saved successfully with ID:", newCounter);
+      } catch (error) {
+        console.error("Error saving activity log:", error);
+      }
+    } else {
+      console.error("No authenticated user found.");
+    }
+  });
+}
+
 
 // <---------------------------------> GLOBAL VARIABLES <--------------------------------->
 let projectsList = []; // Full list of projects
@@ -74,10 +156,31 @@ async function fetchProjects() {
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(projectsCollection);
 
-    onSnapshot(projectsQuery, async (snapshot) => {
-      projectsList = snapshot.docs.map(doc => {
-        const project = doc.data();
-        project.id = doc.id;
+    onSnapshot(projectsQuery, (snapshot) => {
+      projectsList = snapshot.docs.map((docSnapshot) => {
+        const project = docSnapshot.data();
+        project.id = docSnapshot.id;
+
+        // Extract equipment names from the equipment array
+        if (project.equipment && Array.isArray(project.equipment) && project.equipment.length > 0) {
+          const equipmentNames = project.equipment
+            .map((equip) => equip.equipment_name || "Unknown")
+            .filter((name) => name !== "Unknown" || project.equipment.every(e => !e.equipment_name));
+          project.equipment = equipmentNames.length > 0 ? equipmentNames.join(", ") : "N/A";
+        } else {
+          project.equipment = "N/A"; // Default if no equipment
+        }
+
+        // Extract fertilizer names from the fertilizer array
+        if (project.fertilizer && Array.isArray(project.fertilizer) && project.fertilizer.length > 0) {
+          const fertilizerNames = project.fertilizer
+            .map((fert) => fert.fertilizer_name || "Unknown")
+            .filter((name) => name !== "Unknown" || project.fertilizer.every(f => !f.fertilizer_name));
+          project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join(", ") : "N/A";
+        } else {
+          project.fertilizer = "N/A"; // Default if no fertilizers
+        }
+
         return project;
       });
 
@@ -312,6 +415,8 @@ function displayProjects(projectsList) {
     const projectEquipment = project.equipment || "N/A";
     const projectStart = project.start_date || "N/A";
     const projectEnd = project.end_date || "N/A";
+    const equipmentList = project.equipment || "N/A";
+    const fertilizerList = project.fertilizer || "N/A";
 
     row.innerHTML = `
       <td>${projectId}</td>
@@ -325,8 +430,8 @@ function displayProjects(projectsList) {
       <td>N/A</td>
       <td>${projectCategory}</td>
       <td>${projectCropType}</td>
-      <td>N/A</td>
-      <td>N/A</td>
+      <td>${equipmentList}</td>
+      <td>${fertilizerList}</td>
       <td>${projectStart} <br> ${projectEnd}</td>
     `;
     tableBody.appendChild(row);
@@ -383,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedMonth = index + 1;
       filterProjectsByMonth();
       document.querySelectorAll('.month-btn').forEach(b => b.style.backgroundColor = 'transparent');
-      btn.style.backgroundColor = '#007BFF';
+      btn.style.backgroundColor = '#41A186';
       document.getElementById('month-picker').style.display = 'none';
       document.querySelector('.calendar-btn-icon').style.filter = 'brightness(0.5)';
     });
@@ -426,6 +531,27 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
+  // Get the authenticated user's data
+  const user = await getAuthenticatedUser();
+  const usersCollection = collection(db, "tb_users");
+  const userQuery = query(usersCollection, where("email", "==", user.email));
+  const userSnapshot = await getDocs(userQuery);
+  const userData = userSnapshot.docs[0].data();
+
+  // Construct the full name: First Name Middle Initial. Last Name
+  const firstName = userData.first_name || "Unknown";
+  const middleName = userData.middle_name ? `${userData.middle_name.charAt(0)}.` : "";
+  const lastName = userData.last_name || "User";
+  const fullName = `${firstName} ${middleName} ${lastName}`.trim();
+  const userTypePrint = userData.user_type || "Unknown";
+
+  // Get the current date (date only)
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   // Prepare table data from the full filteredProjects array
   const tableData = filteredProjects.map((project, index) => {
     const projectId = project.project_id || "project Id not recorded";
@@ -453,7 +579,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       projectCropType,
       "N/A", // Fertilizer
       projectEquipment,
-      `${projectStart} - ${projectEnd}`, // Duration
+      `${projectStart} \n ${projectEnd}`, // Duration
     ];
   });
 
@@ -483,12 +609,19 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text("FOR:", 20, 60);
-    doc.text("FROM:", 20, 70);
-    doc.text("DATE:", 20, 80);
-    doc.text("SUBJECT:", 20, 90);
+    doc.text("FOR", 20, 60);
+    doc.text(":", 42, 60);
+    doc.text("FROM", 20, 70);
+    doc.text(":", 42, 70);
+    doc.text(fullName, 50, 70); // User's full name after "FROM:"
+    doc.text("DATE", 20, 80);
+    doc.text(":", 42, 80);
+    doc.text(currentDate, 50, 80); // Current date only after "DATE:"
+    doc.text("SUBJECT", 20, 90);
+    doc.text(":", 42, 90);
+    doc.text("Project Report", 50, 90); // "Project Report" after "SUBJECT:"
 
-    doc.setFontSize(11);
+    doc.setFontSize(15);
     doc.setFont("helvetica", "bold");
     doc.text("AGRICULTURAL PRODUCTION DATA 2025", pageWidth / 2, 100, { align: "center" });
   };
@@ -546,7 +679,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       theme: "grid",
       margin: { top: 55, left: leftMargin, right: leftMargin, bottom: 20 },
       styles: {
-        fontSize: 7,
+        fontSize: 5,
         cellPadding: 1,
         overflow: "linebreak",
         font: "helvetica",
@@ -559,7 +692,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       headStyles: {
         fillColor: [255, 255, 255],
         textColor: [65, 161, 134],
-        fontSize: 8,
+        fontSize: 7,
         font: "helvetica",
         fontStyle: "bold",
         lineColor: [132, 138, 156],
@@ -592,10 +725,11 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     URL.revokeObjectURL(pdfUrl);
   };
 
-  document.getElementById("preview-done-btn").onclick = () => {
-    doc.save(`Project_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
-    previewPanel.style.display = "none";
-    document.body.classList.remove("preview-active");
-    URL.revokeObjectURL(pdfUrl);
-  };
+  document.getElementById("preview-done-btn").onclick = async () => {
+      doc.save(`Project_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+      await saveActivityLog("Create", `Project Report downloaded by ${userTypePrint} ${fullName} `);
+      previewPanel.style.display = "none";
+      document.body.classList.remove("preview-active");
+      URL.revokeObjectURL(pdfUrl);
+    };
 });
