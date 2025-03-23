@@ -1,8 +1,7 @@
 /* Basic reset */
-body{
+body {
     margin: 0;
     height: 100vh;
-
     background-color: #848A9C;
     font-family: 'Poppins';
     display: flex;
@@ -11,6 +10,7 @@ body{
 .main-content {
     padding: 0px;
 }
+
 /* General button styling */
 button {
     margin: 2px;
@@ -40,7 +40,7 @@ button.add-button:hover {
     border: 1px solid #ddd;
     padding: 15px;
     border-radius: 8px;
-    background-color: #FFFFFF; /* Kept the later definition (#fff) over #f9f9f9 */
+    background-color: #FFFFFF;
 }
 
 .panel h2 {
@@ -68,7 +68,7 @@ button.add-button:hover {
 /* Modal and popup styling */
 .popup {
     position: fixed;
-    z-index: 1000; /* Higher than the header */
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
@@ -96,22 +96,24 @@ button.add-button:hover {
     color: #333333;
 }
 
-.popup button  {
+.popup button {
     padding: 8px 30px;
     margin: 10px;
-    float: right; /* Moves the button to the right */
+    float: right;
 }
 
 .popup .cancel-button {
     padding: 8px 30px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     margin: 10px;
-    float: right; /* Moves the button to the right */
+    float: right;
 }
+
 .popup .cancel-button:hover {
     background-color: #999898;
     transition: background-color 0.3s ease;
 }
+
 /* Ensure item-list displays items in a row */
 .item-list {
     display: flex;
@@ -246,9 +248,6 @@ button.add-button:hover {
     color: #555;
 }
 
-/* Crop Modal Styling */
-
-
 /* Fertilizer Modal Styling */
 .fertilizer-modal {
     max-width: 450px;
@@ -266,8 +265,8 @@ button.add-button:hover {
 
 .fertilizer-modal .form-group {
     display: flex;
-    flex-direction: column; /* Changed from row (default) to column to stack vertically */
-    gap: 30px; /* Reduced gap for a tighter vertical layout */
+    flex-direction: column;
+    gap: 30px;
     margin-bottom: 35px;
 }
 
@@ -287,8 +286,8 @@ button.add-button:hover {
     padding: 10px;
     border-radius: 4px;
     border: 1px solid #ccc;
-    width: 100%; /* Ensure both fields take full width */
-    box-sizing: border-box; /* Prevent padding from affecting width */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .fertilizer-modal hr {
@@ -307,7 +306,7 @@ button.add-button:hover {
     background-color: #C3C3C3;
     color: #FFFFFF;
     padding: 8px 25px;
-    border-radius: 25x;
+    border-radius: 25px;
     border: none;
     cursor: pointer;
 }
@@ -416,11 +415,29 @@ button.add-button:hover {
 /* Farmland Panel specific styles */
 #barangay-select {
     padding: 8px 12px;
-    border-radius: 4px;
+    border-radius: 10px;
     border: 1px solid #ccc;
     margin-right: 15px;
 }
 
 #add-farmland-button {
     vertical-align: middle;
+}
+
+/* Custom Message Styling */
+.custom-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #41A186;
+    color: white;
+    padding: 5px 5px;
+    border-radius: 20px;
+    display: none;
+    font-size: 18px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
