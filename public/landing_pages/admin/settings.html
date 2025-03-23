@@ -8,232 +8,222 @@
     <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <link rel="stylesheet" href="settings.css">
 </head>
 <body>
-   <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
-<div class="main-content">
-    <!-- Barangay Panel -->
-    <div class="panel">
-        <div class="panel-header">
-            <h2>Barangays</h2>
-            <button class="add-button" onclick="openAddBarangayPopup()">Add New Barangay</button>
-        </div>
-        <div id="barangay-list" class="item-list"></div>
-    </div>
-    
-
-    <!-- Crop Type Panel -->
-    <div class="panel">
-        <div class="panel-header">
-            <h2>Crop Types</h2>
-            <button class="add-button" onclick="openAddCropTypePopup()">Add New Crop Type</button>
-        </div>
-        <div id="crop-type-list" class="item-list"></div>
-    </div>
-
-    <!-- Equipment Panel -->
-    <div class="panel">
-        <div class="panel-header">
-            <h2>Equipment</h2>
-            <button class="add-button" onclick="openAddEquipmentPopup()">Add New Equipment</button>
-        </div>
-        <div id="equipment-list" class="item-list"></div>
-    </div>
-
-    <!-- Fertilizer Panel -->
-    <div class="panel">
-        <div class="panel-header">
-            <h2>Fertilizers</h2>
-            <button class="add-button" onclick="openAddFertilizerPopup()">Add New Fertilizer</button>
-        </div>
-        <div id="fertilizer-list" class="item-list"></div>
-    </div>
-
-
-    <!--farmland panel-->
-<div class="panel">
-    <div class="panel-header">
-        <h2>Farmlands</h2>
-        <div>
-            <select id="barangay-select" onchange="loadFarmlandsForBarangay()"> <!-- Change this line to call the correct function -->
-                <option value="">Select Barangay</option>
-            </select>
-            <button class="add-button" id="add-farmland-button" style="display: none;" onclick="openAddFarmlandPopup()">Add Farmland</button>
-        </div>
-    </div>
-    <div id="farmland-list" class="item-list"></div>
-</div>
-<!--farmland panel-->
-
-   
-<!-- Barangay Modal -->
-<div id="add-barangay-popup" class="popup">
-    <div class="popup-content barangay-modal">
-        <h3>Add Barangay</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="barangay-name">Barangay</label>
-                <input type="text" id="barangay-name" required>
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <div class="main-content">
+        <!-- Barangay Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Barangays</h2>
+                <button class="add-button" onclick="openAddBarangayPopup()">Add New Barangay</button>
             </div>
-            <div class="input-group area-group">
-                <label for="total-plot-size">Area</label>
-                <div class="area-input">
-                    <input type="number" id="total-plot-size" required>
-                    <span class="unit">hectars</span>
+            <div id="barangay-list" class="item-list"></div>
+        </div>
+
+        <!-- Crop Type Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Crop Types</h2>
+                <button class="add-button" onclick="openAddCropTypePopup()">Add New Crop Type</button>
+            </div>
+            <div id="crop-type-list" class="item-list"></div>
+        </div>
+
+        <!-- Equipment Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Equipment</h2>
+                <button class="add-button" onclick="openAddEquipmentPopup()">Add New Equipment</button>
+            </div>
+            <div id="equipment-list" class="item-list"></div>
+        </div>
+
+        <!-- Fertilizer Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Fertilizers</h2>
+                <button class="add-button" onclick="openAddFertilizerPopup()">Add New Fertilizer</button>
+            </div>
+            <div id="fertilizer-list" class="item-list"></div>
+        </div>
+
+        <!-- Farmland Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Farmlands</h2>
+                <div>
+                    <select id="barangay-select" onchange="loadFarmlandsForBarangay()">
+                        <option value="">Select Barangay</option>
+                    </select>
+                    <button class="add-button" id="add-farmland-button" style="display: none;" onclick="openAddFarmlandPopup()">Add Farmland</button>
+                </div>
+            </div>
+            <div id="farmland-list" class="item-list"></div>
+        </div>
+
+        <!-- Barangay Modal -->
+        <div id="add-barangay-popup" class="popup">
+            <div class="popup-content barangay-modal">
+                <h3>Add Barangay</h3>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="barangay-name">Barangay</label>
+                        <input type="text" id="barangay-name" required>
+                    </div>
+                    <div class="input-group area-group">
+                        <label for="total-plot-size">Area</label>
+                        <div class="area-input">
+                            <input type="number" id="total-plot-size" required>
+                            <span class="unit">hectares</span>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <h4>Locations</h4>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="land-area">Farmland</label>
+                        <input type="text" id="land-area" required>
+                    </div>
+                    <div class="input-group area-group">
+                        <label for="plot-size">Land Area</label>
+                        <div class="area-input">
+                            <input type="number" id="plot-size" required>
+                            <span class="unit">hectares</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="cancel-button" onclick="closePopup('add-barangay-popup')">Cancel</button>
+                    <button class="save-button" onclick="addBarangay()">Save</button>
                 </div>
             </div>
         </div>
-        <hr>
-        <h4>Locations</h4>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="land-area">Farmland</label>
-                <input type="text" id="land-area" required>
-            </div>
-            <div class="input-group area-group">
-                <label for="plot-size">Land Area</label>
-                <div class="area-input">
-                    <input type="number" id="plot-size" required>
-                    <span class="unit">hectars</span>
+
+        <!-- Farmland Modal -->
+        <div id="add-farmland-popup" class="popup">
+            <div class="popup-content barangay-modal">
+                <h3>Add Farmland</h3>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="farmland-name">Farmland Name</label>
+                        <input type="text" id="farmland-name" required>
+                    </div>
+                    <div class="input-group area-group">
+                        <label for="farmland-area">Land Area</label>
+                        <div class="area-input">
+                            <input type="number" id="farmland-land-area" required>
+                            <span class="unit">hectares</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="cancel-button" onclick="closePopup('add-farmland-popup')">Cancel</button>
+                    <button class="save-button" onclick="addFarmland()">Save</button>
                 </div>
             </div>
         </div>
-        <div class="button-group">
-            <button class="cancel-button" onclick="closePopup('add-barangay-popup')">Cancel</button>
-            <button class="save-button" onclick="addBarangay()">Save</button>
-        </div>
-    </div>
-</div>
 
-
-<!--farmland modal-->
-<!-- Farmland Modal -->
-<div id="add-farmland-popup" class="popup">
-    <div class="popup-content barangay-modal">
-        <h3>Add Farmland</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="farmland-name">Farmland Name</label>
-                <input type="text" id="farmland-name" required>
-            </div>
-            <div class="input-group area-group">
-                <label for="farmland-area">Land Area</label>
-                <div class="area-input">
-                    <input type="number" id="farmland-land-area" required>
-                    <span class="unit">hectares</span>
+        <!-- Modal for Add Crop Type -->
+        <div id="add-crop-type-popup" class="popup">
+            <div class="popup-content fertilizer-modal">
+                <h3>Add Crop Type</h3>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="crop-name">Crop Name</label>
+                        <select id="crop-name"></select>
+                    </div>
+                    <div class="input-group">
+                        <label for="crop-type-name">Crop Type Name</label>
+                        <input type="text" id="crop-type-name" required>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="cancel-button" onclick="closePopup('add-crop-type-popup')">Cancel</button>
+                    <button class="save-button" onclick="addCropType()">Save</button>
                 </div>
             </div>
         </div>
-        <div class="button-group">
-            <button class="cancel-button" onclick="closePopup('add-farmland-popup')">Cancel</button>
-            <button class="save-button" onclick="addFarmland()">Save</button>
-        </div>
-    </div>
-</div>
-<!--farmland modal-->
 
-
-
-<!-- Modal for Add Crop Type -->
-<div id="add-crop-type-popup" class="popup">
-    <div class="popup-content fertilizer-modal">
-        <h3>Add Crop Type</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="crop-name">Crop Name</label>
-                <select id="crop-name"></select>
-            </div>
-            <div class="input-group">
-                <label for="crop-type-name">Crop Type Name</label>
-                <input type="text" id="crop-type-name" required>
+        <!-- Equipment Modal -->
+        <div id="add-equipment-popup" class="popup">
+            <div class="popup-content fertilizer-modal">
+                <h3>Add Equipment</h3>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="equipment-category">Equipment Category</label>
+                        <select id="equipment-category"></select>
+                    </div>
+                    <div class="input-group">
+                        <label for="equipment-name">Equipment Name</label>
+                        <input type="text" id="equipment-name" required>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="cancel-button" onclick="closePopup('add-equipment-popup')">Cancel</button>
+                    <button class="save-button" onclick="addEquipment()">Save</button>
+                </div>
             </div>
         </div>
-        <div class="button-group">
-            <button class="cancel-button" onclick="closePopup('add-crop-type-popup')">Cancel</button>
-            <button class="save-button" onclick="addCropType()">Save</button>
-        </div>
-    </div>
-</div>
 
-
-<!-- Equipment Modal -->
-<div id="add-equipment-popup" class="popup">
-    <div class="popup-content fertilizer-modal">
-        <h3>Add Equipment</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="equipment-category">Equipment Category</label>
-                <select id="equipment-category"></select>
-            </div>
-            <div class="input-group">
-                <label for="equipment-name">Equipment Name</label>
-                <input type="text" id="equipment-name" required>
-            </div>
-        </div>
-        <div class="button-group">
-            <button class="cancel-button" onclick="closePopup('add-equipment-popup')">Cancel</button>
-            <button class="save-button" onclick="addEquipment()">Save</button>
-        </div>
-    </div>
-</div>
-
-
-
-<!-- Fertilizer Modal -->
-<div id="add-fertilizer-popup" class="popup">
-    <div class="popup-content fertilizer-modal">
-        <h3>Add Fertilizer</h3>
-        <div class="form-group">
-            <div class="input-group">
-                <label for="fertilizer-category">Fertilizer Category</label>
-                <select id="fertilizer-category">
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="fertilizer-name">Fertilizer Name</label>
-                <input type="text" id="fertilizer-name" required>
+        <!-- Fertilizer Modal -->
+        <div id="add-fertilizer-popup" class="popup">
+            <div class="popup-content fertilizer-modal">
+                <h3>Add Fertilizer</h3>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="fertilizer-category">Fertilizer Category</label>
+                        <select id="fertilizer-category"></select>
+                    </div>
+                    <div class="input-group">
+                        <label for="fertilizer-name">Fertilizer Name</label>
+                        <input type="text" id="fertilizer-name" required>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="cancel-button" onclick="closePopup('add-fertilizer-popup')">Cancel</button>
+                    <button class="save-button" onclick="addFertilizer()">Save</button>
+                </div>
             </div>
         </div>
-        <div class="button-group">
-            <button class="cancel-button" onclick="closePopup('add-fertilizer-popup')">Cancel</button>
-            <button class="save-button" onclick="addFertilizer()">Save</button>
+
+        <!-- Modal for Edit Item -->
+        <div id="edit-item-popup" class="popup">
+            <div class="popup-content">
+                <h3>Edit Item</h3>
+                <input type="hidden" id="edit-item-id">
+                <input type="hidden" id="edit-item-collection">
+                <label for="edit-item-name">Name:</label>
+                <input type="text" id="edit-item-name" required><br><br>
+                <button class="add-button" onclick="saveEditedItem()">Save</button>
+                <button class="cancel-button" onclick="closePopup('edit-item-popup')">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Modal for Delete Item Confirmation -->
+        <div id="delete-confirm-popup" class="popup">
+            <div class="popup-content">
+                <h3>Confirm Delete</h3>
+                <p>Are you sure you want to delete this item?</p>
+                <button class="add-button" id="confirm-delete-button">Yes</button>
+                <button class="cancel-button" onclick="closePopup('delete-confirm-popup')">No</button>
+            </div>
+        </div>
+
+        <!-- Success/Error Message Panel -->
+        <div id="custom-message" class="custom-message">
+            <p id="custom-message-text"></p>
+        </div>
+
+        <div id="account-panel" class="account-panel">
+            <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
         </div>
     </div>
-</div>
-
-
-
-    <!-- Modal for Edit Item -->
-    <div id="edit-item-popup" class="popup">
-        <div class="popup-content">
-            <h3>Edit Item</h3>
-            <input type="hidden" id="edit-item-id">
-            <input type="hidden" id="edit-item-collection">
-            <label for="edit-item-name">Name:</label>
-            <input type="text" id="edit-item-name" required><br><br>
-            <button class="add-button" onclick="saveEditedItem()">Save</button>
-            <button class="cancel-button" onclick="closePopup('edit-item-popup')">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Modal for Delete Item Confirmation -->
-    <div id="delete-confirm-popup" class="popup">
-        <div class="popup-content">
-            <h3>Confirm Delete</h3>
-            <p>Are you sure you want to delete this item?</p>
-            <button class="add-button" id="confirm-delete-button">Yes</button>
-            <button class="cancel-button" onclick="closePopup('delete-confirm-popup')">No</button>
-        </div>
-    </div>
-    <div id="account-panel" class="account-panel">
-        <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
-    </div>
-</div>
     <script type="module" src="settings.js"></script>
-        <!-- Import the reusable script from src/auth -->
+    <!-- Import the reusable script from src/auth -->
     <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 </html>
