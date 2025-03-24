@@ -438,127 +438,139 @@ const saveBtn = document.getElementById("fert-save-stock");
 const fertilizerStockPanel = document.getElementById("fert-stock-panel");
 const fertilizerOverlay = document.getElementById("fert-overlay");
 const cancelBtn = document.getElementById("fert-cancel-stock");
-const fertilizerStockTitle = document.getElementById("fert-stock-title")
-;
+const fertilizerStockTitle = document.getElementById("fert-stock-title");
 const deleteStockTitle = document.getElementById("fert-delete-stock-title");
 const deleteStockBtn = document.getElementById("fert-delete-stock");
+
+// Initialize the panel as hidden
+fertilizerStockPanel.style.display = "none";
+fertilizerOverlay.style.display = "none";
+
 function addFertStock() {
-  document.querySelector(".fertilizer_table").addEventListener("click", async function (event) {
-      if (event.target.classList.contains("add-fert-stock-btn") || event.target.classList.contains("delete-fert-stock-btn")) {
-          const fertilizerId = event.target.dataset.id; 
-          const isDelete = event.target.classList.contains("delete-fert-stock-btn");
+    document.querySelector(".fertilizer_table").addEventListener("click", async function (event) {
+        if (event.target.classList.contains("add-fert-stock-btn") || event.target.classList.contains("delete-fert-stock-btn") ||
+            event.target.closest('.add-fert-stock-btn') || event.target.closest('.delete-fert-stock-btn')) {
+            event.preventDefault(); // Prevent any default behavior
+            
+            // Get the button element (whether clicked directly or via child element)
+            const button = event.target.closest('.add-fert-stock-btn') || event.target.closest('.delete-fert-stock-btn');
+            const fertilizerId = button.dataset.id;
+            const isDelete = button.classList.contains("delete-fert-stock-btn");
 
-          try {
-              const user = await getAuthenticatedUser();
-              if (!user || !user.user_type) {
-                  console.error("No authenticated user or user type found.");
-                  return;
-              }
+            try {
+                const user = await getAuthenticatedUser();
+                if (!user || !user.user_type) {
+                    console.error("No authenticated user or user type found.");
+                    return;
+                }
 
-              const userType = user.user_type.trim();
+                const userType = user.user_type.trim();
 
-              let fertilizerType = "No category was recorded";
-              let fertilizerName = "No name was recorded";
-              let fertilizerUnit = "No unit was recorded"; 
-              let currentStock = "No stock recorded"; 
-              let stockUnit = ""; 
+                // Find the row in the table corresponding to this fertilizerId
+                const tableRows = document.querySelectorAll(".fertilizer_table table tbody tr");
+                let rowData = null;
+                
+                tableRows.forEach(row => {
+                    const rowFertId = row.cells[0].textContent.trim();
+                    if (rowFertId === fertilizerId) {
+                        rowData = row;
+                    }
+                });
 
-              const fertilizersCollection = collection(db, "tb_fertilizer");
-              const fertilizerQuery = query(fertilizersCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-              const fertilizerSnapshot = await getDocs(fertilizerQuery);
+                if (!rowData) {
+                    console.error("Fertilizer not found in table");
+                    return;
+                }
 
-              if (!fertilizerSnapshot.empty) {
-                  const fertilizerData = fertilizerSnapshot.docs[0].data();
-                  fertilizerName = fertilizerData.fertilizer_name?.trim() || "No name was recorded";
-                  fertilizerType = fertilizerData.fertilizer_type?.trim() || "No category was recorded";
-                  fertilizerUnit = fertilizerData.unit?.trim() || "No unit was recorded";
-              }
+                // Extract data from table row
+                const fertilizerName = rowData.cells[1].textContent.trim() || "No name was recorded";
+                const fertilizerType = rowData.cells[2].textContent.trim() || "No category was recorded";
+                let currentStock = rowData.cells[4].textContent.trim() || "No stock recorded";
+                
+                // Split stock value and unit if present
+                let stockUnit = "";
+                const stockParts = currentStock.split(" ");
+                if (stockParts.length > 1) {
+                    currentStock = stockParts[0];
+                    stockUnit = stockParts[1];
+                }
 
-              const stockCollection = collection(db, "tb_fertilizer_stock");
-              const stockQuery = query(stockCollection, where("fertilizer_id", "==", Number(fertilizerId)));
-              const stockSnapshot = await getDocs(stockQuery);
+                // Get unit from hidden field or table if available
+                const fertilizerUnit = document.getElementById("fert_unit_hidden").value || stockUnit || "No unit was recorded";
 
-              if (!stockSnapshot.empty) {
-                  const stockData = stockSnapshot.docs[0].data();
+                // Set form values
+                document.getElementById("fert_name").value = fertilizerName;
+                document.getElementById("fert_type").value = fertilizerType;
+                document.getElementById("fert_unit_hidden").value = fertilizerUnit;
+                document.getElementById("current_fert_stock").value = currentStock + (stockUnit ? ` ${stockUnit}` : "");
+                document.getElementById("fert_stock").value = ""; // Reset input field
 
-                  if (stockData.stocks && Array.isArray(stockData.stocks)) {
-                      const matchingStock = stockData.stocks.find(stock => stock.owned_by === userType);
+                // Set data attributes
+                saveBtn.dataset.fertilizerId = fertilizerId;
+                deleteStockBtn.dataset.fertilizerId = fertilizerId;
 
-                      if (matchingStock) {
-                          currentStock = matchingStock.current_stock || "No stock recorded";
-                          stockUnit = matchingStock.unit?.trim() || "";
-                      }
-                  }
-              }
+                // Show the panel and overlay
+                fertilizerStockPanel.style.display = "block";
+                fertilizerOverlay.style.display = "block";
 
-              document.getElementById("fert_name").value = fertilizerName;
-              document.getElementById("fert_type").value = fertilizerType;
-              document.getElementById("fert_unit_hidden").value = fertilizerUnit;
-              document.getElementById("current_fert_stock").value = currentStock + (stockUnit ? ` ${stockUnit}` : "");
+                // Toggle between add and delete mode
+                if (isDelete) {
+                    fertilizerStockTitle.style.display = "none";
+                    deleteStockTitle.style.display = "block";
+                    saveBtn.style.display = "none";
+                    deleteStockBtn.style.display = "block";
+                } else {
+                    fertilizerStockTitle.style.display = "block";
+                    deleteStockTitle.style.display = "none";
+                    saveBtn.style.display = "block";
+                    deleteStockBtn.style.display = "none";
+                }
 
-              fertilizerStockPanel.style.display = "block";
-              fertilizerOverlay.style.display = "block";
+            } catch (error) {
+                console.error("Error fetching fertilizer details from table:", error);
+            }
+        }
+    });
 
-              saveBtn.dataset.fertilizerId = fertilizerId;
-              deleteStockBtn.dataset.fertilizerId = fertilizerId;
+    // Close panel events
+    cancelBtn.addEventListener("click", closeStockPanel);
+    fertilizerOverlay.addEventListener("click", closeStockPanel);
 
-              // Toggle between add and delete mode
-              if (isDelete) {
-                  fertilizerStockTitle.style.display = "none";
-                  deleteStockTitle.style.display = "block";
-                  saveBtn.style.display = "none";
-                  deleteStockBtn.style.display = "block";
-              } else {
-                  fertilizerStockTitle.style.display = "block";
-                  deleteStockTitle.style.display = "none";
-                  saveBtn.style.display = "block";
-                  deleteStockBtn.style.display = "none";
-              }
+    // Flag to prevent multiple clicks
+    let isSaving = false;
+    let isDeleting = false;
 
-          } catch (error) {
-              console.error("Error fetching Fertilizer details:", error);
-          }
-      }
-  });
+    // Save button handler
+    saveBtn.addEventListener("click", async () => {
+        if (isSaving) return;
+        isSaving = true;
+        saveBtn.disabled = true;
 
-  // Close panel events
-  cancelBtn.addEventListener("click", closeStockPanel);
-  fertilizerOverlay.addEventListener("click", closeStockPanel);
+        try {
+            await saveStock();
+        } catch (error) {
+            console.error("Error saving stock:", error);
+        } finally {
+            isSaving = false;
+            saveBtn.disabled = false;
+        }
+    });
 
-  // Flag to prevent multiple clicks
-  let isSaving = false;
-  let isDeleting = false;
+    // Delete button handler
+    deleteStockBtn.addEventListener("click", async () => {
+        if (isDeleting) return;
+        isDeleting = true;
+        deleteStockBtn.disabled = true;
 
-  // Button event listeners
-  saveBtn.addEventListener("click", async () => {
-      if (isSaving) return;  // Prevent multiple clicks
-      isSaving = true;
-      saveBtn.disabled = true; // Disable button
-
-      try {
-          await saveStock(); // Call save function
-      } catch (error) {
-          console.error("Error saving stock:", error);
-      } finally {
-          isSaving = false;
-          saveBtn.disabled = false; // Re-enable button
-      }
-  });
-
-  deleteStockBtn.addEventListener("click", async () => {
-      if (isDeleting) return;  // Prevent multiple clicks
-      isDeleting = true;
-      deleteStockBtn.disabled = true; // Disable button
-
-      try {
-          await deleteStock(); // Call delete function
-      } catch (error) {
-          console.error("Error deleting stock:", error);
-      } finally {
-          isDeleting = false;
-          deleteStockBtn.disabled = false; // Re-enable button
-      }
-  });
+        try {
+            await deleteStock();
+        } catch (error) {
+            console.error("Error deleting stock:", error);
+        } finally {
+            isDeleting = false;
+            deleteStockBtn.disabled = false;
+        }
+    });
 }
 
 function closeStockPanel() {

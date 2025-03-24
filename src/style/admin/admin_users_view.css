@@ -87,12 +87,13 @@ body {
 
 button {
   width: 35%; /* Only as wide as its text */
-  padding: 10px; /* Compact size */
+  padding: 10px 30px; /* Compact size */
   background-color: slategrey;
   color: white;
   border: none;
   border-radius: 25px;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
 }
 

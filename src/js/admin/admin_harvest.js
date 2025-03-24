@@ -241,7 +241,7 @@ function displayHarvest(harvestList) {
     const messageRow = document.createElement("tr");
     messageRow.classList.add("no-records-message");
     messageRow.innerHTML = `
-      <td colspan="9" style="text-align: center; color: red;">No records found</td>
+      <td colspan="9" style="text-align: center;">No records found</td>
     `;
     tableBody.appendChild(messageRow);
     return;

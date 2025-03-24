@@ -67,6 +67,7 @@ button[type="submit"] {
     padding: 10px;
     border: none;
     border-radius: 25px;
+    font-weight: bold;
     font-size: 16px;
     cursor: pointer;
 }
@@ -83,6 +84,7 @@ button[type="submit"]:hover {
     padding: 5px;
     border: none;
     border-radius: 25px;
+    font-weight: bold;
     font-size: 16px;
     cursor: pointer;
 }
@@ -123,12 +125,13 @@ button[type="submit"]:hover {
     color: white;
     border: none;
     border-radius: 4px;
+    font-weight: bold;
     font-size: 16px;
     cursor: pointer;
   }
   
   button:hover {
-    background-color: #318a71;
+    background-color: #2b8167;
   }
   
 
@@ -362,6 +365,24 @@ button[type="submit"]:hover {
 .modal-content, #caption { 
   animation-name: zoom;
   animation-duration: 0.6s;
+}
+
+.delete-message-panel {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #41A186;
+  color: white;
+  padding: 20px 30px;
+  border-radius: 5px;
+  display: none;
+  font-size: 17px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-weight: bold;
 }
 
 @keyframes zoom {

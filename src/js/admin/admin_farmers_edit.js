@@ -359,10 +359,14 @@ async function saveChanges() {
         await updateDoc(docRef, updatedData);
         console.log("User details updated successfully.");
 
-        alert("Changes saved successfully!");
-        window.location.href = "admin_farmers.html";
+        showDeleteMessage("Changes has been saved successfully!", true);
+
+        // Delay before redirecting
+        setTimeout(() => {
+          window.location.href = "admin_farmers.html";
+        }, 2000); // 2-second delay
     } else {
-        alert("Account with this Farmer ID does not exist.");
+        showDeleteMessage("Account with this Farmer ID does not exist.", false);
     }
 
     // Remove confirmation panel
@@ -370,4 +374,21 @@ async function saveChanges() {
     if (confirmationPanel) {
         document.body.removeChild(confirmationPanel);
     }
+}
+
+// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
+const deleteMessage = document.getElementById("delete-message-panel");
+
+function showDeleteMessage(message, success) {
+  deleteMessage.textContent = message;
+  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  deleteMessage.style.opacity = "1";
+  deleteMessage.style.display = "block";
+
+  setTimeout(() => {
+    deleteMessage.style.opacity = "0";
+    setTimeout(() => {
+      deleteMessage.style.display = "none";
+    }, 300);
+  }, 4000);
 }
