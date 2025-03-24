@@ -321,7 +321,7 @@ function updatePaginationControls(totalPages) {
   const nextBtn = document.getElementById("next-page-btn");
   const pageInfo = document.getElementById("page-info");
 
-  pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+  pageInfo.textContent = `${currentPage} of ${totalPages || 1}`;
   prevBtn.disabled = currentPage === 1;
   nextBtn.disabled = currentPage === totalPages || totalPages === 0;
 }
