@@ -2,52 +2,94 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="../../../src/js/farm_president/farmpres_dash.js"></script>
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="farmpres_dash.css">
+  <link rel="stylesheet" href="../../../src/style/farm_president/farmpres_dash.css">
 </head>
 
 <body>
-  <!-- Placeholder for Header -->
+
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
   <div class="main-content">
-    <!-- Table has been removed -->
+    <!-- Top Section: System Stats -->
+    <div class="top-section">
+      <!-- System Stats Section -->
+      <div class="system-stats-section">
+        <h4 class="section-title">SYSTEM</h4>
+        <div class="system-stats">
+          <div class="stats-card">
+            <img src="../../../public/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
+            <div class="stats-info">
+              <p>Farmers</p>
+              <div class="number-wrapper">
+                  <h3 id="total-farmers">
+                    <!--Dynamically Updating Records-->
+                  </h3>
+                <span>This Year</span>
+              </div>
+            </div>
+          </div>
+          <div class="stats-card">
+            <img src="../../../public/images/graphBig.png" alt="Projects Icon" class="stats-icon projects-icon">
+            <div class="stats-info">
+              <p>Projects</p>
+              <div class="number-wrapper">
+                  <h3 id="total-projects">
+                    <!--Dynamically Updating Records-->
+                  </h3>
+                <span>This Month</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Removed the Project Status Section -->
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="analytics-section">
+      <h4 class="section-title">ANALYTICS</h4>
+      <div class="analytics">
+          <div class="harvest-info">
+              <div class="year-selector-wrapper">
+                <h5>Harvest Information (This Year)</h5>
+                <div class="year-selector-container">
+                  <label for="year-selector" class="year-selector-label">Select a Year:</label>
+                  <select id="year-selector" class="year-selector">
+                      <!-- Years will be populated dynamically -->
+                  </select>
+                </div>
+              </div>
+              <div class="chart-wrapper">
+                  <div class="y-axis">
+                  </div>
+                  <div class="bar-chart">
+                      <div class="bar" data-month="Jan"></div>
+                      <div class="bar" data-month="Feb"></div>
+                      <div class="bar" data-month="Mar"></div>
+                      <div class="bar" data-month="Apr"></div>
+                      <div class="bar" data-month="May"></div>
+                      <div class="bar" data-month="Jun"></div>
+                      <div class="bar" data-month="Jul"></div>
+                      <div class="bar" data-month="Aug"></div>
+                      <div class="bar" data-month="Sep"></div>
+                      <div class="bar" data-month="Oct"></div>
+                      <div class="bar" data-month="Nov"></div>
+                      <div class="bar" data-month="Dec"></div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Account Panel with iframe to load external content -->
-  <div id="account-panel" class="account-panel">
-    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
-  </div>
-
-  <script>
-    const accountIcon = document.getElementById("account-icon");
-    const accountPanel = document.getElementById("account-panel");
-    const accountFrame = document.getElementById("account-frame");
-
-    // Load content when account icon is clicked
-    accountIcon.addEventListener("click", () => {
-      accountPanel.classList.toggle("active");
-
-      // Load external content in iframe
-      if (accountPanel.classList.contains("active")) {
-        accountFrame.src = "logout.html"; // Change to the URL of your content page
-      } else {
-        accountFrame.src = ""; // Clear iframe content when panel is closed
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-        accountPanel.classList.remove("active");
-        accountFrame.src = ""; // Clear iframe content when clicking outside
-      }
-    });
-  </script>
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="../../../src/auth/header.js"></script>
+
 </body>
 
 </html>

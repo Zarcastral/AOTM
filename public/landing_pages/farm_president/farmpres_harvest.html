@@ -2,119 +2,198 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module" src="../../../src/js/admin/admin_harvest.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="farmpres_harvest.css">
+  <link rel="stylesheet" href="../../../src/style/admin/admin_harvest.css">
 </head>
 
 <body>
-    <!-- Placeholder for Header -->
+  <!-- Placeholder for Header -->
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
-  
-      <div class="main-content relative">
-        <!-- Add Harvest Button -->
-         <div class="sub-main">
-
-          <button id="add-harvest-button" class="panel-button flex items-center">
-            <span>+ Add Harvest</span>
-          </button>
-  
-          <div class="panel-container">
-            <div class="search-bar mb-4">
-              <input type="text" placeholder="Search" class="search-input" />
-            </div>
-            <table class="table-auto w-full border-collapse">
-              <thead>
-                <tr class="border-b">
-                  <th class="p-3">#</th>
-                  <th class="p-3">Project Name</th>
-                  <th class="p-3">Team</th>
-                  <th class="p-3">Lead Farmer</th>
-                  <th class="p-3">Harvest Date</th>
-                  <th class="p-3">Total Harvest (mt)</th>
-                  <th class="p-3">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="border-b">
-                  <td class="p-3">1</td>
-                  <td class="p-3">Go Green</td>
-                  <td class="p-3">TEAM A</td>
-                  <td class="p-3">Yin Lou</td>
-                  <td class="p-3">10-21-2024</td>
-                  <td class="p-3">2.8</td>
-                  <td class="p-3">
-                    <button class="view-button">👁️</button>
-                  </td>
-                </tr>
-                <tr class="border-b">
-                  <td class="p-3">2</td>
-                  <td class="p-3">Go Green</td>
-                  <td class="p-3">TEAM B</td>
-                  <td class="p-3">Finn Law</td>
-                  <td class="p-3">10-21-2024</td>
-                  <td class="p-3">2.8</td>
-                  <td class="p-3">
-                    <button class="view-button">👁️</button>
-                  </td>
-                </tr>
-                <tr class="border-b">
-                  <td class="p-3">3</td>
-                  <td class="p-3">Go Green</td>
-                  <td class="p-3">TEAM C</td>
-                  <td class="p-3">Benny Hill</td>
-                  <td class="p-3">10-21-2024</td>
-                  <td class="p-3">2.8</td>
-                  <td class="p-3">
-                    <button class="view-button">👁️</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+  <div class="main-content">
+    <div class="panel">
+      <div class="table-wrapper">
+      <h2>Harvest</h2>
+      <div class="harvest-search-bar">
+        <input type="text" id="harvest-search-bar" placeholder="Search">
+        <select class="crop_select">
+          <option value="">Crops</option>
+        </select>
+        <select class="crop-type-select">
+          <option value="">Crop Type</option>
+        </select>
+        <select class="barangay_select">
+          <option value="">Barangay</option>
+        </select>
+      </div>
+      <div class="harvest_table">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Project Name</th>
+              <th>Team</th>
+              <th>Lead Farmer</th>
+              <th>Harvest Date</th>
+              <th>Total Harvest</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="table_body">
+            <!-- Harvests will be populated here -->
+          </tbody>
+        </table>   
+          <div class="harvest-pagination">
+            <span id="harvest-page-number">Page 1</span>
+            <button id="harvest-prev-page" class="harvest-pagination-btn" disabled>&lt;</button>
+            <button id="harvest-next-page" class="harvest-pagination-btn">&gt;</button>
+          </div> <!-- Closing harvest-pagination -->
+        </div> <!-- Closing harvest_table -->
+      </div>
+    </div> <!-- Closing panel -->
+    <div class="modal-overlay" id="harvest-report-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Harvest Report</h2>
+          <button class="modal-close-btn" id="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Project Name</label>
+            <input type="text" id="modal-project-name" readonly>
           </div>
-        <button class="panel-button flex items-center">
-          <span>&#10004; Complete</span>
-        </button>
-
-         </div>
-        
+          <div class="form-group total-harvest-group">
+            <div>
+              <label>Total Harvest</label>
+              <input type="text" id="modal-total-harvest" readonly>
+            </div>
+            <div>
+              <label>Unit</label>
+              <input type="text" id="modal-unit" value="kg" readonly>
+            </div>
+          </div>
+          <div class="form-group">
+            <h3>Harvest Details</h3>
+            <div class="details-row">
+              <div>
+                <label>Farm President</label>
+                <input type="text" id="modal-farm-president" readonly>
+              </div>
+              <div>
+                <label>Barangay</label>
+                <input type="text" id="modal-barangay" readonly>
+              </div>
+            </div>
+            <div class="details-row">
+              <div>
+                <label>Crop Type</label>
+                <input type="text" id="modal-crop-type" readonly>
+              </div>
+              <div>
+                <label>Crop</label>
+                <input type="text" id="modal-crop" readonly>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Farmers</label>
+              <textarea id="modal-farmers" readonly></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="close-btn" id="close-harvest-btn">Close</button>
+            <!--<button class="submit-btn" id="submit-harvest-btn">Submit Harvest</button>
+            -->
+          </div>
+        </div>
       </div>
     </div>
-
-  <!-- Account Panel with iframe to load external content -->
-  <div id="account-panel" class="account-panel">
-    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
-  </div>
+</div> <!-- Closing main-content -->
 
   <script>
-    const accountIcon = document.getElementById("account-icon");
-    const accountPanel = document.getElementById("account-panel");
-    const accountFrame = document.getElementById("account-frame");
-
-    // Load content when account icon is clicked
-    accountIcon.addEventListener("click", () => {
-      accountPanel.classList.toggle("active");
-
-      // Load external content in iframe
-      if (accountPanel.classList.contains("active")) {
-        accountFrame.src = "logout.html"; // Change to the URL of your content page
-      } else {
-        accountFrame.src = ""; // Clear iframe content when panel is closed
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-        accountPanel.classList.remove("active");
-        accountFrame.src = ""; // Clear iframe content when clicking outside
-      }
+    document.addEventListener("DOMContentLoaded", function () {
+        const reportLinks = document.querySelectorAll(".harvest-form a");
+  
+        // Debugging: Log all links and their hrefs
+  
+        // Clear any active link state when the page is loaded
+        reportLinks.forEach(link => link.classList.remove("active"));
+  
+        // Retrieve stored active link from localStorage
+        const activeLink = localStorage.getItem("activeReportLink");
+  
+        // Normalize URLs for comparison (remove trailing slashes, etc.)
+        const normalizeUrl = (url) => {
+            try {
+                return new URL(url, window.location.origin).href;
+            } catch (e) {
+                return url;
+            }
+        };
+  
+        // Get the current page URL
+        const currentPageUrl = normalizeUrl(window.location.href);
+  
+        // Find the link that matches the current page
+        let currentPageLink = null;
+        reportLinks.forEach(link => {
+            const normalizedLinkHref = normalizeUrl(link.href);
+            if (normalizedLinkHref === currentPageUrl) {
+                currentPageLink = link;
+            }
+        });
+  
+        // If the current page matches a link, set it as active and update localStorage
+        if (currentPageLink) {
+            currentPageLink.classList.add("active");
+            localStorage.setItem("activeReportLink", currentPageLink.href);
+        } else {
+            // If no match for the current page, fall back to the stored active link
+            let isMatchFound = false;
+            if (activeLink) {
+                reportLinks.forEach(link => {
+                    const normalizedLinkHref = normalizeUrl(link.href);
+                    const normalizedActiveLink = normalizeUrl(activeLink);
+                    if (normalizedLinkHref === normalizedActiveLink) {
+                        link.classList.add("active");
+                        isMatchFound = true;
+                    }
+                });
+            }
+  
+            // If no match for the stored active link, reset to Harvest
+            if (!isMatchFound) {
+                const harvestLink = Array.from(reportLinks).find(link =>
+                    normalizeUrl(link.href).includes("admin_harvest.html")
+                );
+                if (harvestLink) {
+                    harvestLink.classList.add("active");
+                    localStorage.setItem("activeReportLink", harvestLink.href);
+                } else {
+                }
+            }
+        }
+  
+        // Add click event listeners to update the active link
+        reportLinks.forEach(link => {
+            link.addEventListener("click", function () {
+                // Remove active class from all links
+                reportLinks.forEach(link => link.classList.remove("active"));
+  
+                // Add active class to clicked link
+                this.classList.add("active");
+  
+                // Store the active link in localStorage
+                localStorage.setItem("activeReportLink", this.href);
+            });
+        });
     });
   </script>
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="../../../src/auth/header.js"></script>
+
 </body>
 
 </html>
