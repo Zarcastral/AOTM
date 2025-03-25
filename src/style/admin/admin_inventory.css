@@ -96,7 +96,6 @@ body {
 .panel {
     background-color: white;
     width: 90%;
-    border-radius: 8px;
     box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
     margin-top: 0px;
@@ -220,6 +219,10 @@ body {
     margin-top: 20px;
     gap: 30px;
     font-size: 20px;
+  }
+
+  .stock-selector a:hover{
+    color: #41A186;
   }
   
   .stock-selector a {

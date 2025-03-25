@@ -102,7 +102,7 @@ body {
 }
 
 /* Ensure the parent container has proper positioning */
-.projects-search-bar {
+.harvest-search-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -113,19 +113,20 @@ body {
   display: flex;
   gap: 10px;
 }
+
 .image-header img {
   display: block; /* Makes the image block-level for better alignment */
   margin: 0 auto; /* Centers the image horizontally */
 }
 
-.projects-search-bar input {
+.harvest-search-bar input {
   width: 300px;
   padding: 8px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
 }
 
-.projects-search-bar select {
+.harvest-search-bar select {
   padding: 8px 18px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
@@ -134,7 +135,7 @@ body {
 .calendar-btn-icon {
   width: 55px; /* Adjust size to match the height of the input and dropdowns */
   height: 40px;
-  margin-left: 500px;
+  margin-left: 200px;
   cursor: pointer; /* Make it clickable */
 }
 
@@ -146,7 +147,6 @@ body {
 .calendar-btn-icon:hover {
   opacity: 0.7;
 }
-
 
 #month-picker {
   position: absolute;
@@ -216,6 +216,7 @@ body {
 #clear-btn:hover {
   background-color: #34836c;
 }
+
 .panel table th {
   text-align: center; /* This centers the text */
   vertical-align: middle;
@@ -250,25 +251,25 @@ th {
 
 th:nth-child(5),
 td:nth-child(5) {
-  width: 150px; /* Adjusted width for the action column */
+  width: 150px; /* Adjusted width for the barangay column */
   min-width: 150px; /* Minimum width to ensure usability */
 }
 
 th:nth-child(6),
 td:nth-child(6) {
-  width: 150px; /* Adjusted width for the action column */
+  width: 150px; /* Adjusted width for the Area Planted column */
   min-width: 150px; /* Minimum width to ensure usability */
 }
 
 th:nth-child(7),
 td:nth-child(7) {
-  width: 150px; /* Adjusted width for the action column */
+  width: 150px; /* Adjusted width for the To Date column */
   min-width: 150px; /* Minimum width to ensure usability */
 }
 
 th:last-child,
 td:last-child {
-  width: 70px; /* Fixed width for the action column; adjust as needed */
+  width: 70px; /* Fixed width for the To Date column after Production */
   min-width: 70px; /* Minimum width to ensure usability */
 }
 
@@ -328,7 +329,7 @@ tbody tr:hover {
 }
 
 /* Pagination styles */
-.projects-pagination {
+.harvest-pagination {
   display: flex;
   justify-content: flex-end;
   align-items: center; /* Aligns vertically */
@@ -337,12 +338,12 @@ tbody tr:hover {
   gap: 10px; /* Adds spacing between elements */
 }
 
-#projects-page-number {
+#harvest-page-number {
   font-size: 17px;
   color: #333;
 }
 
-.projects-pagination-btn {
+.harvest-pagination-btn {
   padding: 10px 10px;
   margin: 0;
   font-size: 25px;
@@ -354,11 +355,11 @@ tbody tr:hover {
   color: #333;
 }
 
-.projects-pagination-btn:hover {
+.harvest-pagination-btn:hover {
   color: #41A186;
 }
 
-.projects-pagination-btn:disabled {
+.harvest-pagination-btn:disabled {
   color: #bbb;
   cursor: not-allowed;
 }
@@ -397,7 +398,7 @@ tbody tr:hover {
   font-size: 20px;
 }
 
-.report-selector a{
+.report-selector a {
   color: slategray;
   transition: color 0.3s ease;
 }
