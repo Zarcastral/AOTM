@@ -11,10 +11,10 @@
 #edit-subtasks-modal .modal-content {
   background-color: white;
   margin: auto;
-  padding: 20px;
+  padding: 40px 50px;
   border: 1px solid #888;
-  width: 30%;
-  max-width: 600px;
+  width: 60%;
+  max-width: 1000px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -225,6 +225,7 @@
 #assign-task-modal #task-checkboxes {
   display: flex;
   flex-direction: column;
+  font-weight: 500;
 }
 
 /* Checkbox styling */
@@ -247,16 +248,17 @@
   font-weight: bold;
   text-align: center;
   border-radius: 20px;
-  padding: 10px 20px;
+  padding: 10px 40px;
   cursor: pointer;
   border: none;
   transition: background-color 0.3s ease;
   display: block;
   margin: 0 0 0 auto; /* Align to the right */
+  
 }
 
 #assign-task-modal .add-user-btn:hover {
-  background-color: #369c7a; /* Slightly darker green on hover */
+  background-color: #2e8568; /* Slightly darker green on hover */
 }
 
 #assign-task-modal .add-user-btn:disabled {

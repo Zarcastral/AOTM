@@ -160,7 +160,7 @@ function displayActivityLogs(activityLogs) {
     tableBody.innerHTML = "";
 
     if (pageData.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7">No records found.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7">No records found</td></tr>`;
     }
 
     pageData.forEach((log) => {

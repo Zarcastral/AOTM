@@ -477,7 +477,7 @@ function updateAssignedPagination() {
   const prevBtn = document.getElementById("assigned-prev-page-btn");
   const pageInfo = document.getElementById("assigned-page-info");
 
-  pageInfo.textContent = `Page ${assignedCurrentPage} of ${totalPages || 1}`;
+  pageInfo.textContent = `${assignedCurrentPage} of ${totalPages || 1}`;
   prevBtn.disabled = assignedCurrentPage === 1;
   nextBtn.disabled = assignedCurrentPage === totalPages || totalPages === 0;
 }

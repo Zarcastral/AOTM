@@ -210,7 +210,7 @@ function displayArchiveRecords() {
     tableBody.innerHTML = "";
 
     if (pageData.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="8">No records found.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="8">No records found</td></tr>`;
     }
 
     pageData.forEach((archive) => {

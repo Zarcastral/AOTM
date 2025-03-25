@@ -34,7 +34,7 @@ async function fetchProjectDetails() {
     try {
         // Query Firestore for projects where lead_farmer_id matches the session farmer_id
         const projectsRef = collection(db, "tb_projects");
-        const q = query(projectsRef, where("lead_farmer_id", "==", parseInt(farmerId, 10))); // Ensure comparison as integer
+        const q = query(projectsRef, where("lead_farmer_id", "==", farmerId));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
@@ -82,11 +82,17 @@ async function fetchTeams() {
     teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>Loading...</td></tr>";
 
     try {
-        // Retrieve logged-in user's email from sessionStorage
-        let userEmail = sessionStorage.getItem("userEmail") /*|| sessionStorage.getItem("farmerEmail")*/;
+        // Retrieve logged-in farmer_id from sessionStorage
+        let farmerId = sessionStorage.getItem("farmer_id"); // Retrieve farmer_id from session storage
+if (!farmerId) {
+    console.error("❌ No farmer_id found in sessionStorage.");
+    teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>User not logged in.</td></tr>";
+    return;
+}
 
-        if (!userEmail) {
-            console.error("❌ No email found in sessionStorage.");
+
+        if (!farmerId) {
+            console.error("❌ No farmerId found in sessionStorage.");
             teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>User not logged in.</td></tr>";
             return;
         }
@@ -94,10 +100,14 @@ async function fetchTeams() {
         const projectsRef = collection(db, "tb_projects");
 
         // Query projects where the user is the lead farmer or part of the team
-        const q = query(
-            projectsRef,
-            where("lead_farmer_email", "==", userEmail) // Ensure this field exists in Firestore
-        );
+        //const farmerIdInt = Number(farmerId); // Convert to integer to match Firestore data type
+
+
+const q = query(
+    projectsRef,
+    where("lead_farmer_id", "==", farmerId) // Query by farmer_id instead of email
+);
+
 
         const querySnapshot = await getDocs(q);
 

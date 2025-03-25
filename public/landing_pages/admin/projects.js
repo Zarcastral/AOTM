@@ -75,31 +75,49 @@ window.loadFarmland = async function (barangayName) {
 };
 
 window.loadCrops = async function () {
+  const assignToSelect = document.getElementById("assign-to");
+  const cropsSelect = document.getElementById("crops");
+
+  if (!assignToSelect || !cropsSelect) return;
+
+  const selectedFarmPresident = assignToSelect.value.trim(); // Get selected value
+  if (!selectedFarmPresident) return; // Exit if no Farm President is selected
+
   const userType = sessionStorage.getItem("user_type"); // Get user_type from session storage
   if (!userType) return; // Exit if user_type is not set
 
-  const querySnapshot = await getDocs(collection(db, "tb_crop_stock"));
-  const cropsSelect = document.getElementById("crops");
-  cropsSelect.innerHTML = '<option value="">Select Crop</option>';
-
-  querySnapshot.forEach((doc) => {
-    const cropData = doc.data();
-    const stocksArray = Array.isArray(cropData.stocks) ? cropData.stocks : []; // Ensure stocks is an array
-
-    // Check if any object inside 'stocks' has 'owned_by' matching userType
-    const isOwnedByUser = stocksArray.some(
-      (stock) => stock.owned_by === userType
-    );
-
-    // Ensure crop_name is valid before appending to dropdown
-    if (isOwnedByUser && cropData.crop_name && cropData.crop_name.trim() !== "") {
+  try {
+    const querySnapshot = await getDocs(collection(db, "tb_crop_stock"));
+    const uniqueCrops = new Set(); // Set to store unique crop names
+    
+    querySnapshot.forEach((doc) => {
+      const cropData = doc.data();
+      const stocksArray = Array.isArray(cropData.stocks) ? cropData.stocks : [];
+      
+      // Check if any object inside 'stocks' has 'owned_by' matching userType
+      const isOwnedByUser = stocksArray.some(stock => stock.owned_by === userType);
+      
+      if (isOwnedByUser && cropData.crop_name && cropData.crop_name.trim() !== "") {
+        uniqueCrops.add(cropData.crop_name.trim()); // Add unique crop names
+      }
+    });
+    
+    // Populate dropdown without redundant values
+    cropsSelect.innerHTML = '<option value="">Select Crop</option>';
+    uniqueCrops.forEach(crop => {
       const option = document.createElement("option");
-      option.value = cropData.crop_name;
-      option.textContent = cropData.crop_name;
+      option.value = crop;
+      option.textContent = crop;
       cropsSelect.appendChild(option);
-    }
-  });
+    });
+  } catch (error) {
+    console.error("Error loading crops:", error);
+  }
 };
+
+// Event listener to trigger loading crops when 'assign-to' changes
+document.getElementById("assign-to").addEventListener("change", window.loadCrops);
+
 
 
 window.loadCropTypes = async function (selectedCrop) {

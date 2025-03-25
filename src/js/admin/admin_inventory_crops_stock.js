@@ -460,11 +460,20 @@ const cropStockTitle = document.getElementById("crop-stock-title");
 const deleteStockTitle = document.getElementById("crop-delete-stock-title");
 const deleteStockBtn = document.getElementById("crop-delete-stock");
 
+// Initialize the panel as hidden
+cropStockPanel.style.display = "none";
+cropOverlay.style.display = "none";
+
 function addCropStock() {
   document.querySelector(".crop_table").addEventListener("click", async function (event) {
-      if (event.target.classList.contains("add-crop-stock-btn") || event.target.classList.contains("delete-crop-stock-btn")) {
-          const cropTypeId = event.target.dataset.id; 
-          const isDelete = event.target.classList.contains("delete-crop-stock-btn");
+      if (event.target.classList.contains("add-crop-stock-btn") || event.target.classList.contains("delete-crop-stock-btn") || 
+          event.target.closest('.add-crop-stock-btn') || event.target.closest('.delete-crop-stock-btn')) {
+          event.preventDefault(); // Prevent any default behavior
+          
+          // Get the button element (whether clicked directly or via child element)
+          const button = event.target.closest('.add-crop-stock-btn') || event.target.closest('.delete-crop-stock-btn');
+          const cropTypeId = button.dataset.id;
+          const isDelete = button.classList.contains("delete-crop-stock-btn");
 
           try {
               const user = await getAuthenticatedUser();
@@ -475,50 +484,52 @@ function addCropStock() {
 
               const userType = user.user_type.trim();
 
-              let cropTypeName = "No category was recorded";
-              let cropName = "No name was recorded";
-              let cropUnit = "No unit was recorded"; 
-              let currentStock = "No stock recorded"; 
-              let stockUnit = ""; 
-
-              const cropsCollection = collection(db, "tb_crop_types");
-              const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
-              const cropSnapshot = await getDocs(cropQuery);
-
-              if (!cropSnapshot.empty) {
-                  const cropData = cropSnapshot.docs[0].data();
-                  cropName = cropData.crop_name?.trim() || "No name was recorded";
-                  cropTypeName = cropData.crop_type_name?.trim() || "No category was recorded";
-                  cropUnit = cropData.unit?.trim() || "No unit was recorded";
-              }
-
-              const stockCollection = collection(db, "tb_crop_stock");
-              const stockQuery = query(stockCollection, where("crop_type_id", "==", Number(cropTypeId)));
-              const stockSnapshot = await getDocs(stockQuery);
-
-              if (!stockSnapshot.empty) {
-                  const stockData = stockSnapshot.docs[0].data();
-
-                  if (stockData.stocks && Array.isArray(stockData.stocks)) {
-                      const matchingStock = stockData.stocks.find(stock => stock.owned_by === userType);
-
-                      if (matchingStock) {
-                          currentStock = matchingStock.current_stock || "No stock recorded";
-                          stockUnit = matchingStock.unit?.trim() || "";
-                      }
+              // Find the row in the table corresponding to this cropTypeId
+              const tableRows = document.querySelectorAll(".crop_table table tbody tr");
+              let rowData = null;
+              
+              tableRows.forEach(row => {
+                  const rowCropId = row.cells[0].textContent.trim();
+                  if (rowCropId === cropTypeId) {
+                      rowData = row;
                   }
+              });
+
+              if (!rowData) {
+                  console.error("Crop not found in table");
+                  return;
               }
 
+              // Extract data from table row
+              const cropTypeName = rowData.cells[1].textContent.trim() || "No category was recorded";
+              const cropName = rowData.cells[2].textContent.trim() || "No name was recorded";
+              let currentStock = rowData.cells[4].textContent.trim() || "No stock recorded";
+              
+              // Split stock value and unit if present
+              let stockUnit = "";
+              const stockParts = currentStock.split(" ");
+              if (stockParts.length > 1) {
+                  currentStock = stockParts[0];
+                  stockUnit = stockParts[1];
+              }
+
+              // Get unit from hidden field or table if available
+              const cropUnit = document.getElementById("crop_unit_hidden").value || stockUnit || "No unit was recorded";
+
+              // Set form values
               document.getElementById("crops").value = cropTypeName;
               document.getElementById("crop_name").value = cropName;
               document.getElementById("crop_unit_hidden").value = cropUnit;
               document.getElementById("current_crop_stock").value = currentStock + (stockUnit ? ` ${stockUnit}` : "");
+              document.getElementById("crop_stock").value = ""; // Reset input field
 
-              cropStockPanel.style.display = "block";
-              cropOverlay.style.display = "block";
-
+              // Set data attributes
               saveBtn.dataset.cropTypeId = cropTypeId;
               deleteStockBtn.dataset.cropTypeId = cropTypeId;
+
+              // Show the panel and overlay
+              cropStockPanel.style.display = "block";
+              cropOverlay.style.display = "block";
 
               // Toggle between add and delete mode
               if (isDelete) {
@@ -534,7 +545,7 @@ function addCropStock() {
               }
 
           } catch (error) {
-              console.error("Error fetching crop details:", error);
+              console.error("Error fetching crop details from table:", error);
           }
       }
   });
@@ -547,48 +558,49 @@ function addCropStock() {
   let isSaving = false;
   let isDeleting = false;
 
-  // Button event listeners
+  // Save button handler
   saveBtn.addEventListener("click", async () => {
-      if (isSaving) return;  // Prevent multiple clicks
+      if (isSaving) return;
       isSaving = true;
-      saveBtn.disabled = true; // Disable button
+      saveBtn.disabled = true;
 
       try {
-          await saveStock(); // Call save function
+          await saveStock();
       } catch (error) {
           console.error("Error saving stock:", error);
       } finally {
           isSaving = false;
-          saveBtn.disabled = false; // Re-enable button
+          saveBtn.disabled = false;
       }
   });
 
+  // Delete button handler
   deleteStockBtn.addEventListener("click", async () => {
-      if (isDeleting) return;  // Prevent multiple clicks
+      if (isDeleting) return;
       isDeleting = true;
-      deleteStockBtn.disabled = true; // Disable button
+      deleteStockBtn.disabled = true;
 
       try {
-          await deleteStock(); // Call delete function
+          await deleteStock();
       } catch (error) {
           console.error("Error deleting stock:", error);
       } finally {
           isDeleting = false;
-          deleteStockBtn.disabled = false; // Re-enable button
+          deleteStockBtn.disabled = false;
       }
   });
 }
 
 function closeStockPanel() {
-  cropStockPanel.style.display = "none";
-  cropOverlay.style.display = "none";
-  document.getElementById("crops").value = "";
-  document.getElementById("crop_name").value = "";
-  document.getElementById("crop_stock").value = "";
-  document.getElementById("crop_unit_hidden").value = "";
-  fetchCrops();
+    cropStockPanel.style.display = "none";
+    cropOverlay.style.display = "none";
+    document.getElementById("crops").value = "";
+    document.getElementById("crop_name").value = "";
+    document.getElementById("crop_stock").value = "";
+    document.getElementById("crop_unit_hidden").value = "";
+    document.getElementById("current_crop_stock").value = "";
+    fetchCrops();
 }
-
 
 async function saveStock() {
   const cropTypeId = Number(saveBtn.dataset.cropTypeId); // Ensure it's a number

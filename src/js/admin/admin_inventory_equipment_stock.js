@@ -470,127 +470,139 @@ const saveBtn = document.getElementById("equip-save-stock");
 const equipmentStockPanel = document.getElementById("equip-stock-panel");
 const equipmentOverlay = document.getElementById("equip-overlay");
 const cancelBtn = document.getElementById("equip-cancel-stock");
-const equipmentStockTitle = document.getElementById("equip-stock-title")
-;
+const equipmentStockTitle = document.getElementById("equip-stock-title");
 const deleteStockTitle = document.getElementById("equip-delete-stock-title");
 const deleteStockBtn = document.getElementById("equip-delete-stock");
+
+// Initialize the panel as hidden
+equipmentStockPanel.style.display = "none";
+equipmentOverlay.style.display = "none";
+
 function addEquipStock() {
-  document.querySelector(".equipment_table").addEventListener("click", async function (event) {
-      if (event.target.classList.contains("add-equip-stock-btn") || event.target.classList.contains("delete-equip-stock-btn")) {
-          const equipmentId = event.target.dataset.id; 
-          const isDelete = event.target.classList.contains("delete-equip-stock-btn");
+    document.querySelector(".equipment_table").addEventListener("click", async function (event) {
+        if (event.target.classList.contains("add-equip-stock-btn") || event.target.classList.contains("delete-equip-stock-btn") ||
+            event.target.closest('.add-equip-stock-btn') || event.target.closest('.delete-equip-stock-btn')) {
+            event.preventDefault(); // Prevent any default behavior
+            
+            // Get the button element (whether clicked directly or via child element)
+            const button = event.target.closest('.add-equip-stock-btn') || event.target.closest('.delete-equip-stock-btn');
+            const equipmentId = button.dataset.id;
+            const isDelete = button.classList.contains("delete-equip-stock-btn");
 
-          try {
-              const user = await getAuthenticatedUser();
-              if (!user || !user.user_type) {
-                  console.error("No authenticated user or user type found.");
-                  return;
-              }
+            try {
+                const user = await getAuthenticatedUser();
+                if (!user || !user.user_type) {
+                    console.error("No authenticated user or user type found.");
+                    return;
+                }
 
-              const userType = user.user_type.trim();
+                const userType = user.user_type.trim();
 
-              let equipmentCategory = "No category was recorded";
-              let equipmentName = "No name was recorded";
-              let equipmentUnit = ""; 
-              let currentStock = "No stock recorded"; 
-              let stockUnit = ""; 
+                // Find the row in the table corresponding to this equipmentId
+                const tableRows = document.querySelectorAll(".equipment_table table tbody tr");
+                let rowData = null;
+                
+                tableRows.forEach(row => {
+                    const rowEquipId = row.cells[0].textContent.trim();
+                    if (rowEquipId === equipmentId) {
+                        rowData = row;
+                    }
+                });
 
-              const equipmentsCollection = collection(db, "tb_equipment");
-              const equipmentQuery = query(equipmentsCollection, where("equipment_id", "==", Number(equipmentId)));
-              const equipmentSnapshot = await getDocs(equipmentQuery);
+                if (!rowData) {
+                    console.error("Equipment not found in table");
+                    return;
+                }
 
-              if (!equipmentSnapshot.empty) {
-                  const equipmentData = equipmentSnapshot.docs[0].data();
-                  equipmentName = equipmentData.equipment_name?.trim() || "No Equipment Name was recorded";
-                  equipmentCategory = equipmentData.equipment_category?.trim() || "No Equipment Category was recorded";
-                  equipmentUnit = equipmentData.unit?.trim() || "";
-              }
+                // Extract data from table row
+                const equipmentName = rowData.cells[1].textContent.trim() || "No name was recorded";
+                const equipmentCategory = rowData.cells[2].textContent.trim() || "No category was recorded";
+                let currentStock = rowData.cells[4].textContent.trim() || "No stock recorded";
+                
+                // Split stock value and unit if present
+                let stockUnit = "";
+                const stockParts = currentStock.split(" ");
+                if (stockParts.length > 1) {
+                    currentStock = stockParts[0];
+                    stockUnit = stockParts[1];
+                }
 
-              const stockCollection = collection(db, "tb_equipment_stock");
-              const stockQuery = query(stockCollection, where("equipment_id", "==", Number(equipmentId)));
-              const stockSnapshot = await getDocs(stockQuery);
+                // Get unit from hidden field or table if available
+                const equipmentUnit = document.getElementById("equip_unit_hidden").value || stockUnit || "";
 
-              if (!stockSnapshot.empty) {
-                  const stockData = stockSnapshot.docs[0].data();
+                // Set form values
+                document.getElementById("equip_name").value = equipmentName;
+                document.getElementById("equip_type").value = equipmentCategory;
+                document.getElementById("equip_unit_hidden").value = equipmentUnit;
+                document.getElementById("current_equip_stock").value = currentStock + (stockUnit ? ` ${stockUnit}` : "");
+                document.getElementById("equip_stock").value = ""; // Reset input field
 
-                  if (stockData.stocks && Array.isArray(stockData.stocks)) {
-                      const matchingStock = stockData.stocks.find(stock => stock.owned_by === userType);
+                // Set data attributes
+                saveBtn.dataset.equipmentId = equipmentId;
+                deleteStockBtn.dataset.equipmentId = equipmentId;
 
-                      if (matchingStock) {
-                          currentStock = matchingStock.current_stock || "No stock recorded";
-                          stockUnit = matchingStock.unit?.trim() || "";
-                      }
-                  }
-              }
+                // Show the panel and overlay
+                equipmentStockPanel.style.display = "block";
+                equipmentOverlay.style.display = "block";
 
-              document.getElementById("equip_name").value = equipmentName;
-              document.getElementById("equip_type").value = equipmentCategory;
-              document.getElementById("equip_unit_hidden").value = equipmentUnit;
-              document.getElementById("current_equip_stock").value = currentStock + (stockUnit ? ` ${stockUnit}` : "");
+                // Toggle between add and delete mode
+                if (isDelete) {
+                    equipmentStockTitle.style.display = "none";
+                    deleteStockTitle.style.display = "block";
+                    saveBtn.style.display = "none";
+                    deleteStockBtn.style.display = "block";
+                } else {
+                    equipmentStockTitle.style.display = "block";
+                    deleteStockTitle.style.display = "none";
+                    saveBtn.style.display = "block";
+                    deleteStockBtn.style.display = "none";
+                }
 
-              equipmentStockPanel.style.display = "block";
-              equipmentOverlay.style.display = "block";
+            } catch (error) {
+                console.error("Error fetching equipment details from table:", error);
+            }
+        }
+    });
 
-              saveBtn.dataset.equipmentId = equipmentId;
-              deleteStockBtn.dataset.equipmentId = equipmentId;
+    // Close panel events
+    cancelBtn.addEventListener("click", closeStockPanel);
+    equipmentOverlay.addEventListener("click", closeStockPanel);
 
-              // Toggle between add and delete mode
-              if (isDelete) {
-                  equipmentStockTitle.style.display = "none";
-                  deleteStockTitle.style.display = "block";
-                  saveBtn.style.display = "none";
-                  deleteStockBtn.style.display = "block";
-              } else {
-                  equipmentStockTitle.style.display = "block";
-                  deleteStockTitle.style.display = "none";
-                  saveBtn.style.display = "block";
-                  deleteStockBtn.style.display = "none";
-              }
+    // Flag to prevent multiple clicks
+    let isSaving = false;
+    let isDeleting = false;
 
-          } catch (error) {
-              console.error("Error fetching equipment details:", error);
-          }
-      }
-  });
+    // Save button handler
+    saveBtn.addEventListener("click", async () => {
+        if (isSaving) return;
+        isSaving = true;
+        saveBtn.disabled = true;
 
-  // Close panel events
-  cancelBtn.addEventListener("click", closeStockPanel);
-  equipmentOverlay.addEventListener("click", closeStockPanel);
+        try {
+            await saveStock();
+        } catch (error) {
+            console.error("Error saving stock:", error);
+        } finally {
+            isSaving = false;
+            saveBtn.disabled = false;
+        }
+    });
 
-  // Flag to prevent multiple clicks
-  let isSaving = false;
-  let isDeleting = false;
+    // Delete button handler
+    deleteStockBtn.addEventListener("click", async () => {
+        if (isDeleting) return;
+        isDeleting = true;
+        deleteStockBtn.disabled = true;
 
-  // Button event listeners
-  saveBtn.addEventListener("click", async () => {
-      if (isSaving) return;  // Prevent multiple clicks
-      isSaving = true;
-      saveBtn.disabled = true; // Disable button
-
-      try {
-          await saveStock(); // Call save function
-      } catch (error) {
-          console.error("Error saving stock:", error);
-      } finally {
-          isSaving = false;
-          saveBtn.disabled = false; // Re-enable button
-      }
-  });
-
-  deleteStockBtn.addEventListener("click", async () => {
-      if (isDeleting) return;  // Prevent multiple clicks
-      isDeleting = true;
-      deleteStockBtn.disabled = true; // Disable button
-
-      try {
-          await deleteStock(); // Call delete function
-      } catch (error) {
-          console.error("Error deleting stock:", error);
-      } finally {
-          isDeleting = false;
-          deleteStockBtn.disabled = false; // Re-enable button
-      }
-  });
+        try {
+            await deleteStock();
+        } catch (error) {
+            console.error("Error deleting stock:", error);
+        } finally {
+            isDeleting = false;
+            deleteStockBtn.disabled = false;
+        }
+    });
 }
 
 function closeStockPanel() {

@@ -7,7 +7,8 @@ import {
     query,
     where,
     getFirestore,
-    updateDoc
+    updateDoc,
+    addDoc
   } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
@@ -381,6 +382,84 @@ async function updateCropStockAfterAssignment(project_id) {
     }
 }
 
+//TB PROJECT TASK ASSIGNING
+async function fetchProjectTasks(project_id) {
+    try {
+        // Fetch project details
+        const projectDetails = await fetchProjectDetails(project_id);
+        if (!projectDetails) {
+            console.warn("No project details found.");
+            return null;
+        }
+
+        const { project_creator, crop_type_name } = projectDetails;
+
+        // Fetch crop stock details
+        const cropStock = await fetchCropStockByOwner(project_creator, crop_type_name);
+        if (!cropStock) {
+            console.warn("No crop stock details found.");
+            return null;
+        }
+
+        const { crop_name } = cropStock;
+
+        // Fetch matching tasks from tb_task_list
+        const taskQuery = query(collection(db, "tb_task_list"), where("crop_type_name", "==", crop_type_name));
+        const taskSnapshot = await getDocs(taskQuery);
+
+        if (taskSnapshot.empty) {
+            console.warn("No matching task found in tb_task_list.");
+            return null;
+        }
+
+        // Fetch and increment project_task_id from tb_id_counters
+        const idCounterRef = doc(db, "tb_id_counters", "project_task_id_counter");
+        const idCounterSnap = await getDoc(idCounterRef);
+
+        if (!idCounterSnap.exists()) {
+            console.error("ID counter document not found.");
+            return null;
+        }
+
+        let project_task_id = idCounterSnap.data().count || 1;
+
+        const finalDataArray = [];
+
+        // Loop through each task and create a separate record
+        for (const taskDoc of taskSnapshot.docs) {
+            const taskData = taskDoc.data();
+            const task_name = taskData.task_name || "N/A";
+            const subtasks = taskData.subtasks || [];
+
+            const finalData = {
+                project_id,
+                crop_name,
+                crop_type_name,
+                project_task_id, // Auto-incremented ID
+                task_name, // Solo field
+                subtasks, // Array of subtask
+                status: "Pending" // ✅ Added status field
+            };
+
+            finalDataArray.push(finalData);
+
+            // Increment the project_task_id for the next task
+            project_task_id++;
+        }
+
+        // Update the counter with the new value
+        await updateDoc(idCounterRef, { count: project_task_id });
+
+        console.log("Fetched Project Tasks:", finalDataArray);
+        return finalDataArray; // Returns an array of records
+    } catch (error) {
+        console.error("Error fetching project tasks:", error);
+        return null;
+    }
+}
+
+
+
 
 
 
@@ -393,25 +472,21 @@ async function teamAssign(project_id) {
     }
     panel.style.display = "flex";
 
-// Fetch and log project details
-const projectData = await fetchProjectDetails(project_id);
-if (!projectData) {
-    console.error("Error: Failed to fetch project details.");
-    return;
-}
-console.log("Project Details:", projectData);
+    // Fetch and log project details
+    const projectData = await fetchProjectDetails(project_id);
+    if (!projectData) {
+        console.error("Error: Failed to fetch project details.");
+        return;
+    }
+    console.log("Project Details:", projectData);
 
-// Fetch and log crop stock data separately
-if (projectData.project_creator && projectData.crop_type_name) {
-    const cropStock = await fetchCropStockByOwner(projectData.project_creator, projectData.crop_type_name);
-    console.log("Crop Stock by Owner:", cropStock ? cropStock : "No stock found.");
-} else {
-    console.warn("Missing project creator or crop type name, skipping crop stock fetch.");
-}
-
-
-    
-    
+    // Fetch and log crop stock data separately
+    if (projectData.project_creator && projectData.crop_type_name) {
+        const cropStock = await fetchCropStockByOwner(projectData.project_creator, projectData.crop_type_name);
+        console.log("Crop Stock by Owner:", cropStock ? cropStock : "No stock found.");
+    } else {
+        console.warn("Missing project creator or crop type name, skipping crop stock fetch.");
+    }
 
     try {
         const userBarangay = sessionStorage.getItem("barangay_name");
@@ -452,7 +527,7 @@ if (projectData.project_creator && projectData.crop_type_name) {
             displayedTeamIds.push(teamId);
             const teamName = teamData.team_name;
             const leadFarmer = teamData.lead_farmer;
-            const leadFarmerEmail = teamData.lead_farmer_email || "N/A"; // Get lead farmer email
+            const leadFarmerId = String(teamData.lead_farmer_id); // Ensure it's a string
             const totalFarmers = teamData.farmer_name ? teamData.farmer_name.length : 0;
 
             teamListHtml += `
@@ -460,10 +535,10 @@ if (projectData.project_creator && projectData.crop_type_name) {
                      data-team-id="${teamId}" 
                      data-team-name="${teamName}" 
                      data-lead-farmer="${leadFarmer}" 
-                     data-lead-farmer-email="${leadFarmerEmail}"
+                     data-lead-farmer-id="${leadFarmerId}"  
                      data-farmers='${JSON.stringify(teamData.farmer_name || [])}'>
                     <strong>${teamName}</strong><br>
-                    Lead: ${leadFarmer} (${leadFarmerEmail})<br>
+                    Lead: ${leadFarmer}<br>
                     Total Farmers: ${totalFarmers}
                 </div>
             `;
@@ -497,7 +572,7 @@ if (projectData.project_creator && projectData.crop_type_name) {
             team_id: parseInt(selectedElement.getAttribute("data-team-id"), 10),
             team_name: selectedElement.getAttribute("data-team-name"),
             lead_farmer: selectedElement.getAttribute("data-lead-farmer"),
-            lead_farmer_email: selectedElement.getAttribute("data-lead-farmer-email"),
+            lead_farmer_id: selectedElement.getAttribute("data-lead-farmer-id"),
             farmer_name: JSON.parse(selectedElement.getAttribute("data-farmers"))
         };
     });
@@ -525,20 +600,21 @@ if (projectData.project_creator && projectData.crop_type_name) {
                                 team_id: selectedTeam.team_id,
                                 team_name: selectedTeam.team_name,
                                 lead_farmer: selectedTeam.lead_farmer,
-                                lead_farmer_email: selectedTeam.lead_farmer_email, // ✅ Inserted lead farmer email
+                                lead_farmer_id: selectedTeam.lead_farmer_id, // ✅ Add lead farmer ID
                                 farmer_name: selectedTeam.farmer_name,
                                 crop_date: currentDate,
                                 fertilizer_date: currentDate,
                                 equipment_date: currentDate,
-                                status: "Ongoing" // ✅ Status updated from Pending to Ongoing
+                                status: "Ongoing"
                             });
+                            
 
                             localStorage.setItem("projectData", JSON.stringify({
                                 ...doc.data(),
                                 team_id: selectedTeam.team_id,
                                 team_name: selectedTeam.team_name,
                                 lead_farmer: selectedTeam.lead_farmer,
-                                lead_farmer_email: selectedTeam.lead_farmer_email, // ✅ Inserted lead farmer email
+                                lead_farmer_email: selectedTeam.lead_farmer_email,
                                 farmer_name: selectedTeam.farmer_name,
                                 crop_date: currentDate,
                                 fertilizer_date: currentDate,
@@ -547,10 +623,21 @@ if (projectData.project_creator && projectData.crop_type_name) {
                             }));
 
                             alert(`Team "${selectedTeam.team_name}" has been successfully assigned! Project status updated to Ongoing.`);
-                            
-// ✅ Call the function to update crop stock after assigning a team
-                await updateCropStockAfterAssignment(project_id);
 
+                            // ✅ Inserted Code: Save the gathered data to `tb_project_task`
+const projectTasks = await fetchProjectTasks(project_id);
+if (projectTasks && projectTasks.length > 0) {
+    for (const task of projectTasks) {
+        await addDoc(collection(db, "tb_project_task"), task);
+    }
+    console.log("Successfully saved project task data:", projectTasks);
+} else {
+    console.warn("Failed to fetch project tasks, skipping save.");
+}   
+
+
+                            // ✅ Call the function to update crop stock after assigning a team
+                            await updateCropStockAfterAssignment(project_id);
 
                             // Redirect to farmpres_project.html after successful save
                             window.location.href = "farmpres_project.html";
@@ -570,6 +657,7 @@ if (projectData.project_creator && projectData.crop_type_name) {
         }
     }, 100);
 }
+
 
 
     // Function to reset selection
