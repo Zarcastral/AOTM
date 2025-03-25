@@ -142,9 +142,27 @@ async function fetchProjectTasks(cropTypeName, projectId) {
     // Add event listeners for the view buttons
     document.querySelectorAll(".view-task-btn").forEach((button) => {
       button.addEventListener("click", (event) => {
-        const taskId = event.currentTarget.dataset.taskId;
-        // Navigate to the task details page with taskId as a query parameter
-        window.location.href = `headfarm_subtask.html?taskId=${taskId}`;
+        const taskId = event.currentTarget.dataset.taskId; // Firestore document ID
+        const taskRow = document.getElementById(`task-row-${taskId}`);
+        const taskName = taskRow.querySelector("td:first-child").textContent;
+
+        // Fetch the actual project_task_id from Firestore data
+        const tasksRef = collection(db, "tb_project_task");
+        const q = query(tasksRef, where("__name__", "==", taskId));
+        getDocs(q)
+          .then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+              const taskData = querySnapshot.docs[0].data();
+              const projectTaskId = taskData.project_task_id; // Get the number (e.g., 35)
+
+              sessionStorage.setItem("project_task_id", projectTaskId);
+              sessionStorage.setItem("selected_task_name", taskName);
+              window.location.href = "headfarm_subtask.html";
+            }
+          })
+          .catch((error) => {
+            console.error("❌ Error fetching task data:", error);
+          });
       });
     });
   } catch (error) {

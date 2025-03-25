@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,22 +11,24 @@
             font-family: 'Poppins';
             background-color: #f5f9ff;
             margin: 0;
-            padding-top: 1px; /* Fix for margin collapse */
+            padding-top: 1px;
+            /* Fix for margin collapse */
         }
 
         .panel {
-            margin-top: 100px; /* Should work now */
+            margin-top: 100px;
+            /* Should work now */
             background-color: #fff;
             border-radius: 10px;
             padding: 20px;
             max-width: 800px;
-            margin-left: auto; /* Simplified margin: 0 auto */
+            margin-left: auto;
+            /* Simplified margin: 0 auto */
             margin-right: auto;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             border: 1px solid #e0e0e0;
         }
 
-        /* Rest of your styles remain unchanged */
         .panel-top {
             display: flex;
             justify-content: space-between;
@@ -56,7 +59,8 @@
             margin-bottom: 20px;
         }
 
-        .subtask-table th, .subtask-table td {
+        .subtask-table th,
+        .subtask-table td {
             padding: 10px;
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
@@ -112,11 +116,12 @@
         }
     </style>
 </head>
+
 <body>
     <div id="header-container"></div>
     <div class="panel">
         <div class="panel-top">
-            <h1>Planting</h1>
+            <h1 id="taskName">Planting</h1> <!-- ID remains for targeting -->
             <a href="#" class="add-subtask">+ Add Subtask</a>
         </div>
 
@@ -151,5 +156,10 @@
         <button class="completed-btn">Completed</button>
     </div>
     <script type="module" src="../../../src/auth/header.js"></script>
+    <script type="module">
+        import { initializeSubtaskPage } from "../../../src/js/head_farmer/headfarm_subtask.js";
+        initializeSubtaskPage();
+    </script>
 </body>
+
 </html>
