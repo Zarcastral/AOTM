@@ -315,35 +315,30 @@ async function getNextTeamId() {
         const farmersRef = collection(db, "tb_farmers");
         const querySnapshot = await getDocs(farmersRef);
 
-        let leadFarmerEmail = "";
-        let leadFarmerId = "";
+        let leadFarmerId = null;
 
         querySnapshot.forEach((doc) => {
             const farmerData = doc.data();
             const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
 
             if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
-                leadFarmerEmail = farmerData.email;
-                leadFarmerId = parseInt(farmerData.farmer_id, 10) || 0; // Convert to integer, default to 0 if NaN
+                leadFarmerId = String(farmerData.farmer_id); // Convert to string
             }
         });
 
-        if (!leadFarmerEmail) {
-            alert(`Lead farmer '${leadFarmer}' not found in the database.`);
+        if (!leadFarmerId) {
+            alert(`Lead farmer '${leadFarmer}' not found or has an invalid farmer_id.`);
             return;
         }
 
-        if (!leadFarmerId || isNaN(leadFarmerId)) {
-            alert(`Lead farmer '${leadFarmer}' does not have a valid farmer_id.`);
-            return;
-        }
+        // Display the farmer_id as a string in the console
+        console.log(`Lead Farmer ID (as string): "${leadFarmerId}"`);
 
         const teamData = {
             team_id: teamId,
             team_name: teamName,
             lead_farmer: leadFarmer,
-            lead_farmer_id: leadFarmerId, // Now stored as an integer
-            lead_farmer_email: leadFarmerEmail,
+            lead_farmer_id: leadFarmerId, // Ensured as a string
             farmer_name: farmers,
             barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
         };
@@ -356,6 +351,8 @@ async function getNextTeamId() {
         alert("Failed to save team. Please try again.");
     }
 }
+
+
 
   
   // Attach event listener to Save button

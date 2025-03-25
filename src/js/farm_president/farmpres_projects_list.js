@@ -526,7 +526,7 @@ async function teamAssign(project_id) {
             displayedTeamIds.push(teamId);
             const teamName = teamData.team_name;
             const leadFarmer = teamData.lead_farmer;
-            const leadFarmerEmail = teamData.lead_farmer_email || "N/A"; // Get lead farmer email
+            const leadFarmerId = String(teamData.lead_farmer_id); // Ensure it's a string
             const totalFarmers = teamData.farmer_name ? teamData.farmer_name.length : 0;
 
             teamListHtml += `
@@ -534,10 +534,10 @@ async function teamAssign(project_id) {
                      data-team-id="${teamId}" 
                      data-team-name="${teamName}" 
                      data-lead-farmer="${leadFarmer}" 
-                     data-lead-farmer-email="${leadFarmerEmail}"
+                     data-lead-farmer-id="${leadFarmerId}"  
                      data-farmers='${JSON.stringify(teamData.farmer_name || [])}'>
                     <strong>${teamName}</strong><br>
-                    Lead: ${leadFarmer} (${leadFarmerEmail})<br>
+                    Lead: ${leadFarmer}<br>
                     Total Farmers: ${totalFarmers}
                 </div>
             `;
@@ -571,7 +571,7 @@ async function teamAssign(project_id) {
             team_id: parseInt(selectedElement.getAttribute("data-team-id"), 10),
             team_name: selectedElement.getAttribute("data-team-name"),
             lead_farmer: selectedElement.getAttribute("data-lead-farmer"),
-            lead_farmer_email: selectedElement.getAttribute("data-lead-farmer-email"),
+            lead_farmer_id: selectedElement.getAttribute("data-lead-farmer-id"),
             farmer_name: JSON.parse(selectedElement.getAttribute("data-farmers"))
         };
     });
@@ -599,13 +599,14 @@ async function teamAssign(project_id) {
                                 team_id: selectedTeam.team_id,
                                 team_name: selectedTeam.team_name,
                                 lead_farmer: selectedTeam.lead_farmer,
-                                lead_farmer_email: selectedTeam.lead_farmer_email,
+                                lead_farmer_id: selectedTeam.lead_farmer_id, // ✅ Add lead farmer ID
                                 farmer_name: selectedTeam.farmer_name,
                                 crop_date: currentDate,
                                 fertilizer_date: currentDate,
                                 equipment_date: currentDate,
                                 status: "Ongoing"
                             });
+                            
 
                             localStorage.setItem("projectData", JSON.stringify({
                                 ...doc.data(),
@@ -631,7 +632,7 @@ if (projectTasks && projectTasks.length > 0) {
     console.log("Successfully saved project task data:", projectTasks);
 } else {
     console.warn("Failed to fetch project tasks, skipping save.");
-}
+}   
 
 
                             // ✅ Call the function to update crop stock after assigning a team
