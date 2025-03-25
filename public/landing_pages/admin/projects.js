@@ -292,6 +292,7 @@ window.loadFertilizerTypes = async function (selectedFertilizer) {
 
 
 // EQUIPMENT TRY
+// EQUIPMENT TRY
 async function addEquipmentForm() {
   const container = document.getElementById("equipment-container");
 
@@ -314,11 +315,12 @@ async function addEquipmentForm() {
           <select class="form__select equipment__name">
               <option value="">Select Equipment Type First</option>
           </select>
+          
       </div>
 
       <div class="form__group">
           <label class="form__label">Equipment Quantity:</label>
-          <input type="number" class="form__input equipment__quantity" min="1" placeholder="Enter quantity">
+          <input type="number" class="form__input equipment__quantity">
       </div>
 
       <button class="btn btn--remove" onclick="removeEquipmentForm(this)">Remove</button>
@@ -326,10 +328,18 @@ async function addEquipmentForm() {
 
   container.appendChild(div);
 
-  div.querySelector(".equipment__type").addEventListener("change", function () {
-      loadEquipmentNames(this, div.querySelector(".equipment__name"));
+  const equipmentTypeDropdown = div.querySelector(".equipment__type");
+  const equipmentNameDropdown = div.querySelector(".equipment__name");
+  const quantityInput = div.querySelector(".equipment__quantity");
+  const stockLabel = div.querySelector(".stock-label");
+
+  equipmentTypeDropdown.addEventListener("change", function () {
+      loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput, stockLabel);
   });
 }
+
+
+
 
 async function getEquipmentTypes() {
   const userType = sessionStorage.getItem("user_type"); // Get logged-in user type from session
@@ -359,15 +369,14 @@ async function getEquipmentTypes() {
   return Array.from(uniqueTypes);
 }
 
-// Example usage:
-getEquipmentTypes().then(types => console.log("Filtered Equipment Types:", types));
 
 
 
-
-async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown) {
+async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput) {
   const selectedType = equipmentTypeDropdown.value;
   equipmentNameDropdown.innerHTML = '<option value="">Loading...</option>';
+  equipmentNameDropdown.dataset.stock = ""; // Reset stock data
+  quantityInput.placeholder = "Available Stock: -"; // Reset placeholder
 
   if (!selectedType) {
       equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Type First</option>';
@@ -379,12 +388,41 @@ async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown) 
   equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Name</option>';
 
   querySnapshot.forEach(doc => {
+      const data = doc.data();
       const option = document.createElement("option");
-      option.value = doc.data().equipment_name;
-      option.textContent = doc.data().equipment_name;
+      option.value = data.equipment_name;
+      option.textContent = data.equipment_name;
+
+      // Ensure stocks array exists and has data
+      const firstStockEntry = data.stocks && data.stocks.length > 0 ? data.stocks[0] : null;
+      const currentStock = firstStockEntry ? firstStockEntry.current_stock : 0; // Extract the correct value
+
+      option.dataset.stock = currentStock; // Store stock value in the option
       equipmentNameDropdown.appendChild(option);
   });
+
+  // Add event listener to update placeholder and limit input value
+  equipmentNameDropdown.addEventListener("change", function() {
+      const selectedOption = equipmentNameDropdown.options[equipmentNameDropdown.selectedIndex];
+      const stock = selectedOption.dataset.stock || 0;
+
+      quantityInput.placeholder = `Available Stock: ${stock}`; // Set placeholder
+      equipmentNameDropdown.dataset.stock = stock;
+      
+      quantityInput.value = ""; // Reset input
+      quantityInput.setAttribute("max", stock); // Set max limit
+  });
+
+  // Ensure input does not exceed available stock
+  quantityInput.addEventListener("input", function() {
+      const maxStock = parseInt(equipmentNameDropdown.dataset.stock) || 0;
+      if (parseInt(quantityInput.value) > maxStock) {
+          quantityInput.value = maxStock;
+      }
+  });
 }
+
+
 
 // Function to remove an equipment form entry
 function removeEquipmentForm(button) {
@@ -395,7 +433,6 @@ function removeEquipmentForm(button) {
 window.addEquipmentForm = addEquipmentForm;
 window.removeEquipmentForm = removeEquipmentForm;
 document.addEventListener("DOMContentLoaded", addEquipmentForm);
-
 
 
 
@@ -431,7 +468,7 @@ async function addFertilizerForm() {
 
       <div class="form__group">
           <label class="form__label">Fertilizer Quantity:</label>
-          <input type="number" class="form__input fertilizer__quantity" min="1" placeholder="Enter quantity">
+          <input type="number" class="form__input fertilizer__quantity" placeholder="Available Stock: -">
       </div>
 
       <button class="btn btn--remove" onclick="removeFertilizerForm(this)">Remove</button>
@@ -439,13 +476,17 @@ async function addFertilizerForm() {
 
   container.appendChild(div);
 
-  div.querySelector(".fertilizer__type").addEventListener("change", function () {
-      loadFertilizerNames(this, div.querySelector(".fertilizer__name"));
+  const fertilizerTypeDropdown = div.querySelector(".fertilizer__type");
+  const fertilizerNameDropdown = div.querySelector(".fertilizer__name");
+  const quantityInput = div.querySelector(".fertilizer__quantity");
+
+  fertilizerTypeDropdown.addEventListener("change", function () {
+      loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput);
   });
 }
 
 async function getFertilizerTypes() {
-  const userType = sessionStorage.getItem("user_type"); // Get logged-in user type from session
+  const userType = sessionStorage.getItem("user_type");
 
   if (!userType) {
       console.error("No user type found in session.");
@@ -458,13 +499,11 @@ async function getFertilizerTypes() {
   querySnapshot.forEach(doc => {
       const data = doc.data();
       
-      // Check if the document has a "stocks" array
       if (Array.isArray(data.stocks)) {
-          // Check if any object in "stocks" has owned_by equal to userType
           const isOwnedByUser = data.stocks.some(stock => stock.owned_by === userType);
 
           if (isOwnedByUser) {
-              uniqueTypes.add(data.fertilizer_type); // Add fertilizer_type to the set
+              uniqueTypes.add(data.fertilizer_type);
           }
       }
   });
@@ -472,42 +511,61 @@ async function getFertilizerTypes() {
   return Array.from(uniqueTypes);
 }
 
-// Example usage:
-getFertilizerTypes().then(types => console.log("Filtered Fertilizer Types:", types));
-
-
-
-
-async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown) {
+async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput) {
   const selectedType = fertilizerTypeDropdown.value;
   fertilizerNameDropdown.innerHTML = '<option value="">Loading...</option>';
+  fertilizerNameDropdown.dataset.stock = ""; 
+  quantityInput.placeholder = "Available Stock: -"; 
 
   if (!selectedType) {
-    fertilizerNameDropdown.innerHTML = '<option value="">Select Fertilizer Type First</option>';
+      fertilizerNameDropdown.innerHTML = '<option value="">Select Fertilizer Type First</option>';
       return;
   }
 
   const q = query(collection(db, "tb_fertilizer_stock"), where("fertilizer_type", "==", selectedType));
   const querySnapshot = await getDocs(q);
-  fertilizerNameDropdown.innerHTML = '<option value="">Select fertilizer Name</option>';
+  fertilizerNameDropdown.innerHTML = '<option value="">Select Fertilizer Name</option>';
 
   querySnapshot.forEach(doc => {
+      const data = doc.data();
       const option = document.createElement("option");
-      option.value = doc.data().fertilizer_name;
-      option.textContent = doc.data().fertilizer_name;
+      option.value = data.fertilizer_name;
+      option.textContent = data.fertilizer_name;
+
+      const firstStockEntry = data.stocks && data.stocks.length > 0 ? data.stocks[0] : null;
+      const currentStock = firstStockEntry ? firstStockEntry.current_stock : 0;
+
+      option.dataset.stock = currentStock;
       fertilizerNameDropdown.appendChild(option);
+  });
+
+  fertilizerNameDropdown.addEventListener("change", function() {
+      const selectedOption = fertilizerNameDropdown.options[fertilizerNameDropdown.selectedIndex];
+      const stock = selectedOption.dataset.stock || 0;
+
+      quantityInput.placeholder = `Available Stock: ${stock}`;
+      fertilizerNameDropdown.dataset.stock = stock;
+      
+      quantityInput.value = ""; 
+      quantityInput.setAttribute("max", stock);
+  });
+
+  quantityInput.addEventListener("input", function() {
+      const maxStock = parseInt(fertilizerNameDropdown.dataset.stock) || 0;
+      if (parseInt(quantityInput.value) > maxStock) {
+          quantityInput.value = maxStock;
+      }
   });
 }
 
-// Function to remove an fertilizer form entry
 function removeFertilizerForm(button) {
   button.parentElement.remove();
 }
 
-// Ensure functions are globally accessible
 window.addFertilizerForm = addFertilizerForm;
 window.removeFertilizerForm = removeFertilizerForm;
 document.addEventListener("DOMContentLoaded", addFertilizerForm);
+
 
 
 
