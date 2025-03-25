@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Attendance</title>
+    <link rel="stylesheet" href="headfarm_attendance.css">
+</head>
+<body>
+   <!-- Placeholder for Header -->
+   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+   <div class="container">
+       <!-- Back Arrow -->
+       <div class="back-arrow">⬅</div>
+
+       <!-- Panel -->
+       <div class="panel">
+           <!-- Farmer Header -->
+           <div class="panel-header">Farmer</div>
+
+           <!-- Search Bar -->
+           <div class="search-bar">
+               <input type="text" placeholder="Search">
+           </div>
+
+           <!-- Table -->
+           <table>
+               <thead>
+                   <tr>
+                       <th>ATTENDANCE</th>
+                       <th>FARMER NAME</th>
+                       <th>ROLE</th>
+                       <th>DATE</th>
+                       <th>REMARKS</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   <tr>
+                       <td><input type="checkbox" checked></td>
+                       <td>Mike Johnson</td>
+                       <td>Lead Farmer</td>
+                       <td>10/21/2023</td>
+                       <td>
+                           <select>
+                               <option value="productive" style="color: #28a745;">Productive</option>
+                               <option value="average">Average</option>
+                               <option value="needs-improvement">Needs improvement</option>
+                           </select>
+                       </td>
+                   </tr>
+                   <tr>
+                       <td><input type="checkbox" checked></td>
+                       <td>Vincent Paul</td>
+                       <td>Farmer</td>
+                       <td>10/21/2023</td>
+                       <td>
+                           <select>
+                               <option value="average" style="color: #6f42c1;">Average</option>
+                               <option value="productive">Productive</option>
+                               <option value="needs-improvement">Needs improvement</option>
+                           </select>
+                       </td>
+                   </tr>
+                   <tr>
+                       <td><input type="checkbox" checked></td>
+                       <td>Cass Collins</td>
+                       <td>Farmer</td>
+                       <td>10/22/2023</td>
+                       <td>
+                           <select>
+                               <option value="needs-improvement" style="color: #dc3545;">Needs improvement</option>
+                               <option value="productive">Productive</option>
+                               <option value="average">Average</option>
+                           </select>
+                       </td>
+                   </tr>
+               </tbody>
+           </table>
+       </div>
+   </div>
+
+   <!-- Save Button in a new container -->
+   <div class="button-container">
+       <button class="save-btn">Save</button>
+   </div>
+
+   <!-- Import the reusable script from src/auth -->
+   <script type="module" src="../../../src/auth/header.js"></script>
+</body>
+</html>
