@@ -1,0 +1,111 @@
+body {
+    background-color: #f9fbfd; /* Background color to match the image */
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    max-width: 1000px; /* Adjusted to match the image width */
+    margin: 20px auto;
+    margin-top: 50px;
+}
+
+.back-arrow {
+    position: absolute;
+    left: -40px;
+    top: 10px;
+    font-size: 24px;
+    color: #28a745;
+    cursor: pointer;
+}
+
+.panel {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Takes the max-width of the container */
+    box-sizing: border-box; /* Ensures padding doesn't increase the width */
+}
+
+.panel-header {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    padding: 10px;
+    border: 1px solid #d3d3d3;
+    border-radius: 20px;
+    font-size: 16px;
+    background: url('https://via.placeholder.com/15/000/fff?text=🔍') no-repeat 10px center;
+    padding-left: 35px;
+    box-sizing: border-box;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+}
+
+th {
+    color: #333;
+    font-weight: bold;
+}
+
+td {
+    color: #666;
+    border-bottom: 1px solid #e0e0e0; /* Bottom line for table rows */
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #28a745;
+}
+
+select {
+    padding: 5px;
+    border: 1px solid #d3d3d3;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #666;
+}
+
+.button-container {
+    max-width: 1050px; /* Matches the container's max-width */
+    margin: 0 auto; /* Centers the button container */
+    text-align: right; /* Aligns the button to the right within this container */
+}
+
+.save-btn {
+    display: inline-block; /* Allows text-align to work */
+    margin: 10px 20px 0 0; /* Margin for spacing, 20px from the right to align with panel's padding */
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.save-btn:hover {
+    background-color: #218838;
+}
