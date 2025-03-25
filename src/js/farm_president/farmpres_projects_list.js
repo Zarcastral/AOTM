@@ -437,7 +437,8 @@ async function fetchProjectTasks(project_id) {
                 crop_type_name,
                 project_task_id, // Auto-incremented ID
                 task_name, // Solo field
-                subtasks // Array of subtasks
+                subtasks, // Array of subtask
+                status: "Pending" // ✅ Added status field
             };
 
             finalDataArray.push(finalData);
