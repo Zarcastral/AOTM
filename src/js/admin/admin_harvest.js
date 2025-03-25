@@ -73,6 +73,36 @@ async function getAuthenticatedUser() {
 
     // Initialize fetches when DOM is loaded
     document.addEventListener("DOMContentLoaded", async () => {
+
+    const modal = document.getElementById("harvest-report-modal");
+    const closeBtn = document.getElementById("close-modal-btn");
+    const closeHarvestBtn = document.getElementById("close-harvest-btn"); // New Close button in footer
+    //const submitBtn = document.getElementById("submit-harvest-btn");
+
+  // Close modal when "X" is clicked
+  closeBtn.addEventListener("click", () => {
+    modal.classList.remove("active");
+  });
+
+  // Close modal when "Close" button in footer is clicked (New)
+  closeHarvestBtn.addEventListener("click", () => {
+    modal.classList.remove("active");
+  });
+
+  // Close modal when clicking outside the modal content
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.remove("active");
+    }
+  });
+
+  /* Placeholder for "Submit Harvest" button functionality
+  submitBtn.addEventListener("click", () => {
+    alert("Submit Harvest functionality to be implemented.");
+    modal.classList.remove("active");
+  });
+  */
+
     fetchHarvest(); // Note: You had this twice; one is enough
     const cropData = await fetchCropData(); // Fetch and store crop data
     await fetchBarangayNames(); // Fetch barangay names
@@ -219,12 +249,13 @@ async function getAuthenticatedUser() {
         // Commit the batch operation (copy then delete)
         try {
         await batch.commit();
-        console.log("Expired records successfully moved to history and deleted from tb_harvest");
+        //console.log("Expired records successfully moved to history and deleted from tb_harvest");
         } catch (error) {
         console.error("Error processing expired records:", error);
         }
     }
 // Display Harvest in the table
+// Inside displayHarvest function, modify the event listener for the view button
 function displayHarvest(harvestList) {
   const tableBody = document.querySelector(".harvest_table table tbody");
   if (!tableBody) {
@@ -282,8 +313,52 @@ function displayHarvest(harvestList) {
       </td>
     `;
     tableBody.appendChild(row);
+
+    // Add event listener to the view button
+    const viewBtn = row.querySelector(".view-btn");
+    viewBtn.addEventListener("click", async () => {
+      await openHarvestReportModal(harvestId);
+    });
   });
   updatePagination();
+}
+
+// Function to fetch harvest data and open the modal
+async function openHarvestReportModal(harvestId) {
+  try {
+    // Query tb_harvest for the record with matching harvest_id
+    const harvestQuery = query(collection(db, "tb_harvest"), where("harvest_id", "==", parseInt(harvestId)));
+    const harvestSnapshot = await getDocs(harvestQuery);
+
+    if (harvestSnapshot.empty) {
+      console.error(`No harvest found with harvest_id: ${harvestId}`);
+      alert("Harvest record not found.");
+      return;
+    }
+
+    // Get the first matching document
+    const harvestData = harvestSnapshot.docs[0].data();
+
+    // Populate the modal fields
+    document.getElementById("modal-project-name").value = harvestData.project_name || "N/A";
+    document.getElementById("modal-total-harvest").value = harvestData.total_harvested_crops || "N/A";
+    document.getElementById("modal-unit").value = harvestData.unit || "kg";
+    document.getElementById("modal-farm-president").value = harvestData.farm_president || "N/A";
+    document.getElementById("modal-barangay").value = harvestData.barangay_name || "N/A";
+    document.getElementById("modal-crop-type").value = harvestData.crop_type || "N/A";
+    document.getElementById("modal-crop").value = harvestData.crop_name || "N/A";
+
+    // Fetch the farmer_list array from the harvest document
+    const farmers = harvestData.farmers_list || []; // Use farmer_list instead of farmers
+    document.getElementById("modal-farmers").value = farmers.join("\n") || "N/A";
+
+    // Show the modal
+    const modal = document.getElementById("harvest-report-modal");
+    modal.classList.add("active");
+  } catch (error) {
+    console.error("Error fetching harvest data for modal:", error);
+    alert("Error loading harvest report.");
+  }
 }
 
 // Update pagination display

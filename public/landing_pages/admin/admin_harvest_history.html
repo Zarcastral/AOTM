@@ -33,7 +33,7 @@
           <option value="">Barangay</option>
         </select>
       </div>
-      <div class="harvest_table">
+      <div class="harvest_history_table">
         <table>
           <thead>
             <tr>
@@ -60,6 +60,62 @@
         </div> <!-- Closing harvest_table -->
       </div>
     </div> <!-- Closing panel -->
+    <div class="modal-overlay" id="harvest-report-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Harvest Report</h2>
+          <button class="modal-close-btn" id="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Project Name</label>
+            <input type="text" id="modal-project-name" readonly>
+          </div>
+          <div class="form-group total-harvest-group">
+            <div>
+              <label>Total Harvest</label>
+              <input type="text" id="modal-total-harvest" readonly>
+            </div>
+            <div>
+              <label>Unit</label>
+              <input type="text" id="modal-unit" value="kg" readonly>
+            </div>
+          </div>
+          <div class="form-group">
+            <h3>Harvest Details</h3>
+            <div class="details-row">
+              <div>
+                <label>Farm President</label>
+                <input type="text" id="modal-farm-president" readonly>
+              </div>
+              <div>
+                <label>Barangay</label>
+                <input type="text" id="modal-barangay" readonly>
+              </div>
+            </div>
+            <div class="details-row">
+              <div>
+                <label>Crop Type</label>
+                <input type="text" id="modal-crop-type" readonly>
+              </div>
+              <div>
+                <label>Crop</label>
+                <input type="text" id="modal-crop" readonly>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Farmers</label>
+              <textarea id="modal-farmers" readonly></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="close-btn" id="close-harvest-btn">Close</button>
+            <!--<button class="submit-btn" id="submit-harvest-btn">Submit Harvest</button>
+            -->
+          </div>
+        </div>
+      </div>
+    </div>
 </div> <!-- Closing main-content -->
 
   <script>

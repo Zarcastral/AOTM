@@ -8,13 +8,12 @@ import {
     query,
     where,
     getFirestore
-  } from "firebase/firestore";
+} from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth(app);
-
 
 const tableBody = document.getElementById("table_body");
 const barangaySelect = document.getElementById("barangay-select");
@@ -30,6 +29,8 @@ document.body.appendChild(editFormContainer);
 let currentPage = 1;
 const rowsPerPage = 5;
 let farmerAccounts = [];
+let selectedMonth = null;
+let selectedYear = new Date().getFullYear();
 
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
@@ -60,6 +61,52 @@ async function getAuthenticatedUser() {
     });
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+    fetch_farmer_accounts();
+    fetch_barangays();
+
+    const calendarIcon = document.querySelector(".calendar-btn-icon");
+    if (calendarIcon) {
+        calendarIcon.addEventListener("click", showMonthPicker);
+    }
+
+    document.addEventListener("click", (event) => {
+        const monthPicker = document.getElementById("month-picker");
+        const calendarIcon = document.querySelector(".calendar-btn-icon");
+        if (monthPicker && !monthPicker.contains(event.target) && !calendarIcon.contains(event.target)) {
+            monthPicker.style.display = "none";
+        }
+    });
+
+    document.getElementById("prev-year").addEventListener("click", () => {
+        selectedYear--;
+        document.getElementById("year-display").textContent = selectedYear;
+        filterFarmerAccountsByMonth();
+    });
+
+    document.getElementById("next-year").addEventListener("click", () => {
+        selectedYear++;
+        document.getElementById("year-display").textContent = selectedYear;
+        filterFarmerAccountsByMonth();
+    });
+
+    document.querySelectorAll(".month-btn").forEach((btn, index) => {
+        btn.addEventListener("click", () => {
+            selectedMonth = index + 1;
+            filterFarmerAccountsByMonth();
+            document.querySelectorAll(".month-btn").forEach(b => b.style.backgroundColor = "transparent");
+            btn.style.backgroundColor = "#41A186";
+            document.getElementById("month-picker").style.display = "none";
+            document.querySelector(".calendar-btn-icon").style.filter = "brightness(0.5)";
+        });
+    });
+
+    document.getElementById("clear-btn").addEventListener("click", () => {
+        clearMonthFilter();
+        document.getElementById("month-picker").style.display = "none";
+    });
+});
+
 async function fetch_farmer_accounts(filter = {}) {
     try {
         const querySnapshot = await getDocs(collection(db, "tb_farmers"));
@@ -70,8 +117,8 @@ async function fetch_farmer_accounts(filter = {}) {
             const searchTerm = filter.search?.toLowerCase();
             const matchesSearch = searchTerm
                 ? `${data.first_name || ""} ${data.middle_name || ""} ${data.last_name || ""}`
-                      .toLowerCase()
-                      .includes(searchTerm) ||
+                    .toLowerCase()
+                    .includes(searchTerm) ||
                   (data.farmer_id || "").toLowerCase().includes(searchTerm) ||
                   (data.user_type || "").toLowerCase().includes(searchTerm) ||
                   (data.user_name || "").toLowerCase().includes(searchTerm)
@@ -81,14 +128,16 @@ async function fetch_farmer_accounts(filter = {}) {
                 ? (data.barangay_name || "").toLowerCase() === filter.barangay_name.toLowerCase()
                 : true;
 
-            if (matchesSearch && matchesBarangay) {
+            const matchesDate = filter.month && filter.year
+                ? checkDateMatch(data.created_at, filter.month, filter.year)
+                : true;
+
+            if (matchesSearch && matchesBarangay && matchesDate) {
                 farmerAccounts.push({ id: doc.id, ...data });
             }
-            
-        });  
-        
-        const missingFarmerIds = []; // Array to store farmers with undefined IDs
-        // <------------- FETCHED DATA SORT BY FARMER ID ASCENSION (assuming farmer_id is a string or number) ------------->
+        });
+
+        const missingFarmerIds = [];
         farmerAccounts.sort((a, b) => {
             const farmerIdA = a.farmer_id;
             const farmerIdB = b.farmer_id;
@@ -96,37 +145,79 @@ async function fetch_farmer_accounts(filter = {}) {
         
             if (farmerIdA === undefined) {
                 missingFarmerIds.push(farmerNameA);
-                return 0; /* Keeps the current order of undefined values kapag ginawang 1 mapupunta lahat ng
-                farmers na walang id sa pinaka dulo*/
+                return 0;
             }
-            // Alphabetical Comparison (A-Z)
             if (isNaN(farmerIdA) && isNaN(farmerIdB)) {
-                return String(farmerIdA).localeCompare(String(farmerIdB), undefined, { numeric: true, sensitivity: 'base' });
+                return String(farmerIdA).localeCompare(String(farmerIdB), undefined, { numeric: true, sensitivity: "base" });
             }
-        
-            // Numeric Comparison (low to high)
             if (!isNaN(farmerIdA) && !isNaN(farmerIdB)) {
                 return Number(farmerIdA) - Number(farmerIdB);
             }
-        
-            /* Pina prioritize yung number only, kapag may string yung farmer id matic ma pupunta sa dulo
-             at ma so sort kasama dun sa mga kaparehas nyang may string yung farmer id*/
             return isNaN(farmerIdA) ? 1 : -1;
-            
         });
-                // Log missing farmer IDs at once
+
         if (missingFarmerIds.length > 0) {
             console.log("Farmer ID's are not retrieved for the following farmers: " + missingFarmerIds.join(", "));
         }
 
-        currentPage = 1; // *Reset to the first page when data is filtered*
         updateTable();
     } catch (error) {
         console.error("Error Fetching Farmer Accounts:", error);
     }
 }
 
-// <------------------------ FUNCTION TO CAPTALIZE THE INITIAL LETTERS ------------------------>
+function checkDateMatch(createdAt, month, year) {
+    if (!createdAt) return false;
+    const date = new Date(createdAt);
+    return date.getMonth() + 1 === month && date.getFullYear() === year;
+}
+
+function showMonthPicker() {
+    const calendarIcon = document.querySelector(".calendar-btn-icon");
+    const monthPicker = document.getElementById("month-picker");
+    const yearDisplay = document.getElementById("year-display");
+    
+    if (yearDisplay) {
+        yearDisplay.textContent = selectedYear;
+    }
+
+    monthPicker.style.position = "absolute";
+    monthPicker.style.top = `${calendarIcon.offsetHeight + 5}px`;
+    monthPicker.style.right = "0px";
+    monthPicker.style.left = "auto";
+
+    monthPicker.style.display = monthPicker.style.display === "none" ? "block" : "none";
+}
+
+function clearMonthFilter() {
+    selectedMonth = null;
+    selectedYear = new Date().getFullYear();
+    const calendarIcon = document.querySelector(".calendar-btn-icon");
+    calendarIcon.style.filter = "none";
+    document.querySelectorAll("#month-picker .month-btn").forEach(btn => {
+        btn.style.backgroundColor = "transparent";
+    });
+    const yearDisplay = document.getElementById("year-display");
+    if (yearDisplay) {
+        yearDisplay.textContent = selectedYear;
+    }
+    currentPage = 1;
+    fetch_farmer_accounts({
+        search: searchBar.value,
+        barangay_name: barangaySelect.value
+    });
+}
+
+function filterFarmerAccountsByMonth() {
+    currentPage = 1;
+    fetch_farmer_accounts({
+        search: searchBar.value,
+        barangay_name: barangaySelect.value,
+        month: selectedMonth,
+        year: selectedYear
+    });
+}
+
 function capitalizeWords(str) {
     return str
         .toLowerCase()
@@ -134,18 +225,16 @@ function capitalizeWords(str) {
 }
 
 function formatBarangay(barangay) {
-    const formattedBarangay = barangay ? capitalizeWords(barangay): "";
-
+    const formattedBarangay = barangay ? capitalizeWords(barangay) : "";
     return `${formattedBarangay}`.trim();
 }
 
-function formatUserType(user_type){
-    const formattedUserType = user_type ? capitalizeWords(user_type): "";
+function formatUserType(user_type) {
+    const formattedUserType = user_type ? capitalizeWords(user_type) : "";
     return `${formattedUserType}`.trim();
 }
 
 function formatName(firstName, middleName, lastName) {
-
     function getMiddleInitial(middle) {
         return middle ? middle.charAt(0).toUpperCase() + "." : "";
     }
@@ -157,17 +246,24 @@ function formatName(firstName, middleName, lastName) {
     return `${formattedFirstName} ${formattedMiddleName} ${formattedLastName} `.trim();
 }
 
-//  <----------- TABLE DISPLAY AND UPDATE -------------> 
 let selectedFarmerId = null;
 
 function updateTable() {
+    console.log("Updating table - Current Page:", currentPage, "Total Records:", farmerAccounts.length);
     const start = (currentPage - 1) * rowsPerPage;
     const end = currentPage * rowsPerPage;
     const pageData = farmerAccounts.slice(start, end);
 
+    console.log("Start index:", start, "End index:", end, "Page Data length:", pageData.length);
+
     tableBody.innerHTML = "";
 
-    if (pageData.length === 0) {
+    if (pageData.length === 0 && farmerAccounts.length > 0) {
+        currentPage = Math.max(1, Math.ceil(farmerAccounts.length / rowsPerPage));
+        console.log("Adjusted currentPage to:", currentPage);
+        updateTable();
+        return;
+    } else if (farmerAccounts.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="7">No records found</td></tr>`;
     }
 
@@ -210,7 +306,6 @@ function updateTable() {
     toggleBulkDeleteButton();
 }
 
-// <------------- Checkbox Change Event Listener -------------> 
 tableBody.addEventListener("change", (event) => {
     if (event.target.classList.contains("checkbox")) {
         const farmerId = event.target.getAttribute("data-farmer-id");
@@ -221,39 +316,42 @@ tableBody.addEventListener("change", (event) => {
         } else {
             selectedFarmerId = null;
             console.log("Selected Farmer ID: ", "Farmer ID Unselected");
-
         }
-       
     }
 });
+
 function updatePagination() {
     const totalPages = Math.ceil(farmerAccounts.length / rowsPerPage) || 1;
     pageNumberSpan.textContent = `${currentPage} of ${totalPages}`;
-    updatePaginationButtons();
-}
-
-function updatePaginationButtons() {
-    const totalPages = Math.ceil(farmerAccounts.length / rowsPerPage);
     prevPageBtn.disabled = currentPage === 1;
     nextPageBtn.disabled = currentPage >= totalPages;
+    console.log("Pagination updated - Current Page:", currentPage, "Total Pages:", totalPages);
 }
 
 function changePage(direction) {
-    const totalPages = Math.ceil(farmerAccounts.length / rowsPerPage);
+    const totalPages = Math.ceil(farmerAccounts.length / rowsPerPage) || 1;
+    console.log("Changing page - Direction:", direction, "Current Page:", currentPage, "Total Pages:", totalPages);
+    
     if (direction === "prev" && currentPage > 1) {
         currentPage--;
     } else if (direction === "next" && currentPage < totalPages) {
         currentPage++;
     }
+    
+    console.log("New Current Page:", currentPage);
     updateTable();
-    updatePagination();
 }
 
-// Attach event listeners to pagination buttons
-prevPageBtn.addEventListener("click", () => changePage("prev"));
-nextPageBtn.addEventListener("click", () => changePage("next"));
+prevPageBtn.addEventListener("click", () => {
+    console.log("Previous button clicked");
+    changePage("prev");
+});
 
-// <------------- BUTTON EVENT LISTENER FOR THE ACTION COLUMN ------------->
+nextPageBtn.addEventListener("click", () => {
+    console.log("Next button clicked");
+    changePage("next");
+});
+
 tableBody.addEventListener("click", (event) => {
     const target = event.target.closest("button");
     if (!target) return;
@@ -269,7 +367,6 @@ tableBody.addEventListener("click", (event) => {
     }
 });
 
-// <------------- EDIT BUTTON CODE ------------->
 async function editFarmerAccount(farmerId) {
     try {
         const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
@@ -289,7 +386,6 @@ async function editFarmerAccount(farmerId) {
     }
 }
 
-// <------------- VIEW BUTTON CODE ------------->
 async function viewFarmerAccount(farmerId) {
     try {
         const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
@@ -309,10 +405,8 @@ async function viewFarmerAccount(farmerId) {
     }
 }
 
-// <------------- DELETE BUTTON EVENT LISTENER ------------->  
 async function deleteFarmerAccount(farmer_id) {
     try {
-
         const q = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmer_id));
         const querySnapshot = await getDocs(q);
 
@@ -327,8 +421,6 @@ async function deleteFarmerAccount(farmer_id) {
     }
 }
 
-
-// <------------- DELETE A ROW AND REFRESH THE TABLE CODE ------------->
 const confirmationPanel = document.getElementById("confirmation-panel");
 const confirmDeleteButton = document.getElementById("confirm-delete");
 const cancelDeleteButton = document.getElementById("cancel-delete");
@@ -341,7 +433,6 @@ confirmDeleteButton.addEventListener("click", async () => {
             const farmerDocRef = doc(db, "tb_farmers", selectedRowId);
             await deleteDoc(farmerDocRef);
             console.log("Record deleted successfully!");
-
             fetch_farmer_accounts();
 
             deleteMessage.style.display = "block";
@@ -350,7 +441,7 @@ confirmDeleteButton.addEventListener("click", async () => {
                 setTimeout(() => {
                     deleteMessage.style.opacity = "0";
                     setTimeout(() => {
-                        deleteMessage.style.display = "none"
+                        deleteMessage.style.display = "none";
                     }, 300);
                 }, 3000);
             }, 0);
@@ -358,7 +449,6 @@ confirmDeleteButton.addEventListener("click", async () => {
             console.error("Error deleting record:", error);
         }
     }
-
     confirmationPanel.style.display = "none";
     editFormContainer.style.pointerEvents = "auto";
 });
@@ -369,39 +459,36 @@ cancelDeleteButton.addEventListener("click", () => {
 });
 
 searchBar.addEventListener("input", () => {
+    currentPage = 1;
     fetch_farmer_accounts({
         search: searchBar.value,
         barangay_name: barangaySelect.value,
+        month: selectedMonth,
+        year: selectedYear
     });
 });
 
 barangaySelect.addEventListener("change", () => {
+    currentPage = 1;
     fetch_farmer_accounts({
         search: searchBar.value,
         barangay_name: barangaySelect.value,
+        month: selectedMonth,
+        year: selectedYear
     });
 });
-
-prevPageBtn.addEventListener("click", () => changePage('prev'));
-nextPageBtn.addEventListener("click", () => changePage('next'));
-
-// <----------------------- BARANGAY DROP DOWN CODE ----------------------->
 
 async function fetch_barangays() {
     try {
         const querySnapshot = await getDocs(collection(db, "tb_barangay"));
-
-        // Array to track barangay names that have already been added
         let addedBarangays = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             const barangayName = data.barangay_name;
 
-            // Check if the barangay name is already in the addedBarangays array
             if (!addedBarangays.includes(barangayName)) {
                 addedBarangays.push(barangayName);
-
                 const option = document.createElement("option");
                 option.value = barangayName;
                 option.textContent = barangayName;
@@ -412,9 +499,7 @@ async function fetch_barangays() {
         console.error("Error Fetching Barangays:", error);
     }
 }
-// <---------------------------- BULK DELETE CODE ---------------------------->
 
-// <------------- Toggle Bulk Delete Button -------------> 
 function toggleBulkDeleteButton() {
     const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
     const bulkDeleteBtn = document.getElementById("bulk-delete");
@@ -424,14 +509,13 @@ function toggleBulkDeleteButton() {
         bulkDeleteBtn.disabled = true;
     }
 }
-// <---------------------------- BULK DELETE CODE ---------------------------->
+
 const deleteSelectedBtn = document.getElementById("bulk-delete");
 const bulkDeletePanel = document.getElementById("bulk-delete-panel");
 const confirmDeleteBtn = document.getElementById("confirm-bulk-delete");
 const cancelDeleteBtn = document.getElementById("cancel-bulk-delete");
 let idsToDelete = [];
 
-// Function to archive and delete documents from a given collection while managing archive_id_counter
 async function archiveAndDelete(collectionName, matchField, valuesToDelete) {
     if (valuesToDelete.length === 0) {
         console.warn("No items selected for deletion.");
@@ -443,11 +527,9 @@ async function archiveAndDelete(collectionName, matchField, valuesToDelete) {
         const archiveCollection = collection(db, "tb_archive");
         const counterDocRef = doc(db, "tb_id_counters", "archive_id_counter");
         let hasArchived = false;
-
-        // Retrieve the authenticated user's username and type
         const user = await getAuthenticatedUser();
-        const userName = user.user_name;   // Use fetched user_name
-        const userType = user.user_type;   // Use fetched user_type
+        const userName = user.user_name;
+        const userType = user.user_type;
 
         const counterDocSnap = await getDoc(counterDocRef);
         let archiveCounter = counterDocSnap.exists() ? counterDocSnap.data().counter : 0;
@@ -466,18 +548,17 @@ async function archiveAndDelete(collectionName, matchField, valuesToDelete) {
                     const archiveId = archiveCounter;
 
                     const now = new Date();
-                    const archiveDate = now.toISOString().split('T')[0];
+                    const archiveDate = now.toISOString().split("T")[0];
                     const hours = now.getHours();
                     const minutes = now.getMinutes();
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    const archiveTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+                    const ampm = hours >= 12 ? "PM" : "AM";
+                    const archiveTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
 
                     const archivedData = {
                         ...data,
                         archive_id: archiveId,
                         document_type: "Farmer Account",
                         document_name: `${data.user_type} Account of ${data.first_name} ${data.middle_name} ${data.last_name}`,
-
                         archive_date: archiveDate,
                         archive_time: archiveTime,
                         archived_by: {
@@ -488,9 +569,7 @@ async function archiveAndDelete(collectionName, matchField, valuesToDelete) {
 
                     const archiveRef = doc(archiveCollection);
                     await setDoc(archiveRef, archivedData);
-
                     await deleteDoc(doc(db, collectionName, docSnapshot.id));
-
                     console.log(`Archived and deleted document ID from ${collectionName}:`, docSnapshot.id);
                     hasArchived = true;
                 }
@@ -511,10 +590,8 @@ async function archiveAndDelete(collectionName, matchField, valuesToDelete) {
     }
 }
 
-// Modify bulk delete functionality to use archiveAndDelete
 deleteSelectedBtn.addEventListener("click", async () => {
     const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
-
     idsToDelete = [];
     let hasInvalidId = false;
 
@@ -558,31 +635,23 @@ confirmDeleteBtn.addEventListener("click", async () => {
         console.error("Error archiving or deleting farmers:", error);
         showDeleteMessage("Error archiving or deleting farmers. Please try again.", false);
     }
-
     bulkDeletePanel.classList.remove("show");
 });
 
-
 cancelDeleteBtn.addEventListener("click", () => {
-
     bulkDeletePanel.classList.remove("show"); 
 });
 
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
 function showDeleteMessage(message, success) {
     deleteMessage.textContent = message;
     deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-    deleteMessage.style.opacity = '1';
-    deleteMessage.style.display = 'block';
+    deleteMessage.style.opacity = "1";
+    deleteMessage.style.display = "block";
 
     setTimeout(() => {
-        deleteMessage.style.opacity = '0';
+        deleteMessage.style.opacity = "0";
         setTimeout(() => {
-            deleteMessage.style.display = 'none'; 
+            deleteMessage.style.display = "none"; 
         }, 400);
     }, 4000); 
 }
-
-fetch_farmer_accounts();
-fetch_barangays();
-

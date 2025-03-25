@@ -51,9 +51,8 @@ body {
     box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
     padding: 15px;
-    border-radius: 8px;
-  }
-  
+}
+
 
 /* Table styles */
 table {
@@ -274,7 +273,39 @@ tbody tr:hover {
     background-color:rgb(90, 101, 112);
     transition: background-color 0.3s ease, opacity 0.3s ease; 
 }
+.button-container {
+    width: 90%;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    margin-left: 100px;
 
+}
+
+
+.download-btn {
+    background-color: #41A186;
+    color: white;
+    padding: 20px;
+    font-weight: 700;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .download-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-top: -5px; /* Nudges the icon closer to the text */
+  }
+  
+  .download-btn:hover {
+    background-color: #318a71;
+  }
+  
 /* Success Message Style */
 .delete-message {
     position: fixed;
@@ -446,6 +477,169 @@ tbody tr:hover {
     transition: opacity 0.3s ease;
 }
 
+.calendar-btn-icon {
+    width: 55px; /* Adjust size to match the height of the input and dropdowns */
+    height: 40px;
+    margin-left: 500px;
+    cursor: pointer; /* Make it clickable */
+  }
+  
+  .calendar-icon {
+    position: relative; /* Makes the container the positioning context for the month picker */
+    display: inline-block; /* Ensures the container wraps its content */
+  }
+  
+  .calendar-btn-icon:hover {
+    opacity: 0.7;
+  }
+  
+  
+  #month-picker {
+    position: absolute;
+    background-color: #333;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    padding: 10px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: white;
+    display: none;
+    width: 200px; /* Adjust based on your design */
+  }
+  
+  .year-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  #year-display {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  #prev-year, #next-year {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+  
+  .month-btn {
+    padding: 8px;
+    border: none;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+    text-align: center;
+    border-radius: 4px;
+  }
+  
+  .month-btn:hover {
+    background-color: #555;
+  }
+  
+  #clear-btn {
+    padding: 8px;
+    border: none;
+    background-color: #41A186;
+    color: white;
+    cursor: pointer;
+    margin-top: 10px;
+    border-radius: 4px;
+    width: 100%;
+    text-align: center;
+  }
+  
+  #clear-btn:hover {
+    background-color: #34836c;
+  }
+
+  /* PDF Preview Panel */
+.pdf-preview-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh; /* Full viewport height */
+    background-color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 0; /* Remove border radius for full-screen effect */
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0; /* Remove padding to maximize content area */
+  }
+  
+  #pdf-preview-container {
+    flex: 1;
+    overflow-y: auto;
+    border: none; /* Remove border for full-screen effect */
+    padding: 20px; /* Add padding inside the container for content */
+  }
+  
+  #pdf-preview-container iframe {
+    width: 100%;
+    height: 100%; /* Ensures the iframe fills the container */
+    border: none; /* Removes default iframe border */
+  }
+  
+  .preview-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 15px 20px; /* Add padding to the button area */
+    background-color: #f5f6fa; /* Match the background color of the main content */
+    border-top: 1px solid #D1D5DB; /* Add a separator line above the buttons */
+  }
+  
+  .preview-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+  
+  .cancel-btn {
+    background-color: #E2E8F0;
+    color: #333;
+  }
+  
+  .cancel-btn:hover {
+    background-color: #CBD5E0;
+  }
+  
+  .done-btn {
+    background-color: #41A186;
+    color: white;
+  }
+  
+  .done-btn:hover {
+    background-color: #318a71;
+  }
+  
+  /* Overlay to dim the background when preview is open */
+  body.preview-active::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
 /* Responsive styles */
 @media (max-width: 768px) {
     .panel {
