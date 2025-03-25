@@ -24,6 +24,33 @@ const auth = getAuth();
 document.addEventListener("DOMContentLoaded", () => {
     initializeDashboard();
 });
+// Authentication function (unchanged)
+async function getAuthenticatedUser() {
+    return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+                    const userSnapshot = await getDocs(userQuery);
+
+                    if (!userSnapshot.empty) {
+                        const userData = userSnapshot.docs[0].data();
+                        resolve({ ...user, user_type: userData.user_type });
+                    } else {
+                        console.error("User record not found in tb_users collection.");
+                        reject("User record not found.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user_type:", error);
+                    reject(error);
+                }
+            } else {
+                console.error("User not authenticated. Please log in.");
+                reject("User not authenticated.");
+            }
+        });
+    });
+}
 
 // Function to check authentication state and update dashboard
 function initializeDashboard() {
@@ -97,6 +124,9 @@ async function updateTotalFarmerCount() {
 // Function to fetch and update projects count for current month
 async function updateTotalProjectsCount() {
     try {
+        // Get authenticated user first
+        const currentUser = await getAuthenticatedUser();
+        
         // Reference to the tb_projects collection
         const projectsCollection = collection(db, "tb_projects");
 
@@ -105,24 +135,28 @@ async function updateTotalProjectsCount() {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-        // Query only for documents with project_id (single condition, no index required)
-        const projectsQuery = query(
-            projectsCollection,
-            where("project_id", "!=", null)
-        );
+        // Create base query
+        const baseQuery = query(projectsCollection);
 
-        // Get documents
-        const projectsSnapshot = await getDocs(projectsQuery);
+        // Get all documents (we'll filter client-side for the creator fields)
+        const projectsSnapshot = await getDocs(baseQuery);
 
-        // Filter documents client-side for current month
+        // Filter documents client-side for both date and creator match
         let projectCount = 0;
         projectsSnapshot.forEach(doc => {
             const data = doc.data();
+            
+            // Check if document has either field and matches current user's user_type
+            const creatorMatch = (data.project_created_by === currentUser.user_type) || 
+                               (data.project_creator === currentUser.user_type);
+            
+            // Convert timestamp to date
             const dateCreated = data.date_created instanceof Timestamp 
                 ? data.date_created.toDate() 
                 : new Date(data.date_created);
             
-            if (dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
+            // Count if both creator matches and date is in current month
+            if (creatorMatch && dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
                 projectCount++;
             }
         });
