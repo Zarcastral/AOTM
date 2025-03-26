@@ -2,10 +2,11 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   query,
-  updateDoc,
+  setDoc,
   where,
 } from "firebase/firestore";
 import app from "../../../src/config/firebase_config.js"; // Adjust path as needed
@@ -34,7 +35,7 @@ export function initializeAttendancePage() {
       });
     }
 
-    // Fetch farmers for the project
+    // Fetch farmers and attendance data for the project
     await fetchFarmers(projectId);
 
     // Save button functionality
@@ -47,9 +48,10 @@ export function initializeAttendancePage() {
   });
 }
 
-// Function to fetch farmers from tb_projects and populate the table
+// Function to fetch farmers from tb_projects and attendance from tb_project_task
 async function fetchFarmers(projectId) {
   try {
+    // Fetch farmers from tb_projects
     const projectsRef = collection(db, "tb_projects");
     const q = query(projectsRef, where("project_id", "==", Number(projectId)));
     const querySnapshot = await getDocs(q);
@@ -70,6 +72,42 @@ async function fetchFarmers(projectId) {
         projectData.crop_name || "Highland Vegetables"
       );
 
+      // Fetch attendance data from tb_project_task
+      const projectTaskId = sessionStorage.getItem("project_task_id");
+      const taskName = sessionStorage.getItem("selected_task_name");
+      const selectedProjectId = sessionStorage.getItem("selected_project_id");
+      const selectedDate =
+        sessionStorage.getItem("selected_date") ||
+        new Date().toISOString().split("T")[0];
+
+      let attendanceData = [];
+      if (projectTaskId && taskName && selectedProjectId && selectedDate) {
+        const projectTaskCollectionRef = collection(db, "tb_project_task");
+        const taskQuery = query(
+          projectTaskCollectionRef,
+          where("project_id", "==", selectedProjectId),
+          where("project_task_id", "==", Number(projectTaskId)),
+          where("task_name", "==", taskName)
+        );
+        const taskSnapshot = await getDocs(taskQuery);
+
+        if (!taskSnapshot.empty) {
+          const projectTaskDoc = taskSnapshot.docs[0];
+          const projectTaskRef = doc(db, "tb_project_task", projectTaskDoc.id);
+          const attendanceDocRef = doc(
+            projectTaskRef,
+            "Attendance",
+            selectedDate
+          );
+          const attendanceDocSnapshot = await getDoc(attendanceDocRef);
+
+          if (attendanceDocSnapshot.exists()) {
+            attendanceData = attendanceDocSnapshot.data().farmers || [];
+            console.log("Fetched attendance data:", attendanceData);
+          }
+        }
+      }
+
       const tbody = document.querySelector("tbody");
       tbody.innerHTML = ""; // Clear existing rows
 
@@ -77,17 +115,35 @@ async function fetchFarmers(projectId) {
         tbody.innerHTML = `<tr><td colspan="5">No farmers found for this project.</td></tr>`;
       } else {
         farmerNames.forEach((name, index) => {
+          // Find matching attendance data for this farmer
+          const farmerAttendance =
+            attendanceData.find((entry) => entry.farmer_name === name) || {};
+          const isChecked = farmerAttendance.present || false;
+          const remarkValue = farmerAttendance.remarks || "null";
+          const dateValue = farmerAttendance.date || selectedDate; // Use fetched date or fallback to selectedDate
+
           const row = `
             <tr>
-              <td><input type="checkbox" class="attendance-checkbox" data-index="${index}"></td>
+              <td><input type="checkbox" class="attendance-checkbox" data-index="${index}" ${
+            isChecked ? "checked" : ""
+          }></td>
               <td>${name || "Unknown Farmer"}</td>
-              <td>Farmer</td> <!-- Default role since no role field exists -->
-              <td><input type="date" class="date-input" data-index="${index}"></td>
+              <td>Farmer</td> <!-- Default role -->
+              <td>${dateValue}</td> <!-- Display the date -->
               <td>
                 <select class="remarks-select" data-index="${index}">
-                  <option value="productive" style="color: #28a745;">Productive</option>
-                  <option value="average" selected>Average</option>
-                  <option value="needs-improvement" style="color: #dc3545;">Needs improvement</option>
+                  <option value="null" ${
+                    remarkValue === "null" ? "selected" : ""
+                  }>Select Remark</option>
+                  <option value="productive" ${
+                    remarkValue === "productive" ? "selected" : ""
+                  } style="color: #28a745;">Productive</option>
+                  <option value="average" ${
+                    remarkValue === "average" ? "selected" : ""
+                  }>Average</option>
+                  <option value="needs-improvement" ${
+                    remarkValue === "needs-improvement" ? "selected" : ""
+                  } style="color: #dc3545;">Needs improvement</option>
                 </select>
               </td>
             </tr>
@@ -102,7 +158,7 @@ async function fetchFarmers(projectId) {
       ).innerHTML = `<tr><td colspan="5">Project not found.</td></tr>`;
     }
   } catch (error) {
-    console.error("Error fetching farmers:", error);
+    console.error("Error fetching farmers or attendance:", error);
     document.querySelector(
       "tbody"
     ).innerHTML = `<tr><td colspan="5">Error loading farmers.</td></tr>`;
@@ -113,26 +169,35 @@ async function fetchFarmers(projectId) {
 async function saveAttendance(projectId) {
   try {
     const checkboxes = document.querySelectorAll(".attendance-checkbox");
-    const dates = document.querySelectorAll(".date-input");
     const remarks = document.querySelectorAll(".remarks-select");
 
     const attendanceData = [];
-    const checkedFarmers = []; // Array to store names of farmers who are checked
+    const checkedFarmers = []; // Array to store farmer data with remarks and date
+    const selectedDate =
+      sessionStorage.getItem("selected_date") ||
+      new Date().toISOString().split("T")[0];
+
     checkboxes.forEach((checkbox, index) => {
       const farmerName = document.querySelector(
         `tbody tr:nth-child(${index + 1}) td:nth-child(2)`
       ).textContent;
+      const remarkValue = remarks[index].value;
+
       const farmerAttendance = {
         farmer_name: farmerName,
         present: checkbox.checked,
-        date: dates[index].value || new Date().toISOString().split("T")[0], // Default to today if empty
-        remarks: remarks[index].value,
+        date: selectedDate, // Use fetched selected_date
+        remarks: remarkValue === "null" ? null : remarkValue,
       };
       attendanceData.push(farmerAttendance);
 
-      // If checkbox is checked, add farmer name to checkedFarmers array
+      // If checkbox is checked, add farmer data to checkedFarmers
       if (checkbox.checked) {
-        checkedFarmers.push(farmerName);
+        checkedFarmers.push({
+          farmer_name: farmerName,
+          date: selectedDate, // Use fetched selected_date
+          remarks: remarkValue === "null" ? null : remarkValue,
+        });
       }
     });
 
@@ -140,18 +205,15 @@ async function saveAttendance(projectId) {
     await addDoc(collection(db, "tb_attendance"), {
       project_id: Number(projectId),
       attendance: attendanceData,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(), // Keep timestamp as Unix for metadata
     });
 
-    // Retrieve and log sessionStorage values for debugging
+    // Retrieve sessionStorage values
     const projectTaskId = sessionStorage.getItem("project_task_id");
     const taskName = sessionStorage.getItem("selected_task_name");
     const selectedProjectId = sessionStorage.getItem("selected_project_id");
-    const selectedDate =
-      sessionStorage.getItem("selected_date") ||
-      new Date().toISOString().split("T")[0];
 
-    console.log("SessionStorage values 0 Values:");
+    console.log("SessionStorage Values:");
     console.log("selected_project_id:", selectedProjectId);
     console.log("project_task_id:", projectTaskId);
     console.log("selected_task_name:", taskName);
@@ -171,8 +233,8 @@ async function saveAttendance(projectId) {
     // Query to find the correct document
     const taskQuery = query(
       projectTaskCollectionRef,
-      where("project_id", "==", selectedProjectId), // String type from sessionStorage
-      where("project_task_id", "==", Number(projectTaskId)), // Number type to match DB
+      where("project_id", "==", selectedProjectId),
+      where("project_task_id", "==", Number(projectTaskId)),
       where("task_name", "==", taskName)
     );
     const querySnapshot = await getDocs(taskQuery);
@@ -194,36 +256,43 @@ async function saveAttendance(projectId) {
         projectTaskRef,
         "Attendance"
       );
+      const attendanceDocRef = doc(attendanceSubcollectionRef, selectedDate);
 
-      // Query to check if a document for this date already exists in the subcollection
-      const dateQuery = query(
-        attendanceSubcollectionRef,
-        where("date", "==", selectedDate)
-      );
-      const dateSnapshot = await getDocs(dateQuery);
-
-      if (!dateSnapshot.empty) {
-        // If a document exists for this date, update it
-        const existingDoc = dateSnapshot.docs[0];
-        const existingFarmers = existingDoc.data().farmers || [];
-        const updatedFarmers = [
-          ...new Set([...existingFarmers, ...checkedFarmers]),
-        ]; // Merge and remove duplicates
-
-        await updateDoc(doc(attendanceSubcollectionRef, existingDoc.id), {
-          farmers: updatedFarmers,
-          timestamp: new Date().toISOString(),
-        });
-        console.log("Updated existing attendance for date:", selectedDate);
-      } else {
-        // If no document exists, create a new one in the subcollection
-        await addDoc(attendanceSubcollectionRef, {
-          date: selectedDate,
-          farmers: checkedFarmers,
-          timestamp: new Date().toISOString(),
-        });
-        console.log("Created new attendance record for date:", selectedDate);
+      // Fetch existing data to merge
+      const attendanceDocSnapshot = await getDoc(attendanceDocRef);
+      let existingFarmers = [];
+      if (attendanceDocSnapshot.exists()) {
+        existingFarmers = attendanceDocSnapshot.data().farmers || [];
       }
+
+      // Merge new farmers with existing ones, avoiding duplicates based on farmer_name
+      const mergedFarmers = [...existingFarmers];
+      checkedFarmers.forEach((newFarmer) => {
+        const exists = mergedFarmers.some(
+          (existing) => existing.farmer_name === newFarmer.farmer_name
+        );
+        if (!exists) {
+          mergedFarmers.push(newFarmer);
+        } else {
+          // Update existing farmer's data
+          const index = mergedFarmers.findIndex(
+            (existing) => existing.farmer_name === newFarmer.farmer_name
+          );
+          mergedFarmers[index] = newFarmer; // Update with new remarks
+        }
+      });
+
+      // Save or update the document
+      await setDoc(
+        attendanceDocRef,
+        {
+          farmers: mergedFarmers, // Array of objects with farmer_name, date, and remarks
+          timestamp: Date.now(), // Unix timestamp for metadata
+        },
+        { merge: true }
+      );
+
+      console.log("Attendance saved/updated for date:", selectedDate);
     } else {
       console.error(
         "No matching tb_project_task document found for the given criteria."
