@@ -39,7 +39,7 @@ async function fetchSubtasks(projectTaskId) {
           const status = subtask.status || "Pending";
           if (status !== "Completed") allCompleted = false;
           const isPending = status === "Pending";
-          
+
           const row = `
             <tr>
               <td>${subtask.subtask_name || "Unnamed Subtask"}</td>
@@ -57,7 +57,7 @@ async function fetchSubtasks(projectTaskId) {
                 </select>
               </td>
               <td class="action-icons">
-                <img src="../../images/eye.png" alt="View" class="w-4 h-4">
+                <img src="../../images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}">
                 <img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">
               </td>
             </tr>
@@ -75,7 +75,9 @@ async function fetchSubtasks(projectTaskId) {
 
           dropdown.addEventListener("click", (event) => {
             const currentStatus = event.target.value;
-            const completedOption = event.target.querySelector('option[value="Completed"]');
+            const completedOption = event.target.querySelector(
+              'option[value="Completed"]'
+            );
             if (currentStatus === "Pending") {
               completedOption.disabled = true;
             } else {
@@ -84,7 +86,7 @@ async function fetchSubtasks(projectTaskId) {
           });
         });
 
-        // Delete confirmation handling (unchanged)
+        // Delete confirmation handling
         const deleteModal = document.getElementById("deleteConfirmModal");
         const closeDeleteModal = document.querySelector(".close-delete-modal");
         const cancelBtn = document.querySelector(".cancel-btn");
@@ -123,6 +125,16 @@ async function fetchSubtasks(projectTaskId) {
           }
         });
 
+        // Eye icon redirection to subtask details page
+        document.querySelectorAll(".view-icon").forEach((icon) => {
+          icon.addEventListener("click", (event) => {
+            const index = event.target.dataset.index;
+            sessionStorage.setItem("subtask_index", index);
+            sessionStorage.setItem("project_task_id", projectTaskId);
+            window.location.href = "headfarm_subtask_details.html";
+          });
+        });
+
         return allCompleted; // Return status for button handling
       }
     } else {
@@ -156,14 +168,17 @@ async function updateSubtaskStatus(projectTaskId, subtaskIndex, newStatus) {
       if (subtasks[subtaskIndex]) {
         // Update status and handle dates
         subtasks[subtaskIndex].status = newStatus;
-        
+
         if (newStatus === "Ongoing" && !subtasks[subtaskIndex].start_date) {
           subtasks[subtaskIndex].start_date = new Date().toISOString();
           subtasks[subtaskIndex].end_date = null; // Ensure end_date is null when starting
         } else if (newStatus === "Pending") {
           subtasks[subtaskIndex].start_date = null;
           subtasks[subtaskIndex].end_date = null;
-        } else if (newStatus === "Completed" && subtasks[subtaskIndex].start_date) {
+        } else if (
+          newStatus === "Completed" &&
+          subtasks[subtaskIndex].start_date
+        ) {
           subtasks[subtaskIndex].end_date = new Date().toISOString();
         }
 
@@ -217,10 +232,10 @@ async function addSubtask(projectTaskId, newSubtasks) {
       const taskDocRef = taskDoc.ref;
       const existingSubtasks = taskDoc.data().subtasks || [];
 
-      const formattedSubtasks = newSubtasks.map(subtask => ({
+      const formattedSubtasks = newSubtasks.map((subtask) => ({
         ...subtask,
         start_date: null,
-        end_date: null
+        end_date: null,
       }));
 
       const updatedSubtasks = [...existingSubtasks, ...formattedSubtasks];
@@ -242,13 +257,14 @@ export function initializeSubtaskPage() {
     const projectTaskId = sessionStorage.getItem("project_task_id");
     if (projectTaskId) {
       console.log(`Selected Project Task ID: ${projectTaskId}`);
-      
+
       // Fetch subtasks and get completion status
       const allCompleted = await fetchSubtasks(projectTaskId);
 
       // Handle Completed button
       const completeBtn = document.getElementById("completeTaskBtn");
-      if (completeBtn) { // Check if button exists
+      if (completeBtn) {
+        // Check if button exists
         if (allCompleted) {
           completeBtn.disabled = false;
           completeBtn.style.opacity = "1";
@@ -297,7 +313,7 @@ export function initializeSubtaskPage() {
         const subtaskName = document.getElementById("subtaskName").value.trim();
         if (subtaskName) {
           addSubtask(projectTaskId, [
-            { subtask_name: subtaskName, status: "Pending" }
+            { subtask_name: subtaskName, status: "Pending" },
           ]);
           modal.style.display = "none";
           subtaskForm.reset();
