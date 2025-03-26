@@ -76,11 +76,10 @@ async function fetchFarmers(projectId) {
       const projectTaskId = sessionStorage.getItem("project_task_id");
       const taskName = sessionStorage.getItem("selected_task_name");
       const selectedProjectId = sessionStorage.getItem("selected_project_id");
-      const selectedDate =
-        sessionStorage.getItem("selected_date") ||
-        new Date().toISOString().split("T")[0];
+      const selectedDate = sessionStorage.getItem("selected_date");
 
       let attendanceData = [];
+      let attendanceDocId = null;
       if (projectTaskId && taskName && selectedProjectId && selectedDate) {
         const projectTaskCollectionRef = collection(db, "tb_project_task");
         const taskQuery = query(
@@ -94,16 +93,22 @@ async function fetchFarmers(projectId) {
         if (!taskSnapshot.empty) {
           const projectTaskDoc = taskSnapshot.docs[0];
           const projectTaskRef = doc(db, "tb_project_task", projectTaskDoc.id);
-          const attendanceDocRef = doc(
+          const attendanceCollectionRef = collection(
             projectTaskRef,
-            "Attendance",
-            selectedDate
+            "Attendance"
           );
-          const attendanceDocSnapshot = await getDoc(attendanceDocRef);
+          const attendanceQuery = query(
+            attendanceCollectionRef,
+            where("date_created", "==", selectedDate)
+          );
+          const attendanceSnapshot = await getDocs(attendanceQuery);
 
-          if (attendanceDocSnapshot.exists()) {
-            attendanceData = attendanceDocSnapshot.data().farmers || [];
+          if (!attendanceSnapshot.empty) {
+            const attendanceDoc = attendanceSnapshot.docs[0];
+            attendanceDocId = attendanceDoc.id;
+            attendanceData = attendanceDoc.data().farmers || [];
             console.log("Fetched attendance data:", attendanceData);
+            sessionStorage.setItem("attendance_doc_id", attendanceDocId); // Store the UID
           }
         }
       }
@@ -119,8 +124,7 @@ async function fetchFarmers(projectId) {
           const farmerAttendance =
             attendanceData.find((entry) => entry.farmer_name === name) || {};
           const isChecked = farmerAttendance.present || false;
-          const remarkValue = farmerAttendance.remarks || "null";
-          const dateValue = farmerAttendance.date || selectedDate; // Use fetched date or fallback to selectedDate
+          const remarkValue = farmerAttendance.remarks || "productive"; // Default to "productive" if no remark
 
           const row = `
             <tr>
@@ -129,12 +133,11 @@ async function fetchFarmers(projectId) {
           }></td>
               <td>${name || "Unknown Farmer"}</td>
               <td>Farmer</td> <!-- Default role -->
-              <td>${dateValue}</td> <!-- Display the date -->
+              <td>${
+                selectedDate || "No Date"
+              }</td> <!-- Display the selected date -->
               <td>
-                <select class="remarks-select" data-index="${index}">
-                  <option value="null" ${
-                    remarkValue === "null" ? "selected" : ""
-                  }>Select Remark</option>
+                <select class="remarks-select" data-index="${index}" required>
                   <option value="productive" ${
                     remarkValue === "productive" ? "selected" : ""
                   } style="color: #28a745;">Productive</option>
@@ -171,6 +174,14 @@ async function saveAttendance(projectId) {
     const checkboxes = document.querySelectorAll(".attendance-checkbox");
     const remarks = document.querySelectorAll(".remarks-select");
 
+    // Check if all remarks are selected
+    for (const remark of remarks) {
+      if (!remark.value) {
+        alert("Please select a remark for all farmers.");
+        return;
+      }
+    }
+
     const attendanceData = [];
     const checkedFarmers = []; // Array to store farmer data with remarks and date
     const selectedDate =
@@ -186,8 +197,8 @@ async function saveAttendance(projectId) {
       const farmerAttendance = {
         farmer_name: farmerName,
         present: checkbox.checked,
-        date: selectedDate, // Use fetched selected_date
-        remarks: remarkValue === "null" ? null : remarkValue,
+        date: selectedDate,
+        remarks: remarkValue,
       };
       attendanceData.push(farmerAttendance);
 
@@ -195,8 +206,8 @@ async function saveAttendance(projectId) {
       if (checkbox.checked) {
         checkedFarmers.push({
           farmer_name: farmerName,
-          date: selectedDate, // Use fetched selected_date
-          remarks: remarkValue === "null" ? null : remarkValue,
+          date: selectedDate,
+          remarks: remarkValue,
         });
       }
     });
@@ -205,19 +216,20 @@ async function saveAttendance(projectId) {
     await addDoc(collection(db, "tb_attendance"), {
       project_id: Number(projectId),
       attendance: attendanceData,
-      timestamp: Date.now(), // Keep timestamp as Unix for metadata
     });
 
     // Retrieve sessionStorage values
     const projectTaskId = sessionStorage.getItem("project_task_id");
     const taskName = sessionStorage.getItem("selected_task_name");
     const selectedProjectId = sessionStorage.getItem("selected_project_id");
+    const attendanceDocId = sessionStorage.getItem("attendance_doc_id");
 
     console.log("SessionStorage Values:");
     console.log("selected_project_id:", selectedProjectId);
     console.log("project_task_id:", projectTaskId);
     console.log("selected_task_name:", taskName);
     console.log("selected_date:", selectedDate);
+    console.log("attendance_doc_id:", attendanceDocId);
 
     if (!projectTaskId || !taskName || !selectedProjectId || !selectedDate) {
       console.warn("Missing sessionStorage values for tb_project_task save.");
@@ -256,7 +268,15 @@ async function saveAttendance(projectId) {
         projectTaskRef,
         "Attendance"
       );
-      const attendanceDocRef = doc(attendanceSubcollectionRef, selectedDate);
+      let attendanceDocRef;
+
+      if (attendanceDocId) {
+        // Use existing document ID if available
+        attendanceDocRef = doc(attendanceSubcollectionRef, attendanceDocId);
+      } else {
+        // Create a new document with auto-generated UID
+        attendanceDocRef = doc(attendanceSubcollectionRef);
+      }
 
       // Fetch existing data to merge
       const attendanceDocSnapshot = await getDoc(attendanceDocRef);
@@ -282,17 +302,22 @@ async function saveAttendance(projectId) {
         }
       });
 
-      // Save or update the document
+      // Save or update the document with date_created
       await setDoc(
         attendanceDocRef,
         {
-          farmers: mergedFarmers, // Array of objects with farmer_name, date, and remarks
-          timestamp: Date.now(), // Unix timestamp for metadata
+          farmers: mergedFarmers,
+          date_created: selectedDate,
         },
         { merge: true }
       );
 
-      console.log("Attendance saved/updated for date:", selectedDate);
+      // Store the attendance document ID in sessionStorage if it's a new document
+      if (!attendanceDocId) {
+        sessionStorage.setItem("attendance_doc_id", attendanceDocRef.id);
+      }
+
+      console.log("Attendance saved/updated with UID:", attendanceDocRef.id);
     } else {
       console.error(
         "No matching tb_project_task document found for the given criteria."
@@ -307,7 +332,7 @@ async function saveAttendance(projectId) {
     alert("Attendance and task data saved successfully!");
   } catch (error) {
     console.error("Error saving attendance or task data:", error);
-    alert("Error saving attendance or task data.");
+    alert("Error saving attendance or task data: " + error.message);
   }
 }
 

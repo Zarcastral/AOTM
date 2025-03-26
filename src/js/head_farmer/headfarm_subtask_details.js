@@ -53,13 +53,19 @@ export function initializeSubtaskDetailsPage() {
     const addDayBtn = document.querySelector(".add-day-btn");
     if (addDayBtn) {
       addDayBtn.addEventListener("click", () => {
-        addNewDay(projectId, cropType, cropName, projectTaskId);
+        addNewDay(projectId, cropType, cropName, projectTaskId, subtaskName);
       });
     }
 
     // Fetch and display attendance data initially
     if (projectId && cropType && cropName && projectTaskId) {
-      await fetchAttendanceData(projectId, cropType, cropName, projectTaskId);
+      await fetchAttendanceData(
+        projectId,
+        cropType,
+        cropName,
+        projectTaskId,
+        subtaskName
+      );
     } else {
       console.error("Missing required sessionStorage values.");
       document.getElementById("attendanceTableBody").innerHTML = `
@@ -70,10 +76,10 @@ export function initializeSubtaskDetailsPage() {
     // Navigate to headfarm_attendance.html when the eye icon is clicked
     document.addEventListener("click", (event) => {
       if (event.target.matches(".action-icons img[alt='View']")) {
-        const date = event.target
+        const dateCreated = event.target
           .closest("tr")
           .querySelector("td:first-child").textContent;
-        sessionStorage.setItem("selected_date", date);
+        sessionStorage.setItem("selected_date", dateCreated);
         window.location.href = "headfarm_attendance.html";
       }
     });
@@ -85,10 +91,11 @@ async function fetchAttendanceData(
   projectId,
   cropType,
   cropName,
-  projectTaskId
+  projectTaskId,
+  subtaskName
 ) {
   try {
-    // Query to find the matching document
+    // Query to find the matching document in tb_project_task
     const tasksRef = collection(db, "tb_project_task");
     const q = query(
       tasksRef,
@@ -112,13 +119,18 @@ async function fetchAttendanceData(
     const taskId = taskDoc.id; // Get the document ID
     console.log("Found matching task with ID:", taskId);
 
+    // Query the Attendance subcollection with subtask_name filter
     const attendanceRef = collection(
       db,
       "tb_project_task",
       taskId,
       "Attendance"
     );
-    const attendanceSnapshot = await getDocs(attendanceRef);
+    const attendanceQuery = query(
+      attendanceRef,
+      where("subtask_name", "==", subtaskName)
+    );
+    const attendanceSnapshot = await getDocs(attendanceQuery);
 
     const tbody = document.getElementById("attendanceTableBody");
     tbody.innerHTML = ""; // Clear existing rows
@@ -127,19 +139,19 @@ async function fetchAttendanceData(
     console.log("Number of attendance records found:", attendanceSnapshot.size);
 
     if (attendanceSnapshot.empty) {
-      tbody.innerHTML = `<tr><td colspan="3">No attendance records found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3">No attendance records found for subtask: ${subtaskName}.</td></tr>`;
     } else {
       attendanceSnapshot.forEach((doc) => {
-        const date = doc.id; // Date is the document ID (e.g., "2025-03-26")
         const data = doc.data();
+        const dateCreated = data.date_created || "No Date"; // Use date_created from document
         const farmers = data.farmers || [];
         const presentCount = farmers.filter((farmer) => farmer.present).length;
 
-        console.log(`Date: ${date}, Farmers:`, farmers);
+        console.log(`Date Created: ${dateCreated}, Farmers:`, farmers);
 
         const row = `
           <tr>
-            <td>${date}</td>
+            <td>${dateCreated}</td>
             <td>${presentCount}</td>
             <td class="action-icons">
               <img src="../../images/eye.png" alt="View">
@@ -159,9 +171,21 @@ async function fetchAttendanceData(
 }
 
 // Function to add a new day to Firestore and update the table
-async function addNewDay(projectId, cropType, cropName, projectTaskId) {
+async function addNewDay(
+  projectId,
+  cropType,
+  cropName,
+  projectTaskId,
+  subtaskName
+) {
   try {
-    if (!projectId || !cropType || !cropName || !projectTaskId) {
+    if (
+      !projectId ||
+      !cropType ||
+      !cropName ||
+      !projectTaskId ||
+      !subtaskName
+    ) {
       throw new Error("Missing required sessionStorage values");
     }
 
@@ -185,28 +209,37 @@ async function addNewDay(projectId, cropType, cropName, projectTaskId) {
     const taskId = taskDoc.id;
     console.log("Found matching task with ID:", taskId);
 
-    // Use current date as the document ID (e.g., "2025-03-26")
+    // Use current date for date_created field
     const currentDate = new Date().toISOString().split("T")[0];
 
-    // Reference to the specific attendance document under tb_project_task
+    // Reference to the Attendance subcollection with auto-generated UID
     const attendanceRef = doc(
-      db,
-      "tb_project_task",
-      taskId,
-      "Attendance",
-      currentDate
+      collection(db, "tb_project_task", taskId, "Attendance")
     );
 
-    // Initial data for the new day
+    // Initial data for the new day with additional fields
     await setDoc(attendanceRef, {
       farmers: [], // Empty initially
-      timestamp: new Date().toISOString(),
+      date_created: currentDate, // Store the date here
+      project_id: projectId, // Add project_id from selected_project_id
+      project_task_id: Number(projectTaskId), // Add project_task_id
+      subtask_name: subtaskName, // Add subtask_name
+      crop_type_name: cropType, // Add crop_type_name
+      crop_name: cropName, // Add crop_name
     });
 
-    console.log(`Added new day: ${currentDate} under task ID: ${taskId}`);
+    console.log(
+      `Added new day with UID: ${attendanceRef.id} under task ID: ${taskId}`
+    );
 
     // Refresh the table to show the new day
-    await fetchAttendanceData(projectId, cropType, cropName, projectTaskId);
+    await fetchAttendanceData(
+      projectId,
+      cropType,
+      cropName,
+      projectTaskId,
+      subtaskName
+    );
 
     alert(
       `New day (${currentDate}) added successfully! Click the view icon to add attendance details.`
@@ -216,12 +249,13 @@ async function addNewDay(projectId, cropType, cropName, projectTaskId) {
     alert("Error adding new day: " + error.message);
   }
 }
+
 document.addEventListener("click", (event) => {
   if (event.target.matches(".action-icons img[alt='View']")) {
-    const date = event.target
+    const dateCreated = event.target
       .closest("tr")
       .querySelector("td:first-child").textContent;
-    sessionStorage.setItem("selected_date", date);
+    sessionStorage.setItem("selected_date", dateCreated);
     window.location.href = "headfarm_attendance.html";
   }
 });
