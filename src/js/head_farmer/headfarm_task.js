@@ -40,7 +40,10 @@ export async function fetchProjectsForFarmer() {
     querySnapshot.forEach(async (doc) => {
       const project = doc.data();
       if (project.status === "Ongoing") {
-        sessionStorage.setItem("selected_project_id", String(project.project_id));
+        sessionStorage.setItem(
+          "selected_project_id",
+          String(project.project_id)
+        );
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         await fetchProjectTasks(project.crop_type_name, project.project_id);
@@ -112,13 +115,23 @@ function renderTasks() {
       <tr id="task-row-${taskId}">
         <td>${task.task_name}</td>
         <td>${task.subtasks.length}</td>
-        <td class="start-date" data-task-id="${taskId}">${task.start_date ? task.start_date : "--"}</td>
-        <td class="end-date" data-task-id="${taskId}">${task.end_date ? task.end_date : "--"}</td>
+        <td class="start-date" data-task-id="${taskId}">${
+      task.start_date ? task.start_date : "--"
+    }</td>
+        <td class="end-date" data-task-id="${taskId}">${
+      task.end_date ? task.end_date : "--"
+    }</td>
         <td>
           <select class="status-dropdown" data-task-id="${taskId}">
-            <option value="Pending" ${task.status === "Pending" ? "selected" : ""}>Pending</option>
-            <option value="Ongoing" ${task.status === "Ongoing" ? "selected" : ""}>Ongoing</option>
-            <option value="Completed" ${task.status === "Completed" ? "selected" : ""}>Completed</option>
+            <option value="Pending" ${
+              task.status === "Pending" ? "selected" : ""
+            }>Pending</option>
+            <option value="Ongoing" ${
+              task.status === "Ongoing" ? "selected" : ""
+            }>Ongoing</option>
+            <option value="Completed" ${
+              task.status === "Completed" ? "selected" : ""
+            }>Completed</option>
           </select>
         </td>
         <td>
@@ -137,7 +150,8 @@ function renderTasks() {
   const nextBtn = document.getElementById("nextPageBtn");
   const pageInfo = document.getElementById("pageInfo");
 
-  pageInfo.textContent = totalPages > 0 ? `Page ${currentPage} of ${totalPages}` : "Page 1 of 1";
+  pageInfo.textContent =
+    totalPages > 0 ? `Page ${currentPage} of ${totalPages}` : "Page 1 of 1";
   prevBtn.disabled = currentPage === 1;
   nextBtn.disabled = currentPage === totalPages || filteredTasks.length === 0;
 
@@ -272,8 +286,10 @@ async function updateTaskStatus(taskId, newStatus) {
     const taskIndex = allTasks.findIndex((task) => task.id === taskId);
     if (taskIndex !== -1) {
       allTasks[taskIndex].data.status = newStatus;
-      allTasks[taskIndex].data.start_date = updateData.start_date || allTasks[taskIndex].data.start_date;
-      allTasks[taskIndex].data.end_date = updateData.end_date || allTasks[taskIndex].data.end_date;
+      allTasks[taskIndex].data.start_date =
+        updateData.start_date || allTasks[taskIndex].data.start_date;
+      allTasks[taskIndex].data.end_date =
+        updateData.end_date || allTasks[taskIndex].data.end_date;
       filteredTasks = [...allTasks];
     }
 
@@ -328,35 +344,59 @@ async function saveTaskHandler() {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      alert("A task with this name already exists in the project. Please use a different name.");
+      alert(
+        "A task with this name already exists in the project. Please use a different name."
+      );
       return;
     }
 
-    // If no duplicate is found, proceed to add the task
-    const docRef = await addDoc(tasksRef, {
+    // Fetch and increment project_task_id from tb_id_counters
+    const idCounterRef = doc(db, "tb_id_counters", "project_task_id_counter");
+    const idCounterSnap = await getDocs(collection(db, "tb_id_counters"));
+
+    let projectTaskId = 1; // Default if no counter found
+
+    if (!idCounterSnap.empty) {
+      const idCounterData = idCounterSnap.docs
+        .find((doc) => doc.id === "project_task_id_counter")
+        ?.data();
+      if (idCounterData && idCounterData.count) {
+        projectTaskId = idCounterData.count + 1;
+
+        // Update the counter
+        await updateDoc(idCounterRef, { count: projectTaskId });
+      }
+    } else {
+      // If the document does not exist, create it
+      await setDoc(idCounterRef, { count: projectTaskId });
+    }
+
+    // Save the task with project_task_id
+    const newTask = {
+      project_task_id: projectTaskId,
       task_name: taskName,
       project_id: String(projectId),
       crop_type_name: cropTypeName,
       crop_name: cropName,
       status: "Pending",
       subtasks: [],
-    });
+    };
+
+    const docRef = await addDoc(tasksRef, newTask);
+
+    // Store project_task_id in session storage
+    sessionStorage.setItem("project_task_id", projectTaskId);
 
     allTasks.push({
       id: docRef.id,
-      data: {
-        task_name: taskName,
-        project_id: String(projectId),
-        crop_type_name: cropTypeName,
-        crop_name: cropName,
-        status: "Pending",
-        subtasks: [],
-      },
+      data: newTask,
     });
 
     filteredTasks = [...allTasks];
 
-    console.log(`✅ Task "${taskName}" added successfully!`);
+    console.log(
+      `✅ Task "${taskName}" added successfully with ID: ${projectTaskId}`
+    );
     alert("Task added successfully!");
     taskNameInput.value = "";
     addTaskModal.classList.add("hidden");

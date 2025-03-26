@@ -1,10 +1,11 @@
-// headfarm_attendance.js
 import {
   addDoc,
   collection,
+  doc,
   getDocs,
   getFirestore,
   query,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import app from "../../../src/config/firebase_config.js"; // Adjust path as needed
@@ -59,6 +60,16 @@ async function fetchFarmers(projectId) {
       const farmerNames = projectData.farmer_name || []; // Array of strings
       console.log("Farmer names fetched:", farmerNames);
 
+      // Store crop_type_name and crop_name in sessionStorage
+      sessionStorage.setItem(
+        "crop_type_name",
+        projectData.crop_type_name || "Kape"
+      );
+      sessionStorage.setItem(
+        "crop_name",
+        projectData.crop_name || "Highland Vegetables"
+      );
+
       const tbody = document.querySelector("tbody");
       tbody.innerHTML = ""; // Clear existing rows
 
@@ -106,30 +117,128 @@ async function saveAttendance(projectId) {
     const remarks = document.querySelectorAll(".remarks-select");
 
     const attendanceData = [];
+    const checkedFarmers = []; // Array to store names of farmers who are checked
     checkboxes.forEach((checkbox, index) => {
       const farmerName = document.querySelector(
         `tbody tr:nth-child(${index + 1}) td:nth-child(2)`
       ).textContent;
-      attendanceData.push({
+      const farmerAttendance = {
         farmer_name: farmerName,
         present: checkbox.checked,
         date: dates[index].value || new Date().toISOString().split("T")[0], // Default to today if empty
         remarks: remarks[index].value,
-      });
+      };
+      attendanceData.push(farmerAttendance);
+
+      // If checkbox is checked, add farmer name to checkedFarmers array
+      if (checkbox.checked) {
+        checkedFarmers.push(farmerName);
+      }
     });
 
-    // Save to Firestore (example: new 'tb_attendance' collection)
+    // Save to tb_attendance collection
     await addDoc(collection(db, "tb_attendance"), {
       project_id: Number(projectId),
       attendance: attendanceData,
       timestamp: new Date().toISOString(),
     });
 
+    // Retrieve and log sessionStorage values for debugging
+    const projectTaskId = sessionStorage.getItem("project_task_id");
+    const taskName = sessionStorage.getItem("selected_task_name");
+    const selectedProjectId = sessionStorage.getItem("selected_project_id");
+    const selectedDate =
+      sessionStorage.getItem("selected_date") ||
+      new Date().toISOString().split("T")[0];
+
+    console.log("SessionStorage values 0 Values:");
+    console.log("selected_project_id:", selectedProjectId);
+    console.log("project_task_id:", projectTaskId);
+    console.log("selected_task_name:", taskName);
+    console.log("selected_date:", selectedDate);
+
+    if (!projectTaskId || !taskName || !selectedProjectId || !selectedDate) {
+      console.warn("Missing sessionStorage values for tb_project_task save.");
+      alert(
+        "Missing required session data. Attendance saved, but task data incomplete."
+      );
+      return;
+    }
+
+    // Reference to the tb_project_task collection
+    const projectTaskCollectionRef = collection(db, "tb_project_task");
+
+    // Query to find the correct document
+    const taskQuery = query(
+      projectTaskCollectionRef,
+      where("project_id", "==", selectedProjectId), // String type from sessionStorage
+      where("project_task_id", "==", Number(projectTaskId)), // Number type to match DB
+      where("task_name", "==", taskName)
+    );
+    const querySnapshot = await getDocs(taskQuery);
+
+    console.log("Query results:", querySnapshot.size, "documents found");
+    if (!querySnapshot.empty) {
+      querySnapshot.forEach((doc) => {
+        console.log("Matching document data:", doc.data());
+      });
+    }
+
+    if (!querySnapshot.empty) {
+      // Use the first matching document
+      const projectTaskDoc = querySnapshot.docs[0];
+      const projectTaskRef = doc(db, "tb_project_task", projectTaskDoc.id);
+
+      // Reference to the Attendance subcollection
+      const attendanceSubcollectionRef = collection(
+        projectTaskRef,
+        "Attendance"
+      );
+
+      // Query to check if a document for this date already exists in the subcollection
+      const dateQuery = query(
+        attendanceSubcollectionRef,
+        where("date", "==", selectedDate)
+      );
+      const dateSnapshot = await getDocs(dateQuery);
+
+      if (!dateSnapshot.empty) {
+        // If a document exists for this date, update it
+        const existingDoc = dateSnapshot.docs[0];
+        const existingFarmers = existingDoc.data().farmers || [];
+        const updatedFarmers = [
+          ...new Set([...existingFarmers, ...checkedFarmers]),
+        ]; // Merge and remove duplicates
+
+        await updateDoc(doc(attendanceSubcollectionRef, existingDoc.id), {
+          farmers: updatedFarmers,
+          timestamp: new Date().toISOString(),
+        });
+        console.log("Updated existing attendance for date:", selectedDate);
+      } else {
+        // If no document exists, create a new one in the subcollection
+        await addDoc(attendanceSubcollectionRef, {
+          date: selectedDate,
+          farmers: checkedFarmers,
+          timestamp: new Date().toISOString(),
+        });
+        console.log("Created new attendance record for date:", selectedDate);
+      }
+    } else {
+      console.error(
+        "No matching tb_project_task document found for the given criteria."
+      );
+      alert(
+        "No matching project task found. Attendance saved to tb_attendance only."
+      );
+      return;
+    }
+
     console.log("Attendance data saved:", attendanceData);
-    alert("Attendance saved successfully!");
+    alert("Attendance and task data saved successfully!");
   } catch (error) {
-    console.error("Error saving attendance:", error);
-    alert("Error saving attendance.");
+    console.error("Error saving attendance or task data:", error);
+    alert("Error saving attendance or task data.");
   }
 }
 
