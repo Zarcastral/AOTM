@@ -40,9 +40,12 @@ async function fetchSubtasks(projectTaskId) {
           if (status !== "Completed") allCompleted = false;
           const isPending = status === "Pending";
 
+          const safeSubtaskName = subtask.subtask_name
+            ? subtask.subtask_name.replace(/"/g, "&quot;")
+            : "Unnamed Subtask";
           const row = `
             <tr>
-              <td>${subtask.subtask_name || "Unnamed Subtask"}</td>
+              <td>${safeSubtaskName}</td>
               <td>
                 <select class="status-dropdown" data-index="${index}">
                   <option value="Pending" ${
@@ -57,7 +60,7 @@ async function fetchSubtasks(projectTaskId) {
                 </select>
               </td>
               <td class="action-icons">
-                <img src="../../images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}">
+                <img src="../../images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}" data-subtask-name="${safeSubtaskName}">
                 <img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">
               </td>
             </tr>
@@ -125,12 +128,19 @@ async function fetchSubtasks(projectTaskId) {
           }
         });
 
-        // Eye icon redirection to subtask details page
+        // Eye icon redirection
         document.querySelectorAll(".view-icon").forEach((icon) => {
           icon.addEventListener("click", (event) => {
             const index = event.target.dataset.index;
+            const subtaskName = event.target.dataset.subtaskName;
+            console.log("Storing in sessionStorage:", {
+              index,
+              subtaskName,
+              projectTaskId,
+            }); // Debug
             sessionStorage.setItem("subtask_index", index);
             sessionStorage.setItem("project_task_id", projectTaskId);
+            sessionStorage.setItem("subtask_name", subtaskName);
             window.location.href = "headfarm_subtask_details.html";
           });
         });
