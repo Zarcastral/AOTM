@@ -29,8 +29,6 @@ document.body.appendChild(editFormContainer);
 let currentPage = 1;
 const rowsPerPage = 5;
 let farmerAccounts = [];
-let selectedMonth = null;
-let selectedYear = new Date().getFullYear();
 
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
@@ -64,47 +62,6 @@ async function getAuthenticatedUser() {
 document.addEventListener("DOMContentLoaded", () => {
     fetch_farmer_accounts();
     fetch_barangays();
-
-    const calendarIcon = document.querySelector(".calendar-btn-icon");
-    if (calendarIcon) {
-        calendarIcon.addEventListener("click", showMonthPicker);
-    }
-
-    document.addEventListener("click", (event) => {
-        const monthPicker = document.getElementById("month-picker");
-        const calendarIcon = document.querySelector(".calendar-btn-icon");
-        if (monthPicker && !monthPicker.contains(event.target) && !calendarIcon.contains(event.target)) {
-            monthPicker.style.display = "none";
-        }
-    });
-
-    document.getElementById("prev-year").addEventListener("click", () => {
-        selectedYear--;
-        document.getElementById("year-display").textContent = selectedYear;
-        filterFarmerAccountsByMonth();
-    });
-
-    document.getElementById("next-year").addEventListener("click", () => {
-        selectedYear++;
-        document.getElementById("year-display").textContent = selectedYear;
-        filterFarmerAccountsByMonth();
-    });
-
-    document.querySelectorAll(".month-btn").forEach((btn, index) => {
-        btn.addEventListener("click", () => {
-            selectedMonth = index + 1;
-            filterFarmerAccountsByMonth();
-            document.querySelectorAll(".month-btn").forEach(b => b.style.backgroundColor = "transparent");
-            btn.style.backgroundColor = "#41A186";
-            document.getElementById("month-picker").style.display = "none";
-            document.querySelector(".calendar-btn-icon").style.filter = "brightness(0.5)";
-        });
-    });
-
-    document.getElementById("clear-btn").addEventListener("click", () => {
-        clearMonthFilter();
-        document.getElementById("month-picker").style.display = "none";
-    });
 });
 
 async function fetch_farmer_accounts(filter = {}) {
@@ -128,11 +85,7 @@ async function fetch_farmer_accounts(filter = {}) {
                 ? (data.barangay_name || "").toLowerCase() === filter.barangay_name.toLowerCase()
                 : true;
 
-            const matchesDate = filter.month && filter.year
-                ? checkDateMatch(data.created_at, filter.month, filter.year)
-                : true;
-
-            if (matchesSearch && matchesBarangay && matchesDate) {
+            if (matchesSearch && matchesBarangay) {
                 farmerAccounts.push({ id: doc.id, ...data });
             }
         });
@@ -164,58 +117,6 @@ async function fetch_farmer_accounts(filter = {}) {
     } catch (error) {
         console.error("Error Fetching Farmer Accounts:", error);
     }
-}
-
-function checkDateMatch(createdAt, month, year) {
-    if (!createdAt) return false;
-    const date = new Date(createdAt);
-    return date.getMonth() + 1 === month && date.getFullYear() === year;
-}
-
-function showMonthPicker() {
-    const calendarIcon = document.querySelector(".calendar-btn-icon");
-    const monthPicker = document.getElementById("month-picker");
-    const yearDisplay = document.getElementById("year-display");
-    
-    if (yearDisplay) {
-        yearDisplay.textContent = selectedYear;
-    }
-
-    monthPicker.style.position = "absolute";
-    monthPicker.style.top = `${calendarIcon.offsetHeight + 5}px`;
-    monthPicker.style.right = "0px";
-    monthPicker.style.left = "auto";
-
-    monthPicker.style.display = monthPicker.style.display === "none" ? "block" : "none";
-}
-
-function clearMonthFilter() {
-    selectedMonth = null;
-    selectedYear = new Date().getFullYear();
-    const calendarIcon = document.querySelector(".calendar-btn-icon");
-    calendarIcon.style.filter = "none";
-    document.querySelectorAll("#month-picker .month-btn").forEach(btn => {
-        btn.style.backgroundColor = "transparent";
-    });
-    const yearDisplay = document.getElementById("year-display");
-    if (yearDisplay) {
-        yearDisplay.textContent = selectedYear;
-    }
-    currentPage = 1;
-    fetch_farmer_accounts({
-        search: searchBar.value,
-        barangay_name: barangaySelect.value
-    });
-}
-
-function filterFarmerAccountsByMonth() {
-    currentPage = 1;
-    fetch_farmer_accounts({
-        search: searchBar.value,
-        barangay_name: barangaySelect.value,
-        month: selectedMonth,
-        year: selectedYear
-    });
 }
 
 function capitalizeWords(str) {
@@ -462,9 +363,7 @@ searchBar.addEventListener("input", () => {
     currentPage = 1;
     fetch_farmer_accounts({
         search: searchBar.value,
-        barangay_name: barangaySelect.value,
-        month: selectedMonth,
-        year: selectedYear
+        barangay_name: barangaySelect.value
     });
 });
 
@@ -472,9 +371,7 @@ barangaySelect.addEventListener("change", () => {
     currentPage = 1;
     fetch_farmer_accounts({
         search: searchBar.value,
-        barangay_name: barangaySelect.value,
-        month: selectedMonth,
-        year: selectedYear
+        barangay_name: barangaySelect.value
     });
 });
 
@@ -655,3 +552,209 @@ function showDeleteMessage(message, success) {
         }, 400);
     }, 4000); 
 }
+document.getElementById("download-btn").addEventListener("click", async () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
+  
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+  
+    // Get the authenticated user's data (using your existing function)
+    const user = await getAuthenticatedUser();
+    const usersCollection = collection(db, "tb_users");
+    const userQuery = query(usersCollection, where("email", "==", user.email));
+    const userSnapshot = await getDocs(userQuery);
+    const userData = userSnapshot.docs[0].data();
+  
+    // Construct the full name using your formatName function
+    const fullName = formatName(userData.first_name, userData.middle_name, userData.last_name);
+    const userTypePrint = userData.user_type || "Unknown";
+  
+    // Get the current date and year
+    const currentDate = new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const currentYear = new Date().getFullYear(); // Get the current year dynamically
+  
+    // Prepare table data from farmerAccounts array
+    const tableData = farmerAccounts.map((farmer) => {
+      const farmerId = farmer.farmer_id || "Farmer ID not recorded";
+      const farmerName = formatName(farmer.first_name, farmer.middle_name, farmer.last_name) || "User's name not recorded";
+      const userType = formatUserType(farmer.user_type) || "User's role not recorded";
+      const barangay = formatBarangay(farmer.barangay_name) || "Barangay not recorded";
+      const contact = farmer.contact || "Contact Number not recorded";
+      const birthday = farmer.birthday ? new Date(farmer.birthday).toLocaleDateString("en-US") : "Birthday not recorded";
+      const sex = farmer.sex ? capitalizeWords(farmer.sex) : "Sex not recorded";
+  
+      return [
+        farmerId,
+        farmerName,
+        userType,
+        barangay,
+        contact,
+        birthday,
+        sex
+      ];
+    });
+  
+    const columns = [
+      "Farmer ID",
+      "Name",
+      "User Type",
+      "Barangay",
+      "Contact Number",
+      "Birthday",
+      "Sex"
+    ];
+  
+    const columnWidths = [25, 40, 25, 35, 35, 30, 20];
+    const totalTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+    const leftMargin = (pageWidth - totalTableWidth) / 2;
+  
+    // Header container
+    const addHeader = (doc) => {
+      const headerImg = "../../../public/images/BarasHeader.png";
+      const headerImgWidth = 60;
+      const headerImgHeight = 40;
+      try {
+        doc.addImage(headerImg, "PNG", (pageWidth - headerImgWidth) / 2, 5, headerImgWidth, headerImgHeight);
+      } catch (e) {
+        console.error("Error adding header image:", e);
+      }
+  
+      doc.setLineWidth(0.4);
+      doc.setDrawColor(51, 51, 51);
+      doc.line(10, 45, pageWidth - 10, 45);
+  
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text("FOR", 20, 60);
+      doc.text(":", 42, 60);
+      doc.text("FROM", 20, 70);
+      doc.text(":", 42, 70);
+      doc.text(fullName, 50, 70);
+      doc.text("DATE", 20, 80);
+      doc.text(":", 42, 80);
+      doc.text(currentDate, 50, 80);
+      doc.text("SUBJECT", 20, 90);
+      doc.text(":", 42, 90);
+      doc.text("Farmer Accounts Report", 50, 90);
+  
+      doc.setFontSize(15);
+      doc.setFont("helvetica", "bold");
+      doc.text(`BARAS FARMERS REPORT ${currentYear}`, pageWidth / 2, 100, { align: "center" });
+    };
+  
+    // Body container (unchanged)
+    const addBody = (doc, data) => {
+      const tableEndY = data.cursor.y + 35;
+      if (tableEndY < pageHeight - 30) {
+        doc.setLineWidth(0.4);
+        doc.setDrawColor(51, 51, 51);
+        doc.line(10, tableEndY, pageWidth - 10, tableEndY);
+      }
+    };
+  
+    // Footer container (unchanged)
+    const addFooter = (doc, data) => {
+      const footerImg = "../../../public/images/BarasFooter.png";
+      const footerImgWidth = 140;
+      const footerImgHeight = 15;
+      try {
+        doc.addImage(footerImg, "PNG", (pageWidth - footerImgWidth) / 2, pageHeight - 30, footerImgWidth, footerImgHeight);
+      } catch (e) {
+        console.error("Error adding footer image:", e);
+      }
+  
+      const pageCount = doc.internal.getNumberOfPages();
+      const pageNumber = data.pageNumber;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth - 10, pageHeight - 10, { align: "right" });
+    };
+  
+    // Pagination logic
+    const maxTableHeight = pageHeight - 65;
+    const rowHeightEstimate = 10;
+    const baseRowsPerPage = Math.floor((maxTableHeight - 105) / rowHeightEstimate);
+    const rowsPerPage = baseRowsPerPage;
+    let currentPage = 0;
+  
+    while (currentPage * rowsPerPage < tableData.length) {
+      const startIndex = currentPage * rowsPerPage;
+      const endIndex = Math.min(startIndex + rowsPerPage, tableData.length);
+      const pageData = tableData.slice(startIndex, endIndex);
+  
+      if (currentPage > 0) {
+        doc.addPage();
+      }
+  
+      addHeader(doc);
+  
+      doc.autoTable({
+        startY: 105,
+        head: [columns],
+        body: pageData,
+        theme: "grid",
+        margin: { top: 55, left: leftMargin, right: leftMargin, bottom: 20 },
+        styles: {
+          fontSize: 7,
+          cellPadding: 1,
+          overflow: "linebreak",
+          font: "helvetica",
+          textColor: [51, 51, 51],
+          lineColor: [132, 138, 156],
+          lineWidth: 0.1,
+          halign: "center",
+          valign: "top",
+        },
+        headStyles: {
+          fillColor: [255, 255, 255],
+          textColor: [65, 161, 134],
+          fontSize: 8,
+          font: "helvetica",
+          fontStyle: "bold",
+          lineColor: [132, 138, 156],
+          lineWidth: 0.1,
+          halign: "center",
+          valign: "top",
+        },
+        columnStyles: Object.fromEntries(columns.map((_, i) => [i, { cellWidth: columnWidths[i] }])),
+        didDrawPage: (data) => {
+          addBody(doc, data);
+          addFooter(doc, data);
+        },
+      });
+  
+      currentPage++;
+    }
+  
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const previewPanel = document.getElementById("pdf-preview-panel");
+    const previewContainer = document.getElementById("pdf-preview-container");
+  
+    previewContainer.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%"></iframe>`;
+    previewPanel.style.display = "flex";
+    document.body.classList.add("preview-active");
+  
+    document.getElementById("preview-cancel-btn").onclick = () => {
+      previewPanel.style.display = "none";
+      document.body.classList.remove("preview-active");
+      URL.revokeObjectURL(pdfUrl);
+    };
+  
+    document.getElementById("preview-done-btn").onclick = async () => {
+      doc.save(`Farmer_Accounts_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+      await saveActivityLog("Create", `Farmer Accounts Report downloaded by ${userTypePrint} ${fullName}`);
+      previewPanel.style.display = "none";
+      document.body.classList.remove("preview-active");
+      URL.revokeObjectURL(pdfUrl);
+    };
+  });

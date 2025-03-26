@@ -25,7 +25,6 @@ editFormContainer.id = "edit-form-container";
 editFormContainer.style.display = "none";
 document.body.appendChild(editFormContainer);
 
-
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
@@ -54,7 +53,6 @@ async function getAuthenticatedUser() {
         });
     });
 }
-
 
 let currentPage = 1;
 const rowsPerPage = 5;
@@ -115,7 +113,6 @@ async function fetch_projects(filter = {}) {
         console.error("Error Fetching User Accounts:", error);
     }
 }
-
 
 // <------------------------ FUNCTION TO CAPTALIZE THE INITIAL LETTERS ------------------------>
 function capitalizeWords(str) {
@@ -192,13 +189,11 @@ function updatePagination() {
     updatePaginationButtons();
 }
 
-
 function updatePaginationButtons() {
     const totalPages = Math.ceil(projectList.length / rowsPerPage);
     prevPageBtn.disabled = currentPage === 1;
     nextPageBtn.disabled = currentPage >= totalPages;
 }
-
 
 function changePage(direction) {
     const totalPages = Math.ceil(projectList.length / rowsPerPage);
@@ -260,27 +255,7 @@ async function editUserAccount(project_id) {
     }
 }
 
-
 // <------------- VIEW BUTTON CODE ------------->
-/*async function viewUserAccount(project_id) {
-    try {
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            querySnapshot.forEach((doc) => {
-                const projectData = doc.data();
-                localStorage.setItem("projectData", JSON.stringify(projectData));
-                window.location.href = "admin_users_view.html";
-            });
-        } else {
-            showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
-        }
-    } catch (error) {
-        console.log("Error fetching user data for view:", error);
-    }
-}*/
-
 function viewUserAccount(projectId) {
     sessionStorage.setItem("selectedProjectId", parseInt(projectId, 10)); // Convert to integer
     window.location.href = "viewproject.html"; // Redirect to viewproject.html
@@ -320,7 +295,6 @@ async function deleteProjects(project_id) {
     }
 }
 
-// <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
 // <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
 const confirmationPanel = document.getElementById("confirmation-panel");
 const confirmDeleteButton = document.getElementById("confirm-delete");
@@ -450,9 +424,6 @@ cancelDeleteButton.addEventListener("click", () => {
     selectedRowId = null;
 });
 
-
-// <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
-
 // EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
 searchBar.addEventListener("input", () => {
     fetch_projects({
@@ -480,9 +451,17 @@ async function fetch_status() {
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            let statusName = data.status ? data.status.toUpperCase() : "";
+            let statusName = data.status || "";
+            
+            // Skip if status is null, undefined, or empty string
+            if (!statusName || statusName.trim() === "") {
+                return;
+            }
 
-            // Case-insensitive check by converting all stored values to uppercase
+            // Capitalize only the first letter
+            statusName = statusName.charAt(0).toUpperCase() + statusName.slice(1).toLowerCase();
+
+            // Case-insensitive check by converting all stored values to a consistent format
             if (!addedStatus.includes(statusName)) {
                 addedStatus.push(statusName);
 
@@ -496,7 +475,6 @@ async function fetch_status() {
         console.error("Error Fetching Status:", error);
     }
 }
-
 
 // <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE and ERROR MESSAGES ------------------------>
 function showDeleteMessage(message, success) {
