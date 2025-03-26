@@ -4,93 +4,111 @@ import {
   getFirestore,
   query,
   where,
-  deleteDoc,
   onSnapshot,
   doc
 } from "firebase/firestore";
-
-import app from "../../config/firebase_config.js";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-const auth = getAuth();
+const auth = getAuth(app);
+import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 
-let cropsList = []; // Declare cropsList globally for filtering
+let cropsList = [];
 let currentPage = 1;
 const rowsPerPage = 5;
-let filteredCrops = []; // Initialize filteredCrops with an empty array
-let selectedCrops = [];
-// USE THIS TO SORT FOR CROP ID ASCENDING ORDER
-/*function sortCropsById() {
-  filteredCrops.sort((a, b) => Number(a.crop_type_id || 0) - Number(b.crop_type_id || 0));
-}*/
+let filteredCrops = [];
+let currentFarmerData = {};
 
-
-// DIS ONE IS FOR DATES FROM LATEST TO OLDEST
+// Sort crops by date (latest to oldest)
 function sortCropsById() {
   filteredCrops.sort((a, b) => {
-    const dateA = parseDate(a.date_created);
-    const dateB = parseDate(b.date_created);
-    return dateB - dateA; // Sort latest to oldest
+    const dateA = parseDate(a.cropDate);
+    const dateB = parseDate(b.cropDate);
+    return dateB - dateA;
   });
 }
 
 function parseDate(dateValue) {
-  if (!dateValue) return new Date(0); // Default to epoch if no date
-  
-  // If Firestore Timestamp object, convert it
+  if (!dateValue) return new Date(0);
   if (typeof dateValue.toDate === "function") {
     return dateValue.toDate();
   }
-  
-  return new Date(dateValue); // Convert string/ISO formats to Date
+  return new Date(dateValue);
 }
 
-// Authenticate user and fetch crops
-onAuthStateChanged(auth, async (user) => {
-  if (user.email) {
-    try {
-      const farmersCollection = collection(db, "tb_farmers");
-      const farmerQuery = query(farmersCollection, where("email", "==", user.email));
-      const farmerSnapshot = await getDocs(farmerQuery);
+async function getAuthenticatedFarmer() {
+  return new Promise((resolve, reject) => {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const farmerQuery = query(
+            collection(db, "tb_farmers"),
+            where("email", "==", user.email)
+          );
+          const farmerSnapshot = await getDocs(farmerQuery);
 
-      if (!farmerSnapshot.empty) {
-        console.log("Authenticated user:", user.email);
-        fetchCrops(user.email);
+          if (!farmerSnapshot.empty) {
+            const farmerData = farmerSnapshot.docs[0].data();
+            currentFarmerData = {
+              farmer_id: farmerData.farmer_id,
+              user_type: farmerData.user_type,
+              first_name: farmerData.first_name,
+              middle_name: farmerData.middle_name,
+              last_name: farmerData.last_name
+            };
+            resolve(currentFarmerData);
+          } else {
+            console.error("Farmer record not found in tb_farmers collection.");
+            reject("Farmer record not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching farmer data:", error);
+          reject(error);
+        }
       } else {
-        console.error("User is not a farmer.");
+        console.error("User not authenticated. Please log in.");
+        reject("User not authenticated.");
       }
-    } catch (error) {
-      console.error("Error authenticating user:", error);
-    }
-  } else {
-    console.log("No user is signed in.");
-  }
-});
-
-// Fetch crops data based on authenticated user's email
-function fetchCrops(userEmail) {
-  const projectsCollection = collection(db, "tb_projects");
-  const projectsQuery = query(projectsCollection, where("email", "==", userEmail));
-
-  onSnapshot(projectsQuery, (snapshot) => {
-    cropsList = snapshot.docs.map(doc => ({
-      project_id: doc.data().project_id || "N/A",
-      project_name: doc.data().project_name || "N/A",
-      crop_name: doc.data().crop_name || "N/A",
-      crop_type_name: doc.data().crop_type_name || "N/A",
-      date_created: doc.data().date_added || "N/A",
-      quantity_crop_type: doc.data().quantity_crop_type || "N/A",
-      crop_unit: doc.data().crop_unit || "No Unit Record" // Add this line to handle unit
-    }));
-
-    filteredCrops = [...cropsList];
-    sortCropsById();          // Sort crops by date (latest to oldest)
-    displayCrops(filteredCrops); // Update table display
-  }, (error) => {
-    console.error("Error listening to projects:", error);
+    });
   });
 }
 
+// Real-time listener for projects collection
+async function fetchCrops() {
+  try {
+    const farmerData = await getAuthenticatedFarmer();
+    const projectsCollection = collection(db, "tb_projects");
+    const projectsQuery = query(
+      projectsCollection,
+      where("farmer_id", "==", farmerData.farmer_id)
+    );
+
+    onSnapshot(projectsQuery, async (snapshot) => {
+      const projectsData = snapshot.docs.map(doc => {
+        const project = doc.data();
+        return {
+          project_id: project.project_id || "Not specified",
+          project_name: project.project_name || "Not specified",
+          crop_name: project.crop_name || "Not specified",
+          crop_type_name: project.crop_type_name || "Not specified",
+          cropDate: project.crop_date || null,
+          crop_type_quantity: project.crop_type_quantity || "0",
+          crop_unit: project.crop_unit || "",
+          owned_by: farmerData.user_type
+        };
+      });
+
+      console.log("Crops List:", projectsData); // Debug log
+      cropsList = projectsData;
+      filteredCrops = [...cropsList];
+      sortCropsById();
+      displayCrops(filteredCrops);
+    }, (error) => {
+      console.error("Error listening to projects:", error);
+    });
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+  }
+}
 
 // Display crops in the table
 function displayCrops(cropsList) {
@@ -100,58 +118,49 @@ function displayCrops(cropsList) {
     return;
   }
 
-  tableBody.innerHTML = ""; // Clear existing rows
+  tableBody.innerHTML = "";
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginatedCrops = cropsList.slice(startIndex, endIndex);
 
+  console.log("Paginated Crops:", paginatedCrops); // Debug log
+
   if (paginatedCrops.length === 0) {
-    // Show "No records found" if CropsList is empty
-    const messageRow = document.createElement("tr");
-    messageRow.classList.add("no-records-message");
-    messageRow.innerHTML = `
-      <td colspan="6" style="text-align: center; color: red;">No records found</td>
+    tableBody.innerHTML = `
+      <tr class="no-records-message">
+        <td colspan="6" style="text-align: center; color: red;">No records found</td>
+      </tr>
     `;
-    tableBody.appendChild(messageRow);
     return;
   }
 
-  // Remove any "No records found" message if there are records
-  const noRecordsMessage = document.querySelector(".no-records-message");
-  if (noRecordsMessage) {
-    noRecordsMessage.remove();
-  }
-
-  // Render crops list in the table
   paginatedCrops.forEach((crop) => {
     const row = document.createElement("tr");
-
-    const projectId = crop.project_id || "N/A";
-    const projectName = crop.project_name || "N/A";
-    const cropName = crop.crop_name || "N/A";
-    const cropType = crop.crop_type_name || "N/A";
-    const date_created = crop.date_created
-      ? (crop.date_created.toDate ? crop.date_created.toDate().toLocaleDateString() : new Date(crop.date_created).toLocaleDateString())
+    const cropDate = crop.cropDate
+      ? (crop.cropDate.toDate
+        ? crop.cropDate.toDate().toLocaleDateString()
+        : new Date(crop.cropDate).toLocaleDateString())
       : "Date not recorded";
-    const quantityCropType = crop.quantity_crop_type || "0";
-    const crop_unit = crop.crop_unit || "No Recorded Unit";
+
     row.innerHTML = `
-        <td class="checkbox">
-            <input type="checkbox" data-crop-id="${projectId}">
-        </td>
-        <td>${projectId}</td>
-        <td>${projectName}</td>
-        <td>${cropType}</td>
-        <td>${cropName}</td>
-        <td>${date_created}</td>
-        <td>${quantityCropType} ${crop_unit}</td>
+      <td>${crop.project_id}</td>
+      <td>${crop.project_name}</td>
+      <td>${crop.crop_name}</td>
+      <td>${crop.crop_type_name}</td>
+      <td>${cropDate}</td>
+      <td>${crop.crop_type_quantity} ${crop.crop_unit}</td>
     `;
     tableBody.appendChild(row);
   });
-  addCheckboxListeners();
   updatePagination();
-  toggleBulkDeleteButton();
 }
+
+// Initialize fetches when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  fetchCropNames();
+  fetchProjectNames();
+  fetchCrops();
+});
 
 // Update pagination display
 function updatePagination() {
@@ -166,7 +175,7 @@ function updatePaginationButtons() {
   document.getElementById("crop-next-page").disabled = currentPage >= Math.ceil(filteredCrops.length / rowsPerPage);
 }
 
-// Event listener for "Previous" button
+// Event listeners for pagination
 document.getElementById("crop-prev-page").addEventListener("click", () => {
   if (currentPage > 1) {
     currentPage--;
@@ -174,7 +183,6 @@ document.getElementById("crop-prev-page").addEventListener("click", () => {
   }
 });
 
-// Event listener for "Next" button
 document.getElementById("crop-next-page").addEventListener("click", () => {
   if ((currentPage * rowsPerPage) < filteredCrops.length) {
     currentPage++;
@@ -182,7 +190,7 @@ document.getElementById("crop-next-page").addEventListener("click", () => {
   }
 });
 
-// Fetch crop names for the dropdown
+// Fetch crop names for the crop dropdown
 async function fetchCropNames() {
   const cropsCollection = collection(db, "tb_crops");
   const cropsSnapshot = await getDocs(cropsCollection);
@@ -199,8 +207,6 @@ function populateCropDropdown(cropNames) {
     return;
   }
   const firstOption = cropSelect.querySelector("option")?.outerHTML || "";
-
-  // Clear existing options except the first default one
   cropSelect.innerHTML = firstOption;
 
   cropNames.forEach(cropName => {
@@ -209,184 +215,99 @@ function populateCropDropdown(cropNames) {
     cropSelect.appendChild(option);
   });
 }
-// ---------------------------- PAGINATION CODE ---------------------------- //
-// Event listener to filter crops based on dropdown selection
-document.querySelector(".crop_select").addEventListener("change", function () {
-  const selectedCrop = this.value.toLowerCase();
-  // Filter crops based on selected value
-  filteredCrops = selectedCrop
-    ? cropsList.filter(crop => crop.crop_name?.toLowerCase() === selectedCrop)
-    : cropsList; // If no selection, show all crops
 
-  currentPage = 1; // Reset to the first page when filter is applied
-  sortCropsById();
-  displayCrops(filteredCrops); // Update the table with filtered crops
-});
+// Fetch project names for the project dropdown
+async function fetchProjectNames() {
+  try {
+    const farmerData = await getAuthenticatedFarmer();
+    const projectsCollection = collection(db, "tb_projects");
+    const projectsQuery = query(
+      projectsCollection,
+      where("farmer_id", "==", farmerData.farmer_id)
+    );
+    const projectsSnapshot = await getDocs(projectsQuery);
+    const projectNames = projectsSnapshot.docs.map(doc => doc.data().project_name);
 
-// Initialize fetches when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  fetchCropNames();
-});
-
-
-// ---------------------------- CROP BULK DELETE CODES ---------------------------- //
-const deletemessage = document.getElementById("crop-bulk-message"); // delete message panel
-
-// CHECKBOX CHANGE EVENT HANDLER
-function handleCheckboxChange(event) {
-  const checkbox = event.target; // The checkbox that triggered the event
-  const row = checkbox.closest("tr"); // Get the row of the checkbox
-  if (!row) return;
-
-  // Get cropType ID from the data attribute
-  const cropTypeId = checkbox.getAttribute("data-crop-id");
-
-  if (checkbox.checked) {
-    // Add to selected list if checked
-    if (!selectedCrops.includes(cropTypeId)) {
-      selectedCrops.push(cropTypeId);
-    }
-  } else {
-    // Remove from list if unchecked
-    selectedCrops = selectedCrops.filter(item => item !== cropTypeId);
+    populateProjectDropdown(projectNames);
+  } catch (error) {
+    console.error("Error fetching project names:", error);
   }
-
-  console.log("Selected Crops:", selectedCrops);
-  toggleBulkDeleteButton();
 }
 
-// Enable/Disable the Bulk Delete button
-function toggleBulkDeleteButton() {
-  const bulkDeleteButton = document.getElementById("crop-bulk-delete");
-  bulkDeleteButton.disabled = selectedCrops.length === 0;
-}
+// Populate the project dropdown with project names
+function populateProjectDropdown(projectNames) {
+  const projectSelect = document.querySelector(".project_select");
+  if (!projectSelect) {
+    console.error("Project dropdown not found!");
+    return;
+  }
+  const firstOption = projectSelect.querySelector("option")?.outerHTML || "";
+  projectSelect.innerHTML = firstOption;
 
-// Attach event listener to checkboxes (after crops are displayed)
-function addCheckboxListeners() {
-  document.querySelectorAll(".crop_table input[type='checkbox']").forEach(checkbox => {
-    checkbox.addEventListener("change", handleCheckboxChange);
+  const uniqueProjectNames = [...new Set(projectNames)].sort();
+  uniqueProjectNames.forEach(projectName => {
+    const option = document.createElement("option");
+    option.textContent = projectName;
+    projectSelect.appendChild(option);
   });
 }
 
-// <------------- BULK DELETE BUTTON CODE ---------------> //
-document.getElementById("crop-bulk-delete").addEventListener("click", async () => {
-  const selectedCheckboxes = document.querySelectorAll(".crop_table input[type='checkbox']:checked");
-
-  let selectedCropTypeIds = [];
-  let hasInvalidId = false;
-
-  for (const checkbox of selectedCheckboxes) {
-      const cropTypeId = checkbox.getAttribute("data-crop-id");
-
-      // Validate cropTypeId (null, undefined, or empty string)
-      if (!cropTypeId || cropTypeId.trim() === "") {
-          hasInvalidId = true;
-          break;
-      }
-
-      /* Check if the cropType_id exists in the database */
-      try {
-          const q = query(collection(db, "tb_crop_types"), where("crop_type_id", "==", Number(cropTypeId)));
-          const querySnapshot = await getDocs(q);
-
-          if (querySnapshot.empty) {
-              hasInvalidId = true;
-              console.error(`ERROR: Crop ID ${cropTypeId} does not exist in the database.`);
-              break;
-          }
-
-          selectedCropTypeIds.push(cropTypeId);
-      } catch (error) {
-          console.error("Error fetching crop records:", error);
-          hasInvalidId = true;
-          break;
-      }
-  }
-
-  if (hasInvalidId) {
-      showDeleteMessage("ERROR: crop ID of one or more selected records are invalid", false);
-  } else {
-      document.getElementById("crop-bulk-panel").style.display = "block"; // Show confirmation panel
-  }
+// Filter crops based on crop dropdown selection
+document.querySelector(".crop_select").addEventListener("change", function () {
+  const selectedCrop = this.value.toLowerCase();
+  const selectedProject = document.querySelector(".project_select").value.toLowerCase();
+  
+  filteredCrops = cropsList.filter(crop => {
+    const matchesCrop = selectedCrop ? crop.crop_name?.toLowerCase() === selectedCrop : true;
+    const matchesProject = selectedProject ? crop.project_name?.toLowerCase() === selectedProject : true;
+    return matchesCrop && matchesProject;
+  });
+  
+  currentPage = 1;
+  sortCropsById();
+  displayCrops(filteredCrops);
 });
 
-// Close the Bulk Delete Panel
-document.getElementById("cancel-crop-delete").addEventListener("click", () => {
-  document.getElementById("crop-bulk-panel").style.display = "none";
+// Filter crops based on project dropdown selection
+document.querySelector(".project_select").addEventListener("change", function () {
+  const selectedProject = this.value.toLowerCase();
+  const selectedCrop = document.querySelector(".crop_select").value.toLowerCase();
+  
+  filteredCrops = cropsList.filter(crop => {
+    const matchesProject = selectedProject ? crop.project_name?.toLowerCase() === selectedProject : true;
+    const matchesCrop = selectedCrop ? crop.crop_name?.toLowerCase() === selectedCrop : true;
+    return matchesProject && matchesCrop;
+  });
+  
+  currentPage = 1;
+  sortCropsById();
+  displayCrops(filteredCrops);
 });
-
-// Function to delete selected crops from Firestore
-async function deleteSelectedCrops() {
-  if (selectedCrops.length === 0) {
-    return;
-  }
-
-  try {
-    const cropsCollection = collection(db, "tb_crop_types");
-
-    for (const cropTypeId of selectedCrops) {
-      const cropQuery = query(cropsCollection, where("crop_type_id", "==", Number(cropTypeId)));
-      const querySnapshot = await getDocs(cropQuery);
-
-      if (!querySnapshot.empty) {
-        for (const docSnapshot of querySnapshot.docs) {
-          console.log("Deleting document ID:", docSnapshot.id);
-          await deleteDoc(doc(db, "tb_crop_types", docSnapshot.id));
-        }
-      } else {
-        console.error(`ERROR: Crop ID ${cropTypeId} does not exist.`);
-      }
-    }
-
-    console.log("Deleted Crops:", selectedCrops);
-    showDeleteMessage("All selected Crop records successfully deleted!", true);
-    selectedCrops = [];  // Clear selection AFTER successful deletion
-    document.getElementById("crop-bulk-panel").style.display = "none";
-    fetchCrops();  // Refresh the table
-
-  } catch (error) {
-    console.error("Error deleting crops:", error);
-    showDeleteMessage("Error deleting crops!", false);
-  }
-}
-
-// Confirm Deletion and Call Delete Function
-document.getElementById("confirm-crop-delete").addEventListener("click", () => {
-  deleteSelectedCrops();
-});
-
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE ------------------------>
-const deleteMessage = document.getElementById("crop-bulk-message");
-
-function showDeleteMessage(message, success) {
-  deleteMessage.textContent = message;
-  deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-  deleteMessage.style.opacity = '1';
-  deleteMessage.style.display = 'block';
-
-  setTimeout(() => {
-    deleteMessage.style.opacity = '0';
-    setTimeout(() => {
-      deleteMessage.style.display = 'none';
-    }, 300);
-  }, 4000);
-}
 
 // Search bar event listener for real-time filtering
 document.getElementById("crop-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
-
-  // Filter crops based on searchQuery, excluding stock and date fields
+  console.log("Search Query:", searchQuery); // Debug log to verify input
+  
   filteredCrops = cropsList.filter(crop => {
     return (
-      crop.project_name?.toLowerCase().includes(searchQuery) ||
-      crop.crop_name?.toLowerCase().includes(searchQuery) ||
-      crop.crop_type_name?.toLowerCase().includes(searchQuery) ||
-      crop.crop_type_id?.toString().includes(searchQuery) // Ensure ID is searchable
+      (crop.project_id && crop.project_id.toString().toLowerCase().includes(searchQuery)) ||
+      (crop.project_name && crop.project_name.toLowerCase().includes(searchQuery)) ||
+      (crop.crop_name && crop.crop_name.toLowerCase().includes(searchQuery)) ||
+      (crop.crop_type_name && crop.crop_type_name.toLowerCase().includes(searchQuery))
     );
   });
-
-  currentPage = 1; // Reset pagination
+  
+  console.log("Filtered Crops after search:", filteredCrops); // Debug log to verify filtering
+  currentPage = 1;
   sortCropsById();
-  displayCrops(filteredCrops); // Update the table with filtered crops
+  displayCrops(filteredCrops);
 });
+
+// Format farmer's name for logging
+function getFarmerFullName() {
+  const middleInitial = currentFarmerData.middle_name 
+    ? `${currentFarmerData.middle_name.charAt(0)}.`
+    : "";
+  return `${currentFarmerData.first_name} ${middleInitial} ${currentFarmerData.last_name}`.trim();
+}

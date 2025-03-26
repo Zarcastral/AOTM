@@ -46,7 +46,52 @@ body {
     overflow-y: auto; /* Enable vertical scrolling */
     max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
   }
+  .panel table th, .panel table td {
+    text-align: left; /* This centers the text */
+    vertical-align: middle;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+  }
 
+  th,
+  td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #E5E7EB;
+  }
+
+  th {
+    background-color: #F9FAFB;
+    color: #6B7280;
+    font-weight: 600;
+  }
+  th:first-child, td:first-child{
+    width: 50px;
+  }
+  .panel table th:nth-child(2),.panel table td:nth-child(2){
+    width: 250px;
+    text-align: left;
+  }
+  .panel table th:nth-child(3),.panel table td:nth-child(3){
+    width: 250px;
+    text-align: left;
+  }
+  .panel table th:nth-child(4),.panel table td:nth-child(4){
+    width: 250px;
+    text-align: left;
+  }
+  .panel table th:nth-child(6),.panel table td:nth-child(6){
+    width: 150px;
+    text-align: center;
+  }
+  tbody tr:hover {
+    background-color: #F3F4F6;
+  }
   /* Account Panel Styles */
   .account-panel {
     position: absolute;
@@ -100,15 +145,12 @@ body {
   }
 
   .crop-search-bar, .fert-search-bar
-  .equp-search-bar {
+  .equip-search-bar {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
   }
-  .panel table th, .panel table td {
-    text-align: center;
-    vertical-align: middle; /* Ensures vertical alignment */
-  }
+
   
   .image-header img {
     display: block; /* Makes the image block-level for better alignment */
@@ -127,35 +169,6 @@ body {
     padding: 8px 12px;
     border: 1px solid #D1D5DB;
     border-radius: 6px;
-  }
-  .panel table th, .panel table td {
-    text-align: left; /* This centers the text */
-    vertical-align: middle;
-  }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  th,
-  td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #E5E7EB;
-  }
-
-  th {
-    background-color: #F9FAFB;
-    color: #6B7280;
-    font-weight: 600;
-  }
-
-  tbody tr:hover {
-    background-color: #F3F4F6;
   }
 
   .checkbox {
@@ -248,140 +261,6 @@ body {
 .equipment-pagination-btn:disabled {
   color: #bbb;
   cursor: not-allowed;
-}
-
-/*------------------------------- BULK DELETE DESIGNS --------------------------------------*/
-.crop-checkbox-bulk-delete, .equipment-checkbox-delete,
-.fertilizer-checkbox-bulk-delete {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;  /* Aligns content to the left */
-  gap: 10px;  /* Adds space between table and button */
-  width: 100%;  /* Ensures the wrapper takes full width */
-}
-
-.crop-checkbox-bulk-delete input, .equipment-checkbox-bulk-delete input,
-.fertilizer-checkbox-bulk-delete input {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-  #crop-bulk-delete, #fert-bulk-delete, 
-  #equip-bulk-delete {
-    color: white;
-    padding: 10px 10px;
-    font-size: 10px;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    border: none;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-}
-  #crop-bulk-delete:focus, #fert-bulk-delete:focus,
-  #equip-bulk-delete:focus{
-    outline: none;
-  }
-
-  #crop-bulk-delete:disabled, #fert-bulk-delete:disabled,
-  #equip-bulk-delete:disabled {
-    cursor: not-allowed;
-  }
-
-/* Bulk Delete Panel Style */
-.crop-bulk-panel, .fert-bulk-panel,
-.equip-bulk-panel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.crop-bulk-panel.show, .fert-bulk-panel.show,
-.equip-bulk-panel.show {
-  display: flex;
-}
-
-/* Center the confirmation message */
-.confirm-crop-bulk-message,  
-.confirm-fert-bulk-message, 
-.confirm-equip-bulk-message {
-  background-color: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 400px;
-  position: absolute; /* Center it inside the panel */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* Perfect centering */
-  margin: 0; /* Remove any default margins */
-}
-
-/* Bulk Confirm and Cancel Button Styles */
-.crop-bulk-confirm-btn, .crop-bulk-cancel-btn, .fert-bulk-confirm-btn, .fert-bulk-cancel-btn,
-.equip-bulk-confirm-btn, .equip-bulk-cancel-btn{
-  margin: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 25px;
-  cursor: pointer;
-}
-
-.crop-bulk-confirm-btn, .fert-bulk-confirm-btn,
-.equip-bulk-confirm-btn{
-  background-color: #41A186;
-  color: white;
-  border: none;
-}
-
-.crop-bulk-confirm-btn:hover, .fert-bulk-confirm-btn:hover,
-.equip-bulk-confirm-btn:hover {
-  background-color: #318a71;
-  transition: background-color 0.3s ease;
-}
-
-.crop-bulk-cancel-btn, .fert-bulk-cancel-btn,
-.equip-bulk-cancel-btn{
-  background-color: slategrey;
-  color: white;
-  border: none;
-}
-
-.crop-bulk-cancel-btn:hover, .fert-bulk-cancel-btn:hover,
-.equip-bulk-cancel-btn:hover {
-  background-color:rgb(90, 101, 112);
-  transition: background-color 0.3s ease, opacity 0.3s ease; 
-}
-
-/* Bulk Delete Success Message Style */
-.crop-bulk-message, .fert-bulk-message,
-.equip-bulk-message  {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #41A186;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  display: none;
-  font-size: 18px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1001;
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
   /* Responsive Design */
