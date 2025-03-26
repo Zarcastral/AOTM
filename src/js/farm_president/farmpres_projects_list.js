@@ -468,7 +468,19 @@ async function saveCropStockAfterTeamAssign(project_id) {
 //--------------------------- F E R T I L I Z E R   S T O C K ---------------------------------
 
 
+
+
+
+
+
+
 //--------------------------- E Q U I P M E N T   S T O C K ---------------------------------
+
+
+
+
+
+
 
 
 
@@ -728,12 +740,9 @@ if (projectTasks && projectTasks.length > 0) {
 }   
 
 await saveCropStockAfterTeamAssign(project_id);
-await saveFertilizerStockAfterTeamAssign(project_id);
-await saveEquipmentStockAfterTeamAssign(project_id);
+
                             // ✅ Call the function to update crop stock after assigning a team
                             await updateCropStockAfterAssignment(project_id);
-                            await updateFertilizerStockAfterAssignment(project_id);
-                            await updateEquipmentStockAfterAssignment(project_id);
     
                             // Redirect to farmpres_project.html after successful save
                             window.location.href = "farmpres_project.html";
