@@ -1,240 +1,297 @@
 body {
-    margin: 0;
-    height: 100vh;
-    background-color: #F5F6FA;
-    font-family: 'Poppins';
-    display: flex;
-    flex-direction: column;
-  }
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
 
+.header {
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.task-panel {
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.task-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0d9488;
+}
+
+.task-header button {
+  color: #0d9488;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.search-container {
+  margin-bottom: 1rem;
+}
+
+.search-container input[type="text"] {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  font-size: 0.875rem;
+  text-align: left;
+  color: #6b7280;
+  border-collapse: collapse;
+}
+
+thead {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+thead th {
+  padding: 0.5rem 1rem;
+}
+
+tbody tr {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody td {
+  padding: 0.5rem 1rem;
+}
+
+tbody td:first-child {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.status-dropdown {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+}
+
+td:last-child {
+  text-align: center;
+}
+
+/* Updated action icons styling */
+.action-icons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.view-icon {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.view-icon:hover {
+  color: #374151;
+}
+
+.edit-icon {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.edit-icon:hover {
+  color: #374151;
+}
+
+.delete-icon {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  color: #ef4444;
+}
+
+.delete-icon:hover {
+  color: #b91c1c;
+}
+
+.pagination-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  gap: 5px;
+}
+
+.pagination-controls button {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-controls span {
+  font-size: 17px;
+  margin-top: 10px;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 24rem;
+}
+
+.modal-content h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.modal-content input {
+  width: 93%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  outline: none;
+}
+
+.modal-content input:focus {
+
+  border-color: #3b82f6;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.modal-buttons button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+#cancelTaskBtn, #cancelDeleteBtn {
+  background-color: #d1d5db;
+  color: #374151;
+}
+
+#saveTaskBtn {
+  background-color: #41A186;
+  color: #ffffff;
+}
+
+#confirmDeleteBtn {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+@media screen and (max-width: 768px) {
   .header {
-    height: 60px;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    position: relative;
+      padding: 0 10px;
   }
 
   .header-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-  }
-
-  .header-icons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+      font-size: 1.25rem;
   }
 
   .header-icons img {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
+      width: 20px;
+      height: 20px;
   }
 
   .main-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-  }
-
-  /* Account Panel Styles */
-  .account-panel {
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    width: 300px;
-    height: 400px; /* Set a fixed height here */
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    padding: 10px;
-    display: none;
-    z-index: 10;
-  }
-
-  .account-panel.active {
-    display: block;
-  }
-
-  .account-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .account-panel ul li {
-    padding: 10px;
-    border-bottom: 1px solid #E2E8F0;
-    cursor: pointer;
-  }
-
-  .account-panel ul li:hover {
-    background-color: #F7FAFC;
-  }
-
-  .account-panel ul li:last-child {
-    border-bottom: none;
-  }
-
-  /* General Styles */
-.main-content {
-    padding: 20px;
-}
-
-/* Task Panel */
-.task-panel {
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 1.25rem;
-}
-
-/* Header Section */
-.task-panel .flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.task-panel h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #0d9488;
-}
-
-.task-panel button {
-    color: #0d9488;
-    font-weight: 600;
-}
-
-/* Search Input */
-.task-panel input[type="text"] {
-    
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-/* Table Styles */
-.task-panel table {
-    width: 100%;
-    font-size: 0.875rem;
-    text-align: left;
-    color: #6b7280;
-}
-
-.task-panel thead {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: #374151;
-    background-color: #f3f4f6;
-}
-
-.task-panel thead th {
-    padding: 0.5rem;
-}
-
-.task-panel tbody tr {
-    background-color: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.task-panel tbody td {
-    padding: 0.5rem;
-}
-
-.task-panel tbody td.font-medium {
-    font-weight: 500;
-    color: #1f2937;
-}
-
-/* Status Colors */
-.task-panel .text-green-600 {
-    color: #16a34a;
-}
-
-.task-panel .text-purple-600 {
-    color: #9333ea;
-}
-
-.task-panel .text-yellow-600 {
-    color: #ca8a04;
-}
-
-/* Action Buttons */
-.task-panel tbody td.text-center {
-    text-align: center;
-}
-
-.task-panel button img {
-    width: 1rem;
-    height: 1rem;
-}
-
-.task-panel button.text-gray-500:hover {
-    color: #374151;
-}
-
-.task-panel button.text-red-500:hover {
-    color: #b91c1c;
-}
-
-
-  /* Responsive Design */
-  @media screen and (max-width: 768px) {
-    .header {
-      padding: 0 10px;
-    }
-
-    .header-title {
-      font-size: 1.25rem;
-    }
-
-    .header-icons img {
-      width: 20px;
-      height: 20px;
-    }
-
-    .main-content {
       padding: 10px;
-    }
-
-    .header {
-      padding-left: 50px;
-    }
-
-    .account-panel {
-      width: 100%;
-      height: auto;
-      top: 80px;
-      padding: 20px;
-    }
   }
-
-  @media screen and (max-width: 480px) {
-    .header-title {
-      font-size: 1.1rem;
-    }
-
-    .header-icons img {
-      width: 18px;
-      height: 18px;
-    }
-
-    .main-content {
-      padding: 5px;
-    }
-
-    .account-panel {
-      width: 100%;
-      height: 60%;
-      padding: 15px;
-    }
-  }
+}

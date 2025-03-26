@@ -9,12 +9,15 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import app from "../../../src/config/firebase_config.js"; // Adjust path as needed
+import app from "../../../src/config/firebase_config.js";
 
 const db = getFirestore(app);
 
-// Fetch projects for the farmer when the page loads
-fetchProjectsForFarmer();
+let allTasks = [];
+let filteredTasks = [];
+let tasksPerPage = 5;
+let currentPage = 1;
+let totalPages = 0;
 
 export async function fetchProjectsForFarmer() {
   const farmerId = sessionStorage.getItem("farmer_id");
@@ -37,19 +40,9 @@ export async function fetchProjectsForFarmer() {
     querySnapshot.forEach(async (doc) => {
       const project = doc.data();
       if (project.status === "Ongoing") {
-        console.log("✅ Found Project:", project.project_id);
-
-        // Store project details in sessionStorage
-        sessionStorage.setItem(
-          "selected_project_id",
-          String(project.project_id)
-        );
+        sessionStorage.setItem("selected_project_id", String(project.project_id));
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
-
-        console.log("✅ Project details saved to sessionStorage!");
-
-        // Fetch tasks for this project
         await fetchProjectTasks(project.crop_type_name, project.project_id);
       }
     });
@@ -70,117 +63,202 @@ async function fetchProjectTasks(cropTypeName, projectId) {
 
     if (querySnapshot.empty) {
       console.log(`No tasks found for project ID ${projectId}.`);
+      allTasks = [];
+      filteredTasks = [];
+      renderTasks();
       return;
     }
 
-    const taskTableBody = document.getElementById("taskTableBody");
-    taskTableBody.innerHTML = ""; // Clear previous tasks
-
+    allTasks = [];
     querySnapshot.forEach((docSnapshot) => {
-      const task = docSnapshot.data();
-      const taskId = docSnapshot.id; // Firestore document ID
-
-      const taskRow = `
-              <tr class="bg-white border-b" id="task-row-${taskId}">
-                  <td class="px-4 py-2 font-medium text-gray-900">${
-                    task.task_name
-                  }</td>
-                  <td class="px-4 py-2">${task.subtasks.length}</td>
-                  <td class="px-4 py-2 start-date" data-task-id="${taskId}">${
-        task.start_date ? task.start_date : "--"
-      }</td>
-                  <td class="px-4 py-2 end-date" data-task-id="${taskId}">${
-        task.end_date ? task.end_date : "--"
-      }</td>
-                  <td class="px-4 py-2">
-                      <select class="status-dropdown px-2 py-1 border rounded-md" data-task-id="${taskId}">
-                          <option value="Pending" ${
-                            task.status === "Pending" ? "selected" : ""
-                          }>Pending</option>
-                          <option value="Ongoing" ${
-                            task.status === "Ongoing" ? "selected" : ""
-                          }>Ongoing</option>
-                          <option value="Completed" ${
-                            task.status === "Completed" ? "selected" : ""
-                          }>Completed</option>
-                      </select>
-                  </td>
-                  <td class="px-4 py-2 text-center">
-                      <button class="view-task-btn text-gray-500 hover:text-gray-700" data-task-id="${taskId}">
-                          <img src="../../images/eye.png" alt="View" class="w-4 h-4">
-                      </button>
-                       <button class="text-gray-500 hover:text-gray-700 mx-2">
-                       <img src="../../images/Edit.png" alt="Edit" class="w-4 h-4">
-                      </button>
-                      <button class="delete-task-btn text-red-500 hover:text-red-700" data-task-id="${taskId}">
-    <img src="../../images/Delete.png" alt="Delete" class="w-4 h-4">
-</button>
-
-                  </td>
-              </tr>
-          `;
-
-      taskTableBody.insertAdjacentHTML("beforeend", taskRow);
-    });
-
-    // Add event listeners to update status in Firestore
-    document.querySelectorAll(".status-dropdown").forEach((dropdown) => {
-      dropdown.addEventListener("change", async (event) => {
-        const taskId = event.target.dataset.taskId;
-        const newStatus = event.target.value;
-        await updateTaskStatus(taskId, newStatus);
+      allTasks.push({
+        id: docSnapshot.id,
+        data: docSnapshot.data(),
       });
     });
 
-    document.querySelectorAll(".delete-task-btn").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        const taskId = event.currentTarget.dataset.taskId;
-        openDeleteModal(taskId);
-      });
-    });
+    filteredTasks = [...allTasks];
+    updatePagination();
+    renderTasks();
 
-    // Add event listeners for the view buttons
-    document.querySelectorAll(".view-task-btn").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        const taskId = event.currentTarget.dataset.taskId; // Firestore document ID
-        const taskRow = document.getElementById(`task-row-${taskId}`);
-        const taskName = taskRow.querySelector("td:first-child").textContent;
-
-        // Fetch the actual project_task_id from Firestore data
-        const tasksRef = collection(db, "tb_project_task");
-        const q = query(tasksRef, where("__name__", "==", taskId));
-        getDocs(q)
-          .then((querySnapshot) => {
-            if (!querySnapshot.empty) {
-              const taskData = querySnapshot.docs[0].data();
-              const projectTaskId = taskData.project_task_id; // Get the number (e.g., 35)
-
-              sessionStorage.setItem("project_task_id", projectTaskId);
-              sessionStorage.setItem("selected_task_name", taskName);
-              window.location.href = "headfarm_subtask.html";
-            }
-          })
-          .catch((error) => {
-            console.error("❌ Error fetching task data:", error);
-          });
-      });
-    });
+    attachGlobalEventListeners();
   } catch (error) {
     console.error("❌ Error fetching project tasks:", error);
   }
+}
+
+function updatePagination() {
+  totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+  if (currentPage > totalPages && totalPages > 0) {
+    currentPage = totalPages;
+  } else if (filteredTasks.length === 0) {
+    currentPage = 1;
+  }
+}
+
+function renderTasks() {
+  const taskTableBody = document.getElementById("taskTableBody");
+  taskTableBody.innerHTML = "";
+
+  const startIndex = (currentPage - 1) * tasksPerPage;
+  const endIndex = Math.min(startIndex + tasksPerPage, filteredTasks.length);
+  const currentTasks = filteredTasks.slice(startIndex, endIndex);
+
+  currentTasks.forEach((taskObj) => {
+    const task = taskObj.data;
+    const taskId = taskObj.id;
+
+    const taskRow = `
+      <tr id="task-row-${taskId}">
+        <td>${task.task_name}</td>
+        <td>${task.subtasks.length}</td>
+        <td class="start-date" data-task-id="${taskId}">${task.start_date ? task.start_date : "--"}</td>
+        <td class="end-date" data-task-id="${taskId}">${task.end_date ? task.end_date : "--"}</td>
+        <td>
+          <select class="status-dropdown" data-task-id="${taskId}">
+            <option value="Pending" ${task.status === "Pending" ? "selected" : ""}>Pending</option>
+            <option value="Ongoing" ${task.status === "Ongoing" ? "selected" : ""}>Ongoing</option>
+            <option value="Completed" ${task.status === "Completed" ? "selected" : ""}>Completed</option>
+          </select>
+        </td>
+        <td>
+          <div class="action-icons">
+            <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
+            <img src="../../images/Edit.png" alt="Edit" class="edit-icon" data-task-id="${taskId}">
+            <img src="../../images/Delete.png" alt="Delete" class="delete-icon" data-task-id="${taskId}">
+          </div>
+        </td>
+      </tr>
+    `;
+    taskTableBody.insertAdjacentHTML("beforeend", taskRow);
+  });
+
+  const prevBtn = document.getElementById("prevPageBtn");
+  const nextBtn = document.getElementById("nextPageBtn");
+  const pageInfo = document.getElementById("pageInfo");
+
+  pageInfo.textContent = totalPages > 0 ? `Page ${currentPage} of ${totalPages}` : "Page 1 of 1";
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage === totalPages || filteredTasks.length === 0;
+
+  attachRowEventListeners();
+}
+
+let globalListenersAttached = false;
+
+function attachGlobalEventListeners() {
+  if (globalListenersAttached) return;
+  globalListenersAttached = true;
+
+  document.getElementById("prevPageBtn").addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTasks();
+    }
+  });
+
+  document.getElementById("nextPageBtn").addEventListener("click", () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTasks();
+    }
+  });
+
+  document.getElementById("addTaskButton").addEventListener("click", () => {
+    addTaskModal.classList.remove("hidden");
+  });
+
+  cancelTaskBtn.addEventListener("click", () => {
+    taskNameInput.value = "";
+    addTaskModal.classList.add("hidden");
+  });
+
+  saveTaskBtn.addEventListener("click", saveTaskHandler);
+
+  cancelDeleteBtn.addEventListener("click", () => {
+    taskToDelete = null;
+    deleteTaskModal.classList.add("hidden");
+  });
+
+  confirmDeleteBtn.addEventListener("click", deleteTaskHandler);
+
+  const searchInput = document.querySelector(".search-container input");
+  searchInput.addEventListener("input", (event) => {
+    const searchTerm = event.target.value.trim().toLowerCase();
+    filteredTasks = allTasks.filter((taskObj) =>
+      taskObj.data.task_name.toLowerCase().includes(searchTerm)
+    );
+    currentPage = 1;
+    updatePagination();
+    renderTasks();
+  });
+}
+
+function attachRowEventListeners() {
+  document.querySelectorAll(".status-dropdown").forEach((dropdown) => {
+    const newDropdown = dropdown.cloneNode(true);
+    dropdown.parentNode.replaceChild(newDropdown, dropdown);
+    newDropdown.addEventListener("change", async (event) => {
+      const taskId = event.target.dataset.taskId;
+      const newStatus = event.target.value;
+      await updateTaskStatus(taskId, newStatus);
+    });
+  });
+
+  document.querySelectorAll(".delete-icon").forEach((icon) => {
+    const newIcon = icon.cloneNode(true);
+    icon.parentNode.replaceChild(newIcon, icon);
+    newIcon.addEventListener("click", (event) => {
+      const taskId = event.currentTarget.dataset.taskId;
+      openDeleteModal(taskId);
+    });
+  });
+
+  document.querySelectorAll(".view-icon").forEach((icon) => {
+    const newIcon = icon.cloneNode(true);
+    icon.parentNode.replaceChild(newIcon, icon);
+    newIcon.addEventListener("click", (event) => {
+      const taskId = event.currentTarget.dataset.taskId;
+      const taskRow = document.getElementById(`task-row-${taskId}`);
+      const taskName = taskRow.querySelector("td:first-child").textContent;
+
+      const tasksRef = collection(db, "tb_project_task"); // Fixed typo here
+      const q = query(tasksRef, where("__name__", "==", taskId));
+      getDocs(q)
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const taskData = querySnapshot.docs[0].data();
+            const projectTaskId = taskData.project_task_id;
+            sessionStorage.setItem("project_task_id", projectTaskId);
+            sessionStorage.setItem("selected_task_name", taskName);
+            window.location.href = "headfarm_subtask.html";
+          }
+        })
+        .catch((error) => {
+          console.error("❌ Error fetching task data:", error);
+        });
+    });
+  });
+
+  document.querySelectorAll(".edit-icon").forEach((icon) => {
+    const newIcon = icon.cloneNode(true);
+    icon.parentNode.replaceChild(newIcon, icon);
+    newIcon.addEventListener("click", (event) => {
+      const taskId = event.currentTarget.dataset.taskId;
+      console.log(`Edit clicked for task ${taskId}`);
+    });
+  });
 }
 
 async function updateTaskStatus(taskId, newStatus) {
   try {
     const taskDocRef = doc(db, "tb_project_task", taskId);
     const updateData = { status: newStatus };
-
-    // Get the current date
-    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0];
 
     if (newStatus === "Ongoing") {
       updateData.start_date = today;
-      updateData.end_date = null; // Remove end_date when switching from Completed
+      updateData.end_date = null;
     } else if (newStatus === "Pending") {
       updateData.end_date = null;
       updateData.start_date = null;
@@ -191,48 +269,38 @@ async function updateTaskStatus(taskId, newStatus) {
     await updateDoc(taskDocRef, updateData);
     console.log(`✅ Task ${taskId} status updated to ${newStatus}`);
 
-    // Update the UI instantly
-    const startDateCell = document.querySelector(
-      `.start-date[data-task-id="${taskId}"]`
-    );
-    const endDateCell = document.querySelector(
-      `.end-date[data-task-id="${taskId}"]`
-    );
+    const taskIndex = allTasks.findIndex((task) => task.id === taskId);
+    if (taskIndex !== -1) {
+      allTasks[taskIndex].data.status = newStatus;
+      allTasks[taskIndex].data.start_date = updateData.start_date || allTasks[taskIndex].data.start_date;
+      allTasks[taskIndex].data.end_date = updateData.end_date || allTasks[taskIndex].data.end_date;
+      filteredTasks = [...allTasks];
+    }
 
-    if (startDateCell && updateData.start_date !== undefined) {
-      startDateCell.textContent = updateData.start_date
-        ? updateData.start_date
-        : "--";
-    }
-    if (endDateCell && updateData.end_date !== undefined) {
-      endDateCell.textContent = updateData.end_date
-        ? updateData.end_date
-        : "--";
-    }
+    updatePagination();
+    renderTasks();
   } catch (error) {
     console.error("❌ Error updating task status:", error);
   }
 }
 
-// Get modal elements
 const addTaskModal = document.getElementById("addTaskModal");
 const taskNameInput = document.getElementById("taskNameInput");
 const saveTaskBtn = document.getElementById("saveTaskBtn");
 const cancelTaskBtn = document.getElementById("cancelTaskBtn");
 
-// Open modal when "Add Task" is clicked
-document.getElementById("addTaskButton").addEventListener("click", () => {
-  addTaskModal.classList.remove("hidden");
-});
+const deleteTaskModal = document.getElementById("deleteTaskModal");
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
 
-// Close modal when "Cancel" is clicked
-cancelTaskBtn.addEventListener("click", () => {
-  taskNameInput.value = ""; // Clear input
-  addTaskModal.classList.add("hidden");
-});
+let taskToDelete = null;
 
-// Save task when "Save" is clicked
-saveTaskBtn.addEventListener("click", async () => {
+function openDeleteModal(taskId) {
+  taskToDelete = taskId;
+  deleteTaskModal.classList.remove("hidden");
+}
+
+async function saveTaskHandler() {
   const taskName = taskNameInput.value.trim();
 
   if (!taskName) {
@@ -244,76 +312,92 @@ saveTaskBtn.addEventListener("click", async () => {
     const projectId = sessionStorage.getItem("selected_project_id");
     const cropTypeName = sessionStorage.getItem("selected_crop_type");
     const cropName = sessionStorage.getItem("selected_crop_name");
-    console.log("🔍 Checking sessionStorage values:");
-    console.log("Project ID:", sessionStorage.getItem("selected_project_id"));
-    console.log("Crop Type:", sessionStorage.getItem("selected_crop_type"));
-    console.log("Crop Name:", sessionStorage.getItem("selected_crop_name"));
 
     if (!projectId || !cropTypeName || !cropName) {
       alert("Missing project or crop details.");
       return;
     }
 
+    // Check for duplicate task name in the same project
     const tasksRef = collection(db, "tb_project_task");
+    const q = query(
+      tasksRef,
+      where("project_id", "==", String(projectId)),
+      where("task_name", "==", taskName)
+    );
+    const querySnapshot = await getDocs(q);
 
-    await addDoc(tasksRef, {
+    if (!querySnapshot.empty) {
+      alert("A task with this name already exists in the project. Please use a different name.");
+      return;
+    }
+
+    // If no duplicate is found, proceed to add the task
+    const docRef = await addDoc(tasksRef, {
       task_name: taskName,
       project_id: String(projectId),
       crop_type_name: cropTypeName,
       crop_name: cropName,
       status: "Pending",
-      subtasks: [], // Empty array for subtasks
+      subtasks: [],
     });
+
+    allTasks.push({
+      id: docRef.id,
+      data: {
+        task_name: taskName,
+        project_id: String(projectId),
+        crop_type_name: cropTypeName,
+        crop_name: cropName,
+        status: "Pending",
+        subtasks: [],
+      },
+    });
+
+    filteredTasks = [...allTasks];
 
     console.log(`✅ Task "${taskName}" added successfully!`);
     alert("Task added successfully!");
-
-    // Close modal and refresh task list
     taskNameInput.value = "";
     addTaskModal.classList.add("hidden");
-    fetchProjectsForFarmer();
+
+    updatePagination();
+    if (currentPage > totalPages) {
+      currentPage = totalPages;
+    }
+    renderTasks();
   } catch (error) {
     console.error("❌ Error adding task:", error);
     alert("Failed to add task. Try again.");
   }
-});
-
-// Get modal elements
-const deleteTaskModal = document.getElementById("deleteTaskModal");
-const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
-const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
-
-let taskToDelete = null; // Store task ID to be deleted
-
-function openDeleteModal(taskId) {
-  taskToDelete = taskId;
-  deleteTaskModal.classList.remove("hidden");
 }
 
-// Close modal without deleting
-cancelDeleteBtn.addEventListener("click", () => {
-  taskToDelete = null;
-  deleteTaskModal.classList.add("hidden");
-});
-
-// Confirm and delete task
-confirmDeleteBtn.addEventListener("click", async () => {
+async function deleteTaskHandler() {
   if (!taskToDelete) return;
 
   try {
     await deleteDoc(doc(db, "tb_project_task", taskToDelete));
     console.log(`✅ Task ${taskToDelete} deleted successfully!`);
 
-    // Remove task row from UI
-    document.getElementById(`task-row-${taskToDelete}`).remove();
+    const taskIndex = allTasks.findIndex((task) => task.id === taskToDelete);
+    if (taskIndex !== -1) {
+      allTasks.splice(taskIndex, 1);
+      filteredTasks = [...allTasks];
+    }
 
     alert("Task deleted successfully!");
+    updatePagination();
+    if (currentPage > totalPages && totalPages > 0) {
+      currentPage = totalPages;
+    }
+    renderTasks();
   } catch (error) {
     console.error("❌ Error deleting task:", error);
     alert("Failed to delete task. Try again.");
   }
 
-  // Close modal
   deleteTaskModal.classList.add("hidden");
   taskToDelete = null;
-});
+}
+
+fetchProjectsForFarmer();
