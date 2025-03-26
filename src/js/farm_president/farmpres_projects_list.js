@@ -250,18 +250,24 @@ async function fetchProjectDetails(project_id) {
       });
 
       if (projectData) {
+        const fertilizerList = projectData.fertilizer || [];
+        const equipmentList = projectData.equipment || [];
+
+        console.log("Fertilizer List:", fertilizerList);
+        console.log("Equipment List:", equipmentList);
+
         const filteredProjectData = {
           project_created_by: projectData.project_creator || "N/A",
-          farmer_id: projectData.farmer_id || "N/A", // ✅ Extracted farmer_id
-          crop_name: projectData.crop_name || "N/A", // ✅ Extracted crop_name
+          farmer_id: projectData.farmer_id || "N/A",
+          crop_name: projectData.crop_name || "N/A",
           crop_type_name: projectData.crop_type_name || "N/A",
           crop_type_quantity: projectData.crop_type_quantity || 0,
-          equipment: projectData.equipment || [],
-          fertilizer: projectData.fertilizer || [],
+          equipment: equipmentList,
+          fertilizer: fertilizerList,
         };
 
         console.log("Fetched Project Details:", filteredProjectData);
-        return filteredProjectData;
+        return { filteredProjectData, fertilizerList, equipmentList };
       }
     }
 
@@ -272,6 +278,7 @@ async function fetchProjectDetails(project_id) {
     return null;
   }
 }
+
 
 //--------------------------- C R O P S   S T O C K ---------------------------------
 //CROP STOCK
