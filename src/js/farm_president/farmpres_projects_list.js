@@ -249,15 +249,17 @@ async function fetchProjectDetails(project_id) {
             if (projectData) {
                 const filteredProjectData = {
                     project_created_by: projectData.project_creator || "N/A",
-                    farmer_id: projectData.farmer_id || "N/A", // ✅ Extracted farmer_id
-                    crop_name: projectData.crop_name || "N/A", // ✅ Extracted crop_name
+                    farmer_id: projectData.farmer_id || "N/A",
+                    crop_name: projectData.crop_name || "N/A",
                     crop_type_name: projectData.crop_type_name || "N/A",
                     crop_type_quantity: projectData.crop_type_quantity || 0,
                     equipment: projectData.equipment || [],
                     fertilizer: projectData.fertilizer || []
                 };
 
+                console.log("Fertilizer Data(tb_projects)", filteredProjectData.fertilizer); // ✅ Added console log
                 console.log("Fetched Project Details:", filteredProjectData);
+                
                 return filteredProjectData;
             }
         }
@@ -460,12 +462,14 @@ async function saveCropStockAfterTeamAssign(project_id) {
 
 
 
-
-
-
-
-
 //--------------------------- F E R T I L I Z E R   S T O C K ---------------------------------
+
+
+
+
+
+
+
 
 
 
@@ -739,11 +743,11 @@ if (projectTasks && projectTasks.length > 0) {
     console.warn("Failed to fetch project tasks, skipping save.");
 }   
 
-await saveCropStockAfterTeamAssign(project_id);
-
-                            // ✅ Call the function to update crop stock after assigning a team
+                            await saveCropStockAfterTeamAssign(project_id);
                             await updateCropStockAfterAssignment(project_id);
-    
+
+                            
+
                             // Redirect to farmpres_project.html after successful save
                             window.location.href = "farmpres_project.html";
                         });
