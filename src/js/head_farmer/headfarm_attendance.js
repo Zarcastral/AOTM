@@ -169,6 +169,7 @@ async function fetchFarmers(projectId) {
 }
 
 // Function to save attendance data
+// Function to save attendance data
 async function saveAttendance(projectId) {
   try {
     const checkboxes = document.querySelectorAll(".attendance-checkbox");
@@ -182,43 +183,49 @@ async function saveAttendance(projectId) {
       }
     }
 
-    const attendanceData = [];
-    const checkedFarmers = []; // Array to store farmer data with remarks and date
+    const attendanceData = []; // Array to hold all farmer data
     const selectedDate =
       sessionStorage.getItem("selected_date") ||
       new Date().toISOString().split("T")[0];
 
+    // Collect data for ALL farmers (checked and unchecked)
     checkboxes.forEach((checkbox, index) => {
-      const farmerName = document.querySelector(
-        `tbody tr:nth-child(${index + 1}) td:nth-child(2)`
-      ).textContent;
+      const row = checkbox.closest("tr");
+      const farmerName = row.querySelector("td:nth-child(2)").textContent;
       const remarkValue = remarks[index].value;
+      const isPresent = checkbox.checked ? "yes" : "no"; // "yes" for checked, "no" for unchecked
 
-      const farmerAttendance = {
+      // Create farmer object
+      const farmerData = {
         farmer_name: farmerName,
-        present: checkbox.checked,
+        present: isPresent,
         date: selectedDate,
         remarks: remarkValue,
       };
-      attendanceData.push(farmerAttendance);
 
-      // If checkbox is checked, add farmer data to checkedFarmers
-      if (checkbox.checked) {
-        checkedFarmers.push({
-          farmer_name: farmerName,
-          date: selectedDate,
-          remarks: remarkValue,
-        });
-      }
+      // Add to attendanceData
+      attendanceData.push(farmerData);
+
+      // Log each farmer to verify
+      console.log(`Farmer ${index + 1}:`, farmerData);
     });
 
-    // Save to tb_attendance collection
-    await addDoc(collection(db, "tb_attendance"), {
+    // Log the full attendanceData array before saving
+    console.log("Full attendance data to save:", attendanceData);
+
+    // Save ALL farmers to tb_attendance collection
+    const attendanceDocRef = await addDoc(collection(db, "tb_attendance"), {
       project_id: Number(projectId),
-      attendance: attendanceData,
+      farmers: attendanceData, // Ensure this includes all farmers
+      date_created: selectedDate,
     });
 
-    // Retrieve sessionStorage values
+    console.log(
+      "Attendance saved to tb_attendance with ID:",
+      attendanceDocRef.id
+    );
+
+    // Retrieve sessionStorage values for tb_project_task subcollection
     const projectTaskId = sessionStorage.getItem("project_task_id");
     const taskName = sessionStorage.getItem("selected_task_name");
     const selectedProjectId = sessionStorage.getItem("selected_project_id");
@@ -234,7 +241,7 @@ async function saveAttendance(projectId) {
     if (!projectTaskId || !taskName || !selectedProjectId || !selectedDate) {
       console.warn("Missing sessionStorage values for tb_project_task save.");
       alert(
-        "Missing required session data. Attendance saved, but task data incomplete."
+        "Missing required session data. Attendance saved to tb_attendance, but task data incomplete."
       );
       return;
     }
@@ -268,56 +275,64 @@ async function saveAttendance(projectId) {
         projectTaskRef,
         "Attendance"
       );
-      let attendanceDocRef;
+      let subAttendanceDocRef;
 
       if (attendanceDocId) {
-        // Use existing document ID if available
-        attendanceDocRef = doc(attendanceSubcollectionRef, attendanceDocId);
+        subAttendanceDocRef = doc(attendanceSubcollectionRef, attendanceDocId);
       } else {
-        // Create a new document with auto-generated UID
-        attendanceDocRef = doc(attendanceSubcollectionRef);
+        subAttendanceDocRef = doc(attendanceSubcollectionRef); // New doc with auto-ID
       }
 
+      // Filter only present farmers for the subcollection
+      const presentFarmers = attendanceData.filter(
+        (farmer) => farmer.present === "yes"
+      );
+
+      // Log present farmers for subcollection
+      console.log("Present farmers for subcollection:", presentFarmers);
+
       // Fetch existing data to merge
-      const attendanceDocSnapshot = await getDoc(attendanceDocRef);
+      const attendanceDocSnapshot = await getDoc(subAttendanceDocRef);
       let existingFarmers = [];
       if (attendanceDocSnapshot.exists()) {
         existingFarmers = attendanceDocSnapshot.data().farmers || [];
       }
 
-      // Merge new farmers with existing ones, avoiding duplicates based on farmer_name
+      // Merge new present farmers with existing ones
       const mergedFarmers = [...existingFarmers];
-      checkedFarmers.forEach((newFarmer) => {
+      presentFarmers.forEach((newFarmer) => {
         const exists = mergedFarmers.some(
           (existing) => existing.farmer_name === newFarmer.farmer_name
         );
         if (!exists) {
           mergedFarmers.push(newFarmer);
         } else {
-          // Update existing farmer's data
           const index = mergedFarmers.findIndex(
             (existing) => existing.farmer_name === newFarmer.farmer_name
           );
-          mergedFarmers[index] = newFarmer; // Update with new remarks
+          mergedFarmers[index] = newFarmer; // Update existing farmer
         }
       });
 
-      // Save or update the document with date_created
+      // Save or update the subcollection document
       await setDoc(
-        attendanceDocRef,
+        subAttendanceDocRef,
         {
-          farmers: mergedFarmers,
+          farmers: mergedFarmers, // Only present farmers
           date_created: selectedDate,
         },
         { merge: true }
       );
 
-      // Store the attendance document ID in sessionStorage if it's a new document
+      // Store the attendance document ID if new
       if (!attendanceDocId) {
-        sessionStorage.setItem("attendance_doc_id", attendanceDocRef.id);
+        sessionStorage.setItem("attendance_doc_id", subAttendanceDocRef.id);
       }
 
-      console.log("Attendance saved/updated with UID:", attendanceDocRef.id);
+      console.log(
+        "Attendance subcollection saved with UID:",
+        subAttendanceDocRef.id
+      );
     } else {
       console.error(
         "No matching tb_project_task document found for the given criteria."
@@ -328,7 +343,6 @@ async function saveAttendance(projectId) {
       return;
     }
 
-    console.log("Attendance data saved:", attendanceData);
     alert("Attendance and task data saved successfully!");
   } catch (error) {
     console.error("Error saving attendance or task data:", error);
