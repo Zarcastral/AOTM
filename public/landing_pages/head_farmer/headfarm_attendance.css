@@ -15,11 +15,14 @@ body {
 
 .back-arrow {
     position: absolute;
-    left: -40px;
-    top: 10px;
-    font-size: 24px;
-    color: #28a745;
+    left: -50px;
     cursor: pointer;
+}
+
+.back-arrow img {
+    width: 40px; /* Adjust size as needed */
+    height: 40px; /* Adjust size as needed */
+    display: block; /* Removes any extra spacing */
 }
 
 .panel {
@@ -89,23 +92,25 @@ select {
 }
 
 .button-container {
-    max-width: 1050px; /* Matches the container's max-width */
+    max-width: 1000px; /* Matches the container's max-width */
     margin: 0 auto; /* Centers the button container */
     text-align: right; /* Aligns the button to the right within this container */
 }
 
 .save-btn {
-    display: inline-block; /* Allows text-align to work */
-    margin: 10px 20px 0 0; /* Margin for spacing, 20px from the right to align with panel's padding */
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
+    display: block;
+    width: 100px;
+    margin: 20px 0 0 auto; /* Updated: Top: 20px, Right: 0, Bottom: 0, Left: auto */
+    padding: 10px;
+    background-color: #41A186;
+    color: #fff;
     border: none;
-    border-radius: 20px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
+    text-align: center;
 }
 
 .save-btn:hover {
-    background-color: #218838;
+    background-color: #41A186;
 }

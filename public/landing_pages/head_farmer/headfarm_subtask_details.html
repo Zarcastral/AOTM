@@ -32,13 +32,13 @@
             position: absolute;
             top: 0;
             /* Align with the top of the panel */
-            left: -40px;
+            left: -50px;
             /* Position to the left of the panel */
         }
 
         .back-btn img {
-            width: 20px;
-            height: 20px;
+            width: 40px;
+            height: 40px;
             opacity: 0.5;
         }
 
@@ -87,7 +87,7 @@
         .subtask-table th,
         .subtask-table td {
             padding: 10px;
-            text-align: left;
+            text-align: center;
             border-bottom: 1px solid #e0e0e0;
         }
 
@@ -115,18 +115,18 @@
         }
 
         .completed-btn {
-            display: block;
-            width: 100px;
-            margin: 0 0 0 auto;
-            padding: 10px;
-            background-color: #41A186;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            text-align: center;
-        }
+           display: block;
+    width: 100px;
+    margin: 20px 0 0 auto; /* Updated: Top: 20px, Right: 0, Bottom: 0, Left: auto */
+    padding: 10px;
+    background-color: #41A186;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+}
 
         .completed-btn:hover {
             background-color: #359171;
@@ -258,7 +258,7 @@
     <div id="header-container"></div>
     <div class="panel-container">
         <button class="back-btn">
-            <img src="../../images/arrowGreen.png" alt="Back">
+            <img src="../../images/arrow-left.png" alt="Back">
         </button>
         <div class="panel">
             <div class="panel-top">
@@ -279,8 +279,9 @@
                 </tbody>
             </table>
 
-            <button class="completed-btn">Completed</button>
+        
         </div>
+        <button class="completed-btn">Completed</button>
     </div>
 
     <script type="module" src="../../../src/js/head_farmer/headfarm_subtask_details.js"></script>
