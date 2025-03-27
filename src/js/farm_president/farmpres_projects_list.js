@@ -462,11 +462,6 @@ async function saveCropStockAfterTeamAssign(project_id) {
 
 
 
-
-
-
-
-
 //--------------------------- F E R T I L I Z E R   S T O C K ---------------------------------
 
 
