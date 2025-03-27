@@ -470,47 +470,6 @@ async function saveCropStockAfterTeamAssign(project_id) {
 //--------------------------- F E R T I L I Z E R   S T O C K ---------------------------------
 
 
-// FETCH MATCHING FERTILIZER STOCK
-async function fetchFertilizerStock(fertilizers, project_creator) {
-    if (!fertilizers.length) {
-        console.warn("No fertilizers listed in project.");
-        return [];
-    }
-
-    try {
-        const fertilizerStock = [];
-
-        for (const fertilizer of fertilizers) {
-            const q = query(
-                collection(db, "tb_fertilizer_stock"),
-                where("fertilizer_name", "==", fertilizer.fertilizer_name)
-            );
-
-            const querySnapshot = await getDocs(q);
-
-            querySnapshot.forEach((doc) => {
-                const stockData = doc.data();
-
-                // Filter stocks where owned_by matches project_creator
-                const matchingStocks = stockData.stocks.filter(stock => stock.owned_by === project_creator);
-
-                if (matchingStocks.length > 0) {
-                    fertilizerStock.push({
-                        fertilizer_name: stockData.fertilizer_name,
-                        matchingStocks: matchingStocks
-                    });
-                }
-            });
-        }
-
-        console.log("Matching Fertilizer Stock:", fertilizerStock);
-        return fertilizerStock;
-    } catch (error) {
-        console.error("Error fetching fertilizer stock:", error);
-        return [];
-    }
-}
-
 
 
 
@@ -792,7 +751,7 @@ if (projectTasks && projectTasks.length > 0) {
                             await saveCropStockAfterTeamAssign(project_id);
                             await updateCropStockAfterAssignment(project_id);
 
-                            await fetchFertilizerStock(fertilizers, project_creator);
+                            
 
                             // Redirect to farmpres_project.html after successful save
                             window.location.href = "farmpres_project.html";
