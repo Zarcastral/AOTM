@@ -181,6 +181,16 @@ async function fetchProjects() {
           project.fertilizer = "N/A"; // Default if no fertilizers
         }
 
+        // Extract farmer names from the farmer_name array
+        if (project.farmer_name && Array.isArray(project.farmer_name) && project.farmer_name.length > 0) {
+          const farmerNames = project.farmer_name
+            .map((farmer) => farmer.farmer_name || "Unknown") // Assuming each object has a farmer_name field
+            .filter((name) => name !== "Unknown" || project.farmer_name.every(f => !f.farmer_name));
+          project.farmer_name = farmerNames.length > 0 ? farmerNames.join(", ") : "N/A";
+        } else {
+          project.farmer_name = "N/A"; // Default if no farmers
+        }
+
         return project;
       });
 
@@ -417,6 +427,8 @@ function displayProjects(projectsList) {
     const projectEnd = project.end_date || "N/A";
     const equipmentList = project.equipment || "N/A";
     const fertilizerList = project.fertilizer || "N/A";
+    const farmersName = project.farmer_name || "N/A";
+    const leadFarmer = project.lead_farmer || "N/A";
 
     row.innerHTML = `
       <td>${projectId}</td>
@@ -424,8 +436,8 @@ function displayProjects(projectsList) {
       <td>N/A</td>
       <td>${projectStatus}</td>
       <td>${projectFarmPres}</td>
-      <td>N/A</td>
-      <td>N/A</td>
+      <td>${leadFarmer}</td>
+      <td>${farmersName}</td>
       <td>${projectBarangay}</td>
       <td>N/A</td>
       <td>${projectCategory}</td>
@@ -564,6 +576,8 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     const projectEquipment = project.equipment || "N/A";
     const projectStart = project.start_date ? parseDate(project.start_date).toLocaleDateString() : "N/A";
     const projectEnd = project.end_date ? parseDate(project.end_date).toLocaleDateString() : "N/A";
+    const farmersName = project.farmer_name || "N/A";
+    const leadFarmer = project.lead_farmer || "N/A";
 
     return [
       (index + 1).toString(), // No.
@@ -571,8 +585,8 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       "N/A", // No. of Task
       projectStatus,
       projectFarmPres,
-      "N/A", // Lead Farmer/s
-      "N/A", // Farmers
+      leadFarmer, // Lead Farmer/s
+      farmersName, // Farmers
       projectBarangay,
       "N/A", // Land Area
       projectCategory,

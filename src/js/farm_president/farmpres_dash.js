@@ -92,24 +92,55 @@ function animateCount(element, finalCount) {
     element.textContent = "0";
     requestAnimationFrame(updateCount);
 }
-
 // Function to fetch and update the farmer count
-// NEEDS TO HAVE A RESTRICTION OF ONLY FETCHING TOTAL FARMER ACCOUNTS PER YEAR
+// Counts maps in farmer_name array for current user's farmer_id, restricted to current year
 async function updateTotalFarmerCount() {
     try {
-        // Reference to the tb_farmers collection
-        const farmersCollection = collection(db, "tb_farmers");
+        // Get authenticated user and their farmer_id
+        const currentUser = await getAuthenticatedUser();
+        const farmerId = currentUser.farmer_id;
 
-        // Get all documents in the collection
-        const farmersSnapshot = await getDocs(farmersCollection);
+        if (!farmerId) {
+            console.error("Farmer ID not found for the current user.");
+            return;
+        }
 
-        // Get the total number of farmers
-        const farmerCount = farmersSnapshot.size;
+        // Reference to the tb_projects collection
+        const projectsCollection = collection(db, "tb_projects");
+
+        // Get current year boundaries
+        const now = new Date();
+        const startOfYear = new Date(now.getFullYear(), 0, 1); // January 1st
+        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); // December 31st
+
+        // Query projects for this farmer_id
+        const projectsQuery = query(projectsCollection, where("farmer_id", "==", farmerId));
+        const projectsSnapshot = await getDocs(projectsQuery);
+
+        let totalFarmerCount = 0;
+
+        // Count maps in farmer_name array for projects within current year
+        projectsSnapshot.forEach(doc => {
+            const data = doc.data();
+            
+            // Convert timestamp to date
+            const dateCreated = data.date_created instanceof Timestamp 
+                ? data.date_created.toDate() 
+                : new Date(data.date_created);
+
+            // Check if project is within current year
+            if (dateCreated >= startOfYear && dateCreated <= endOfYear) {
+                // Check if farmer_name exists and is an array
+                if (Array.isArray(data.farmer_name)) {
+                    totalFarmerCount += data.farmer_name.length;
+                }
+            }
+        });
 
         // Update the DOM with the farmer count
         const farmerElementCount = document.querySelector("#total-farmers");
         if (farmerElementCount) {
-            animateCount(farmerElementCount, farmerCount);
+            animateCount(farmerElementCount, totalFarmerCount);
         } else {
             console.error("Farmer number element not found in the DOM");
         }
