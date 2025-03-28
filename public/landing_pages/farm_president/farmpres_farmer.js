@@ -296,10 +296,10 @@ async function getNextTeamId() {
     const farmerBox = document.getElementById("farmerBox");
 
     // Extract all farmer names from the farmerBox
-    const farmers = Array.from(farmerBox.getElementsByClassName("farmer-item"))
+    const farmerNames = Array.from(farmerBox.getElementsByClassName("farmer-item"))
         .map(item => item.firstChild.textContent.trim());
 
-    if (!teamName || !leadFarmer || farmers.length === 0) {
+    if (!teamName || !leadFarmer || farmerNames.length === 0) {
         alert("Please fill in all fields and select at least one farmer.");
         return;
     }
@@ -311,18 +311,27 @@ async function getNextTeamId() {
     }
 
     try {
-        // Fetch lead farmer's details
         const farmersRef = collection(db, "tb_farmers");
         const querySnapshot = await getDocs(farmersRef);
 
         let leadFarmerId = null;
+        let farmersData = [];
 
         querySnapshot.forEach((doc) => {
             const farmerData = doc.data();
             const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
 
+            // Check for Lead Farmer ID
             if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
-                leadFarmerId = String(farmerData.farmer_id); // Convert to string
+                leadFarmerId = String(farmerData.farmer_id);
+            }
+
+            // Check for Selected Farmers
+            if (farmerNames.includes(reconstructedFullName)) {
+                farmersData.push({
+                    farmer_id: String(farmerData.farmer_id),
+                    farmer_name: reconstructedFullName
+                });
             }
         });
 
@@ -331,15 +340,15 @@ async function getNextTeamId() {
             return;
         }
 
-        // Display the farmer_id as a string in the console
-        console.log(`Lead Farmer ID (as string): "${leadFarmerId}"`);
+        console.log("Lead Farmer ID:", leadFarmerId);
+        console.log("Farmers Data:", farmersData);
 
         const teamData = {
             team_id: teamId,
             team_name: teamName,
             lead_farmer: leadFarmer,
-            lead_farmer_id: leadFarmerId, // Ensured as a string
-            farmer_name: farmers,
+            lead_farmer_id: leadFarmerId,
+            farmer_name: farmersData, // Updated to store farmer_id and farmer_name
             barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
         };
 
@@ -351,6 +360,7 @@ async function getNextTeamId() {
         alert("Failed to save team. Please try again.");
     }
 }
+
 
 
 
