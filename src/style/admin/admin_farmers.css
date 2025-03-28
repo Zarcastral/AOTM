@@ -532,7 +532,10 @@ margin-bottom: 1rem;
 
 .cancel-btn {
   background-color: #E2E8F0;
-  color: #333;
+  color: #FFFFFF;
+  padding: 10px 10px;
+  width: 80px; /* Fixed width to match or be slightly larger than "Done" */
+  text-align: center; /* Ensure text is centered within the button */
 }
 
 .cancel-btn:hover {
