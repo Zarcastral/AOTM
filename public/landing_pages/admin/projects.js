@@ -182,116 +182,7 @@ window.loadCropTypes = async function (selectedCrop) {
   });
 };
 
-/*window.fetchFertilizerTypes = async function () {
-  try {
-    // Query Firestore for all fertilizer types
-    const querySnapshot = await getDocs(collection(db, "tb_fertilizer_stock"));
 
-    // Get the dropdown element
-    const fertilizerCategorySelect = document.getElementById(
-      "fertilizer-category"
-    );
-
-    // Clear previous options except the default one
-    fertilizerCategorySelect.innerHTML =
-      '<option value="">Select Fertilizer Type</option>';
-
-    // Iterate through the query results
-    querySnapshot.forEach((doc) => {
-      const fertilizerData = doc.data();
-      const fertilizerType = fertilizerData.fertilizer_type;
-
-      // Add each fertilizer type as an option in the dropdown
-      if (fertilizerType) {
-        const option = document.createElement("option");
-        option.value = fertilizerType;
-        option.textContent = fertilizerType;
-        fertilizerCategorySelect.appendChild(option);
-      }
-    });
-  } catch (error) {
-    console.error("🔥 Error fetching fertilizer types:", error);
-    alert("Failed to fetch fertilizer types. Please try again.");
-  }
-};
-
-window.loadFertilizerTypes = async function (selectedFertilizer) {
-  if (!selectedFertilizer) return;
-
-  const fertilizerTypeSelect = document.getElementById("fertilizer-category"); // Updated to correct ID
-  fertilizerTypeSelect.innerHTML =
-    '<option value="">Select Fertilizer Type</option>';
-
-  let fertilizerStockMap = {}; // Store stock for each fertilizer type
-  const userType = sessionStorage.getItem("user_type"); // Get user_type from session storage
-
-  try {
-    // Query Firestore for fertilizer stock
-    const querySnapshot = await getDocs(
-      query(
-        collection(db, "tb_fertilizer_stock"),
-        where("fertilizer_name", "==", selectedFertilizer)
-      )
-    );
-
-    if (querySnapshot.empty) {
-      console.error(
-        `⚠️ No stock records found for fertilizer: ${selectedFertilizer}`
-      );
-      return;
-    }
-
-    querySnapshot.forEach((doc) => {
-      const fertilizerData = doc.data();
-      const fertilizerTypeName = fertilizerData.fertilizer_type;
-
-      // Ensure stocks is an array, otherwise use an empty array
-      const stocksArray = Array.isArray(fertilizerData.stocks)
-        ? fertilizerData.stocks
-        : [];
-
-      // Find stock entry that matches the logged-in user's userType
-      const userStock = stocksArray.find(
-        (stock) => stock.owned_by === userType
-      );
-      const currentStock = userStock ? parseInt(userStock.current_stock) : 0;
-
-      fertilizerStockMap[fertilizerTypeName] = currentStock; // Store stock
-
-      const option = document.createElement("option");
-      option.value = fertilizerTypeName;
-      option.textContent = `${fertilizerTypeName} ${
-        currentStock === 0 ? "(Out of Stock)" : `(Stock: ${currentStock})`
-      }`;
-      fertilizerTypeSelect.appendChild(option);
-    });
-
-    // Attach event listener for stock display
-    fertilizerTypeSelect.addEventListener("change", function () {
-      const selectedFertilizerType = this.value;
-      const maxStock = fertilizerStockMap[selectedFertilizerType] || 0;
-      const quantityInput = document.getElementById("quantity-fertilizer-type");
-
-      quantityInput.max = maxStock;
-      quantityInput.value = ""; // Reset input when fertilizer type changes
-
-      if (maxStock > 0) {
-        quantityInput.placeholder = `Max: ${maxStock}`;
-        quantityInput.disabled = false;
-      } else {
-        quantityInput.placeholder = "Out of stock";
-        quantityInput.disabled = true;
-      }
-    });
-  } catch (error) {
-    console.error("🔥 Error loading fertilizers:", error);
-  }
-};*/
-
-
-
-
-// EQUIPMENT TRY
 // EQUIPMENT TRY
 async function addEquipmentForm() {
   const container = document.getElementById("equipment-container");
@@ -304,7 +195,7 @@ async function addEquipmentForm() {
   div.innerHTML = `
       <div class="form__group">
           <label class="form__label">Equipment Type:</label>
-          <select class="form__select equipment__type">
+          <select class="form__select1 equipment__type">
               <option value="">Select Equipment Type</option>
               ${equipmentTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
           </select>
@@ -453,7 +344,7 @@ async function addFertilizerForm() {
   div.innerHTML = `
       <div class="form__group">
           <label class="form__label">Fertilizer Type:</label>
-          <select class="form__select fertilizer__type">
+          <select class="form__select1 fertilizer__type">
               <option value="">Select Fertilizer Type</option>
               ${fertilizerTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
           </select>
@@ -568,102 +459,6 @@ document.addEventListener("DOMContentLoaded", addFertilizerForm);
 
 
 
-
-
-
-/*window.loadFertilizers = async function () {
-  const selectedType = document.getElementById("fertilizer-category").value;
-  const fertilizerSelect = document.getElementById("fertilizer-type");
-  const userType = sessionStorage.getItem("user_type"); // Get user_type from session storage
-
-  // Clear previous options except the default one
-  fertilizerSelect.innerHTML =
-    '<option value="">Select Fertilizer Name</option>';
-
-  if (!selectedType) return; // If no type is selected, exit function
-
-  try {
-    // Query Firestore for all fertilizers with the selected fertilizer_type
-    const q = query(
-      collection(db, "tb_fertilizer_stock"),
-      where("fertilizer_type", "==", selectedType)
-    );
-
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      console.warn(`⚠️ No fertilizers found for type: ${selectedType}`);
-      return;
-    }
-
-    let fertilizerStockMap = {}; // Store stock for each fertilizer
-
-    // Process each fertilizer record
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const fertilizerName = data.fertilizer_name;
-
-      // Ensure stocks is an array, otherwise use an empty array
-      const stocksArray = Array.isArray(data.stocks) ? data.stocks : [];
-
-      // Find stock entry that matches the logged-in user's userType
-      const userStock = stocksArray.find(
-        (stock) => stock.owned_by === userType
-      );
-      const currentStock = userStock ? parseInt(userStock.current_stock) : 0;
-
-      // Store the stock for the fertilizer name (accumulate if multiple records exist)
-      if (fertilizerStockMap[fertilizerName]) {
-        fertilizerStockMap[fertilizerName] += currentStock;
-      } else {
-        fertilizerStockMap[fertilizerName] = currentStock;
-      }
-    });
-
-    // Populate the dropdown with all fertilizers of the selected type
-    Object.entries(fertilizerStockMap).forEach(([name, stock]) => {
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = `${name} ${
-        stock === 0 ? "(Out of Stock)" : `(Stock: ${stock})`
-      }`;
-      fertilizerSelect.appendChild(option);
-    });
-
-    // Attach event listener for stock validation
-    fertilizerSelect.addEventListener("change", function () {
-      const selectedFertilizer = this.value;
-      const maxStock = fertilizerStockMap[selectedFertilizer] || 0;
-      const quantityInput = document.getElementById("quantity-fertilizer-type");
-
-      quantityInput.max = maxStock;
-      quantityInput.value = ""; // Reset input when fertilizer changes
-
-      if (maxStock > 0) {
-        quantityInput.placeholder = `Max: ${maxStock}`;
-        quantityInput.disabled = false;
-      } else {
-        quantityInput.placeholder = "Out of stock";
-        quantityInput.disabled = true;
-      }
-
-      // Auto-correct input if it exceeds max stock
-      quantityInput.addEventListener("input", function () {
-        const currentValue = parseInt(this.value, 10) || 0;
-        if (currentValue > maxStock) {
-          alert(`⚠️ You cannot enter more than ${maxStock} units.`);
-          this.value = maxStock; // Auto-correct to max stock
-        }
-      });
-    });
-  } catch (error) {
-    console.error("🔥 Error fetching fertilizers:", error);
-  }
-};
-
-document
-  .getElementById("fertilizer-category")
-  .addEventListener("change", (e) => loadFertilizers(e.target.value));*/
 
 window.getNextProjectID = async function () {
   const counterRef = doc(db, "tb_id_counters", "projects_id_counter");
