@@ -138,6 +138,32 @@ function formatStatus(status) {
     return `${formattedStatus}`.trim();
 }
 
+
+
+
+// <------------------ FUNCTION TO LOG PROJECT DETAILS TO CONSOLE ------------------------>
+function logProjectDetails() {
+    console.log("----- PROJECT DETAILS -----");
+    projectList.forEach((project, index) => {
+        console.log(`Project #${index + 1}:`, {
+            ID: project.project_id,
+            Name: project.project_name,
+            President: project.farm_president,
+            Dates: `${project.start_date} - ${project.end_date}`,
+            Crop: project.crop_type_name,
+            Status: project.status,
+            Progress: "KUNWARI MAY PROGRESS BAR" // Replace with actual progress data if available
+        });
+    });
+    console.log("---------------------------");
+}
+
+logProjectDetails();
+
+
+
+
+
 //  <------------- TABLE DISPLAY AND UPDATE ------------->
 function updateTable() {
     const start = (currentPage - 1) * rowsPerPage;
@@ -261,7 +287,70 @@ function viewUserAccount(projectId) {
     window.location.href = "viewproject.html"; // Redirect to viewproject.html
 }
 
-// <------------- DELETE BUTTON EVENT LISTENER ------------->
+
+// <------------- DELETE PROJECT FUNCTION ------------->
+// <------------- ENHANCED DELETE FUNCTION WITH ALERT ------------->
+async function deleteProject(projectId) {
+    try {
+        const targetId = Number(projectId);
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", targetId));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const docSnapshot = querySnapshot.docs[0];
+            const projectData = docSnapshot.data();
+            const status = projectData.status?.toLowerCase() || '';
+
+            // Block deletion for ongoing projects with alert
+            if (status === 'ongoing') {
+                alert("⛔ Cannot delete project\nThis project is currently ongoing and cannot be deleted.");
+                return false;
+            }
+
+            // Block other non-pending statuses
+            if (status !== 'pending') {
+                throw new Error(`Project status "${formatStatus(projectData.status)}" does not allow deletion`);
+            }
+
+            // Proceed with deletion for pending projects
+            await deleteDoc(docSnapshot.ref);
+            await fetch_projects();
+            return true;
+        }
+        
+        throw new Error('Project not found in database');
+    } catch (error) {
+        console.error("Delete error:", error.message);
+        showDeleteMessage(error.message, false);
+        return false;
+    }
+}
+
+// <------------- UPDATED EVENT HANDLER ------------->
+tableBody.addEventListener("click", async (event) => {
+    const deleteBtn = event.target.closest(".delete-btn");
+    if (!deleteBtn) return;
+
+    const projectId = deleteBtn.dataset.id;
+    const confirmation = confirm("Are you sure you want to delete this project?");
+
+    if (confirmation) {
+        const success = await deleteProject(projectId);
+        if (success) {
+            showDeleteMessage("Pending project deleted successfully", true);
+        }
+    }
+});
+
+
+
+
+
+
+
+
+
+/* <------------- DELETE BUTTON EVENT LISTENER ------------->
 async function deleteProjects(project_id) {
     try {
         const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
@@ -277,10 +366,10 @@ async function deleteProjects(project_id) {
             const status = projectData.status ? projectData.status.toLowerCase() : "";
 
             // Check the status field
-            if (status === "ongoing") {
+            if (status === "Ongoing") {
                 showDeleteMessage("Project cannot be deleted because it is already ongoing.", false);
                 return;
-            } else if (status === "pending") {
+            } else if (status === "Pending") {
                 selectedRowId = docRef.id; // Store the document ID for deletion
                 confirmationPanel.style.display = "flex";
                 editFormContainer.style.pointerEvents = "none";
@@ -422,7 +511,7 @@ cancelDeleteButton.addEventListener("click", () => {
     confirmationPanel.style.display = "none";
     editFormContainer.style.pointerEvents = "auto";
     selectedRowId = null;
-});
+}); */
 
 // EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
 searchBar.addEventListener("input", () => {
