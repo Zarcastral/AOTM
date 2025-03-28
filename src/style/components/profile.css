@@ -386,3 +386,82 @@ input[type="number"]::-webkit-outer-spin-button {
 .close:hover {
   color: red;
 }
+.choice-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  text-align: center;
+}
+
+.choice-popup p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.choice-popup .button-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.choice-popup button {
+  width: 48%;
+  padding: 10px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 25px;
+}
+
+.choice-popup .yes-btn {
+  background-color: #41a186;
+  color: white;
+}
+
+.choice-popup .yes-btn:hover {
+  background-color: #318a71;
+  transition: background-color 0.3s ease;
+}
+
+.choice-popup .cancel-btn {
+  background-color: slategray;
+  color: white;
+}
+
+.choice-popup .cancel-btn:hover {
+  background-color: rgb(90, 101, 112);
+  transition: background-color 0.3s ease;
+}
+
+.choice-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+.success-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #41a186; /* Green background like a success message */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
