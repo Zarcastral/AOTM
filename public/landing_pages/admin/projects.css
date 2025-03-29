@@ -275,3 +275,107 @@ body {
 .popup-button:hover {
   background-color: #45a049;
 }
+
+.inline-group6 {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.fertilizer__group,
+.equipment__group {
+  display: flex;
+  gap: 10px;
+  align-items: center; /* Align all inputs/selects horizontally */
+  margin-bottom: 15px;
+  margin-left: 50px; /* Match the margin-left of other inline groups */
+  position: relative; /* Allow positioning of the remove button */
+  flex-wrap: wrap; /* Allow wrapping if necessary */
+}
+
+.form__group {
+  flex: 1; /* Ensure equal distribution of space */
+  display: flex;
+  flex-direction: column;
+}
+
+.quantity__group {
+  flex: 1;
+  display: flex;
+  flex-direction: column; /* Stack quantity input and remove button vertically */
+  position: relative; /* Position the remove button relative to this */
+}
+.form__select
+ {
+  width: 100%; /* Full width like other inputs/selects */
+  padding: 8px; /* Consistent padding */
+  border: 1px solid #ddd; /* Consistent border */
+  border-radius: 4px; /* Consistent border radius */
+  font-size: 14px; /* Consistent font size */
+  font-family: "Poppins", sans-serif; /* Match font family */
+}
+.form__select1
+ {
+  width: 700px; /* Full width like other inputs/selects */
+  padding: 8px; /* Consistent padding */
+  border: 1px solid #ddd; /* Consistent border */
+  border-radius: 4px; /* Consistent border radius */
+  font-size: 14px; /* Consistent font size */
+  font-family: "Poppins", sans-serif; /* Match font family */
+}
+.form__input {
+  width: 82%;/* Full width like other inputs/selects */
+  padding: 8px; /* Consistent padding */
+  border: 1px solid #ddd; /* Consistent border */
+  border-radius: 4px; /* Consistent border radius */
+  font-size: 14px; /* Consistent font size */
+  font-family: "Poppins", sans-serif; /* Match font family */
+}
+
+.form__select:disabled,
+.form__input:disabled {
+  background-color: #f0f0f0; /* Match disabled state */
+}
+
+.btn--remove {
+  background-color: #AC415B; /* Red color for remove button */
+  color: white;
+  border: none;
+  padding: 8px 15px; /* Slightly smaller padding for a compact look */
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: "Poppins", sans-serif;
+  margin-top: 5px; /* Space between the quantity input and the button */
+  align-self: flex-start; /* Align to the left under the quantity input */
+  position: absolute; /* Position it below the quantity input */
+  top: 100%; /* Place it directly below the parent form__group */
+  right: 50px; /* Align with the left edge of the quantity input */
+}
+
+.btn--remove:hover {
+  background-color: #AC415B; /* Darker red on hover */
+}
+
+.btn--add {
+  width: 200px;
+  background-color: #41a186; /* Match save button color */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: "Poppins", sans-serif;
+  margin-left: 50px; /* Align with other elements */
+}
+
+.btn--add:hover {
+  background-color: #357e6b; /* Slightly darker shade on hover */
+}
+
+.form__label {
+  display: block;
+  margin-bottom: 5px; /* Match the label styling */
+  font-family: "Poppins";
+}

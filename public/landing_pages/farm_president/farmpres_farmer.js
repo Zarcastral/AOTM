@@ -164,23 +164,42 @@ async function fetchFarmers() {
       return;
     }
 
+    // Step 1: Fetch all farmer_ids from tb_teams to exclude them
+    const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
+    const excludedFarmerIds = new Set();
+
+    teamsSnapshot.forEach((teamDoc) => {
+      const teamData = teamDoc.data();
+      if (teamData.farmer_name && Array.isArray(teamData.farmer_name)) {
+        teamData.farmer_name.forEach(farmerObj => {
+          if (farmerObj.farmer_id) {
+            excludedFarmerIds.add(farmerObj.farmer_id); // Add to exclusion list
+          }
+        });
+      }
+    });
+
+    // Step 2: Fetch farmers from tb_farmers who are NOT in tb_teams
     const q = query(
       collection(db, "tb_farmers"),
       where("user_type", "==", "Farmer"),
-      where("barangay_name", "==", currentBarangay) // Filter by barangay
+      where("barangay_name", "==", currentBarangay)
     );
 
     const querySnapshot = await getDocs(q);
-    farmersList = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    farmersList = querySnapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      .filter(farmer => !excludedFarmerIds.has(String(farmer.farmer_id))); // Exclude farmers already in a team
 
-    console.log("Farmers Loaded:", farmersList);
+    console.log("Filtered Farmers Loaded:", farmersList);
   } catch (error) {
     console.error("Error fetching farmers:", error);
   }
 }
+
 
 // Function to search farmers and display suggestions below search bar
 document.getElementById("farmerSearch").addEventListener("input", function () {

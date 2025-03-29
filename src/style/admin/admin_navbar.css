@@ -192,7 +192,9 @@ iframe {
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   height: 50px;
-  width: 40px;
+  width: 50px;
+  margin-top: 5px;
+  margin-left: 10px;
 }
 
 /* Responsive Styles */

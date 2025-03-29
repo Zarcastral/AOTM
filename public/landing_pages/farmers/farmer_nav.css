@@ -106,17 +106,17 @@ iframe {
 #mobile-menu-button {
   display: none;
   position: fixed;
-  top: 10px;
-  left: 10px;
   z-index: 60;
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   border: none;
   padding: 10px;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   height: 50px;
-  width: 40px;
+  width: 50px;
+  margin-top: 5px;
+  margin-left: 10px;
 }
 
 /* Responsive Styles */
