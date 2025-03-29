@@ -1,116 +1,149 @@
 body {
-    background-color: #f9fbfd; /* Background color to match the image */
-    margin: 0;
-    font-family: Arial, sans-serif;
+  background-color: #f9fbfd; /* Background color to match the image */
+  margin: 0;
+  font-family: Arial, sans-serif;
 }
 
 .container {
-    display: flex;
-    align-items: flex-start;
-    position: relative;
-    max-width: 1000px; /* Adjusted to match the image width */
-    margin: 20px auto;
-    margin-top: 50px;
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  max-width: 1000px; /* Adjusted to match the image width */
+  margin: 20px auto;
+  margin-top: 50px;
 }
 
 .back-arrow {
-    position: absolute;
-    left: -50px;
-    cursor: pointer;
+  position: absolute;
+  left: -50px;
+  cursor: pointer;
 }
 
 .back-arrow img {
-    width: 40px; /* Adjust size as needed */
-    height: 40px; /* Adjust size as needed */
-    display: block; /* Removes any extra spacing */
+  width: 40px; /* Adjust size as needed */
+  height: 40px; /* Adjust size as needed */
+  display: block; /* Removes any extra spacing */
 }
 
 .panel {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    width: 100%; /* Takes the max-width of the container */
-    box-sizing: border-box; /* Ensures padding doesn't increase the width */
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%; /* Takes the max-width of the container */
+  box-sizing: border-box; /* Ensures padding doesn't increase the width */
 }
 
 .panel-header {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
 }
 
 .search-bar {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .search-bar input {
-    padding: 10px;
-    border: 1px solid #d3d3d3;
-    border-radius: 20px;
-    font-size: 16px;
-    background: url('https://via.placeholder.com/15/000/fff?text=🔍') no-repeat 10px center;
-    padding-left: 35px;
-    box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #d3d3d3;
+  border-radius: 20px;
+  font-size: 16px;
+  background: url("https://via.placeholder.com/15/000/fff?text=🔍") no-repeat
+    10px center;
+  padding-left: 35px;
+  box-sizing: border-box;
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
 }
 
-th, td {
-    padding: 10px;
-    text-align: left;
-    font-size: 14px;
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  font-size: 14px;
 }
 
 th {
-    color: #333;
-    font-weight: bold;
+  color: #333;
+  font-weight: bold;
 }
 
 td {
-    color: #666;
-    border-bottom: 1px solid #e0e0e0; /* Bottom line for table rows */
+  color: #666;
+  border-bottom: 1px solid #e0e0e0; /* Bottom line for table rows */
 }
 
 input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: #28a745;
+  width: 20px;
+  height: 20px;
+  accent-color: #28a745;
 }
 
 select {
-    padding: 5px;
-    border: 1px solid #d3d3d3;
-    border-radius: 5px;
-    background-color: #fff;
-    color: #666;
+  padding: 5px;
+  border: 1px solid #d3d3d3;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #666;
 }
 
 .button-container {
-    max-width: 1000px; /* Matches the container's max-width */
-    margin: 0 auto; /* Centers the button container */
-    text-align: right; /* Aligns the button to the right within this container */
+  max-width: 1000px; /* Matches the container's max-width */
+  margin: 0 auto; /* Centers the button container */
+  text-align: right; /* Aligns the button to the right within this container */
 }
 
 .save-btn {
-    display: block;
-    width: 100px;
-    margin: 20px 0 0 auto; /* Updated: Top: 20px, Right: 0, Bottom: 0, Left: auto */
-    padding: 10px;
-    background-color: #41A186;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    text-align: center;
+  display: block;
+  width: 100px;
+  margin: 20px 0 0 auto; /* Updated: Top: 20px, Right: 0, Bottom: 0, Left: auto */
+  padding: 10px;
+  background-color: #41a186;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: center;
 }
 
 .save-btn:hover {
-    background-color: #41A186;
+  background-color: #41a186;
+}
+
+.notification {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 10px;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.notification.success {
+  background-color: #28a745; /* Green */
+}
+
+.notification.error {
+  background-color: #dc3545; /* Red */
+}
+
+.notification.warning {
+  background-color: #ffc107; /* Yellow */
+  color: #333; /* Darker text for better contrast */
+}
+
+.notification.show {
+  opacity: 1;
 }

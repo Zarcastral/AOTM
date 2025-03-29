@@ -9,8 +9,11 @@
 </head>
 
 <body>
+    <!-- Notification Strip -->
+    <div id="notification" class="notification"></div>
+
     <!-- Placeholder for Header -->
-    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <div id="header-container"></div>
 
     <div class="container">
         <!-- Back Arrow -->
@@ -49,6 +52,20 @@
     <!-- Save Button in a new container -->
     <div class="button-container">
         <button class="save-btn">Save</button>
+    </div>
+
+    <!-- Modal for Save Confirmation -->
+    <div id="saveConfirmationModal" class="modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div
+            style="background: white; width: 300px; margin: 20% auto; padding: 20px; border-radius: 5px; text-align: center;">
+            <h3>Confirm Save</h3>
+            <p>Are you sure you want to save the attendance data?</p>
+            <button id="confirmSaveBtn"
+                style="margin: 10px; padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 3px;">Yes</button>
+            <button id="cancelSaveBtn"
+                style="margin: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px;">No</button>
+        </div>
     </div>
 
     <!-- Import the reusable script from src/auth -->
