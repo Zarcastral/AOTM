@@ -44,8 +44,7 @@ function renderTable(filteredFarmers, selectedDate) {
   const sessionedDate = sessionStorage.getItem("selected_date");
 
   filteredFarmers.forEach((farmer, index) => {
-    // Check for "Yes" (capitalized) to match saved data
-    const isChecked = farmer.attendance.present === "Yes"; // Updated from "yes" to "Yes"
+    const isChecked = farmer.attendance.present === "Yes";
     const remarkValue = farmer.attendance.remarks || "";
     const farmerDate =
       farmer.attendance && farmer.attendance.date
@@ -153,6 +152,22 @@ async function fetchFarmers(projectId) {
             sessionStorage.setItem("attendance_doc_id", attendanceDoc.id);
             attendanceData = attendanceDoc.data().farmers || [];
             console.log("Fetched attendance data:", attendanceData);
+
+            // Calculate present count and total records
+            const presentCount = attendanceData.filter(
+              (farmer) => farmer.present === "Yes"
+            ).length;
+            const totalRecords = attendanceData.length;
+            const attendanceSummary =
+              presentCount === 0 ? "0" : `${presentCount}/${totalRecords}`;
+            sessionStorage.setItem("totalAttendanceRecords", attendanceSummary);
+            console.log(
+              `Attendance summary for ${selectedDate}: ${attendanceSummary}`
+            );
+          } else {
+            // No attendance data, set to "0"
+            sessionStorage.setItem("totalAttendanceRecords", "0");
+            console.log(`No attendance data, set summary to: 0`);
           }
         }
       }
@@ -205,13 +220,13 @@ function confirmSaveAttendance() {
     // Handle confirm
     confirmBtn.onclick = () => {
       modal.style.display = "none";
-      resolve(true); // User confirmed
+      resolve(true);
     };
 
     // Handle cancel
     cancelBtn.onclick = () => {
       modal.style.display = "none";
-      resolve(false); // User canceled
+      resolve(false);
     };
   });
 }
@@ -222,13 +237,14 @@ async function saveAttendance(projectId) {
   const confirmed = await confirmSaveAttendance();
   if (!confirmed) {
     console.log("Save canceled by user.");
-    return; // Exit if user cancels
+    return;
   }
 
   try {
     const checkboxes = document.querySelectorAll(".attendance-checkbox");
     const remarks = document.querySelectorAll(".remarks-select");
 
+    // Fix: Use comparison operator (===) instead of assignment (=)
     for (const remark of remarks) {
       if (!remark.value || remark.value === "") {
         alert("Please select a remark for all farmers.");
@@ -243,6 +259,9 @@ async function saveAttendance(projectId) {
     const taskName = sessionStorage.getItem("selected_task_name");
     const selectedProjectId = sessionStorage.getItem("selected_project_id");
     const attendanceDocId = sessionStorage.getItem("attendance_doc_id");
+    const cropName = sessionStorage.getItem("crop_name");
+    const cropTypeName = sessionStorage.getItem("crop_type_name");
+    const subtaskName = sessionStorage.getItem("subtask_name") || taskName; // Fallback to taskName if subtask_name not set
 
     let existingAttendanceData = [];
     let projectTaskRef, attendanceSubcollectionRef, subAttendanceDocRef;
@@ -341,8 +360,11 @@ async function saveAttendance(projectId) {
       project_id: Number(projectId),
       farmers: mergedFarmers,
       date_created: originalSelectedDate || todayDate,
-      task_name: sessionStorage.getItem("selected_task_name"),
-      project_task_id: Number(sessionStorage.getItem("project_task_id")),
+      task_name: taskName,
+      project_task_id: Number(projectTaskId),
+      subtask_name: subtaskName, // Use subtaskName with fallback to taskName
+      crop_name: cropName, // Added crop_name
+      crop_type_name: cropTypeName, // Added crop_type_name
     };
 
     let tbAttendanceDocId;
@@ -469,7 +491,7 @@ export function initializeAttendancePage() {
     const saveBtn = document.querySelector(".save-btn");
     if (saveBtn) {
       saveBtn.addEventListener("click", async () => {
-        await saveAttendance(projectId); // Await the async save operation
+        await saveAttendance(projectId);
       });
     }
   });

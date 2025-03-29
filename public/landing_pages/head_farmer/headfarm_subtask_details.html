@@ -115,18 +115,19 @@
         }
 
         .completed-btn {
-           display: block;
-    width: 100px;
-    margin: 20px 0 0 auto; /* Updated: Top: 20px, Right: 0, Bottom: 0, Left: auto */
-    padding: 10px;
-    background-color: #41A186;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    text-align: center;
-}
+            display: block;
+            width: 100px;
+            margin: 20px 0 0 auto;
+            /* Updated: Top: 20px, Right: 0, Bottom: 0, Left: auto */
+            padding: 10px;
+            background-color: #41A186;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+        }
 
         .completed-btn:hover {
             background-color: #359171;
@@ -251,6 +252,12 @@
         .add-day-btn:hover {
             text-decoration: underline;
         }
+
+        .completed-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
     </style>
 </head>
 
@@ -279,7 +286,29 @@
                 </tbody>
             </table>
 
-        
+            <!-- Modal for Delete Confirmation (already present) -->
+            <div id="deleteConfirmationModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <h3>Confirm Delete</h3>
+                    <p id="deleteModalMessage">Are you sure you want to delete this record?</p>
+                    <div class="confirm-buttons">
+                        <button id="cancelDeleteBtn" class="cancel-btn">No</button>
+                        <button id="confirmDeleteBtn" class="confirm-delete-btn">Yes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Modal for Complete Confirmation -->
+            <div id="completeConfirmationModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <h3>Confirm Complete</h3>
+                    <p>Are you sure you want to mark this subtask as Complete?</p>
+                    <div class="confirm-buttons">
+                        <button id="cancelCompleteBtn" class="cancel-btn">No</button>
+                        <button id="confirmCompleteBtn" class="confirm-complete-btn">Yes</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <button class="completed-btn">Completed</button>
     </div>
