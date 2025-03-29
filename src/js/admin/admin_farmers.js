@@ -5,6 +5,9 @@ import {
     deleteDoc,
     getDoc,
     setDoc,
+    addDoc,
+    Timestamp,
+    updateDoc,
     query,
     where,
     getFirestore

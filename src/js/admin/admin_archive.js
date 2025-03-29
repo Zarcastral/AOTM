@@ -461,6 +461,7 @@ restoreButtons.forEach(button => {
     });
 });
 
+// Replace the existing confirmRestoreBtn event listener with this modified version
 confirmRestoreBtn.addEventListener("click", async () => {
     try {
         for (const archiveId of idsToRestore) {
@@ -468,29 +469,39 @@ confirmRestoreBtn.addEventListener("click", async () => {
             const querySnapshot = await getDocs(q);
 
             for (const docSnapshot of querySnapshot.docs) {
-                const docData = docSnapshot.data();
+                let docData = docSnapshot.data();
                 const docRef = doc(db, "tb_archive", docSnapshot.id);
 
+                // Remove the specified fields from the document data
+                delete docData.document_name;
+                delete docData.document_type;
+                delete docData.archive_date;
+                delete docData.archive_id;
+                delete docData.archive_time;
+                delete docData.archived_by;
+
                 let targetCollection = "";
-                if (docData.document_type === "Inventory") {
+                // Determine target collection based on original document type
+                if (docSnapshot.data().document_type === "Inventory") {
                     if (docData.crop_type_id) {
                         targetCollection = "tb_crop_types";
                     } else if (docData.fertilizer_id) {
                         targetCollection = "tb_fertilizer";
                     }
-                } else if (docData.document_type === "Inventory Stock") {
+                } else if (docSnapshot.data().document_type === "Inventory Stock") {
                     if (docData.crop_type_id) {
                         targetCollection = "tb_crop_stock";
                     } else if (docData.fertilizer_id) {
                         targetCollection = "tb_fertilizer_stock";
                     }
-                } else if (docData.document_type === "User Account") {
+                } else if (docSnapshot.data().document_type === "User Account") {
                     targetCollection = "tb_users";
-                } else if (docData.document_type === "Farmer Account") {
+                } else if (docSnapshot.data().document_type === "Farmer Account") {
                     targetCollection = "tb_farmers";
                 }
 
                 if (targetCollection) {
+                    // Restore the document without the archive-related fields
                     await setDoc(doc(db, targetCollection, docSnapshot.id), docData);
                     await deleteDoc(docRef);
                     console.log(`Record with archiveId of ${archiveId} restored to ${targetCollection}.`);
@@ -507,10 +518,6 @@ confirmRestoreBtn.addEventListener("click", async () => {
         showRestoreMessage("Error restoring records. Please try again.", false);
     }
 
-    restorePanel.classList.remove("show");
-});
-
-cancelRestoreBtn.addEventListener("click", () => {
     restorePanel.classList.remove("show");
 });
 
