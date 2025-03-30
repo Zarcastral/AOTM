@@ -10,6 +10,7 @@ import {
   where,
   getFirestore,
   addDoc,
+  Timestamp,
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
@@ -18,6 +19,9 @@ const auth = getAuth();
 
 // Lock flag to prevent multiple saveProject executions
 let isSaving = false;
+
+// Default border color
+const DEFAULT_BORDER_COLOR = "#ccc";
 
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 async function getAuthenticatedUser() {
@@ -57,12 +61,17 @@ async function loadProjectData() {
     document.getElementById("project-name").value = projectData.project_name || "";
     document.getElementById("status").value = projectData.status || "Pending";
     document.getElementById("barangay").value = projectData.barangay_name || "";
-    document.getElementById("start-date").value = projectData.start_date || "";
-    document.getElementById("end-date").value = projectData.end_date || "";
+    
+    // Handle start_date and end_date based on their original format
+    document.getElementById("start-date").value = projectData.start_date instanceof Object 
+      ? new Date(projectData.start_date.seconds * 1000).toISOString().split('T')[0]
+      : projectData.start_date || "";
+    document.getElementById("end-date").value = projectData.end_date instanceof Object 
+      ? new Date(projectData.end_date.seconds * 1000).toISOString().split('T')[0]
+      : projectData.end_date || "";
     
     await loadFarmPresidents(projectData.farmer_id);
     await loadCrops(projectData.crop_name);
-    await loadFarmland(projectData.barangay_name, projectData.farm_land);
     await loadCropTypes(projectData.crop_name, projectData.crop_type_name);
     
     document.getElementById("quantity-crop-type").value = projectData.crop_type_quantity || "";
@@ -116,37 +125,74 @@ window.loadFarmPresidents = async function (selectedFarmerId = null) {
 };
 
 window.loadBarangay = async function (farmPresidentId) {
-  if (!farmPresidentId) return;
-  const docRef = doc(db, "tb_farmers", farmPresidentId);
-  const docSnap = await getDoc(docRef);
   const barangayInput = document.getElementById("barangay");
-  if (docSnap.exists()) {
-    barangayInput.value = docSnap.data().barangay_name || "N/A";
-  } else {
+  const projectDataString = localStorage.getItem("projectData");
+  const projectData = projectDataString ? JSON.parse(projectDataString) : {};
+  const selectedFarmland = projectData.farm_land || null;
+
+  if (!farmPresidentId) {
     barangayInput.value = "";
+    await loadFarmland(""); // Clear farmland if no farm president
+    return;
+  }
+
+  try {
+    const docRef = doc(db, "tb_farmers", farmPresidentId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const barangayName = docSnap.data().barangay_name || "N/A";
+      barangayInput.value = barangayName;
+      await loadFarmland(barangayName, selectedFarmland);
+    } else {
+      barangayInput.value = "";
+      await loadFarmland("");
+    }
+  } catch (error) {
+    console.error("Error loading barangay:", error);
+    barangayInput.value = "Error";
+    await loadFarmland("");
   }
 };
 
 window.loadFarmland = async function (barangayName, selectedFarmland = null) {
-  if (!barangayName) return;
-  const querySnapshot = await getDocs(
-    query(
-      collection(db, "tb_farmland"),
-      where("barangay_name", "==", barangayName)
-    )
-  );
   const farmlandSelect = document.getElementById("farmland");
   farmlandSelect.innerHTML = '<option value="">Select Farmland</option>';
-  
-  querySnapshot.forEach((doc) => {
-    const option = document.createElement("option");
-    option.value = doc.id;
-    option.textContent = doc.data().farmland_name;
-    if (selectedFarmland && doc.data().farmland_name === selectedFarmland) {
-      option.selected = true;
+
+  if (!barangayName) {
+    farmlandSelect.disabled = true;
+    return;
+  }
+
+  farmlandSelect.disabled = false;
+  try {
+    const querySnapshot = await getDocs(
+      query(
+        collection(db, "tb_farmland"),
+        where("barangay_name", "==", barangayName)
+      )
+    );
+
+    let foundSelected = false;
+    querySnapshot.forEach((doc) => {
+      const option = document.createElement("option");
+      option.value = doc.id;
+      option.textContent = doc.data().farmland_name;
+      if (selectedFarmland && doc.data().farmland_name === selectedFarmland) {
+        option.selected = true;
+        foundSelected = true;
+      }
+      farmlandSelect.appendChild(option);
+    });
+
+    if (selectedFarmland && !foundSelected) {
+      farmlandSelect.value = "";
     }
-    farmlandSelect.appendChild(option);
-  });
+  } catch (error) {
+    console.error("Error loading farmland:", error);
+    farmlandSelect.innerHTML = '<option value="">Error loading farmland</option>';
+  }
+
+  updateSaveButtonState();
 };
 
 window.loadCrops = async function (selectedCrop = null) {
@@ -193,7 +239,7 @@ window.loadCropTypes = async function (selectedCrop, selectedCropType = null) {
   cropTypeSelect.innerHTML = '<option value="">Select Crop Type</option>';
   const userType = sessionStorage.getItem("user_type");
 
-  window.cropStockMap = {}; // Reset global stock map
+  window.cropStockMap = {};
   const querySnapshot = await getDocs(
     query(
       collection(db, "tb_crop_stock"),
@@ -229,24 +275,12 @@ window.loadCropTypes = async function (selectedCrop, selectedCropType = null) {
     quantityInput.value = "";
     quantityInput.disabled = maxStock === 0;
     quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
-    quantityInput.style.border = "2px solid #ccc"; // Reset border
+    quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
     updateSaveButtonState();
   });
 
   const quantityInput = document.getElementById("quantity-crop-type");
   quantityInput.addEventListener("input", function () {
-    const maxStock = window.cropStockMap[cropTypeSelect.value] || 0;
-    const currentValue = parseInt(this.value) || 0;
-    if (currentValue > maxStock && maxStock > 0) {
-      this.style.border = "2px solid red";
-      this.title = `Only ${maxStock} available`;
-    } else if (currentValue > 0) {
-      this.style.border = "2px solid green";
-      this.title = "";
-    } else {
-      this.style.border = "2px solid #ccc";
-      this.title = "";
-    }
     updateSaveButtonState();
   });
 
@@ -331,7 +365,7 @@ async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, 
   );
   const querySnapshot = await getDocs(q);
   
-  window.equipmentStockMap = window.equipmentStockMap || {}; // Initialize if not exists
+  window.equipmentStockMap = window.equipmentStockMap || {};
 
   querySnapshot.forEach((doc) => {
     const data = doc.data();
@@ -355,23 +389,11 @@ async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, 
     quantityInput.value = "";
     quantityInput.disabled = maxStock === 0;
     quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
-    quantityInput.style.border = "2px solid #ccc"; // Reset border
+    quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
     updateSaveButtonState();
   });
 
   quantityInput.addEventListener("input", function () {
-    const maxStock = window.equipmentStockMap[equipmentNameDropdown.value] || 0;
-    const currentValue = parseInt(this.value) || 0;
-    if (currentValue > maxStock && maxStock > 0) {
-      this.style.border = "2px solid red";
-      this.title = `Only ${maxStock} available`;
-    } else if (currentValue > 0) {
-      this.style.border = "2px solid green";
-      this.title = "";
-    } else {
-      this.style.border = "2px solid #ccc";
-      this.title = "";
-    }
     updateSaveButtonState();
   });
 }
@@ -452,7 +474,7 @@ async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdow
   );
   const querySnapshot = await getDocs(q);
 
-  window.fertilizerStockMap = window.fertilizerStockMap || {}; // Initialize if not exists
+  window.fertilizerStockMap = window.fertilizerStockMap || {};
 
   querySnapshot.forEach((doc) => {
     const data = doc.data();
@@ -476,23 +498,11 @@ async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdow
     quantityInput.value = "";
     quantityInput.disabled = maxStock === 0;
     quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
-    quantityInput.style.border = "2px solid #ccc"; // Reset border
+    quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
     updateSaveButtonState();
   });
 
   quantityInput.addEventListener("input", function () {
-    const maxStock = window.fertilizerStockMap[fertilizerNameDropdown.value] || 0;
-    const currentValue = parseInt(this.value) || 0;
-    if (currentValue > maxStock && maxStock > 0) {
-      this.style.border = "2px solid red";
-      this.title = `Only ${maxStock} available`;
-    } else if (currentValue > 0) {
-      this.style.border = "2px solid green";
-      this.title = "";
-    } else {
-      this.style.border = "2px solid #ccc";
-      this.title = "";
-    }
     updateSaveButtonState();
   });
 }
@@ -552,53 +562,97 @@ async function getFarmerIdByName(farmPresidentName) {
 
 function updateSaveButtonState() {
   const saveButton = document.getElementById("save-button");
-  const cropQuantity = parseInt(document.getElementById("quantity-crop-type").value) || 0;
-  const cropType = document.getElementById("crop-type").value;
-  const cropMaxStock = window.cropStockMap[cropType] || 0;
-  const startDateInput = document.getElementById("start-date");
-  const endDateInput = document.getElementById("end-date");
-  const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
-  const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
-
-  const fertilizerGroups = document.querySelectorAll(".fertilizer__group");
-  const equipmentGroups = document.querySelectorAll(".equipment__group");
-
   let allValid = true;
 
-  if (cropQuantity > cropMaxStock && cropMaxStock > 0) {
-    allValid = false;
+  // Validate Crop Quantity
+  const cropType = document.getElementById("crop-type").value;
+  const newCropQuantity = parseInt(document.getElementById("quantity-crop-type").value) || 0;
+  const cropMaxStock = window.cropStockMap[cropType] || 0;
+  const cropQuantityInput = document.getElementById("quantity-crop-type");
+
+  if (cropType && newCropQuantity > 0) {
+    if (newCropQuantity > cropMaxStock) {
+      allValid = false;
+      cropQuantityInput.style.border = "2px solid red";
+      cropQuantityInput.title = `Requested ${newCropQuantity} exceeds available stock of ${cropMaxStock}`;
+    } else {
+      cropQuantityInput.style.border = "2px solid green";
+      cropQuantityInput.title = "";
+    }
+  } else {
+    cropQuantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
+    cropQuantityInput.title = "";
   }
 
+  // Validate Fertilizer Quantities
+  const fertilizerGroups = document.querySelectorAll(".fertilizer__group");
   fertilizerGroups.forEach((group) => {
     const name = group.querySelector(".fertilizer__name").value;
-    const quantity = parseInt(group.querySelector(".fertilizer__quantity").value) || 0;
+    const newQuantity = parseInt(group.querySelector(".fertilizer__quantity").value) || 0;
     const maxStock = window.fertilizerStockMap[name] || 0;
-    if (quantity > maxStock && maxStock > 0) {
-      allValid = false;
+    const quantityInput = group.querySelector(".fertilizer__quantity");
+
+    if (name && newQuantity > 0) {
+      if (newQuantity > maxStock) {
+        allValid = false;
+        quantityInput.style.border = "2px solid red";
+        quantityInput.title = `Requested ${newQuantity} exceeds available stock of ${maxStock}`;
+      } else {
+        quantityInput.style.border = "2px solid green";
+        quantityInput.title = "";
+      }
+    } else {
+      quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
+      quantityInput.title = "";
     }
   });
 
+  // Validate Equipment Quantities
+  const equipmentGroups = document.querySelectorAll(".equipment__group");
   equipmentGroups.forEach((group) => {
     const name = group.querySelector(".equipment__name").value;
-    const quantity = parseInt(group.querySelector(".equipment__quantity").value) || 0;
+    const newQuantity = parseInt(group.querySelector(".equipment__quantity").value) || 0;
     const maxStock = window.equipmentStockMap[name] || 0;
-    if (quantity > maxStock && maxStock > 0) {
-      allValid = false;
+    const quantityInput = group.querySelector(".equipment__quantity");
+
+    if (name && newQuantity > 0) {
+      if (newQuantity > maxStock) {
+        allValid = false;
+        quantityInput.style.border = "2px solid red";
+        quantityInput.title = `Requested ${newQuantity} exceeds available stock of ${maxStock}`;
+      } else {
+        quantityInput.style.border = "2px solid green";
+        quantityInput.title = "";
+      }
+    } else {
+      quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
+      quantityInput.title = "";
     }
   });
 
-  if (startDate && endDate && endDate < startDate) {
-    allValid = false;
-    endDateInput.style.border = "2px solid red";
-    endDateInput.title = "End date cannot be before start date";
-  } else if (startDate && endDate) {
-    endDateInput.style.border = "2px solid green";
-    endDateInput.title = "";
+  // Validate Dates
+  const startDateInput = document.getElementById("start-date");
+  const endDateInput = document.getElementById("end-date");
+  const startDateStr = startDateInput.value;
+  const endDateStr = endDateInput.value;
+
+  if (startDateStr && endDateStr) {
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    if (endDate < startDate) {
+      allValid = false;
+      endDateInput.style.border = "2px solid red";
+      endDateInput.title = "End date cannot be before start date";
+    } else {
+      endDateInput.style.border = "2px solid green";
+      endDateInput.title = "";
+    }
   } else {
-    endDateInput.style.border = "2px solid #ccc";
+    endDateInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
     endDateInput.title = "";
   }
 
+  // Validate Required Fields
   const requiredFields = [
     "project-name",
     "assign-to",
@@ -624,9 +678,14 @@ function updateSaveButtonState() {
 function resetInputColors() {
   const inputs = document.querySelectorAll(".form__input, #start-date, #end-date");
   inputs.forEach((input) => {
-    input.style.border = "2px solid #ccc";
+    input.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
     input.title = "";
   });
+}
+
+// Helper function to check if a value is a Firestore Timestamp object
+function isTimestampObject(value) {
+  return value && typeof value === "object" && "seconds" in value && "nanoseconds" in value;
 }
 
 window.saveProject = async function () {
@@ -658,16 +717,12 @@ window.saveProject = async function () {
     const endDateObj = new Date(endDate);
 
     if (endDateObj < startDateObj) {
-      showprojectUpdateMessage("The end date cannot be earlier than the start date. Please fix it.", false);
-      isSaving = false;
-      return;
+      throw new Error("The end date cannot be earlier than the start date. Please fix it.");
     }
 
     const farmerId = await getFarmerIdByName(farmPresidentName);
     if (!farmerId) {
-      showprojectUpdateMessage(`Farm President '${farmPresidentName}' not found.`, false);
-      isSaving = false;
-      return;
+      throw new Error(`Farm President '${farmPresidentName}' not found.`);
     }
 
     const fertilizerGroups = document.querySelectorAll(".fertilizer__group");
@@ -703,20 +758,40 @@ window.saveProject = async function () {
 
     const projectDataString = localStorage.getItem("projectData");
     if (!projectDataString) {
-      showprojectUpdateMessage("No project data found to update. Please select a project to edit first.", false);
-      isSaving = false;
-      return;
+      throw new Error("No project data found to update. Please select a project to edit first.");
     }
 
     const existingProjectData = JSON.parse(projectDataString);
     const projectID = existingProjectData.project_id;
     const projectCreator = existingProjectData.project_creator;
 
-    const currentDate = new Date().toISOString().split("T")[0];
+    // Preserve original date format for each field
+    const currentDateTimestamp = Timestamp.fromDate(new Date());
+    const currentDateString = new Date().toISOString().split("T")[0];
 
-    let cropDate = existingProjectData.crop_date;
-    let fertilizerDate = existingProjectData.fertilizer_date;
-    let equipmentDate = existingProjectData.equipment_date;
+    const cropDate = isTimestampObject(existingProjectData.crop_date)
+      ? currentDateTimestamp
+      : currentDateString;
+
+    const fertilizerDate = isTimestampObject(existingProjectData.fertilizer_date)
+      ? currentDateTimestamp
+      : currentDateString;
+
+    const equipmentDate = isTimestampObject(existingProjectData.equipment_date)
+      ? currentDateTimestamp
+      : currentDateString;
+
+    const dateCreated = isTimestampObject(existingProjectData.date_created)
+      ? existingProjectData.date_created
+      : existingProjectData.date_created;
+
+    const startDateValue = isTimestampObject(existingProjectData.start_date)
+      ? Timestamp.fromDate(new Date(startDate))
+      : startDate;
+
+    const endDateValue = isTimestampObject(existingProjectData.end_date)
+      ? Timestamp.fromDate(new Date(endDate))
+      : endDate;
 
     const projectData = {
       project_id: projectID,
@@ -731,173 +806,75 @@ window.saveProject = async function () {
       crop_type_name: cropTypeName,
       crop_type_quantity: quantityCropType,
       crop_unit: cropUnit,
-      start_date: startDate,
-      end_date: endDate,
+      start_date: startDateValue,
+      end_date: endDateValue,
       fertilizer: fertilizerData,
       equipment: equipmentData,
       crop_date: cropDate,
       fertilizer_date: fertilizerDate,
       equipment_date: equipmentDate,
-      date_created: existingProjectData.date_created,
+      date_created: dateCreated,
       project_creator: projectCreator,
     };
 
-    const updates = []; // Array to collect all Firestore updates
+    // Validate Crop Quantity Against Inventory
+    const cropQuery = query(
+      collection(db, "tb_crop_stock"),
+      where("crop_type_name", "==", cropTypeName)
+    );
+    const cropSnapshot = await getDocs(cropQuery);
+    if (!cropSnapshot.empty) {
+      const cropDoc = cropSnapshot.docs[0];
+      const cropStocks = cropDoc.data().stocks || [];
+      const stockEntry = cropStocks.find(stock => stock.owned_by === projectCreator);
+      const currentStock = stockEntry ? parseInt(stockEntry.current_stock) : 0;
+      if (quantityCropType > currentStock) {
+        throw new Error(`Requested ${quantityCropType} of '${cropTypeName}' exceeds available stock of ${currentStock}.`);
+      }
+    } else {
+      throw new Error(`Crop type '${cropTypeName}' not found in inventory.`);
+    }
 
-    const originalCropQuantity = existingProjectData.crop_type_quantity || 0;
-    const cropDifference = originalCropQuantity - quantityCropType;
-
-    if (cropDifference !== 0) {
-      const cropQuery = query(
-        collection(db, "tb_crop_stock"),
-        where("crop_type_name", "==", cropTypeName)
+    // Validate Fertilizer Quantities Against Inventory
+    for (const newFert of fertilizerData) {
+      const fertQuery = query(
+        collection(db, "tb_fertilizer_stock"),
+        where("fertilizer_name", "==", newFert.fertilizer_name),
+        where("fertilizer_type", "==", newFert.fertilizer_type)
       );
-      const cropSnapshot = await getDocs(cropQuery);
-      if (!cropSnapshot.empty) {
-        const cropDoc = cropSnapshot.docs[0];
-        const cropStocks = cropDoc.data().stocks || [];
-        const stockIndex = cropStocks.findIndex(stock => stock.owned_by === projectCreator);
-        
-        if (stockIndex !== -1) {
-          const currentStock = parseInt(cropStocks[stockIndex].current_stock) || 0;
-          let newStock;
-          
-          if (cropDifference > 0) {
-            newStock = currentStock + cropDifference;
-          } else {
-            newStock = currentStock - Math.abs(cropDifference);
-            if (newStock < 0) {
-              showprojectUpdateMessage(`You asked for ${quantityCropType} of '${cropTypeName}', but we only have ${currentStock} left. Please lower the number.`, false);
-              isSaving = false;
-              return;
-            }
-          }
-          
-          cropStocks[stockIndex].current_stock = newStock;
-          updates.push(updateDoc(doc(db, "tb_crop_stock", cropDoc.id), { stocks: cropStocks }));
-          projectData.crop_date = currentDate;
-        } else {
-          showprojectUpdateMessage(`No stock entry found for ${projectCreator} in crop inventory.`, false);
-          isSaving = false;
-          return;
+      const fertSnapshot = await getDocs(fertQuery);
+      if (!fertSnapshot.empty) {
+        const fertDoc = fertSnapshot.docs[0];
+        const fertStocks = fertDoc.data().stocks || [];
+        const stockEntry = fertStocks.find(stock => stock.owned_by === projectCreator);
+        const currentStock = stockEntry ? parseInt(stockEntry.current_stock) : 0;
+        if (newFert.fertilizer_quantity > currentStock) {
+          throw new Error(`Requested ${newFert.fertilizer_quantity} of '${newFert.fertilizer_name}' exceeds available stock of ${currentStock}.`);
         }
       } else {
-        showprojectUpdateMessage(`Crop type '${cropTypeName}' not found in inventory.`, false);
-        isSaving = false;
-        return;
+        throw new Error(`Fertilizer '${newFert.fertilizer_name}' not found in inventory.`);
       }
     }
 
-    const originalFertilizers = existingProjectData.fertilizer || [];
-    let fertilizerChanged = false;
-    for (const newFert of fertilizerData) {
-      const origFert = originalFertilizers.find(f => 
-        f.fertilizer_type === newFert.fertilizer_type && 
-        f.fertilizer_name === newFert.fertilizer_name
-      );
-      const origQuantity = origFert ? origFert.fertilizer_quantity : 0;
-      const fertDifference = origQuantity - newFert.fertilizer_quantity;
-
-      if (fertDifference !== 0) {
-        const fertQuery = query(
-          collection(db, "tb_fertilizer_stock"),
-          where("fertilizer_name", "==", newFert.fertilizer_name),
-          where("fertilizer_type", "==", newFert.fertilizer_type)
-        );
-        const fertSnapshot = await getDocs(fertQuery);
-        if (!fertSnapshot.empty) {
-          const fertDoc = fertSnapshot.docs[0];
-          const fertStocks = fertDoc.data().stocks || [];
-          const stockIndex = fertStocks.findIndex(stock => stock.owned_by === projectCreator);
-          
-          if (stockIndex !== -1) {
-            const currentStock = parseInt(fertStocks[stockIndex].current_stock) || 0;
-            let newStock;
-            
-            if (fertDifference > 0) {
-              newStock = currentStock + fertDifference;
-            } else {
-              newStock = currentStock - Math.abs(fertDifference);
-              if (newStock < 0) {
-                showprojectUpdateMessage(`You asked for ${newFert.fertilizer_quantity} of '${newFert.fertilizer_name}', but we only have ${currentStock} left. Please lower the number.`, false);
-                isSaving = false;
-                return;
-              }
-            }
-            
-            fertStocks[stockIndex].current_stock = newStock;
-            updates.push(updateDoc(doc(db, "tb_fertilizer_stock", fertDoc.id), { stocks: fertStocks }));
-            fertilizerChanged = true;
-          } else {
-            showprojectUpdateMessage(`No stock entry found for ${projectCreator} in fertilizer inventory.`, false);
-            isSaving = false;
-            return;
-          }
-        } else {
-          showprojectUpdateMessage(`Fertilizer '${newFert.fertilizer_name}' not found in inventory.`, false);
-          isSaving = false;
-          return;
-        }
-      }
-    }
-    if (fertilizerChanged) {
-      projectData.fertilizer_date = currentDate;
-    }
-
-    const originalEquipment = existingProjectData.equipment || [];
-    let equipmentChanged = false;
+    // Validate Equipment Quantities Against Inventory
     for (const newEquip of equipmentData) {
-      const origEquip = originalEquipment.find(e => 
-        e.equipment_type === newEquip.equipment_type && 
-        e.equipment_name === newEquip.equipment_name
+      const equipQuery = query(
+        collection(db, "tb_equipment_stock"),
+        where("equipment_name", "==", newEquip.equipment_name),
+        where("equipment_type", "==", newEquip.equipment_type)
       );
-      const origQuantity = origEquip ? origEquip.equipment_quantity : 0;
-      const equipDifference = origQuantity - newEquip.equipment_quantity;
-
-      if (equipDifference !== 0) {
-        const equipQuery = query(
-          collection(db, "tb_equipment_stock"),
-          where("equipment_name", "==", newEquip.equipment_name),
-          where("equipment_type", "==", newEquip.equipment_type)
-        );
-        const equipSnapshot = await getDocs(equipQuery);
-        if (!equipSnapshot.empty) {
-          const equipDoc = equipSnapshot.docs[0];
-          const equipStocks = equipDoc.data().stocks || [];
-          const stockIndex = equipStocks.findIndex(stock => stock.owned_by === projectCreator);
-          
-          if (stockIndex !== -1) {
-            const currentStock = parseInt(equipStocks[stockIndex].current_stock) || 0;
-            let newStock;
-            
-            if (equipDifference > 0) {
-              newStock = currentStock + equipDifference;
-            } else {
-              newStock = currentStock - Math.abs(equipDifference);
-              if (newStock < 0) {
-                showprojectUpdateMessage(`You asked for ${newEquip.equipment_quantity} of '${newEquip.equipment_name}', but we only have ${currentStock} left. Please lower the number.`, false);
-                isSaving = false;
-                return;
-              }
-            }
-            
-            equipStocks[stockIndex].current_stock = newStock;
-            updates.push(updateDoc(doc(db, "tb_equipment_stock", equipDoc.id), { stocks: equipStocks }));
-            equipmentChanged = true;
-          } else {
-            showprojectUpdateMessage(`No stock entry found for ${projectCreator} in equipment inventory.`, false);
-            isSaving = false;
-            return;
-          }
-        } else {
-          showprojectUpdateMessage(`Equipment '${newEquip.equipment_name}' not found in inventory.`, false);
-          isSaving = false;
-          return;
+      const equipSnapshot = await getDocs(equipQuery);
+      if (!equipSnapshot.empty) {
+        const equipDoc = equipSnapshot.docs[0];
+        const equipStocks = equipDoc.data().stocks || [];
+        const stockEntry = equipStocks.find(stock => stock.owned_by === projectCreator);
+        const currentStock = stockEntry ? parseInt(stockEntry.current_stock) : 0;
+        if (newEquip.equipment_quantity > currentStock) {
+          throw new Error(`Requested ${newEquip.equipment_quantity} of '${newEquip.equipment_name}' exceeds available stock of ${currentStock}.`);
         }
+      } else {
+        throw new Error(`Equipment '${newEquip.equipment_name}' not found in inventory.`);
       }
-    }
-    if (equipmentChanged) {
-      projectData.equipment_date = currentDate;
     }
 
     const projectQuery = query(
@@ -906,38 +883,29 @@ window.saveProject = async function () {
     );
     const querySnapshot = await getDocs(projectQuery);
     
+    let projectDocRef;
     if (!querySnapshot.empty) {
-      const docRef = querySnapshot.docs[0].ref;
-      updates.push(updateDoc(docRef, projectData));
+      projectDocRef = querySnapshot.docs[0].ref;
     } else {
-      showprojectUpdateMessage("Project not found in database.", false);
-      isSaving = false;
-      return;
+      throw new Error("Project not found in database.");
     }
 
-    // Log the update activity before committing changes
     const description = `Updated project '${projectName}' for ${farmPresidentName} by ${projectCreator}`;
-    await window.saveActivityLog("Update", description); // This must succeed before updates
+    await window.saveActivityLog("Update", description);
 
-    // If we reach here, all validations passed and activity log is ready
-    // Execute all updates in sequence
-    for (const update of updates) {
-      await update; // Await each update to ensure all succeed
-    }
+    await updateDoc(projectDocRef, projectData);
 
-    // If all updates succeed, show success message and reset
     showprojectUpdateMessage("Project saved successfully!", true);
-    resetInputColors(); // Reset colors after successful save
+    resetInputColors();
     resetForm();
   } catch (error) {
     console.error("Error updating project:", error);
-    showprojectUpdateMessage("Something went wrong. Please try again.", false);
+    showprojectUpdateMessage(error.message || "Something went wrong. Please try again.", false);
   } finally {
     isSaving = false;
   }
 };
 
-// Message display function
 const projectUpdateMessage = document.getElementById("project-update-message");
 
 function showprojectUpdateMessage(message, success) {
@@ -992,33 +960,12 @@ document.getElementById("cancel-button").addEventListener("click", function () {
 
 document.getElementById("save-button").addEventListener("click", saveProject);
 
-// Date validation event listeners
 document.getElementById("start-date").addEventListener("change", function () {
   updateSaveButtonState();
-  const startDate = new Date(this.value);
-  const endDateInput = document.getElementById("end-date");
-  const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
-  if (endDate && endDate < startDate) {
-    endDateInput.style.border = "2px solid red";
-    endDateInput.title = "End date cannot be before start date";
-  } else if (endDate) {
-    endDateInput.style.border = "2px solid green";
-    endDateInput.title = "";
-  }
 });
 
 document.getElementById("end-date").addEventListener("change", function () {
   updateSaveButtonState();
-  const endDate = new Date(this.value);
-  const startDateInput = document.getElementById("start-date");
-  const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
-  if (startDate && endDate < startDate) {
-    this.style.border = "2px solid red";
-    this.title = "End date cannot be before start date";
-  } else if (startDate) {
-    this.style.border = "2px solid green";
-    this.title = "";
-  }
 });
 
 // Global stock maps
@@ -1030,5 +977,5 @@ window.onload = async function () {
   await loadFarmPresidents();
   await loadCrops();
   await loadProjectData();
-  updateSaveButtonState(); // Initial check
+  updateSaveButtonState();
 };
