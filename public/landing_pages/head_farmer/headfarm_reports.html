@@ -2,125 +2,108 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Organic Baras Productivity</title>
+  <script type="module" src="../../../src/js/head_farmer/headfarm_reports_harvest.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmers Management</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="headfarm_reports.css">
+  <link rel="stylesheet" href="../../../src/style/head_farmer/headfarm_reports_harvest.css">
 </head>
 
 <body>
-  <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
-  
-  <div class="main-content">
-    <div class="table-container">
-      <!-- Search Bar inside the table container -->
-      <input type="text" id="search-bar" class="search-bar" placeholder="Search table..." />
+<!-- Placeholder for Header -->
+<div id="header-container"></div>
 
-      <table id="report-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Commodity</th>
-            <th>Type of Crop</th>
-            <th>No. of Farmers Served</th>
-            <th>Barangay</th>
-            <th>Area Planted (ha)</th>
-            <th>To Date</th>
-            <th>Area Harvested (ha)</th>
-            <th>To Date</th>
-            <th>Production (mt)</th>
-            <th>To Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>Lowland Vegetables</td>
-            <td>Ampalaya</td>
-            <td>36</td>
-            <td>Santiago</td>
-            <td>2.1</td>
-            <td>10/21/23</td>
-            <td>2.1</td>
-            <td>1/22/24</td>
-            <td>12.12</td>
-            <td>1/22/24</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>Highland Vegetables</td>
-            <td>Cucumber</td>
-            <td>32</td>
-            <td>Rizal</td>
-            <td>2.2</td>
-            <td>10/21/23</td>
-            <td>2.2</td>
-            <td>1/22/24</td>
-            <td>10.19</td>
-            <td>1/22/24</td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td>Leafy Vegetables</td>
-            <td>Pechay</td>
-            <td>52</td>
-            <td>Mabini</td>
-            <td>2.3</td>
-            <td>10/21/23</td>
-            <td>2.3</td>
-            <td>1/22/24</td>
-            <td>11.08</td>
-            <td>1/22/24</td>
-          </tr>
-        </tbody>
-      </table>
+<!-- Main Content -->
+<div class="main-content">
+  <div class="panel">
+    <div class="table-wrapper">
+      <h2>Harvest Report</h2>
+        <div class="harvest-search-bar">
+          <div class="search-and-dropdowns">
+            <input type="text" id="harvest-search-bar" placeholder="Search">
+            <select class="crop_select">
+              <option value="">Crops</option>
+            </select>
+            <select class="barangay_select">
+              <option value="">Barangay</option>
+            </select>
+          </div>
+        <div class="calendar-icon">
+            <img src="../../images/Calendar.png" alt="calendar" class="calendar-btn-icon">
+            <div id="month-picker">
+              <div class="year-nav">
+                  <button id="prev-year">↑</button>
+                  <span id="year-display"></span>
+                  <button id="next-year">↓</button>
+              </div>
+              <div class="month-grid">
+                  <button class="month-btn">Jan</button>
+                  <button class="month-btn">Feb</button>
+                  <button class="month-btn">Mar</button>
+                  <button class="month-btn">Apr</button>
+                  <button class="month-btn">May</button>
+                  <button class="month-btn">Jun</button>
+                  <button class="month-btn">Jul</button>
+                  <button class="month-btn">Aug</button>
+                  <button class="month-btn">Sep</button>
+                  <button class="month-btn">Oct</button>
+                  <button class="month-btn">Nov</button>
+                  <button class="month-btn">Dec</button>
+              </div>
+              <button id="clear-btn">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="harvest_table">
+        <table>
+          <thead>
+            <tr>
+              <th>Commodity</th> <!-- Crops (Lowland, Highland, Leafy, Root Crops, etc,.) -->
+              <th>Type of Crop</th> <!-- Palay, Patatas, Ampalaya, Okra, etc,. -->
+              <th>No. of Farmers Served</th>
+              <th>Barangay</th>
+              <th>Area Planted (ha)</th>
+              <th>To Date</th>
+              <th>Area Harvested (ha)</th>
+              <th>To Date</th>
+              <th>Production (mt)</th>
+              <th>To Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Harvest records will be populated here -->
+          </tbody>
+        </table>
+      </div>
+      <div class="harvest-pagination">
+        <span id="harvest-page-number">Page 1</span>
+        <button id="harvest-prev-page" class="harvest-pagination-btn" disabled>&lt;</button>
+        <button id="harvest-next-page" class="harvest-pagination-btn">&gt;</button>
+      </div>
     </div>
-    <button class="download-btn">Download PDF</button>
   </div>
-
-  <div id="account-panel" class="account-panel">
-    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
+  <!-- Download Button -->
+  <div class="button-container">
+    <button class="download-btn" id="download-btn">
+      <img src="../../../public/images/DownloadPDF.png" alt="Download-btn Icon" class="download-icon">
+      <span>Download PDF</span>
+    </button>
   </div>
+  <div id="pdf-preview-panel" class="pdf-preview-panel">
+    <div id="pdf-preview-container">
+      <!-- The PDF preview will be rendered here -->
+    </div>
+    <div class="preview-buttons">
+      <button id="preview-cancel-btn" class="preview-btn cancel-btn">Cancel</button>
+      <button id="preview-done-btn" class="preview-btn done-btn">Done</button>
+    </div>
+  </div>
+</div>
 
-  <script>
-    const accountIcon = document.getElementById("account-icon");
-    const accountPanel = document.getElementById("account-panel");
-    const accountFrame = document.getElementById("account-frame");
-
-    accountIcon.addEventListener("click", () => {
-      accountPanel.classList.toggle("active");
-      if (accountPanel.classList.contains("active")) {
-        accountFrame.src = "account_loginout.php";
-      } else {
-        accountFrame.src = "";
-      }
-    });
-
-    // Search functionality for the table
-    const searchBar = document.getElementById("search-bar");
-    const reportTable = document.getElementById("report-table");
-    const rows = reportTable.getElementsByTagName("tr");
-
-    searchBar.addEventListener("keyup", function () {
-      const filter = searchBar.value.toLowerCase();
-      for (let i = 1; i < rows.length; i++) {
-        const cells = rows[i].getElementsByTagName("td");
-        let found = false;
-        for (let j = 0; j < cells.length; j++) {
-          if (cells[j].textContent.toLowerCase().includes(filter)) {
-            found = true;
-            break;
-          }
-        }
-        rows[i].style.display = found ? "" : "none";
-      }
-    });
-  </script>
-   <!-- Import the reusable script from src/auth -->
-   <script type="module" src="../../../src/auth/header.js"></script>
+  <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 
 </html>
