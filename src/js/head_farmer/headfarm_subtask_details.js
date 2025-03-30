@@ -36,6 +36,7 @@ function confirmCompleteSubtask() {
 }
 
 // Function to initialize the subtask details page
+// Function to initialize the subtask details page
 export function initializeSubtaskDetailsPage() {
   document.addEventListener("DOMContentLoaded", async () => {
     const subtaskName =
@@ -53,6 +54,56 @@ export function initializeSubtaskDetailsPage() {
       projectTaskId,
     });
 
+    // Fetch subtask status from Firestore and store it in sessionStorage at the start
+    try {
+      const tasksRef = collection(db, "tb_project_task");
+      const taskQuery = query(
+        tasksRef,
+        where("project_id", "==", projectId),
+        where("crop_type_name", "==", cropType),
+        where("crop_name", "==", cropName),
+        where("project_task_id", "==", Number(projectTaskId))
+      );
+      const taskSnapshot = await getDocs(taskQuery);
+
+      if (!taskSnapshot.empty) {
+        const taskDoc = taskSnapshot.docs[0];
+        const taskData = taskDoc.data();
+        const subtasks = taskData.subtasks || [];
+        const subtask = subtasks.find((st) => st.subtask_name === subtaskName);
+
+        // Get the initial subtask status (default to "Pending" if not found)
+        const initialStatus = subtask ? subtask.status || "Pending" : "Pending";
+
+        // Store the initial status in sessionStorage as subtask_status
+        sessionStorage.setItem("subtask_status", initialStatus);
+        console.log(
+          "Initial subtask_status fetched and stored in sessionStorage:",
+          sessionStorage.getItem("subtask_status")
+        );
+      } else {
+        console.error("No matching task found to fetch initial status:", {
+          projectId,
+          cropType,
+          cropName,
+          projectTaskId,
+        });
+        // Default to "Pending" if no task is found
+        sessionStorage.setItem("subtask_status", "Pending");
+        console.log(
+          "No task found; subtask_status set to 'Pending' in sessionStorage"
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching initial subtask status:", error);
+      // Default to "Pending" on error
+      sessionStorage.setItem("subtask_status", "Pending");
+      console.log(
+        "Error occurred; subtask_status set to 'Pending' in sessionStorage"
+      );
+    }
+
+    // Continue with the rest of the initialization
     const taskNameElement = document.getElementById("taskName");
     if (taskNameElement) {
       taskNameElement.textContent = subtaskName;
@@ -97,19 +148,11 @@ export function initializeSubtaskDetailsPage() {
             );
             const taskSnapshot = await getDocs(taskQuery);
 
-            console.log(
-              "Task query executed. Number of documents found:",
-              taskSnapshot.size
-            );
-
             if (!taskSnapshot.empty) {
               const taskDoc = taskSnapshot.docs[0];
               const taskId = taskDoc.id;
               const taskData = taskDoc.data();
               const subtasks = taskData.subtasks || [];
-
-              console.log("Current task data:", taskData);
-              console.log("Subtasks array before update:", subtasks);
 
               const subtaskIndex = subtasks.findIndex(
                 (subtask) => subtask.subtask_name === subtaskName
@@ -132,16 +175,15 @@ export function initializeSubtaskDetailsPage() {
                 subtasks: subtasks,
               });
 
-              // Store subtask_status in sessionStorage as "Completed"
+              // Update sessionStorage after marking as completed
               sessionStorage.setItem("subtask_status", "Completed");
+              console.log(
+                "subtask_status updated in sessionStorage:",
+                sessionStorage.getItem("subtask_status")
+              );
 
-              console.log("Subtasks array after update:", subtasks);
               console.log(
                 `Database updated: Status set to "Completed" for subtask: ${subtaskName} in tb_project_task/${taskId}`
-              );
-              console.log(
-                "subtask_status stored in sessionStorage:",
-                sessionStorage.getItem("subtask_status")
               );
               alert("Subtask marked as Completed and saved to database!");
               completeBtn.disabled = true;
@@ -472,7 +514,7 @@ async function addNewDay(
       subtask_name: subtaskName,
       crop_type_name: cropType,
       crop_name: cropName,
-      start_date: currentDate,
+      // Removed start_date from here
     });
 
     const subtaskIndex = subtasks.findIndex(
@@ -483,7 +525,7 @@ async function addNewDay(
       (!subtask || !subtask.status || subtask.status === "Pending")
     ) {
       subtasks[subtaskIndex].status = "Ongoing";
-      subtasks[subtaskIndex].start_date = currentDate;
+      subtasks[subtaskIndex].start_date = currentDate; // Still included in tb_project_task subtasks
       await updateDoc(doc(db, "tb_project_task", taskId), {
         subtasks: subtasks,
       });
@@ -542,6 +584,7 @@ function confirmDeleteModal(dateCreated) {
 }
 
 // Function to delete an attendance record from Firestore with modal confirmation
+// Function to delete an attendance record from Firestore with modal confirmation
 async function deleteAttendanceRecord(
   projectId,
   cropType,
@@ -598,36 +641,58 @@ async function deleteAttendanceRecord(
       return;
     }
 
+    // Step 1: Delete from Attendance subcollection
     const attendanceRef = collection(
       db,
       "tb_project_task",
       taskId,
       "Attendance"
     );
-    const deleteQuery = query(
+    const deleteSubcollectionQuery = query(
       attendanceRef,
       where("subtask_name", "==", subtaskName),
       where("date_created", "==", dateCreated)
     );
-    const deleteSnapshot = await getDocs(deleteQuery);
+    const deleteSubcollectionSnapshot = await getDocs(deleteSubcollectionQuery);
 
-    if (deleteSnapshot.empty) {
-      console.error("No matching attendance record found to delete.");
-      alert("No attendance record found for this date.");
-      return;
+    if (deleteSubcollectionSnapshot.empty) {
+      console.warn(
+        "No matching attendance record found in subcollection to delete."
+      );
+    } else {
+      const docToDelete = deleteSubcollectionSnapshot.docs[0];
+      await deleteDoc(
+        doc(db, "tb_project_task", taskId, "Attendance", docToDelete.id)
+      );
+      console.log(
+        `Deleted attendance record with ID: ${docToDelete.id} for date: ${dateCreated} from Attendance subcollection`
+      );
     }
 
-    const docToDelete = deleteSnapshot.docs[0];
-    await deleteDoc(
-      doc(db, "tb_project_task", taskId, "Attendance", docToDelete.id)
+    // Step 2: Delete from tb_attendance collection
+    const tbAttendanceRef = collection(db, "tb_attendance");
+    const deleteTbAttendanceQuery = query(
+      tbAttendanceRef,
+      where("project_id", "==", Number(projectId)),
+      where("project_task_id", "==", Number(projectTaskId)),
+      where("subtask_name", "==", subtaskName),
+      where("date_created", "==", dateCreated)
     );
-    console.log(
-      `Deleted attendance record with ID: ${docToDelete.id} for date: ${dateCreated} from database`
-    );
-    alert(
-      `Attendance record for ${dateCreated} deleted successfully from database!`
-    );
+    const tbAttendanceSnapshot = await getDocs(deleteTbAttendanceQuery);
 
+    if (tbAttendanceSnapshot.empty) {
+      console.warn(
+        "No matching attendance record found in tb_attendance to delete."
+      );
+    } else {
+      const tbDocToDelete = tbAttendanceSnapshot.docs[0];
+      await deleteDoc(doc(db, "tb_attendance", tbDocToDelete.id));
+      console.log(
+        `Deleted attendance record with ID: ${tbDocToDelete.id} for date: ${dateCreated} from tb_attendance`
+      );
+    }
+
+    // Step 3: Update subtask status if no attendance records remain
     const remainingQuery = query(
       attendanceRef,
       where("subtask_name", "==", subtaskName)
@@ -636,6 +701,7 @@ async function deleteAttendanceRecord(
     const subtaskIndex = subtasks.findIndex(
       (st) => st.subtask_name === subtaskName
     );
+
     if (subtaskIndex !== -1 && subtasks[subtaskIndex].status !== "Completed") {
       if (remainingSnapshot.empty) {
         subtasks[subtaskIndex].status = "Pending";
@@ -658,6 +724,10 @@ async function deleteAttendanceRecord(
         `Subtask ${subtaskName} remains Completed; no status change allowed`
       );
     }
+
+    alert(
+      `Attendance record for ${dateCreated} deleted successfully from both collections!`
+    );
   } catch (error) {
     console.error("Error deleting attendance record from database:", error);
     alert("Error deleting attendance record: " + error.message);

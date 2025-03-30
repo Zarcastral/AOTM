@@ -414,7 +414,7 @@ async function saveAttendance(projectId) {
       where("project_id", "==", Number(projectId)),
       where("date_created", "==", originalSelectedDate || todayDate),
       where("project_task_id", "==", Number(projectTaskId)),
-      where("subtask_name", "==", subtaskName) // Added subtask_name to ensure specificity
+      where("subtask_name", "==", subtaskName)
     );
     const tbAttendanceSnapshot = await getDocs(tbAttendanceQuery);
 
@@ -460,12 +460,13 @@ async function saveAttendance(projectId) {
           ? doc(attendanceSubcollectionRef, attendanceDocId)
           : doc(attendanceSubcollectionRef);
 
+        // Save to Attendance subcollection without start_date
         await setDoc(
           subAttendanceDocRef,
           {
             farmers: mergedFarmers,
             date_created: originalSelectedDate || todayDate,
-            subtask_name: subtaskName, // Ensure subtask_name is saved
+            subtask_name: subtaskName,
           },
           { merge: true }
         );
