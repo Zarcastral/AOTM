@@ -1,143 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>New Project Form</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" src="../../../src/js/admin/admin_projects_edit.js"></script>
-    <link rel="stylesheet" href="../../../src/style/admin/admin_projects_edit.css">
-    
-</head>
-<body>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="../../../src/style/admin/admin_projects_edit.css"
+    />
+    <script type="module" src="../../../src/js/admin/activitylogscript.js"></script>
+  </head>
+
+  <body>
     <div class="container">
-        <div class="panel">
-            <h2>New Project</h2>
-         <div class="inline-group2">
-            <div class="form-group1">
-                <label for="project-name">Project Name</label>
-                <input type="text" id="project-name" placeholder="Enter project name">
-            </div>
-            <div class="form-group1">
-                <label for="farmpres">Assign to</label>
-                <select id="farmpres">
-                    <option value="">Select Farm President</option>
-                </select>
-            </div>
-            <div class="form-group1">
-                <label for="status">Status</label>
-                <input type="text" id="status" value="Pending" >
-            </div>
-            <div class="form-group1">
-                <label for="crops">Crops</label>
-                <select id="crops">
-                    <option value="">Select Crop</option>
-                </select>
-            </div> 
+      <div class="panel">
+        <h2>New Project</h2>
+        <div class="inline-group2">
+          <div class="form-group1">
+            <label for="project-name">Project Name</label>
+            <input
+              type="text"
+              id="project-name"
+              placeholder="Enter project name"
+            />
           </div>
-            <div class="inline-group">
-                <div class="form-group2">
-                    <label for="barangay">Barangay</label>
-                    <input type="text" id="barangay" >
-                </div>
-                <div class="form-group2">
-                    <label for="farmland">Farm Land</label>
-                    <select id="farmland">
-                        <option value="">Select Farmland</option>
-                    </select>
-                </div>
-            </div>
+          <div class="form-group1">
+            <label for="assign-to">Assign to</label>
+            <select id="assign-to">
+              <option value="">Select Farm President</option>
+            </select>
+          </div>
+          <div class="form-group1">
+            <label for="status">Status</label>
+            <input type="text" id="status" value="Pending" disabled />
+          </div>
+          <div class="form-group1">
+            <label for="crops">Crops</label>
+            <select id="crops">
+              <option value="">Select Crop</option>
+            </select>
+          </div>
         </div>
-        
-        <div class="panel">
-            <h2>Resources</h2>
-            <div class="inline-group3">
-                <div class="form-group3">
-                    <label for="crop-type">Crop Type</label>
-                    <select id="crop-type">
-                        <option value="">Select Crop Type</option>
-                    </select>
-                </div>
-                <div class="form-group4">
-                    <label for="quantity-crop-type">Quantity</label>
-                    <input type="number" id="quantity-crop-type">
-                </div>
-                <div class="form-group5">
-                    <label for="crop-unit">Unit</label>
-                    <select name="crop-unit" id="crop-unit">
-                        <option value="">Select Unit</option>
-                        <option value="kg">kg</option>
-                    </select>
-                </div>
-            </div>
-            <div class="inline-group2">
-                <div class="form-group1">
-                    <label for="fertilizer-category">Fertilizer Type</label>
-                    <select id="fertilizer-category">
-                        <option value="">Select Fertilizer Type</option>
-                    </select>
-                </div>
-            </div>
+        <div class="inline-group">
+          <div class="form-group2">
+            <label for="barangay">Barangay</label>
+            <input type="text" id="barangay" disabled />
+          </div>
+          <div class="form-group2">
+            <label for="farmland">Farm Land</label>
+            <select id="farmland">
+              <option value="">Select Farmland</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-            <div class="inline-group3">
-                <div class="form-group3">
-                    <label for="fertilizer-name">Fertilizer Name</label>
-                    <select id="fertilizer-name">
-                        <option value="">Select Fertilizer</option>
-                    </select>
-                </div>
-                <div class="form-group4">
-                    <label for="fertilizer-quantity">Quantity</label>
-                    <input type="number" id="quantity-fertilizer-type">
-                </div>
-                <div class="form-group5">
-                    <label for="fertilizer-unit">Unit</label>
-                    <select name="fertilizer-unit" id="fertilizer-unit">
-                        <option value="">Select Unit</option>
-                        <option value="kg">kg</option>
-                    </select>
-                </div>
-            </div>
-         <div class="inline-group2">
-            <div class="form-group1">
-                <label for="equipment">Equipment</label>
-                <select id="equipment">
-                    <option value="">Select Equipment</option>
-                </select>
-            </div>
-        </div>
-        </div>
-        
-        <div class="panel2">
-            <h2>Date</h2>
-            <div class="inline-group4">
-                <div class="form-group">
-                    <label for="start-date">Start Date</label>
-                    <input type="date" id="start-date">
-                </div>
-                <div class="form-group">
-                    <label for="end-date">End Date</label>
-                    <input type="date" id="end-date">
-                </div>
-            </div>
+      <div class="panel">
+        <h2>Resources</h2>
+        <div class="inline-group3">
+          <div class="form-group3">
+            <label for="crop-type">Crop Type</label>
+            <select id="crop-type">
+              <option value="">Select Crop Type</option>
+            </select>
+          </div>
+          <div class="form-group4">
+            <label for="quantity-crop-type">Quantity</label>
+            <input type="number" id="quantity-crop-type" />
+          </div>
+          <div class="form-group5">
+            <label for="crop-unit">Unit</label>
+            <input type="text" id="crop-unit" value="kg" disabled />
+            <input type="hidden" name="crop-unit" value="kg" />
+          </div>
         </div>
 
-        <div class="button-group">
-            <button id="cancel-button" class="cancel">Cancel</button>
-            <button id="save-button" class="save">Save</button>
+        <div class="inline-group6">
+          <h2 class="form__title">Fertilizer</h2>
+
+          <!-- Fertilizer List -->
+          <div id="fertilizer-container" class="fertilizer__container"></div>
+
+          <!-- Add fertilizer Button -->
+          <button
+            id="btn-add-fertilizer"
+            class="btn btn--add"
+            onclick="addFertilizerForm()"
+          >
+            + Add Fertilizer
+          </button>
         </div>
+
+        <div class="inline-group6">
+          <h2 class="form__title">Equipment</h2>
+
+          <!-- Equipment List -->
+          <div id="equipment-container" class="equipment__container"></div>
+
+          <!-- Add Equipment Button -->
+          <button
+            id="btn-add-equipment"
+            class="btn btn--add"
+            onclick="addEquipmentForm()"
+          >
+            + Add Equipment
+          </button>
+        </div>
+      </div>
+
+      <div class="panel2">
+        <h2>Date</h2>
+        <div class="inline-group4">
+          <div class="form-group">
+            <label for="start-date">Start Date</label>
+            <input type="date" id="start-date" />
+          </div>
+          <div class="form-group">
+            <label for="end-date">End Date</label>
+            <input type="date" id="end-date" />
+          </div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button id="cancel-button" class="cancel">Cancel</button>
+        <button id="save-button" class="save">Save</button>
+      </div>
     </div>
-            <!-- Confirmation Message Panel -->
-            <div id="confirmation-panel" class="confirmation-panel">
-                <div class="confirmation-message">
-                    <p>Are you sure you want to delete the record?</p>
-                    <button id="confirm-delete" class="confirm-btn">Okay</button>
-                    <button id="cancel-delete" class="cancel-btn">Cancel</button>
-                </div>
-            </div>
-            <!-- Success Message Panel -->
-            <div id="delete-message" class="delete-message">
-                <p>Record has been successfully deleted!</p>
-            </div>
-</body>
+      <!-- Project update message -->
+      <div id="project-update-message" style="display: none;" class="project-update-message">
+        <p>Project record has been updated successfully!</p>
+      </div>
+
+    <script
+      type="module"
+      src="../../../src/js/admin/admin_projects_edit.js"
+    ></script>
+  </body>
 </html>
