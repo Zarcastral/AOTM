@@ -6,6 +6,7 @@ import {
   getFirestore,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
@@ -37,7 +38,6 @@ function confirmCompleteSubtask() {
 // Function to initialize the subtask details page
 export function initializeSubtaskDetailsPage() {
   document.addEventListener("DOMContentLoaded", async () => {
-    // Retrieve data from sessionStorage
     const subtaskName =
       sessionStorage.getItem("subtask_name") || "Unnamed Subtask";
     const projectId = sessionStorage.getItem("selected_project_id");
@@ -45,7 +45,6 @@ export function initializeSubtaskDetailsPage() {
     const cropName = sessionStorage.getItem("selected_crop_name");
     const projectTaskId = sessionStorage.getItem("project_task_id");
 
-    // Debug log to verify retrieval
     console.log("Retrieved from sessionStorage:", {
       subtaskName,
       projectId,
@@ -54,7 +53,6 @@ export function initializeSubtaskDetailsPage() {
       projectTaskId,
     });
 
-    // Update the task name in the HTML
     const taskNameElement = document.getElementById("taskName");
     if (taskNameElement) {
       taskNameElement.textContent = subtaskName;
@@ -62,7 +60,6 @@ export function initializeSubtaskDetailsPage() {
       console.error("Element with ID 'taskName' not found.");
     }
 
-    // Back button navigation
     const backButton = document.querySelector(".back-btn");
     if (backButton) {
       backButton.addEventListener("click", () => {
@@ -70,24 +67,105 @@ export function initializeSubtaskDetailsPage() {
       });
     }
 
-    // Add Day button functionality
     const addDayBtn = document.querySelector(".add-day-btn");
+    const completeBtn = document.querySelector(".completed-btn");
+
     if (addDayBtn) {
-      addDayBtn.addEventListener("click", () => {
-        addNewDay(projectId, cropType, cropName, projectTaskId, subtaskName);
+      addDayBtn.addEventListener("click", async () => {
+        await addNewDay(
+          projectId,
+          cropType,
+          cropName,
+          projectTaskId,
+          subtaskName
+        );
       });
     }
 
-    const completeBtn = document.querySelector(".completed-btn");
     if (completeBtn) {
       completeBtn.addEventListener("click", async () => {
         const confirmed = await confirmCompleteSubtask();
         if (confirmed) {
-          sessionStorage.setItem("subtask_status", "Complete");
-          console.log("Subtask status set to: Complete");
-          alert("Subtask marked as Complete!");
-          // Optionally, disable further edits or redirect
-          // e.g., window.location.href = "headfarm_subtask.html";
+          try {
+            const tasksRef = collection(db, "tb_project_task");
+            const taskQuery = query(
+              tasksRef,
+              where("project_id", "==", projectId),
+              where("crop_type_name", "==", cropType),
+              where("crop_name", "==", cropName),
+              where("project_task_id", "==", Number(projectTaskId))
+            );
+            const taskSnapshot = await getDocs(taskQuery);
+
+            console.log(
+              "Task query executed. Number of documents found:",
+              taskSnapshot.size
+            );
+
+            if (!taskSnapshot.empty) {
+              const taskDoc = taskSnapshot.docs[0];
+              const taskId = taskDoc.id;
+              const taskData = taskDoc.data();
+              const subtasks = taskData.subtasks || [];
+
+              console.log("Current task data:", taskData);
+              console.log("Subtasks array before update:", subtasks);
+
+              const subtaskIndex = subtasks.findIndex(
+                (subtask) => subtask.subtask_name === subtaskName
+              );
+
+              if (subtaskIndex === -1) {
+                console.error(
+                  "Subtask not found in the task document:",
+                  subtaskName
+                );
+                alert("Error: Subtask not found in the task");
+                return;
+              }
+
+              const currentDate = new Date().toISOString().split("T")[0];
+              subtasks[subtaskIndex].status = "Completed";
+              subtasks[subtaskIndex].end_date = currentDate;
+
+              await updateDoc(doc(db, "tb_project_task", taskId), {
+                subtasks: subtasks,
+              });
+
+              // Store subtask_status in sessionStorage as "Completed"
+              sessionStorage.setItem("subtask_status", "Completed");
+
+              console.log("Subtasks array after update:", subtasks);
+              console.log(
+                `Database updated: Status set to "Completed" for subtask: ${subtaskName} in tb_project_task/${taskId}`
+              );
+              console.log(
+                "subtask_status stored in sessionStorage:",
+                sessionStorage.getItem("subtask_status")
+              );
+              alert("Subtask marked as Completed and saved to database!");
+              completeBtn.disabled = true;
+
+              await fetchAttendanceData(
+                projectId,
+                cropType,
+                cropName,
+                projectTaskId,
+                subtaskName
+              );
+            } else {
+              console.error("No matching task found with query:", {
+                projectId,
+                cropType,
+                cropName,
+                projectTaskId,
+              });
+              alert("Error: Could not find matching task");
+            }
+          } catch (error) {
+            console.error("Error updating subtask status in database:", error);
+            alert("Error marking subtask as completed: " + error.message);
+          }
         } else {
           console.log("Complete action canceled by user.");
         }
@@ -149,7 +227,6 @@ async function fetchAttendanceData(
   subtaskName
 ) {
   try {
-    // Query to find the matching document in tb_project_task
     const tasksRef = collection(db, "tb_project_task");
     const q = query(
       tasksRef,
@@ -168,12 +245,12 @@ async function fetchAttendanceData(
       return;
     }
 
-    // Assume the first matching document (should be unique with project_task_id)
     const taskDoc = querySnapshot.docs[0];
     const taskId = taskDoc.id;
+    const taskData = taskDoc.data();
+    const subtasks = taskData.subtasks || [];
     console.log("Found matching task with ID:", taskId);
 
-    // Query the Attendance subcollection with subtask_name filter
     const attendanceRef = collection(
       db,
       "tb_project_task",
@@ -193,18 +270,55 @@ async function fetchAttendanceData(
     console.log("Number of attendance records found:", attendanceSnapshot.size);
 
     const completedBtn = document.querySelector(".completed-btn");
+    const addDayBtn = document.querySelector(".add-day-btn");
     let hasZeroAttendance = false;
+
+    const subtask = subtasks.find((st) => st.subtask_name === subtaskName);
+    // Set subtask_status to match the database status
+    let subtask_status = subtask ? subtask.status || "Pending" : "Pending";
+
+    // Log initial subtask_status
+    console.log(
+      "Current value of subtask_status before update:",
+      subtask_status
+    );
+
+    // Set to "Ongoing" if there are attendance records and not "Completed"
+    if (!attendanceSnapshot.empty && subtask_status !== "Completed") {
+      const subtaskIndex = subtasks.findIndex(
+        (st) => st.subtask_name === subtaskName
+      );
+      if (subtaskIndex !== -1) {
+        subtasks[subtaskIndex].status = "Ongoing";
+        await updateDoc(doc(db, "tb_project_task", taskId), {
+          subtasks: subtasks,
+        });
+        subtask_status = "Ongoing"; // Update local variable
+        sessionStorage.setItem("subtask_status", "Ongoing"); // Sync to sessionStorage
+        console.log(
+          `Database updated: Status set to "Ongoing" for subtask: ${subtaskName} due to existing attendance records`
+        );
+        console.log(
+          "subtask_status stored in sessionStorage:",
+          sessionStorage.getItem("subtask_status")
+        );
+      }
+    }
 
     if (attendanceSnapshot.empty) {
       tbody.innerHTML = `<tr><td colspan="3">No attendance records found for subtask: ${subtaskName}.</td></tr>`;
       sessionStorage.setItem("totalAttendanceRecords", "0");
-      sessionStorage.setItem("subtask_status", "Pending"); // No records = Pending
-      console.log("No attendance records, subtask_status set to: Pending");
       completedBtn.disabled = true;
+      // If no attendance records, ensure subtask_status is "Pending" if not "Completed"
+      if (subtask_status !== "Completed") {
+        sessionStorage.setItem("subtask_status", "Pending");
+        console.log(
+          "subtask_status stored in sessionStorage:",
+          sessionStorage.getItem("subtask_status")
+        );
+      }
     } else {
-      sessionStorage.setItem("subtask_status", "Ongoing"); // Records exist = Ongoing
-      console.log("Attendance records exist, subtask_status set to: Ongoing");
-
+      const currentStatus = subtask_status;
       const selectedDate = sessionStorage.getItem("selected_date");
       let latestAttendanceData = null;
 
@@ -244,8 +358,14 @@ async function fetchAttendanceData(
         }
       });
 
-      completedBtn.disabled = hasZeroAttendance;
-      console.log(`Completed button disabled: ${hasZeroAttendance}`);
+      completedBtn.disabled =
+        hasZeroAttendance || currentStatus === "Completed";
+      console.log(
+        `Completed button disabled: ${
+          hasZeroAttendance || currentStatus === "Completed"
+        }`
+      );
+      console.log(`Add Day button remains enabled for click detection`);
 
       if (latestAttendanceData) {
         const { presentCount, totalRecords } = latestAttendanceData;
@@ -255,6 +375,9 @@ async function fetchAttendanceData(
         console.log(`totalAttendanceRecords set to: ${attendanceSummary}`);
       }
     }
+
+    // Log final subtask_status
+    console.log(`Final subtask_status after processing: ${subtask_status}`);
   } catch (error) {
     console.error("Error fetching attendance data:", error);
     document.getElementById("attendanceTableBody").innerHTML = `
@@ -282,7 +405,6 @@ async function addNewDay(
       throw new Error("Missing required sessionStorage values");
     }
 
-    // Query to find the matching document
     const tasksRef = collection(db, "tb_project_task");
     const q = query(
       tasksRef,
@@ -297,19 +419,32 @@ async function addNewDay(
       throw new Error("No matching task found in tb_project_task");
     }
 
-    // Assume the first matching document
     const taskDoc = querySnapshot.docs[0];
     const taskId = taskDoc.id;
+    const taskData = taskDoc.data();
+    const subtasks = taskData.subtasks || [];
     console.log("Found matching task with ID:", taskId);
 
-    // Use current date for date_created field
-    const currentDate = new Date().toISOString().split("T")[0];
+    const subtask = subtasks.find((st) => st.subtask_name === subtaskName);
+    const subtask_status = subtask ? subtask.status || "Pending" : "Pending";
+
+    if (subtask_status === "Completed") {
+      console.log(
+        `Subtask ${subtaskName} is already Completed, blocking new day addition`
+      );
+      alert(
+        "This subtask is already completed; adding new date records is not allowed."
+      );
+      return;
+    }
+
     const attendanceRef = collection(
       db,
       "tb_project_task",
       taskId,
       "Attendance"
     );
+    const currentDate = new Date().toISOString().split("T")[0];
     const todayQuery = query(
       attendanceRef,
       where("date_created", "==", currentDate),
@@ -337,13 +472,35 @@ async function addNewDay(
       subtask_name: subtaskName,
       crop_type_name: cropType,
       crop_name: cropName,
+      start_date: currentDate,
     });
 
+    const subtaskIndex = subtasks.findIndex(
+      (st) => st.subtask_name === subtaskName
+    );
+    if (
+      subtaskIndex !== -1 &&
+      (!subtask || !subtask.status || subtask.status === "Pending")
+    ) {
+      subtasks[subtaskIndex].status = "Ongoing";
+      subtasks[subtaskIndex].start_date = currentDate;
+      await updateDoc(doc(db, "tb_project_task", taskId), {
+        subtasks: subtasks,
+      });
+      sessionStorage.setItem("subtask_status", "Ongoing"); // Sync to sessionStorage
+      console.log(
+        `Database updated: Status set to "Ongoing" and start_date set to "${currentDate}" for subtask: ${subtaskName}`
+      );
+      console.log(
+        "subtask_status stored in sessionStorage:",
+        sessionStorage.getItem("subtask_status")
+      );
+    }
+
     console.log(
-      `Added new day with UID: ${newAttendanceRef.id} under task ID: ${taskId}`
+      `Added new day with UID: ${newAttendanceRef.id} under task ID: ${taskId}, saved to database`
     );
 
-    // Refresh the table to show the new day
     await fetchAttendanceData(
       projectId,
       cropType,
@@ -353,10 +510,10 @@ async function addNewDay(
     );
 
     alert(
-      `New day (${currentDate}) added successfully! Click the view icon to add attendance details.`
+      `New day (${currentDate}) added successfully and saved to database! Click the view icon to add attendance details.`
     );
   } catch (error) {
-    console.error("Error adding new day:", error);
+    console.error("Error adding new day to database:", error);
     alert("Error adding new day: " + error.message);
   }
 }
@@ -405,12 +562,6 @@ async function deleteAttendanceRecord(
       throw new Error("Missing required parameters for deletion");
     }
 
-    const confirmed = await confirmDeleteModal(dateCreated);
-    if (!confirmed) {
-      console.log("Deletion canceled by user.");
-      return;
-    }
-
     const tasksRef = collection(db, "tb_project_task");
     const q = query(
       tasksRef,
@@ -427,7 +578,25 @@ async function deleteAttendanceRecord(
 
     const taskDoc = querySnapshot.docs[0];
     const taskId = taskDoc.id;
+    const taskData = taskDoc.data();
+    const subtasks = taskData.subtasks || [];
     console.log("Found matching task with ID:", taskId);
+
+    const subtask = subtasks.find((st) => st.subtask_name === subtaskName);
+    const subtask_status = subtask ? subtask.status || "Pending" : "Pending";
+
+    if (subtask_status === "Completed") {
+      alert(
+        "This subtask is already completed; deleting date records is not allowed."
+      );
+      return;
+    }
+
+    const confirmed = await confirmDeleteModal(dateCreated);
+    if (!confirmed) {
+      console.log("Deletion canceled by user.");
+      return;
+    }
 
     const attendanceRef = collection(
       db,
@@ -453,11 +622,44 @@ async function deleteAttendanceRecord(
       doc(db, "tb_project_task", taskId, "Attendance", docToDelete.id)
     );
     console.log(
-      `Deleted attendance record with ID: ${docToDelete.id} for date: ${dateCreated}`
+      `Deleted attendance record with ID: ${docToDelete.id} for date: ${dateCreated} from database`
     );
-    alert(`Attendance record for ${dateCreated} deleted successfully!`);
+    alert(
+      `Attendance record for ${dateCreated} deleted successfully from database!`
+    );
+
+    const remainingQuery = query(
+      attendanceRef,
+      where("subtask_name", "==", subtaskName)
+    );
+    const remainingSnapshot = await getDocs(remainingQuery);
+    const subtaskIndex = subtasks.findIndex(
+      (st) => st.subtask_name === subtaskName
+    );
+    if (subtaskIndex !== -1 && subtasks[subtaskIndex].status !== "Completed") {
+      if (remainingSnapshot.empty) {
+        subtasks[subtaskIndex].status = "Pending";
+        subtasks[subtaskIndex].start_date = null;
+        subtasks[subtaskIndex].end_date = null;
+        await updateDoc(doc(db, "tb_project_task", taskId), {
+          subtasks: subtasks,
+        });
+        sessionStorage.setItem("subtask_status", "Pending"); // Sync to sessionStorage
+        console.log(
+          `Database updated: Status set to "Pending" and dates reset for subtask: ${subtaskName} due to no remaining records`
+        );
+        console.log(
+          "subtask_status stored in sessionStorage:",
+          sessionStorage.getItem("subtask_status")
+        );
+      }
+    } else if (subtasks[subtaskIndex].status === "Completed") {
+      console.log(
+        `Subtask ${subtaskName} remains Completed; no status change allowed`
+      );
+    }
   } catch (error) {
-    console.error("Error deleting attendance record:", error);
+    console.error("Error deleting attendance record from database:", error);
     alert("Error deleting attendance record: " + error.message);
   }
 }
