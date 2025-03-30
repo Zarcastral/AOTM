@@ -98,7 +98,8 @@ async function fetchFarmers(projectId) {
     let farmerNames = [];
     let farmerIds = [];
     let attendanceData = [];
-    let selectedDate = sessionStorage.getItem("selected_date");
+    const selectedDate = sessionStorage.getItem("selected_date");
+    const subtaskName = sessionStorage.getItem("subtask_name");
 
     if (!querySnapshot.empty) {
       const projectDoc = querySnapshot.docs[0];
@@ -124,7 +125,13 @@ async function fetchFarmers(projectId) {
       const taskName = sessionStorage.getItem("selected_task_name");
       const selectedProjectId = sessionStorage.getItem("selected_project_id");
 
-      if (projectTaskId && taskName && selectedProjectId && selectedDate) {
+      if (
+        projectTaskId &&
+        taskName &&
+        selectedProjectId &&
+        selectedDate &&
+        subtaskName
+      ) {
         const projectTaskCollectionRef = collection(db, "tb_project_task");
         const taskQuery = query(
           projectTaskCollectionRef,
@@ -141,17 +148,28 @@ async function fetchFarmers(projectId) {
             projectTaskRef,
             "Attendance"
           );
+
+          // Query attendance with both date_created and subtask_name
           const attendanceQuery = query(
             attendanceCollectionRef,
-            where("date_created", "==", selectedDate)
+            where("date_created", "==", selectedDate),
+            where("subtask_name", "==", subtaskName)
           );
           const attendanceSnapshot = await getDocs(attendanceQuery);
+
+          console.log(
+            `Fetching attendance for subtask: ${subtaskName}, date: ${selectedDate}. Records found:`,
+            attendanceSnapshot.size
+          );
 
           if (!attendanceSnapshot.empty) {
             const attendanceDoc = attendanceSnapshot.docs[0];
             sessionStorage.setItem("attendance_doc_id", attendanceDoc.id);
             attendanceData = attendanceDoc.data().farmers || [];
-            console.log("Fetched attendance data:", attendanceData);
+            console.log(
+              `Fetched attendance data for ${subtaskName}:`,
+              attendanceData
+            );
 
             // Calculate present count and total records
             const presentCount = attendanceData.filter(
@@ -162,14 +180,32 @@ async function fetchFarmers(projectId) {
               presentCount === 0 ? "0" : `${presentCount}/${totalRecords}`;
             sessionStorage.setItem("totalAttendanceRecords", attendanceSummary);
             console.log(
-              `Attendance summary for ${selectedDate}: ${attendanceSummary}`
+              `Attendance summary for ${subtaskName} on ${selectedDate}: ${attendanceSummary}`
             );
           } else {
-            // No attendance data, set to "0"
+            console.log(
+              `No attendance records found for subtask: ${subtaskName} on ${selectedDate}`
+            );
             sessionStorage.setItem("totalAttendanceRecords", "0");
-            console.log(`No attendance data, set summary to: 0`);
           }
+        } else {
+          console.error("No matching task found in tb_project_task for:", {
+            selectedProjectId,
+            projectTaskId,
+            taskName,
+          });
         }
+      } else {
+        console.error(
+          "Missing required sessionStorage values for attendance fetch:",
+          {
+            projectTaskId,
+            taskName,
+            selectedProjectId,
+            selectedDate,
+            subtaskName,
+          }
+        );
       }
 
       const initialFilteredFarmers = filterFarmers(
@@ -214,16 +250,13 @@ function confirmSaveAttendance() {
     const confirmBtn = document.getElementById("confirmSaveBtn");
     const cancelBtn = document.getElementById("cancelSaveBtn");
 
-    // Show the modal
     modal.style.display = "block";
 
-    // Handle confirm
     confirmBtn.onclick = () => {
       modal.style.display = "none";
       resolve(true);
     };
 
-    // Handle cancel
     cancelBtn.onclick = () => {
       modal.style.display = "none";
       resolve(false);
@@ -233,7 +266,6 @@ function confirmSaveAttendance() {
 
 // Function to save attendance data with modal confirmation
 async function saveAttendance(projectId) {
-  // Show confirmation modal and wait for user response
   const confirmed = await confirmSaveAttendance();
   if (!confirmed) {
     console.log("Save canceled by user.");
@@ -244,7 +276,6 @@ async function saveAttendance(projectId) {
     const checkboxes = document.querySelectorAll(".attendance-checkbox");
     const remarks = document.querySelectorAll(".remarks-select");
 
-    // Fix: Use comparison operator (===) instead of assignment (=)
     for (const remark of remarks) {
       if (!remark.value || remark.value === "") {
         alert("Please select a remark for all farmers.");
@@ -254,14 +285,24 @@ async function saveAttendance(projectId) {
 
     const originalSelectedDate = sessionStorage.getItem("selected_date");
     const todayDate = new Date().toISOString().split("T")[0];
-
     const projectTaskId = sessionStorage.getItem("project_task_id");
     const taskName = sessionStorage.getItem("selected_task_name");
     const selectedProjectId = sessionStorage.getItem("selected_project_id");
     const attendanceDocId = sessionStorage.getItem("attendance_doc_id");
     const cropName = sessionStorage.getItem("crop_name");
     const cropTypeName = sessionStorage.getItem("crop_type_name");
-    const subtaskName = sessionStorage.getItem("subtask_name") || taskName; // Fallback to taskName if subtask_name not set
+    const subtaskName = sessionStorage.getItem("subtask_name") || taskName;
+
+    console.log("Sessioned values:", {
+      projectTaskId,
+      taskName,
+      selectedProjectId,
+      attendanceDocId,
+      cropName,
+      cropTypeName,
+      subtaskName,
+      selectedDate: originalSelectedDate,
+    });
 
     let existingAttendanceData = [];
     let projectTaskRef, attendanceSubcollectionRef, subAttendanceDocRef;
@@ -309,7 +350,6 @@ async function saveAttendance(projectId) {
       const remarkValue = remarks[index].value;
       const isPresent = checkbox.checked ? "yes" : "no";
 
-      // Capitalize present and remarks
       const capitalizedPresent =
         isPresent.charAt(0).toUpperCase() + isPresent.slice(1).toLowerCase();
       const capitalizedRemark =
@@ -362,9 +402,9 @@ async function saveAttendance(projectId) {
       date_created: originalSelectedDate || todayDate,
       task_name: taskName,
       project_task_id: Number(projectTaskId),
-      subtask_name: subtaskName, // Use subtaskName with fallback to taskName
-      crop_name: cropName, // Added crop_name
-      crop_type_name: cropTypeName, // Added crop_type_name
+      subtask_name: subtaskName,
+      crop_name: cropName,
+      crop_type_name: cropTypeName,
     };
 
     let tbAttendanceDocId;
@@ -373,7 +413,8 @@ async function saveAttendance(projectId) {
       existingTbAttendanceRef,
       where("project_id", "==", Number(projectId)),
       where("date_created", "==", originalSelectedDate || todayDate),
-      where("project_task_id", "==", Number(projectTaskId))
+      where("project_task_id", "==", Number(projectTaskId)),
+      where("subtask_name", "==", subtaskName) // Added subtask_name to ensure specificity
     );
     const tbAttendanceSnapshot = await getDocs(tbAttendanceQuery);
 
@@ -424,6 +465,7 @@ async function saveAttendance(projectId) {
           {
             farmers: mergedFarmers,
             date_created: originalSelectedDate || todayDate,
+            subtask_name: subtaskName, // Ensure subtask_name is saved
           },
           { merge: true }
         );
@@ -490,9 +532,22 @@ export function initializeAttendancePage() {
 
     const saveBtn = document.querySelector(".save-btn");
     if (saveBtn) {
+      const subtaskStatus = sessionStorage.getItem("subtask_status");
+      console.log(`Subtask status from sessionStorage: ${subtaskStatus}`);
+
+      if (subtaskStatus === "Completed") {
+        saveBtn.disabled = true;
+        console.log("Save button disabled because subtask_status is Completed");
+      } else {
+        saveBtn.disabled = false;
+        console.log("Save button enabled");
+      }
+
       saveBtn.addEventListener("click", async () => {
         await saveAttendance(projectId);
       });
+    } else {
+      console.error("Save button not found in the DOM.");
     }
   });
 }

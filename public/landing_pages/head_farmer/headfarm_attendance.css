@@ -147,3 +147,9 @@ select {
 .notification.show {
   opacity: 1;
 }
+
+.save-btn:disabled {
+  background-color: gray; /* Gray when disabled */
+  cursor: not-allowed; /* Change cursor to indicate it’s not clickable */
+  opacity: 0.6; /* Optional: Slightly transparent to emphasize disabled state */
+}
