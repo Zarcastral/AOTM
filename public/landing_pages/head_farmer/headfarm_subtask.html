@@ -100,12 +100,9 @@
             color: #333;
         }
 
-        .status-completed {
-            color: #00c4b4;
-        }
-
-        .status-ongoing {
-            color: #ff00ff;
+        .subtask-table td.status-cell {
+            font-weight: 500;
+            /* Optional: make status text bold */
         }
 
         .action-icons img {
@@ -272,6 +269,8 @@
                     <tr>
                         <th>Subtask</th>
                         <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
                         <th>Action</th>
                     </tr>
                 </thead>

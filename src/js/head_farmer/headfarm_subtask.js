@@ -1,5 +1,7 @@
 import {
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   getFirestore,
   query,
@@ -12,7 +14,6 @@ const db = getFirestore(app);
 
 // Debounce control
 let isFetching = false;
-let fetchTimeout = null;
 
 // Function to fetch subtasks and populate the table
 async function fetchSubtasks(projectTaskId, source = "unknown") {
@@ -50,71 +51,37 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
       );
 
       if (subtasks.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3">No subtasks found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5">No subtasks found.</td></tr>`;
         return false;
       }
 
       let allCompleted = true;
-      const sessionedSubtaskName = sessionStorage.getItem("subtask_name");
-      const sessionedSubtaskStatus =
-        sessionStorage.getItem("subtask_status") || "Pending";
 
-      // Update the specific subtask status in Firestore
-      let subtaskUpdated = false;
-      subtasks = subtasks.map((subtask) => {
-        if (
-          sessionedSubtaskName &&
-          subtask.subtask_name === sessionedSubtaskName
-        ) {
-          if (subtask.status !== sessionedSubtaskStatus) {
-            subtaskUpdated = true;
-            return { ...subtask, status: sessionedSubtaskStatus };
-          }
-        }
-        return subtask;
-      });
-
-      if (subtaskUpdated) {
-        await updateDoc(taskDocRef, { subtasks });
-        console.log(
-          `✅ Updated status to ${sessionedSubtaskStatus} for subtask: ${sessionedSubtaskName} from ${source}`
-        );
-      }
-
-      // Render the table
+      // Render the table with static status, start_date, and end_date
       subtasks.forEach((subtask, index) => {
         const status = subtask.status || "Pending";
+        const startDate = subtask.start_date || "-"; // Display "-" if no start date
+        const endDate = subtask.end_date || "-"; // Display "-" if no end date
         if (status !== "Completed") allCompleted = false;
-        const isPending = status === "Pending";
 
         const safeSubtaskName = subtask.subtask_name
           ? subtask.subtask_name.replace(/"/g, "")
           : "Unnamed Subtask";
         const row = `
-            <tr>
-              <td>${safeSubtaskName}</td>
-              <td>
-                <select class="status-dropdown" data-index="${index}">
-                  <option value="Pending" ${
-                    status === "Pending" ? "selected" : ""
-                  }>Pending</option>
-                  <option value="Ongoing" ${
-                    status === "Ongoing" ? "selected" : ""
-                  }>Ongoing</option>
-                  <option value="Completed" ${
-                    status === "Completed" ? "selected" : ""
-                  } ${isPending ? "disabled" : ""}>Completed</option>
-                </select>
-              </td>
-              <td class="action-icons">
-                <img src="../../images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}" data-subtask-name="${safeSubtaskName}">
-                <img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">
-              </td>
-            </tr>
-          `;
+          <tr>
+            <td>${safeSubtaskName}</td>
+            <td class="status-cell">${status}</td>
+            <td>${startDate}</td>
+            <td>${endDate}</td>
+            <td class="action-icons">
+              <img src="../../images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}" data-subtask-name="${safeSubtaskName}">
+              <img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">
+            </td>
+          </tr>
+        `;
         tbody.insertAdjacentHTML("beforeend", row);
         console.log(
-          `Rendered row for subtask: ${safeSubtaskName} from ${source}`
+          `Rendered row for subtask: ${safeSubtaskName} with status: ${status}, start_date: ${startDate}, end_date: ${endDate} from ${source}`
         );
       });
 
@@ -126,13 +93,13 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
         `No task found with project_task_id: ${projectTaskId} from ${source}`
       );
       const tbody = document.querySelector(".subtask-table tbody");
-      tbody.innerHTML = `<tr><td colspan="3">Task not found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5">Task not found.</td></tr>`;
     }
   } catch (error) {
     console.error(`❌ Error fetching subtasks from ${source}:`, error);
     const tbody = document.querySelector(".subtask-table tbody");
     if (tbody)
-      tbody.innerHTML = `<tr><td colspan="3">Error loading subtasks.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5">Error loading subtasks.</td></tr>`;
   } finally {
     isFetching = false;
     console.log(`Fetch completed from ${source}`);
@@ -143,15 +110,6 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
 // Function to attach event listeners to table elements
 function attachEventListeners(projectTaskId) {
   console.log("Attaching event listeners for projectTaskId:", projectTaskId);
-
-  // Status dropdown listeners
-  document.querySelectorAll(".status-dropdown").forEach((dropdown) => {
-    dropdown.removeEventListener("change", handleStatusChange);
-    dropdown.removeEventListener("click", handleDropdownClick);
-
-    dropdown.addEventListener("change", handleStatusChange);
-    dropdown.addEventListener("click", handleDropdownClick);
-  });
 
   // Delete confirmation handling
   const deleteModal = document.getElementById("deleteConfirmModal");
@@ -182,21 +140,6 @@ function attachEventListeners(projectTaskId) {
     icon.removeEventListener("click", handleViewClick);
     icon.addEventListener("click", handleViewClick);
   });
-
-  function handleStatusChange(event) {
-    const index = event.target.dataset.index;
-    const newStatus = event.target.value;
-    console.log(`Status change triggered for index ${index} to ${newStatus}`);
-    updateSubtaskStatus(projectTaskId, index, newStatus);
-  }
-
-  function handleDropdownClick(event) {
-    const currentStatus = event.target.value;
-    const completedOption = event.target.querySelector(
-      'option[value="Completed"]'
-    );
-    completedOption.disabled = currentStatus === "Pending";
-  }
 
   function handleDeleteClick(event) {
     subtaskIndexToDelete = event.target.dataset.index;
@@ -243,55 +186,7 @@ function attachEventListeners(projectTaskId) {
   }
 }
 
-// Function to update subtask status in Firestore
-async function updateSubtaskStatus(projectTaskId, subtaskIndex, newStatus) {
-  try {
-    console.log(`Updating status for index ${subtaskIndex} to ${newStatus}`);
-    const tasksRef = collection(db, "tb_project_task");
-    const q = query(
-      tasksRef,
-      where("project_task_id", "==", Number(projectTaskId))
-    );
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const taskDoc = querySnapshot.docs[0];
-      const taskDocRef = taskDoc.ref;
-      const subtasks = taskDoc.data().subtasks || [];
-
-      if (subtasks[subtaskIndex]) {
-        subtasks[subtaskIndex].status = newStatus;
-
-        if (newStatus === "Ongoing" && !subtasks[subtaskIndex].start_date) {
-          subtasks[subtaskIndex].start_date = new Date().toISOString();
-          subtasks[subtaskIndex].end_date = null;
-        } else if (newStatus === "Pending") {
-          subtasks[subtaskIndex].start_date = null;
-          subtasks[subtaskIndex].end_date = null;
-        } else if (
-          newStatus === "Completed" &&
-          subtasks[subtaskIndex].start_date
-        ) {
-          subtasks[subtaskIndex].end_date = new Date().toISOString();
-        }
-
-        await updateDoc(taskDocRef, { subtasks });
-        console.log(`✅ Status updated to ${newStatus}`);
-
-        const subtaskName = subtasks[subtaskIndex].subtask_name;
-        if (subtaskName === sessionStorage.getItem("subtask_name")) {
-          sessionStorage.setItem("subtask_status", newStatus);
-        }
-
-        await fetchSubtasks(projectTaskId, "updateSubtaskStatus");
-      }
-    }
-  } catch (error) {
-    console.error("❌ Error updating subtask status:", error);
-  }
-}
-
-// Function to delete subtask from Firestore
+// Function to delete subtask and associated attendance records from Firestore
 async function deleteSubtask(projectTaskId, subtaskIndex) {
   try {
     console.log(`Deleting subtask at index ${subtaskIndex}`);
@@ -305,13 +200,69 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
     if (!querySnapshot.empty) {
       const taskDoc = querySnapshot.docs[0];
       const taskDocRef = taskDoc.ref;
+      const taskId = taskDoc.id; // Get the document ID for the subcollection path
       const subtasks = taskDoc.data().subtasks || [];
 
       const deletedSubtaskName = subtasks[subtaskIndex].subtask_name;
+
+      // Step 1: Delete from Attendance subcollection
+      const attendanceRef = collection(
+        db,
+        "tb_project_task",
+        taskId,
+        "Attendance"
+      );
+      const attendanceQuery = query(
+        attendanceRef,
+        where("subtask_name", "==", deletedSubtaskName)
+      );
+      const attendanceSnapshot = await getDocs(attendanceQuery);
+
+      if (!attendanceSnapshot.empty) {
+        for (const docSnap of attendanceSnapshot.docs) {
+          await deleteDoc(
+            doc(db, "tb_project_task", taskId, "Attendance", docSnap.id)
+          );
+          console.log(
+            `Deleted attendance record with ID: ${docSnap.id} for subtask: ${deletedSubtaskName} from Attendance subcollection`
+          );
+        }
+      } else {
+        console.log(
+          `No attendance records found in subcollection for subtask: ${deletedSubtaskName}`
+        );
+      }
+
+      // Step 2: Delete from tb_attendance collection
+      const tbAttendanceRef = collection(db, "tb_attendance");
+      const tbAttendanceQuery = query(
+        tbAttendanceRef,
+        where("project_task_id", "==", Number(projectTaskId)),
+        where("subtask_name", "==", deletedSubtaskName)
+      );
+      const tbAttendanceSnapshot = await getDocs(tbAttendanceQuery);
+
+      if (!tbAttendanceSnapshot.empty) {
+        for (const docSnap of tbAttendanceSnapshot.docs) {
+          await deleteDoc(doc(db, "tb_attendance", docSnap.id));
+          console.log(
+            `Deleted attendance record with ID: ${docSnap.id} for subtask: ${deletedSubtaskName} from tb_attendance`
+          );
+        }
+      } else {
+        console.log(
+          `No attendance records found in tb_attendance for subtask: ${deletedSubtaskName}`
+        );
+      }
+
+      // Step 3: Delete the subtask from tb_project_task
       subtasks.splice(subtaskIndex, 1);
       await updateDoc(taskDocRef, { subtasks });
-      console.log("✅ Subtask deleted");
+      console.log(
+        `✅ Subtask ${deletedSubtaskName} deleted from tb_project_task`
+      );
 
+      // Clear subtask_status from sessionStorage if the deleted subtask matches
       if (deletedSubtaskName === sessionStorage.getItem("subtask_name")) {
         sessionStorage.removeItem("subtask_status");
       }
@@ -319,41 +270,83 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
       await fetchSubtasks(projectTaskId, "deleteSubtask");
     }
   } catch (error) {
-    console.error("❌ Error deleting subtask:", error);
+    console.error("❌ Error deleting subtask or attendance records:", error);
   }
 }
 
-// Function to add new subtask
+// Function to add new subtask with capitalization and single duplicate check
 async function addSubtask(projectTaskId, newSubtasks) {
-  try {
-    console.log("Adding new subtask:", newSubtasks);
-    const tasksRef = collection(db, "tb_project_task");
-    const q = query(
-      tasksRef,
-      where("project_task_id", "==", Number(projectTaskId))
-    );
-    const querySnapshot = await getDocs(q);
+  console.log("Starting addSubtask with:", newSubtasks);
 
-    if (!querySnapshot.empty) {
-      const taskDoc = querySnapshot.docs[0];
-      const taskDocRef = taskDoc.ref;
-      const existingSubtasks = taskDoc.data().subtasks || [];
+  // Fetch the task document from Firestore
+  const tasksRef = collection(db, "tb_project_task");
+  const q = query(
+    tasksRef,
+    where("project_task_id", "==", Number(projectTaskId))
+  );
+  const querySnapshot = await getDocs(q);
 
-      const formattedSubtasks = newSubtasks.map((subtask) => ({
-        ...subtask,
-        status: "Pending",
-        start_date: null,
-        end_date: null,
-      }));
+  if (!querySnapshot.empty) {
+    const taskDoc = querySnapshot.docs[0];
+    const taskDocRef = taskDoc.ref;
+    const existingSubtasks = taskDoc.data().subtasks || [];
+    console.log("Existing subtasks:", existingSubtasks);
 
-      const updatedSubtasks = [...existingSubtasks, ...formattedSubtasks];
-      await updateDoc(taskDocRef, { subtasks: updatedSubtasks });
-      console.log("✅ Subtasks added with status: Pending");
-
-      await fetchSubtasks(projectTaskId, "addSubtask");
+    // Get the subtask input element
+    const subtaskInput = document.getElementById("subtaskName");
+    if (!subtaskInput) {
+      console.error("Subtask input field not found!");
+      return false;
     }
-  } catch (error) {
-    console.error("❌ Error adding subtasks:", error);
+
+    // Process the new subtask (single subtask from form)
+    const subtask = newSubtasks[0];
+    const originalName = subtask.subtask_name.trim();
+    console.log("Original subtask name:", originalName);
+
+    // Capitalize the first letter (done once)
+    const capitalizedName =
+      originalName.charAt(0).toUpperCase() +
+      originalName.slice(1).toLowerCase();
+    console.log("Capitalized subtask name:", capitalizedName);
+
+    // Check for duplicates (done once, case-insensitive)
+    const isDuplicate = existingSubtasks.some(
+      (existing) =>
+        existing.subtask_name.toLowerCase() === capitalizedName.toLowerCase()
+    );
+    console.log("Duplicate check result:", isDuplicate);
+
+    // If duplicate, show alert and clear textbox
+    if (isDuplicate) {
+      subtaskInput.value = ""; // Clear the textbox
+      alert(`"${capitalizedName}" is already existing.`); // Show custom message
+      console.log(`Duplicate found: "${capitalizedName}" - stopping`);
+      return false; // Stop execution, modal stays open
+    }
+
+    // If no duplicate, proceed to save
+    const newSubtask = {
+      subtask_name: capitalizedName,
+      status: "Pending",
+      start_date: null,
+      end_date: null,
+    };
+    console.log("New subtask to save:", newSubtask);
+
+    const updatedSubtasks = [...existingSubtasks, newSubtask];
+    try {
+      await updateDoc(taskDocRef, { subtasks: updatedSubtasks });
+      console.log("✅ Subtask saved successfully:", newSubtask);
+      await fetchSubtasks(projectTaskId, "addSubtask");
+      return true; // Indicate success, modal will close
+    } catch (error) {
+      console.error("❌ Failed to save subtask to Firestore:", error);
+      return false; // Indicate failure due to Firestore error
+    }
+  } else {
+    console.log("No task document found for projectTaskId:", projectTaskId);
+    return false; // No document found
   }
 }
 
@@ -385,7 +378,6 @@ async function updateCompleteButtonState(projectTaskId) {
 
 // Function to initialize the subtask page
 export function initializeSubtaskPage() {
-  // Remove any existing listener to prevent duplicates
   document.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
   document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
 
@@ -441,19 +433,44 @@ export function initializeSubtaskPage() {
 
       subtaskForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const subtaskName = document.getElementById("subtaskName").value.trim();
-        if (subtaskName) {
-          await addSubtask(projectTaskId, [{ subtask_name: subtaskName }]);
-          modal.style.display = "none";
-          subtaskForm.reset();
-          await updateCompleteButtonState(projectTaskId);
+        const addSubtaskBtn = document.querySelector(".add-subtask-btn"); // Assuming this is the submit button inside the form
+        if (!addSubtaskBtn) {
+          console.error("Add Subtask button not found!");
+          return;
         }
+
+        // Disable the button to prevent multiple clicks
+        addSubtaskBtn.disabled = true;
+        console.log("Add Subtask button disabled");
+
+        const subtaskName = document.getElementById("subtaskName").value.trim();
+        console.log("Form submitted with subtask name:", subtaskName);
+        if (subtaskName) {
+          const success = await addSubtask(projectTaskId, [
+            { subtask_name: subtaskName },
+          ]);
+          console.log("AddSubtask result:", success);
+          if (success) {
+            console.log("Closing modal and resetting form");
+            modal.style.display = "none";
+            subtaskForm.reset();
+            await updateCompleteButtonState(projectTaskId);
+          } else {
+            console.log("Modal remains open due to duplicate or error");
+          }
+        } else {
+          console.log("No subtask name provided, submission ignored");
+        }
+
+        // Re-enable the button after processing
+        addSubtaskBtn.disabled = false;
+        console.log("Add Subtask button re-enabled");
       });
     } else {
       console.log("No project_task_id found in sessionStorage.");
       document.querySelector(".subtask-table tbody").innerHTML = `
-          <tr><td colspan="3">No task selected.</td></tr>
-        `;
+        <tr><td colspan="5">No task selected.</td></tr>
+      `;
     }
   }
 }
