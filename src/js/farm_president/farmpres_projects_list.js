@@ -64,12 +64,8 @@ async function fetch_projects(filter = {}) {
         const farmerData = farmerDocSnap.data();
         const farmerId = sessionStorage.getItem("farmer_id") || "";
 
-        // Modified query to only fetch Ongoing or Completed projects
-        const q = query(
-            collection(db, "tb_projects"),
-            where("status", "in", ["Ongoing", "Completed", "ongoing", "completed"]) // Case-insensitive variations
-        );
-        const querySnapshot = await getDocs(q);
+    
+        const querySnapshot = await getDocs(collection(db, "tb_projects"));
         
         projectList = [];
         let projectIdList = [];
