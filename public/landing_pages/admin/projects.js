@@ -587,22 +587,32 @@ fertilizerGroups.forEach((group) => {
 
 
     // ✅ Check required fields
-    let missingFields = [];
-    if (!projectName) missingFields.push("Project Name");
-    if (!farmPresidentName) missingFields.push("Farm President");
-    if (!cropName) missingFields.push("Crop Name");
-    if (!barangayName) missingFields.push("Barangay");
-    if (!farmlandName) missingFields.push("Farmland");
-    if (!cropTypeName) missingFields.push("Crop Type");
-    if (isNaN(quantityCropType)) missingFields.push("Crop Quantity");
-    if (!cropUnit) missingFields.push("Crop Unit");
-    if (!startDate) missingFields.push("Start Date");
-    if (!endDate) missingFields.push("End Date");
+let missingFields = [];
+if (!projectName) missingFields.push("Project Name");
+if (!farmPresidentName) missingFields.push("Farm President");
+if (!cropName) missingFields.push("Crop Name");
+if (!barangayName) missingFields.push("Barangay");
+if (!farmlandName) missingFields.push("Farmland");
+if (!cropTypeName) missingFields.push("Crop Type");
+if (isNaN(quantityCropType)) missingFields.push("Crop Quantity");
+if (!cropUnit) missingFields.push("Crop Unit");
+if (!startDate) missingFields.push("Start Date");
+if (!endDate) missingFields.push("End Date");
 
-    if (missingFields.length > 0) {
-      alert(`⚠️ Please fill out the following fields before saving:\n- ${missingFields.join("\n- ")}`);
-      return;
-    }
+if (missingFields.length > 0) {
+  alert(`⚠️ Please fill out the following fields before saving:\n- ${missingFields.join("\n- ")}`);
+  return;
+}
+
+
+// ✅ Validate Date Range
+const startDateObj = new Date(startDate);
+const endDateObj = new Date(endDate);
+
+if (endDateObj < startDateObj) {
+  alert("❌ End Date cannot be earlier than Start Date. Please select a valid date range.");
+  return;
+}
 
     // 🔍 Fetch current stock of the selected crop type from Firestore
     const cropTypeRef = collection(db, "tb_crop_stock");

@@ -283,19 +283,20 @@ window.addBarangay = async function() {
                 barangay_id: nextBrgyId,
                 barangay_name: barangayName,
                 total_plot_size: totalPlotSize,
-                land_area: landArea,
-                plot_area: plotSize,
+                land_area: parseInt(landArea), // Convert to integer
+                plot_area: parseInt(plotSize), // Convert to integer
                 dateCreated
             };
-
+            
             const farmlandData = {
                 farmland_id: nextFarmlandId,
                 barangay_id: nextBrgyId,
                 barangay_name: barangayName,
                 farmland_name: landArea,
-                plot_area: plotSize,
+                plot_area: parseInt(plotSize), // Convert to integer
                 dateCreated
             };
+            
 
             const batch = db.batch();
             const barangayRef = db.collection('tb_barangay').doc();
@@ -585,7 +586,7 @@ window.addFarmland = async function() {
                 barangay_id: barangayId,
                 barangay_name: selectedBarangayName,
                 farmland_name: farmlandName,
-                land_area: landArea,
+                land_area: parseInt(landArea),
                 dateAdded,
             };
 
