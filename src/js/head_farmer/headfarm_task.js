@@ -40,10 +40,7 @@ export async function fetchProjectsForFarmer() {
     querySnapshot.forEach(async (doc) => {
       const project = doc.data();
       if (project.status === "Ongoing") {
-        sessionStorage.setItem(
-          "selected_project_id",
-          String(project.project_id)
-        );
+        sessionStorage.setItem("selected_project_id", String(project.project_id));
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         await fetchProjectTasks(project.crop_type_name, project.project_id);
@@ -74,10 +71,12 @@ async function fetchProjectTasks(cropTypeName, projectId) {
 
     allTasks = [];
     querySnapshot.forEach((docSnapshot) => {
+      const taskData = docSnapshot.data();
       allTasks.push({
         id: docSnapshot.id,
-        data: docSnapshot.data(),
+        data: taskData,
       });
+      syncTaskStatusWithSubtasks(docSnapshot.id, taskData);
     });
 
     filteredTasks = [...allTasks];
@@ -101,6 +100,8 @@ function updatePagination() {
 
 function renderTasks() {
   const taskTableBody = document.getElementById("taskTableBody");
+  if (!taskTableBody) return;
+
   taskTableBody.innerHTML = "";
 
   const startIndex = (currentPage - 1) * tasksPerPage;
@@ -115,25 +116,9 @@ function renderTasks() {
       <tr id="task-row-${taskId}">
         <td>${task.task_name}</td>
         <td>${task.subtasks.length}</td>
-        <td class="start-date" data-task-id="${taskId}">${
-      task.start_date ? task.start_date : "--"
-    }</td>
-        <td class="end-date" data-task-id="${taskId}">${
-      task.end_date ? task.end_date : "--"
-    }</td>
-        <td>
-          <select class="status-dropdown" data-task-id="${taskId}">
-            <option value="Pending" ${
-              task.status === "Pending" ? "selected" : ""
-            }>Pending</option>
-            <option value="Ongoing" ${
-              task.status === "Ongoing" ? "selected" : ""
-            }>Ongoing</option>
-            <option value="Completed" ${
-              task.status === "Completed" ? "selected" : ""
-            }>Completed</option>
-          </select>
-        </td>
+        <td class="start-date" data-task-id="${taskId}">${task.start_date ? task.start_date : "--"}</td>
+        <td class="end-date" data-task-id="${taskId}">${task.end_date ? task.end_date : "--"}</td>
+        <td>${task.status}</td>
         <td>
           <div class="action-icons">
             <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
@@ -150,8 +135,7 @@ function renderTasks() {
   const nextBtn = document.getElementById("nextPageBtn");
   const pageInfo = document.getElementById("pageInfo");
 
-  pageInfo.textContent =
-    totalPages > 0 ? `Page ${currentPage} of ${totalPages}` : "Page 1 of 1";
+  pageInfo.textContent = totalPages > 0 ? `Page ${currentPage} of ${totalPages}` : "Page 1 of 1";
   prevBtn.disabled = currentPage === 1;
   nextBtn.disabled = currentPage === totalPages || filteredTasks.length === 0;
 
@@ -206,19 +190,17 @@ function attachGlobalEventListeners() {
     updatePagination();
     renderTasks();
   });
+
+  window.addEventListener("focus", () => {
+    const cropTypeName = sessionStorage.getItem("selected_crop_type");
+    const projectId = sessionStorage.getItem("selected_project_id");
+    if (cropTypeName && projectId) {
+      fetchProjectTasks(cropTypeName, projectId);
+    }
+  });
 }
 
 function attachRowEventListeners() {
-  document.querySelectorAll(".status-dropdown").forEach((dropdown) => {
-    const newDropdown = dropdown.cloneNode(true);
-    dropdown.parentNode.replaceChild(newDropdown, dropdown);
-    newDropdown.addEventListener("change", async (event) => {
-      const taskId = event.target.dataset.taskId;
-      const newStatus = event.target.value;
-      await updateTaskStatus(taskId, newStatus);
-    });
-  });
-
   document.querySelectorAll(".delete-icon").forEach((icon) => {
     const newIcon = icon.cloneNode(true);
     icon.parentNode.replaceChild(newIcon, icon);
@@ -236,7 +218,7 @@ function attachRowEventListeners() {
       const taskRow = document.getElementById(`task-row-${taskId}`);
       const taskName = taskRow.querySelector("td:first-child").textContent;
 
-      const tasksRef = collection(db, "tb_project_task"); // Fixed typo here
+      const tasksRef = collection(db, "tb_project_task");
       const q = query(tasksRef, where("__name__", "==", taskId));
       getDocs(q)
         .then((querySnapshot) => {
@@ -264,39 +246,49 @@ function attachRowEventListeners() {
   });
 }
 
-async function updateTaskStatus(taskId, newStatus) {
+async function syncTaskStatusWithSubtasks(taskId, taskData) {
   try {
-    const taskDocRef = doc(db, "tb_project_task", taskId);
-    const updateData = { status: newStatus };
-    const today = new Date().toISOString().split("T")[0];
+    const subtasks = taskData.subtasks || [];
+    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+    let updateData = {};
 
-    if (newStatus === "Ongoing") {
-      updateData.start_date = today;
+    const hasOngoing = subtasks.some((subtask) => subtask.status === "Ongoing");
+    const allCompleted = subtasks.every((subtask) => subtask.status === "Completed");
+
+    if (allCompleted && subtasks.length > 0) {
+      updateData.status = "Completed";
+      updateData.end_date = taskData.end_date || today;
+      // Leave start_date as is (it should already be set from Ongoing)
+    } else if (hasOngoing && taskData.status !== "Ongoing") {
+      updateData.status = "Ongoing";
+      updateData.start_date = today; // Set start_date to current date when switching to Ongoing
       updateData.end_date = null;
-    } else if (newStatus === "Pending") {
+    } else if (!hasOngoing && taskData.status === "Ongoing") {
+      updateData.status = "Pending";
+      updateData.start_date = null; // Reset start_date to null when reverting to Pending
       updateData.end_date = null;
-      updateData.start_date = null;
-    } else if (newStatus === "Completed") {
-      updateData.end_date = today;
+    } else {
+      // If status is Pending and no ongoing subtasks, ensure start_date is null
+      if (taskData.status === "Pending" && taskData.start_date !== null) {
+        updateData.start_date = null;
+      }
+      return; // No other changes needed
     }
 
+    const taskDocRef = doc(db, "tb_project_task", taskId);
     await updateDoc(taskDocRef, updateData);
-    console.log(`✅ Task ${taskId} status updated to ${newStatus}`);
+    console.log(`✅ Task ${taskId} status synced to ${updateData.status || taskData.status}`);
 
     const taskIndex = allTasks.findIndex((task) => task.id === taskId);
     if (taskIndex !== -1) {
-      allTasks[taskIndex].data.status = newStatus;
-      allTasks[taskIndex].data.start_date =
-        updateData.start_date || allTasks[taskIndex].data.start_date;
-      allTasks[taskIndex].data.end_date =
-        updateData.end_date || allTasks[taskIndex].data.end_date;
+      allTasks[taskIndex].data.status = updateData.status || allTasks[taskIndex].data.status;
+      allTasks[taskIndex].data.start_date = updateData.start_date !== undefined ? updateData.start_date : allTasks[taskIndex].data.start_date;
+      allTasks[taskIndex].data.end_date = updateData.end_date !== undefined ? updateData.end_date : allTasks[taskIndex].data.end_date;
       filteredTasks = [...allTasks];
+      renderTasks(); // Update UI
     }
-
-    updatePagination();
-    renderTasks();
   } catch (error) {
-    console.error("❌ Error updating task status:", error);
+    console.error("❌ Error syncing task status with subtasks:", error);
   }
 }
 
@@ -334,7 +326,6 @@ async function saveTaskHandler() {
       return;
     }
 
-    // Check for duplicate task name in the same project
     const tasksRef = collection(db, "tb_project_task");
     const q = query(
       tasksRef,
@@ -344,34 +335,26 @@ async function saveTaskHandler() {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      alert(
-        "A task with this name already exists in the project. Please use a different name."
-      );
+      alert("A task with this name already exists in the project. Please use a different name.");
       return;
     }
 
-    // Fetch and increment project_task_id from tb_id_counters
     const idCounterRef = doc(db, "tb_id_counters", "project_task_id_counter");
     const idCounterSnap = await getDocs(collection(db, "tb_id_counters"));
 
-    let projectTaskId = 1; // Default if no counter found
-
+    let projectTaskId = 1;
     if (!idCounterSnap.empty) {
       const idCounterData = idCounterSnap.docs
         .find((doc) => doc.id === "project_task_id_counter")
         ?.data();
       if (idCounterData && idCounterData.count) {
         projectTaskId = idCounterData.count + 1;
-
-        // Update the counter
         await updateDoc(idCounterRef, { count: projectTaskId });
       }
     } else {
-      // If the document does not exist, create it
       await setDoc(idCounterRef, { count: projectTaskId });
     }
 
-    // Save the task with project_task_id
     const newTask = {
       project_task_id: projectTaskId,
       task_name: taskName,
@@ -380,11 +363,11 @@ async function saveTaskHandler() {
       crop_name: cropName,
       status: "Pending",
       subtasks: [],
+      start_date: null, // Explicitly null for Pending
+      end_date: null,
     };
 
     const docRef = await addDoc(tasksRef, newTask);
-
-    // Store project_task_id in session storage
     sessionStorage.setItem("project_task_id", projectTaskId);
 
     allTasks.push({
@@ -394,9 +377,7 @@ async function saveTaskHandler() {
 
     filteredTasks = [...allTasks];
 
-    console.log(
-      `✅ Task "${taskName}" added successfully with ID: ${projectTaskId}`
-    );
+    console.log(`✅ Task "${taskName}" added successfully with ID: ${projectTaskId}`);
     alert("Task added successfully!");
     taskNameInput.value = "";
     addTaskModal.classList.add("hidden");
@@ -440,4 +421,6 @@ async function deleteTaskHandler() {
   taskToDelete = null;
 }
 
-fetchProjectsForFarmer();
+document.addEventListener("DOMContentLoaded", () => {
+  fetchProjectsForFarmer();
+});

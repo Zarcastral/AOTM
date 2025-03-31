@@ -52,7 +52,6 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
 
       let allCompleted = true;
 
-      // Render the table with static status, start_date, and end_date
       subtasks.forEach((subtask, index) => {
         const status = subtask.status || "Pending";
         const startDate = subtask.start_date || "-";
@@ -78,7 +77,6 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
         console.log(`Rendered row for subtask: ${safeSubtaskName} with status: ${status}, start_date: ${startDate}, end_date: ${endDate} from ${source}`);
       });
 
-      // Attach event listeners after rendering
       attachEventListeners(projectTaskId);
       return allCompleted;
     } else {
@@ -101,7 +99,6 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
 function attachEventListeners(projectTaskId) {
   console.log("Attaching event listeners for projectTaskId:", projectTaskId);
 
-  // Delete confirmation handling
   const deleteModal = document.getElementById("deleteConfirmModal");
   const closeDeleteModal = document.querySelector(".close-delete-modal");
   const cancelBtn = document.querySelector(".cancel-btn");
@@ -113,7 +110,7 @@ function attachEventListeners(projectTaskId) {
     icon.addEventListener("click", handleDeleteClick);
   });
 
-  closeDeleteModal.removeEventListener("person", closeModalHandler);
+  closeDeleteModal.removeEventListener("click", closeModalHandler);
   closeDeleteModal.addEventListener("click", closeModalHandler);
 
   cancelBtn.removeEventListener("click", cancelHandler);
@@ -125,7 +122,6 @@ function attachEventListeners(projectTaskId) {
   confirmDeleteBtn.removeEventListener("click", confirmDeleteHandler);
   confirmDeleteBtn.addEventListener("click", confirmDeleteHandler);
 
-  // Eye icon redirection
   document.querySelectorAll(".view-icon").forEach((icon) => {
     icon.removeEventListener("click", handleViewClick);
     icon.addEventListener("click", handleViewClick);
@@ -133,7 +129,6 @@ function attachEventListeners(projectTaskId) {
 
   async function handleDeleteClick(event) {
     subtaskIndexToDelete = event.target.dataset.index;
-    // Check status before showing modal
     const tasksRef = collection(db, "tb_project_task");
     const q = query(tasksRef, where("project_task_id", "==", Number(projectTaskId)));
     const querySnapshot = await getDocs(q);
@@ -144,11 +139,11 @@ function attachEventListeners(projectTaskId) {
       if (subtask.status === "Completed") {
         alert(`"${subtask.subtask_name}" is completed and cannot be deleted.`);
         console.log(`Attempted to delete completed subtask: ${subtask.subtask_name}`);
-        subtaskIndexToDelete = null; // Reset to prevent further action
-        return; // Stop here
+        subtaskIndexToDelete = null;
+        return;
       }
     }
-    deleteModal.style.display = "flex"; // Show modal only if not completed
+    deleteModal.style.display = "flex";
   }
 
   function closeModalHandler() {
@@ -204,10 +199,9 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
       const subtask = subtasks[subtaskIndex];
       const deletedSubtaskName = subtask.subtask_name;
 
-      // Double-check status here (redundancy for safety)
       if (subtask.status === "Completed") {
         console.log(`Subtask "${deletedSubtaskName}" is completed and cannot be deleted.`);
-        return; // Stop deletion if somehow reached here
+        return;
       }
 
       const attendanceRef = collection(db, "tb_project_task", taskId, "Attendance");
@@ -223,7 +217,6 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
         console.log(`No attendance records found in subcollection for subtask: ${deletedSubtaskName}`);
       }
 
-      // Step 2: Delete from tb_attendance collection
       const tbAttendanceRef = collection(db, "tb_attendance");
       const tbAttendanceQuery = query(
         tbAttendanceRef,
@@ -241,30 +234,26 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
         console.log(`No attendance records found in tb_attendance for subtask: ${deletedSubtaskName}`);
       }
 
-      // Step 3: Delete the subtask from tb_project_task
       subtasks.splice(subtaskIndex, 1);
       await updateDoc(taskDocRef, { subtasks });
       console.log(`✅ Subtask ${deletedSubtaskName} deleted from tb_project_task`);
 
-      // Clear subtask_status from sessionStorage if the deleted subtask matches
       if (deletedSubtaskName === sessionStorage.getItem("subtask_name")) {
         sessionStorage.removeItem("subtask_status");
       }
 
-      // Refresh the table and update the button state
       await fetchSubtasks(projectTaskId, "deleteSubtask");
-      await updateCompleteButtonState(projectTaskId); // Add this line to update the button
+      await updateCompleteButtonState(projectTaskId);
     }
   } catch (error) {
     console.error("❌ Error deleting subtask or attendance records:", error);
   }
 }
 
-// Function to add new subtask (simplified to only save, duplicate check moved to form handler)
+// Function to add new subtask
 async function addSubtask(projectTaskId, newSubtaskName) {
   console.log("Starting addSubtask with:", newSubtaskName);
 
-  // Fetch the task document from Firestore
   const tasksRef = collection(db, "tb_project_task");
   const q = query(tasksRef, where("project_task_id", "==", Number(projectTaskId)));
   const querySnapshot = await getDocs(q);
@@ -275,9 +264,8 @@ async function addSubtask(projectTaskId, newSubtaskName) {
     const existingSubtasks = taskDoc.data().subtasks || [];
     console.log("Existing subtasks:", existingSubtasks);
 
-    // Create the new subtask object directly from newSubtaskName
     const newSubtask = {
-      subtask_name: newSubtaskName, // Use the passed string directly
+      subtask_name: newSubtaskName,
       status: "Pending",
       start_date: null,
       end_date: null,
@@ -310,13 +298,61 @@ async function updateCompleteButtonState(projectTaskId) {
   const querySnapshot = await getDocs(q);
 
   if (!querySnapshot.empty) {
-    const subtasks = querySnapshot.docs[0].data().subtasks || [];
+    const taskData = querySnapshot.docs[0].data();
+    const subtasks = taskData.subtasks || [];
+    const taskStatus = taskData.status || "Pending";
     const allCompleted = subtasks.every((subtask) => subtask.status === "Completed");
 
-    completeBtn.disabled = !allCompleted || subtasks.length === 0;
-    completeBtn.style.opacity = allCompleted && subtasks.length > 0 ? "1" : "0.5";
-    completeBtn.style.cursor = allCompleted && subtasks.length > 0 ? "pointer" : "not-allowed";
-    console.log(`Button state updated: disabled=${completeBtn.disabled}, subtasks=${subtasks.length}, allCompleted=${allCompleted}`);
+    // Disable button if task is "Completed" or if not all subtasks are completed
+    const isDisabled = taskStatus === "Completed" || !allCompleted || subtasks.length === 0;
+    completeBtn.disabled = isDisabled;
+    completeBtn.classList.toggle("disabled", isDisabled);
+    completeBtn.style.cursor = isDisabled ? "not-allowed" : "pointer";
+    console.log(`Button state updated: disabled=${isDisabled}, taskStatus=${taskStatus}, subtasks=${subtasks.length}, allCompleted=${allCompleted}`);
+  }
+}
+
+// New function to complete the task
+async function completeTask(projectTaskId) {
+  try {
+    const tasksRef = collection(db, "tb_project_task");
+    const q = query(tasksRef, where("project_task_id", "==", Number(projectTaskId)));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const taskDoc = querySnapshot.docs[0];
+      const taskDocRef = taskDoc.ref;
+      const taskData = taskDoc.data();
+      const subtasks = taskData.subtasks || [];
+      const today = new Date().toISOString().split("T")[0];
+
+      // Check if all subtasks are completed before allowing completion
+      const allCompleted = subtasks.every((subtask) => subtask.status === "Completed");
+      if (!allCompleted || subtasks.length === 0) {
+        console.log(`Cannot complete task ${projectTaskId}: Not all subtasks are completed or no subtasks exist`);
+        alert("Cannot complete task: All subtasks must be completed first.");
+        return;
+      }
+
+      // Update task status to "Completed" and set end_date
+      await updateDoc(taskDocRef, {
+        status: "Completed",
+        end_date: today,
+      });
+      console.log(`✅ Task with project_task_id ${projectTaskId} marked as Completed`);
+
+      // Update button state after completion
+      await updateCompleteButtonState(projectTaskId);
+
+      // Redirect back to headfarm_task.html
+      window.location.href = "headfarm_task.html";
+    } else {
+      console.log(`No task found with project_task_id: ${projectTaskId}`);
+      alert("Task not found. Unable to mark as completed.");
+    }
+  } catch (error) {
+    console.error("❌ Error completing task:", error);
+    alert("Failed to mark task as completed. Please try again.");
   }
 }
 
@@ -333,7 +369,6 @@ export function initializeSubtaskPage() {
     if (projectTaskId) {
       console.log(`Initializing page with Project Task ID: ${projectTaskId}`);
 
-      // Fetch subtasks only once on initialization
       await fetchSubtasks(projectTaskId, "initializeSubtaskPage");
       await updateCompleteButtonState(projectTaskId);
 
@@ -346,9 +381,10 @@ export function initializeSubtaskPage() {
 
       const completeBtn = document.getElementById("completeTaskBtn");
       if (completeBtn) {
-        completeBtn.onclick = () => {
+        completeBtn.onclick = async () => {
           if (!completeBtn.disabled) {
-            console.log("All subtasks are completed!");
+            console.log("All subtasks are completed! Marking task as Completed...");
+            await completeTask(projectTaskId);
           }
         };
       }
@@ -391,7 +427,6 @@ export function initializeSubtaskPage() {
           return;
         }
 
-        // Disable the button to prevent multiple clicks
         addSubtaskBtn.disabled = true;
         console.log("Add Subtask button disabled");
 
@@ -439,7 +474,6 @@ export function initializeSubtaskPage() {
           console.log("No task document found for projectTaskId:", projectTaskId);
         }
 
-        // Re-enable the button after processing
         addSubtaskBtn.disabled = false;
         console.log("Add Subtask button re-enabled");
         isSubmitting = false;
