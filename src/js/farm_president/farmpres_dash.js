@@ -153,12 +153,9 @@ async function updateTotalFarmerCount() {
 // NEEDS TO HAVE A RESTRICTION OF ONLY FETCHING TOTAL PROJECTS PER MONTH
 
 // Function to fetch and update projects count for the current year
-async function updateTotalProjectsCount() {
+async function updateTotalProjectsCount(statusFilter = "ongoing") {
     try {
-        // Get authenticated user first
         const currentUser = await getAuthenticatedUser();
-
-        // Step 1: Fetch the farmer_id of the current user from tb_farmers
         const farmersCollection = collection(db, "tb_farmers");
         const farmerQuery = query(farmersCollection, where("email", "==", currentUser.email));
         const farmerSnapshot = await getDocs(farmerQuery);
@@ -168,44 +165,53 @@ async function updateTotalProjectsCount() {
             return;
         }
 
-        // Assuming the farmer_id is stored in the farmer document
         const farmerData = farmerSnapshot.docs[0].data();
-        const farmerId = farmerData.farmer_id; // Adjust this field name if it's different
+        // Ensure farmer_id is a string, e.g., "2"
+        const farmerId = String(farmerData.farmer_id).trim(); // Converts 2 or "2" to "2" and trims whitespace
 
         if (!farmerId) {
-            console.error("Farmer ID not found for the current user.");
+            console.error("Farmer ID not found or invalid for the current user.");
             return;
         }
 
-        // Step 2: Reference to the tb_projects collection
         const projectsCollection = collection(db, "tb_projects");
-
-        // Get current date and set start/end of the current year
         const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 1); // January 1st of the current year
-        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); // December 31st of the current year
-
-        // Step 3: Create a query to filter projects by farmer_id
-        const projectsQuery = query(projectsCollection, where("farmer_id", "==", farmerId));
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+        
+        // Query all projects for the farmer_id (no status filter in query)
+        const projectsQuery = query(
+            projectsCollection,
+            where("farmer_id", "==", farmerId) // farmerId is a string like "2"
+        );
         const projectsSnapshot = await getDocs(projectsQuery);
 
-        // Step 4: Filter documents client-side for the date range
+        // Normalize the input statusFilter to lowercase for comparison
+        const normalizedFilter = statusFilter.toLowerCase();
+        
+        // Validate the status filter
+        const validStatuses = ["ongoing", "completed"];
+        if (!validStatuses.includes(normalizedFilter)) {
+            console.error(`Invalid status filter: ${statusFilter}. Must be "ongoing" or "completed" (case-insensitive).`);
+            return;
+        }
+
         let projectCount = 0;
         projectsSnapshot.forEach(doc => {
             const data = doc.data();
-
-            // Convert timestamp to date
             const dateCreated = data.date_created instanceof Timestamp 
                 ? data.date_created.toDate() 
                 : new Date(data.date_created);
 
-            // Count if the date is in the current year
+            // Check date range and case-insensitive status match
             if (dateCreated >= startOfYear && dateCreated <= endOfYear) {
-                projectCount++;
+                const projectStatus = data.status ? String(data.status).toLowerCase() : "";
+                if (projectStatus === normalizedFilter) {
+                    projectCount++;
+                }
             }
         });
 
-        // Step 5: Update the DOM with the project count
         const projectElementCount = document.querySelector("#total-projects");
         if (projectElementCount) {
             animateCount(projectElementCount, projectCount);
@@ -216,7 +222,6 @@ async function updateTotalProjectsCount() {
         console.error("Error fetching project count:", error);
     }
 }
-
 
 async function updateBarGraph() {
     const bars = document.querySelectorAll('.bar');

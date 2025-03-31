@@ -77,13 +77,15 @@ async function getAuthenticatedFarmer() {
   });
 }
 
+// Real-time listener for projects collection, fetching equipment from "Ongoing" projects only
 async function fetchEquipments() {
   try {
     const farmerData = await getAuthenticatedFarmer();
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
-      where("farmer_id", "==", farmerData.farmer_id)
+      where("farmer_id", "==", farmerData.farmer_id),
+      where("status", "==", "Ongoing") // Fetch only Ongoing projects
     );
 
     onSnapshot(projectsQuery, (snapshot) => {
@@ -92,7 +94,7 @@ async function fetchEquipments() {
         const project = doc.data();
         const equipmentArray = project.equipment || [];
         
-        console.log(`Project ID: ${project.project_id}, Equipment Array:`, equipmentArray); // Debug log
+        console.log(`Project ID: ${project.project_id}, Status: ${project.status}, Equipment Array:`, equipmentArray); // Debug log
         
         equipmentArray.forEach(equip => {
           equipmentsList.push({
@@ -107,7 +109,7 @@ async function fetchEquipments() {
         });
       });
 
-      console.log("Equipments List:", equipmentsList); // Debug log
+      console.log("Equipments List (Ongoing projects only):", equipmentsList); // Debug log
       filteredEquipments = [...equipmentsList];
       sortEquipmentsById();
       displayEquipments(filteredEquipments);
@@ -136,7 +138,7 @@ function displayEquipments(equipmentsList) {
   if (paginatedEquipments.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center; color: red;">No records found</td>
+        <td colspan="6" style="text-align: center; color: red;">No equipment in ongoing projects found</td>
       </tr>
     `;
     return;
@@ -217,7 +219,8 @@ async function fetchProjectNames() {
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
-      where("farmer_id", "==", farmerData.farmer_id)
+      where("farmer_id", "==", farmerData.farmer_id),
+      where("status", "==", "Ongoing") // Fetch only Ongoing projects
     );
     const projectsSnapshot = await getDocs(projectsQuery);
     const projectNames = projectsSnapshot.docs.map(doc => doc.data().project_name);
@@ -277,7 +280,7 @@ document.querySelector(".equip_project_select").addEventListener("change", funct
 
 document.getElementById("equip-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
-  console.log("Search Query:", searchQuery); // Debug log to verify input
+  console.log("Search Query:", searchQuery); // Debug log
   
   filteredEquipments = equipmentsList.filter(equipment => {
     return (
@@ -288,7 +291,7 @@ document.getElementById("equip-search-bar").addEventListener("input", function (
     );
   });
   
-  console.log("Filtered Equipments after search:", filteredEquipments); // Debug log to verify filtering
+  console.log("Filtered Equipments after search:", filteredEquipments); // Debug log
   currentPage = 1;
   sortEquipmentsById();
   displayEquipments(filteredEquipments);

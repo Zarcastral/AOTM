@@ -72,14 +72,15 @@ async function getAuthenticatedFarmer() {
   });
 }
 
-// Real-time listener for projects collection
+// Real-time listener for projects collection, fetching only "Ongoing" projects
 async function fetchCrops() {
   try {
     const farmerData = await getAuthenticatedFarmer();
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
-      where("farmer_id", "==", farmerData.farmer_id)
+      where("farmer_id", "==", farmerData.farmer_id),
+      where("status", "==", "Ongoing") // Fetch only Ongoing projects
     );
 
     onSnapshot(projectsQuery, async (snapshot) => {
@@ -97,7 +98,7 @@ async function fetchCrops() {
         };
       });
 
-      console.log("Crops List:", projectsData); // Debug log
+      console.log("Crops List (Ongoing only):", projectsData);
       cropsList = projectsData;
       filteredCrops = [...cropsList];
       sortCropsById();
@@ -123,12 +124,12 @@ function displayCrops(cropsList) {
   const endIndex = startIndex + rowsPerPage;
   const paginatedCrops = cropsList.slice(startIndex, endIndex);
 
-  console.log("Paginated Crops:", paginatedCrops); // Debug log
+  console.log("Paginated Crops:", paginatedCrops);
 
   if (paginatedCrops.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center; color: red;">No records found</td>
+        <td colspan="6" style="text-align: center; color: red;">No ongoing projects found</td>
       </tr>
     `;
     return;
@@ -216,14 +217,15 @@ function populateCropDropdown(cropNames) {
   });
 }
 
-// Fetch project names for the project dropdown
+// Fetch project names for the project dropdown, only Ongoing projects
 async function fetchProjectNames() {
   try {
     const farmerData = await getAuthenticatedFarmer();
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
-      where("farmer_id", "==", farmerData.farmer_id)
+      where("farmer_id", "==", farmerData.farmer_id),
+      where("status", "==", "Ongoing") // Fetch only Ongoing projects
     );
     const projectsSnapshot = await getDocs(projectsQuery);
     const projectNames = projectsSnapshot.docs.map(doc => doc.data().project_name);
@@ -287,7 +289,7 @@ document.querySelector(".project_select").addEventListener("change", function ()
 // Search bar event listener for real-time filtering
 document.getElementById("crop-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
-  console.log("Search Query:", searchQuery); // Debug log to verify input
+  console.log("Search Query:", searchQuery);
   
   filteredCrops = cropsList.filter(crop => {
     return (
@@ -298,7 +300,7 @@ document.getElementById("crop-search-bar").addEventListener("input", function ()
     );
   });
   
-  console.log("Filtered Crops after search:", filteredCrops); // Debug log to verify filtering
+  console.log("Filtered Crops after search:", filteredCrops);
   currentPage = 1;
   sortCropsById();
   displayCrops(filteredCrops);

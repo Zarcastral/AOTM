@@ -47,8 +47,7 @@ onAuthStateChanged(auth, (user) => {
 
 async function fetch_projects(filter = {}) {
     try {
-        const user = auth.currentUser;  // Ensure user is passed correctly
-
+        const user = auth.currentUser;
         if (!user) {
             console.error("User not authenticated.");
             return;
@@ -63,9 +62,15 @@ async function fetch_projects(filter = {}) {
         }
 
         const farmerData = farmerDocSnap.data();
-        const farmerId = sessionStorage.getItem("farmer_id") || ""; // Fetch farmer_id from sessionStorage
+        const farmerId = sessionStorage.getItem("farmer_id") || "";
 
-        const querySnapshot = await getDocs(collection(db, "tb_projects"));
+        // Modified query to only fetch Ongoing or Completed projects
+        const q = query(
+            collection(db, "tb_projects"),
+            where("status", "in", ["Ongoing", "Completed", "ongoing", "completed"]) // Case-insensitive variations
+        );
+        const querySnapshot = await getDocs(q);
+        
         projectList = [];
         let projectIdList = [];
 
@@ -73,18 +78,17 @@ async function fetch_projects(filter = {}) {
             const data = doc.data();
             const projectId = String(data.project_id || "");
 
-            // Check email in tb_projects instead of farm_president
+            // Still apply the farmer_id filter
             if ((data.farmer_id || "").toLowerCase() !== farmerId.toLowerCase()) {
                 return;
             }
             
-
             projectIdList.push(projectId);
 
             const searchTerm = filter.search?.toLowerCase();
             const matchesSearch = searchTerm
                 ? `${data.project_name || ""}`.toLowerCase().includes(searchTerm) ||
-                  `${data.email || ""}`.toLowerCase().includes(searchTerm) ||  // Updated condition
+                  `${data.email || ""}`.toLowerCase().includes(searchTerm) ||
                   (data.start_date || "").includes(searchTerm) ||
                   (data.end_date || "").includes(searchTerm) ||
                   (data.crop_type_name || "").toLowerCase().includes(searchTerm) ||

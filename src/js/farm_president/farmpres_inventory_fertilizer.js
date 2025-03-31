@@ -77,13 +77,15 @@ async function getAuthenticatedFarmer() {
   });
 }
 
+// Real-time listener for projects collection, fetching fertilizers from "Ongoing" projects only
 async function fetchFertilizers() {
   try {
     const farmerData = await getAuthenticatedFarmer();
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
-      where("farmer_id", "==", farmerData.farmer_id)
+      where("farmer_id", "==", farmerData.farmer_id),
+      where("status", "==", "Ongoing") // Fetch only Ongoing projects
     );
 
     onSnapshot(projectsQuery, (snapshot) => {
@@ -92,7 +94,7 @@ async function fetchFertilizers() {
         const project = doc.data();
         const fertilizerArray = project.fertilizer || [];
         
-        console.log(`Project ID: ${project.project_id}, Fertilizer Array:`, fertilizerArray); // Debug log
+        console.log(`Project ID: ${project.project_id}, Status: ${project.status}, Fertilizer Array:`, fertilizerArray); // Debug log
         
         fertilizerArray.forEach(fert => {
           fertilizersList.push({
@@ -107,7 +109,7 @@ async function fetchFertilizers() {
         });
       });
 
-      console.log("Fertilizers List:", fertilizersList); // Debug log
+      console.log("Fertilizers List (Ongoing projects only):", fertilizersList); // Debug log
       filteredFertilizers = [...fertilizersList];
       sortFertilizersById();
       displayFertilizers(filteredFertilizers);
@@ -136,7 +138,7 @@ function displayFertilizers(fertilizersList) {
   if (paginatedFertilizers.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center; color: red;">No records found</td>
+        <td colspan="6" style="text-align: center; color: red;">No fertilizers in ongoing projects found</td>
       </tr>
     `;
     return;
@@ -217,7 +219,8 @@ async function fetchProjectNames() {
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
-      where("farmer_id", "==", farmerData.farmer_id)
+      where("farmer_id", "==", farmerData.farmer_id),
+      where("status", "==", "Ongoing") // Fetch only Ongoing projects
     );
     const projectsSnapshot = await getDocs(projectsQuery);
     const projectNames = projectsSnapshot.docs.map(doc => doc.data().project_name);
@@ -277,7 +280,7 @@ document.querySelector(".fert_project_select").addEventListener("change", functi
 
 document.getElementById("fert-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
-  console.log("Search Query:", searchQuery); // Debug log to verify input
+  console.log("Search Query:", searchQuery); // Debug log
   
   filteredFertilizers = fertilizersList.filter(fertilizer => {
     return (
@@ -288,7 +291,7 @@ document.getElementById("fert-search-bar").addEventListener("input", function ()
     );
   });
   
-  console.log("Filtered Fertilizers after search:", filteredFertilizers); // Debug log to verify filtering
+  console.log("Filtered Fertilizers after search:", filteredFertilizers); // Debug log
   currentPage = 1;
   sortFertilizersById();
   displayFertilizers(filteredFertilizers);
