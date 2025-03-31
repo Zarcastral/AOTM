@@ -352,18 +352,48 @@ async function fetchProjectTasks(project_id) {
     }
 }
 
+//CHECKS IF A PROJECT ALREADY HAS A TEAM
+async function checkProjectTeam(project_id) {
+    try {
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            let projectData = null;
+            querySnapshot.forEach((doc) => {
+                projectData = doc.data();
+            });
+
+            if (projectData && projectData.team_id) {
+                alert(`This project already has a team assigned: Team ID ${projectData.team_id}.`);
+                return false; // Prevents the popup from opening
+            }
+        }
+        return true; // Allows the popup to open
+    } catch (error) {
+        console.error("Error checking project team:", error);
+        return false;
+    }
+}
+
+
+
 
 
 
 //TEAM ASSIGN
 async function teamAssign(project_id) {
     
+    const canProceed = await checkProjectTeam(project_id);
+    if (!canProceed) return; // Stop execution if a team is already assigned
+
     const panel = document.getElementById("team-assign-confirmation-panel");
     if (!panel) {
         console.error("Error: Confirmation panel not found!");
         return;
     }
     panel.style.display = "flex";
+
 
     // Fetch and log project details
     const projectData = await fetchProjectDetails(project_id);
