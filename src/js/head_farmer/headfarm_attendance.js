@@ -37,7 +37,7 @@ function renderTable(filteredFarmers, selectedDate) {
   tbody.innerHTML = "";
 
   if (filteredFarmers.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5">No farmers found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5">No record is found</td></tr>`;
     return;
   }
 

@@ -514,9 +514,9 @@ async function addNewDay(
       subtask_name: subtaskName,
       crop_type_name: cropType,
       crop_name: cropName,
-      // Removed start_date from here
     });
 
+    // Update subtask status and start_date
     const subtaskIndex = subtasks.findIndex(
       (st) => st.subtask_name === subtaskName
     );
@@ -525,22 +525,19 @@ async function addNewDay(
       (!subtask || !subtask.status || subtask.status === "Pending")
     ) {
       subtasks[subtaskIndex].status = "Ongoing";
-      subtasks[subtaskIndex].start_date = currentDate; // Still included in tb_project_task subtasks
-      await updateDoc(doc(db, "tb_project_task", taskId), {
-        subtasks: subtasks,
-      });
-      sessionStorage.setItem("subtask_status", "Ongoing"); // Sync to sessionStorage
-      console.log(
-        `Database updated: Status set to "Ongoing" and start_date set to "${currentDate}" for subtask: ${subtaskName}`
-      );
-      console.log(
-        "subtask_status stored in sessionStorage:",
-        sessionStorage.getItem("subtask_status")
-      );
+      subtasks[subtaskIndex].start_date = currentDate;
     }
 
+    // Update task_status to "Ongoing" and set start_date to current date
+    await updateDoc(doc(db, "tb_project_task", taskId), {
+      task_status: "Ongoing",
+      start_date: currentDate, // Set start_date at task level to current date
+      subtasks: subtasks,
+    });
+
+    sessionStorage.setItem("subtask_status", "Ongoing");
     console.log(
-      `Added new day with UID: ${newAttendanceRef.id} under task ID: ${taskId}, saved to database`
+      `Database updated: task_status set to "Ongoing" and start_date set to "${currentDate}" for task and subtask: ${subtaskName}`
     );
 
     await fetchAttendanceData(
@@ -692,7 +689,7 @@ async function deleteAttendanceRecord(
       );
     }
 
-    // Step 3: Update subtask status if no attendance records remain
+    // Step 3: Check remaining attendance records and update task_status and start_date
     const remainingQuery = query(
       attendanceRef,
       where("subtask_name", "==", subtaskName)
@@ -701,22 +698,34 @@ async function deleteAttendanceRecord(
     const subtaskIndex = subtasks.findIndex(
       (st) => st.subtask_name === subtaskName
     );
+    const currentDate = new Date().toISOString().split("T")[0];
 
     if (subtaskIndex !== -1 && subtasks[subtaskIndex].status !== "Completed") {
       if (remainingSnapshot.empty) {
+        // No records remain, set task_status to "Pending" and start_date to null
         subtasks[subtaskIndex].status = "Pending";
         subtasks[subtaskIndex].start_date = null;
         subtasks[subtaskIndex].end_date = null;
         await updateDoc(doc(db, "tb_project_task", taskId), {
+          task_status: "Pending",
+          start_date: null, // Clear start_date at task level
           subtasks: subtasks,
         });
-        sessionStorage.setItem("subtask_status", "Pending"); // Sync to sessionStorage
+        sessionStorage.setItem("subtask_status", "Pending");
         console.log(
-          `Database updated: Status set to "Pending" and dates reset for subtask: ${subtaskName} due to no remaining records`
+          `Database updated: task_status set to "Pending" and start_date cleared for task and subtask ${subtaskName} due to no remaining records`
         );
+      } else {
+        // Records remain, set task_status to "Ongoing" and update start_date
+        subtasks[subtaskIndex].status = "Ongoing";
+        await updateDoc(doc(db, "tb_project_task", taskId), {
+          task_status: "Ongoing",
+          start_date: currentDate, // Set start_date at task level to current date
+          subtasks: subtasks,
+        });
+        sessionStorage.setItem("subtask_status", "Ongoing");
         console.log(
-          "subtask_status stored in sessionStorage:",
-          sessionStorage.getItem("subtask_status")
+          `Database updated: task_status set to "Ongoing" and start_date set to "${currentDate}" for task and subtask ${subtaskName} due to remaining records`
         );
       }
     } else if (subtasks[subtaskIndex].status === "Completed") {

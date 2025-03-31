@@ -40,7 +40,10 @@ export async function fetchProjectsForFarmer() {
     querySnapshot.forEach(async (doc) => {
       const project = doc.data();
       if (project.status === "Ongoing") {
-        sessionStorage.setItem("selected_project_id", String(project.project_id));
+        sessionStorage.setItem(
+          "selected_project_id",
+          String(project.project_id)
+        );
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         await fetchProjectTasks(project.crop_type_name, project.project_id);
@@ -76,7 +79,6 @@ async function fetchProjectTasks(cropTypeName, projectId) {
         id: docSnapshot.id,
         data: taskData,
       });
-      syncTaskStatusWithSubtasks(docSnapshot.id, taskData);
     });
 
     filteredTasks = [...allTasks];
@@ -104,38 +106,51 @@ function renderTasks() {
 
   taskTableBody.innerHTML = "";
 
-  const startIndex = (currentPage - 1) * tasksPerPage;
-  const endIndex = Math.min(startIndex + tasksPerPage, filteredTasks.length);
-  const currentTasks = filteredTasks.slice(startIndex, endIndex);
+  const searchInput = document.querySelector(".search-container input");
+  const searchTerm = searchInput ? searchInput.value.trim() : "";
+  if (filteredTasks.length === 0) {
+    taskTableBody.innerHTML = `<tr><td colspan="6">${
+      searchTerm ? "No record found." : "No tasks found."
+    }</td></tr>`;
+  } else {
+    const startIndex = (currentPage - 1) * tasksPerPage;
+    const endIndex = Math.min(startIndex + tasksPerPage, filteredTasks.length);
+    const currentTasks = filteredTasks.slice(startIndex, endIndex);
 
-  currentTasks.forEach((taskObj) => {
-    const task = taskObj.data;
-    const taskId = taskObj.id;
+    currentTasks.forEach((taskObj) => {
+      const task = taskObj.data;
+      const taskId = taskObj.id;
 
-    const taskRow = `
-      <tr id="task-row-${taskId}">
-        <td>${task.task_name}</td>
-        <td>${task.subtasks.length}</td>
-        <td class="start-date" data-task-id="${taskId}">${task.start_date ? task.start_date : "--"}</td>
-        <td class="end-date" data-task-id="${taskId}">${task.end_date ? task.end_date : "--"}</td>
-        <td>${task.status}</td>
-        <td>
-          <div class="action-icons">
-            <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
-            <img src="../../images/Edit.png" alt="Edit" class="edit-icon" data-task-id="${taskId}">
-            <img src="../../images/Delete.png" alt="Delete" class="delete-icon" data-task-id="${taskId}">
-          </div>
-        </td>
-      </tr>
-    `;
-    taskTableBody.insertAdjacentHTML("beforeend", taskRow);
-  });
+      const taskRow = `
+        <tr id="task-row-${taskId}">
+          <td>${task.task_name}</td>
+          <td>${task.subtasks.length}</td>
+          <td class="start-date" data-task-id="${taskId}">${
+        task.start_date ? task.start_date : "--"
+      }</td>
+          <td class="end-date" data-task-id="${taskId}">${
+        task.end_date ? task.end_date : "--"
+      }</td>
+          <td>${task.task_status}</td>
+          <td>
+            <div class="action-icons">
+              <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
+              <img src="../../images/Edit.png" alt="Edit" class="edit-icon" data-task-id="${taskId}">
+              <img src="../../images/Delete.png" alt="Delete" class="delete-icon" data-task-id="${taskId}">
+            </div>
+          </td>
+        </tr>
+      `;
+      taskTableBody.insertAdjacentHTML("beforeend", taskRow);
+    });
+  }
 
   const prevBtn = document.getElementById("prevPageBtn");
   const nextBtn = document.getElementById("nextPageBtn");
   const pageInfo = document.getElementById("pageInfo");
 
-  pageInfo.textContent = totalPages > 0 ? `Page ${currentPage} of ${totalPages}` : "Page 1 of 1";
+  pageInfo.textContent =
+    totalPages > 0 ? `Page ${currentPage} of ${totalPages}` : "Page 1 of 1";
   prevBtn.disabled = currentPage === 1;
   nextBtn.disabled = currentPage === totalPages || filteredTasks.length === 0;
 
@@ -204,8 +219,33 @@ function attachRowEventListeners() {
   document.querySelectorAll(".delete-icon").forEach((icon) => {
     const newIcon = icon.cloneNode(true);
     icon.parentNode.replaceChild(newIcon, icon);
-    newIcon.addEventListener("click", (event) => {
+    newIcon.addEventListener("click", async (event) => {
       const taskId = event.currentTarget.dataset.taskId;
+      try {
+        const taskSnap = await getDocs(
+          query(
+            collection(db, "tb_project_task"),
+            where("__name__", "==", taskId)
+          )
+        );
+        if (!taskSnap.empty) {
+          const taskData = taskSnap.docs[0].data();
+          const taskName = taskData.task_name;
+          if (taskData.task_status === "Completed") {
+            alert(`"${taskName}" is completed and cannot be deleted.`);
+            console.log(`Attempted to delete completed task: ${taskName}`);
+            return;
+          }
+        } else {
+          console.log(`Task ${taskId} not found in Firestore.`);
+          alert("Task not found.");
+          return;
+        }
+      } catch (error) {
+        console.error("❌ Error checking task status:", error);
+        alert("Error checking task status. Try again.");
+        return;
+      }
       openDeleteModal(taskId);
     });
   });
@@ -241,55 +281,12 @@ function attachRowEventListeners() {
     icon.parentNode.replaceChild(newIcon, icon);
     newIcon.addEventListener("click", (event) => {
       const taskId = event.currentTarget.dataset.taskId;
-      console.log(`Edit clicked for task ${taskId}`);
+      const taskRow = document.getElementById(`task-row-${taskId}`);
+      const currentTaskName =
+        taskRow.querySelector("td:first-child").textContent;
+      openEditModal(taskId, currentTaskName);
     });
   });
-}
-
-async function syncTaskStatusWithSubtasks(taskId, taskData) {
-  try {
-    const subtasks = taskData.subtasks || [];
-    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
-    let updateData = {};
-
-    const hasOngoing = subtasks.some((subtask) => subtask.status === "Ongoing");
-    const allCompleted = subtasks.every((subtask) => subtask.status === "Completed");
-
-    if (allCompleted && subtasks.length > 0) {
-      updateData.status = "Completed";
-      updateData.end_date = taskData.end_date || today;
-      // Leave start_date as is (it should already be set from Ongoing)
-    } else if (hasOngoing && taskData.status !== "Ongoing") {
-      updateData.status = "Ongoing";
-      updateData.start_date = today; // Set start_date to current date when switching to Ongoing
-      updateData.end_date = null;
-    } else if (!hasOngoing && taskData.status === "Ongoing") {
-      updateData.status = "Pending";
-      updateData.start_date = null; // Reset start_date to null when reverting to Pending
-      updateData.end_date = null;
-    } else {
-      // If status is Pending and no ongoing subtasks, ensure start_date is null
-      if (taskData.status === "Pending" && taskData.start_date !== null) {
-        updateData.start_date = null;
-      }
-      return; // No other changes needed
-    }
-
-    const taskDocRef = doc(db, "tb_project_task", taskId);
-    await updateDoc(taskDocRef, updateData);
-    console.log(`✅ Task ${taskId} status synced to ${updateData.status || taskData.status}`);
-
-    const taskIndex = allTasks.findIndex((task) => task.id === taskId);
-    if (taskIndex !== -1) {
-      allTasks[taskIndex].data.status = updateData.status || allTasks[taskIndex].data.status;
-      allTasks[taskIndex].data.start_date = updateData.start_date !== undefined ? updateData.start_date : allTasks[taskIndex].data.start_date;
-      allTasks[taskIndex].data.end_date = updateData.end_date !== undefined ? updateData.end_date : allTasks[taskIndex].data.end_date;
-      filteredTasks = [...allTasks];
-      renderTasks(); // Update UI
-    }
-  } catch (error) {
-    console.error("❌ Error syncing task status with subtasks:", error);
-  }
 }
 
 const addTaskModal = document.getElementById("addTaskModal");
@@ -301,11 +298,154 @@ const deleteTaskModal = document.getElementById("deleteTaskModal");
 const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
 
+const editTaskModal = document.getElementById("editTaskModal");
+const editTaskNameInput = document.getElementById("editTaskNameInput");
+const saveEditBtn = document.getElementById("saveEditBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+const closeEditModalBtn = document.querySelector(".close-edit-modal");
+
 let taskToDelete = null;
+let taskToEdit = null;
+let originalTaskName = null;
 
 function openDeleteModal(taskId) {
   taskToDelete = taskId;
   deleteTaskModal.classList.remove("hidden");
+}
+
+function openEditModal(taskId, currentTaskName) {
+  taskToEdit = taskId;
+  originalTaskName = currentTaskName;
+  editTaskNameInput.value = currentTaskName;
+  editTaskModal.classList.remove("hidden");
+
+  saveEditBtn.disabled = true;
+
+  saveEditBtn.removeEventListener("click", saveEditHandler);
+  cancelEditBtn.removeEventListener("click", cancelEditHandler);
+  closeEditModalBtn.removeEventListener("click", cancelEditHandler);
+  editTaskNameInput.removeEventListener("input", checkTaskNameChange);
+
+  saveEditBtn.addEventListener("click", saveEditHandler);
+  cancelEditBtn.addEventListener("click", cancelEditHandler);
+  closeEditModalBtn.addEventListener("click", cancelEditHandler);
+  editTaskNameInput.addEventListener("input", checkTaskNameChange);
+}
+
+function checkTaskNameChange() {
+  const currentInput = editTaskNameInput.value.trim();
+  saveEditBtn.disabled =
+    currentInput.toLowerCase() === originalTaskName.toLowerCase();
+}
+
+async function saveEditHandler() {
+  const newTaskNameRaw = editTaskNameInput.value.trim();
+  if (!newTaskNameRaw) {
+    alert("Please enter a task name.");
+    return;
+  }
+
+  const newTaskName =
+    newTaskNameRaw.charAt(0).toUpperCase() +
+    newTaskNameRaw.slice(1).toLowerCase();
+
+  if (newTaskName.toLowerCase() === originalTaskName.toLowerCase()) {
+    editTaskModal.classList.add("hidden");
+    return;
+  }
+
+  try {
+    const projectId = sessionStorage.getItem("selected_project_id");
+    if (!projectId) {
+      alert("No project selected.");
+      return;
+    }
+
+    const taskSnap = await getDocs(
+      query(
+        collection(db, "tb_project_task"),
+        where("__name__", "==", taskToEdit)
+      )
+    );
+    if (taskSnap.empty) {
+      alert("Task not found.");
+      return;
+    }
+    const projectTaskId = taskSnap.docs[0].data().project_task_id;
+
+    const tasksRef = collection(db, "tb_project_task");
+    const q = query(
+      tasksRef,
+      where("project_id", "==", String(projectId)),
+      where("task_name", "==", newTaskName)
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const existingTaskDoc = querySnapshot.docs.find(
+        (doc) => doc.id !== taskToEdit
+      );
+      if (existingTaskDoc) {
+        alert(`"${newTaskName}" already exists in this project.`);
+        editTaskNameInput.value = originalTaskName;
+        saveEditBtn.disabled = true;
+        return;
+      }
+    }
+
+    const taskRef = doc(db, "tb_project_task", taskToEdit);
+    await updateDoc(taskRef, { task_name: newTaskName });
+    console.log(`✅ Task ${taskToEdit} updated to "${newTaskName}"`);
+
+    const attendanceSubRef = collection(
+      db,
+      `tb_project_task/${taskToEdit}/Attendance`
+    );
+    const attendanceSubSnap = await getDocs(attendanceSubRef);
+    if (!attendanceSubSnap.empty) {
+      const updatePromises = attendanceSubSnap.docs.map((subDoc) =>
+        updateDoc(subDoc.ref, { task_name: newTaskName })
+      );
+      await Promise.all(updatePromises);
+      console.log(
+        `✅ Updated ${attendanceSubSnap.size} Attendance subcollection records`
+      );
+    }
+
+    const attendanceRef = collection(db, "tb_attendance");
+    const attendanceQuery = query(
+      attendanceRef,
+      where("project_task_id", "==", projectTaskId)
+    );
+    const attendanceSnap = await getDocs(attendanceQuery);
+    if (!attendanceSnap.empty) {
+      const updateAttendancePromises = attendanceSnap.docs.map((attDoc) =>
+        updateDoc(attDoc.ref, { task_name: newTaskName })
+      );
+      await Promise.all(updateAttendancePromises);
+      console.log(`✅ Updated ${attendanceSnap.size} tb_attendance records`);
+    }
+
+    const taskIndex = allTasks.findIndex((task) => task.id === taskToEdit);
+    if (taskIndex !== -1) {
+      allTasks[taskIndex].data.task_name = newTaskName;
+      filteredTasks = [...allTasks];
+    }
+
+    alert("Task name updated successfully!");
+    editTaskModal.classList.add("hidden");
+    renderTasks();
+  } catch (error) {
+    console.error("❌ Error updating task and related records:", error);
+    alert("Failed to update task. Try again.");
+  }
+}
+
+function cancelEditHandler() {
+  editTaskNameInput.value = "";
+  editTaskModal.classList.add("hidden");
+  taskToEdit = null;
+  originalTaskName = null;
 }
 
 async function saveTaskHandler() {
@@ -335,7 +475,9 @@ async function saveTaskHandler() {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      alert("A task with this name already exists in the project. Please use a different name.");
+      alert(
+        "A task with this name already exists in the project. Please use a different name."
+      );
       return;
     }
 
@@ -361,9 +503,9 @@ async function saveTaskHandler() {
       project_id: String(projectId),
       crop_type_name: cropTypeName,
       crop_name: cropName,
-      status: "Pending",
+      task_status: "Pending",
       subtasks: [],
-      start_date: null, // Explicitly null for Pending
+      start_date: null,
       end_date: null,
     };
 
@@ -377,7 +519,9 @@ async function saveTaskHandler() {
 
     filteredTasks = [...allTasks];
 
-    console.log(`✅ Task "${taskName}" added successfully with ID: ${projectTaskId}`);
+    console.log(
+      `✅ Task "${taskName}" added successfully with ID: ${projectTaskId}`
+    );
     alert("Task added successfully!");
     taskNameInput.value = "";
     addTaskModal.classList.add("hidden");
@@ -397,23 +541,77 @@ async function deleteTaskHandler() {
   if (!taskToDelete) return;
 
   try {
-    await deleteDoc(doc(db, "tb_project_task", taskToDelete));
-    console.log(`✅ Task ${taskToDelete} deleted successfully!`);
+    // Get the project_task_id for this task
+    const taskSnap = await getDocs(
+      query(
+        collection(db, "tb_project_task"),
+        where("__name__", "==", taskToDelete)
+      )
+    );
+    if (taskSnap.empty) {
+      console.log(`Task ${taskToDelete} not found in Firestore.`);
+      alert("Task not found.");
+      deleteTaskModal.classList.add("hidden");
+      return;
+    }
+    const projectTaskId = taskSnap.docs[0].data().project_task_id;
 
+    // Delete associated records in tb_attendance
+    const attendanceRef = collection(db, "tb_attendance");
+    const attendanceQuery = query(
+      attendanceRef,
+      where("project_task_id", "==", projectTaskId)
+    );
+    const attendanceSnap = await getDocs(attendanceQuery);
+    if (!attendanceSnap.empty) {
+      const deleteAttendancePromises = attendanceSnap.docs.map((attDoc) =>
+        deleteDoc(attDoc.ref)
+      );
+      await Promise.all(deleteAttendancePromises);
+      console.log(`✅ Deleted ${attendanceSnap.size} tb_attendance records`);
+    } else {
+      console.log("No tb_attendance records found for this task.");
+    }
+
+    // Delete Attendance subcollection records (optional)
+    const attendanceSubRef = collection(
+      db,
+      `tb_project_task/${taskToDelete}/Attendance`
+    );
+    const attendanceSubSnap = await getDocs(attendanceSubRef);
+    if (!attendanceSubSnap.empty) {
+      const deleteSubPromises = attendanceSubSnap.docs.map((subDoc) =>
+        deleteDoc(subDoc.ref)
+      );
+      await Promise.all(deleteSubPromises);
+      console.log(
+        `✅ Deleted ${attendanceSubSnap.size} Attendance subcollection records`
+      );
+    } else {
+      console.log("No Attendance subcollection records found for this task.");
+    }
+
+    // Delete the task from tb_project_task
+    await deleteDoc(doc(db, "tb_project_task", taskToDelete));
+    console.log(
+      `✅ Task ${taskToDelete} deleted successfully from tb_project_task`
+    );
+
+    // Update local arrays
     const taskIndex = allTasks.findIndex((task) => task.id === taskToDelete);
     if (taskIndex !== -1) {
       allTasks.splice(taskIndex, 1);
       filteredTasks = [...allTasks];
     }
 
-    alert("Task deleted successfully!");
+    alert("Task and associated records deleted successfully!");
     updatePagination();
     if (currentPage > totalPages && totalPages > 0) {
       currentPage = totalPages;
     }
     renderTasks();
   } catch (error) {
-    console.error("❌ Error deleting task:", error);
+    console.error("❌ Error deleting task and related records:", error);
     alert("Failed to delete task. Try again.");
   }
 
