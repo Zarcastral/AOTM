@@ -19,6 +19,53 @@ let tasksPerPage = 5;
 let currentPage = 1;
 let totalPages = 0;
 
+// Function to show success panel
+function showSuccessPanel(message) {
+  const successMessage = document.createElement("div");
+  successMessage.className = "success-message";
+  successMessage.textContent = message;
+
+  document.body.appendChild(successMessage);
+
+  // Fade in
+  successMessage.style.display = "block";
+  setTimeout(() => {
+    successMessage.style.opacity = "1";
+  }, 5); // Small delay to trigger transition
+
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    successMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(successMessage);
+    }, 400); // Match transition duration
+  }, 4000); // Display for 4 seconds
+}
+
+// Function to show error panel
+function showErrorPanel(message) {
+  const errorMessage = document.createElement("div");
+  errorMessage.className = "success-message";
+  errorMessage.textContent = message;
+  errorMessage.style.backgroundColor = "#dc2626"; // Red background for error
+
+  document.body.appendChild(errorMessage);
+
+  // Fade in
+  errorMessage.style.display = "block";
+  setTimeout(() => {
+    errorMessage.style.opacity = "1";
+  }, 5); // Small delay to trigger transition
+
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    errorMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(errorMessage);
+    }, 400); // Match transition duration
+  }, 4000); // Display for 4 seconds
+}
+
 export async function fetchProjectsForFarmer() {
   const farmerId = sessionStorage.getItem("farmer_id");
 
@@ -232,7 +279,7 @@ function attachRowEventListeners() {
           const taskData = taskSnap.docs[0].data();
           const taskName = taskData.task_name;
           if (taskData.task_status === "Completed") {
-            alert(`"${taskName}" is completed and cannot be deleted.`);
+            showErrorPanel(`"${taskName}" is completed and cannot be deleted.`); // Replaced alert
             console.log(`Attempted to delete completed task: ${taskName}`);
             return;
           }
@@ -386,7 +433,7 @@ async function saveEditHandler() {
         (doc) => doc.id !== taskToEdit
       );
       if (existingTaskDoc) {
-        alert(`"${newTaskName}" already exists in this project.`);
+        showErrorPanel(`"${newTaskName}" already exists in this project.`);
         editTaskNameInput.value = originalTaskName;
         saveEditBtn.disabled = true;
         return;
@@ -432,7 +479,7 @@ async function saveEditHandler() {
       filteredTasks = [...allTasks];
     }
 
-    alert("Task name updated successfully!");
+    showSuccessPanel("Task name updated successfully!");
     editTaskModal.classList.add("hidden");
     renderTasks();
   } catch (error) {
@@ -475,7 +522,7 @@ async function saveTaskHandler() {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      alert(
+      showErrorPanel(
         "A task with this name already exists in the project. Please use a different name."
       );
       return;
@@ -522,7 +569,7 @@ async function saveTaskHandler() {
     console.log(
       `✅ Task "${taskName}" added successfully with ID: ${projectTaskId}`
     );
-    alert("Task added successfully!");
+    showSuccessPanel("Task added successfully!");
     taskNameInput.value = "";
     addTaskModal.classList.add("hidden");
 
@@ -541,7 +588,6 @@ async function deleteTaskHandler() {
   if (!taskToDelete) return;
 
   try {
-    // Get the project_task_id for this task
     const taskSnap = await getDocs(
       query(
         collection(db, "tb_project_task"),
@@ -556,7 +602,6 @@ async function deleteTaskHandler() {
     }
     const projectTaskId = taskSnap.docs[0].data().project_task_id;
 
-    // Delete associated records in tb_attendance
     const attendanceRef = collection(db, "tb_attendance");
     const attendanceQuery = query(
       attendanceRef,
@@ -573,7 +618,6 @@ async function deleteTaskHandler() {
       console.log("No tb_attendance records found for this task.");
     }
 
-    // Delete Attendance subcollection records (optional)
     const attendanceSubRef = collection(
       db,
       `tb_project_task/${taskToDelete}/Attendance`
@@ -591,20 +635,18 @@ async function deleteTaskHandler() {
       console.log("No Attendance subcollection records found for this task.");
     }
 
-    // Delete the task from tb_project_task
     await deleteDoc(doc(db, "tb_project_task", taskToDelete));
     console.log(
       `✅ Task ${taskToDelete} deleted successfully from tb_project_task`
     );
 
-    // Update local arrays
     const taskIndex = allTasks.findIndex((task) => task.id === taskToDelete);
     if (taskIndex !== -1) {
       allTasks.splice(taskIndex, 1);
       filteredTasks = [...allTasks];
     }
 
-    alert("Task and associated records deleted successfully!");
+    showSuccessPanel("Task and associated records deleted successfully!");
     updatePagination();
     if (currentPage > totalPages && totalPages > 0) {
       currentPage = totalPages;

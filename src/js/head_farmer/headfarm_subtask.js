@@ -16,6 +16,8 @@ const db = getFirestore(app);
 let isFetching = false;
 // Debounce control for form submission
 let isSubmitting = false;
+// Debounce control for add subtask button
+let isAddingSubtask = false;
 
 // Function to fetch subtasks and populate the table
 async function fetchSubtasks(projectTaskId, source = "unknown") {
@@ -424,6 +426,169 @@ async function completeTask(projectTaskId) {
 
 // Function to initialize the subtask page
 export function initializeSubtaskPage() {
+  // Define handler functions outside DOMContentLoaded
+  function handleBackClick() {
+    window.location.href = "headfarm_task.html";
+  }
+
+  async function handleAddSubtaskClick(e) {
+    e.preventDefault();
+    if (isAddingSubtask) {
+      console.log("Add subtask click already in progress, skipping...");
+      return;
+    }
+    isAddingSubtask = true;
+
+    const projectTaskId = sessionStorage.getItem("project_task_id");
+    const modal = document.getElementById("subtaskModal");
+
+    try {
+      // Check task status before showing modal
+      const tasksRef = collection(db, "tb_project_task");
+      const q = query(
+        tasksRef,
+        where("project_task_id", "==", Number(projectTaskId))
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const taskData = querySnapshot.docs[0].data();
+        const taskStatus = taskData.task_status || "Pending";
+
+        if (taskStatus === "Completed") {
+          console.log(
+            `Cannot add subtask: Task ${projectTaskId} is already completed`
+          );
+          alert(
+            "Adding subtask is not possible since task is already completed"
+          );
+          return;
+        }
+
+        // If task is not completed, show the modal
+        modal.style.display = "flex";
+      }
+    } finally {
+      isAddingSubtask = false;
+    }
+  }
+
+  function handleCloseModal() {
+    const modal = document.getElementById("subtaskModal");
+    const subtaskForm = document.getElementById("subtaskForm");
+    modal.style.display = "none";
+    subtaskForm.reset();
+  }
+
+  function handleWindowClick(e) {
+    const modal = document.getElementById("subtaskModal");
+    const subtaskForm = document.getElementById("subtaskForm");
+    if (e.target === modal) {
+      modal.style.display = "none";
+      subtaskForm.reset();
+    }
+  }
+
+  async function handleSubtaskSubmit(e) {
+    e.preventDefault();
+    if (isSubmitting) {
+      console.log("Submission already in progress, skipping...");
+      return;
+    }
+    isSubmitting = true;
+
+    const addSubtaskBtn = document.querySelector(".submit-btn");
+    const subtaskInput = document.getElementById("subtaskName");
+    const modal = document.getElementById("subtaskModal");
+    const subtaskForm = document.getElementById("subtaskForm");
+    const projectTaskId = sessionStorage.getItem("project_task_id");
+
+    if (!addSubtaskBtn) {
+      console.error("Add Subtask button not found!");
+      isSubmitting = false;
+      return;
+    }
+
+    addSubtaskBtn.disabled = true;
+    console.log("Add Subtask button disabled");
+
+    const subtaskName = subtaskInput.value.trim();
+    console.log("Form submitted with subtask name:", subtaskName);
+
+    if (!subtaskName) {
+      console.log("No subtask name provided, submission ignored");
+      addSubtaskBtn.disabled = false;
+      isSubmitting = false;
+      return;
+    }
+
+    const tasksRef = collection(db, "tb_project_task");
+    const q = query(
+      tasksRef,
+      where("project_task_id", "==", Number(projectTaskId))
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const existingSubtasks = querySnapshot.docs[0].data().subtasks || [];
+      const capitalizedName =
+        subtaskName.charAt(0).toUpperCase() +
+        subtaskName.slice(1).toLowerCase();
+      const isDuplicate = existingSubtasks.some(
+        (existing) =>
+          existing.subtask_name.toLowerCase() === capitalizedName.toLowerCase()
+      );
+
+      if (isDuplicate) {
+        subtaskInput.value = "";
+        alert(`"${capitalizedName}" is already existing.`);
+        console.log(`Duplicate found: "${capitalizedName}" - stopping`);
+        addSubtaskBtn.disabled = false;
+        isSubmitting = false;
+        return;
+      }
+
+      const success = await addSubtask(projectTaskId, capitalizedName);
+      console.log("AddSubtask result:", success);
+      if (success) {
+        console.log("Closing modal and resetting form");
+        modal.style.display = "none";
+        subtaskForm.reset();
+        await updateCompleteButtonState(projectTaskId);
+      } else {
+        console.log("Modal remains open due to error");
+      }
+    } else {
+      console.log("No task document found for projectTaskId:", projectTaskId);
+    }
+
+    addSubtaskBtn.disabled = false;
+    console.log("Add Subtask button re-enabled");
+    isSubmitting = false;
+  }
+
+  // Attach listeners once outside DOMContentLoaded
+  const addSubtaskBtn = document.querySelector(".add-subtask");
+  if (addSubtaskBtn) {
+    addSubtaskBtn.removeEventListener("click", handleAddSubtaskClick);
+    addSubtaskBtn.addEventListener("click", handleAddSubtaskClick);
+  }
+
+  const closeModal = document.querySelector(".close-modal");
+  if (closeModal) {
+    closeModal.removeEventListener("click", handleCloseModal);
+    closeModal.addEventListener("click", handleCloseModal);
+  }
+
+  window.removeEventListener("click", handleWindowClick);
+  window.addEventListener("click", handleWindowClick);
+
+  const subtaskForm = document.getElementById("subtaskForm");
+  if (subtaskForm) {
+    subtaskForm.removeEventListener("submit", handleSubtaskSubmit);
+    subtaskForm.addEventListener("submit", handleSubtaskSubmit);
+  }
+
   document.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
   document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
 
@@ -440,13 +605,13 @@ export function initializeSubtaskPage() {
 
       const backBtn = document.querySelector(".back-btn");
       if (backBtn) {
-        backBtn.addEventListener("click", () => {
-          window.location.href = "headfarm_task.html";
-        });
+        backBtn.removeEventListener("click", handleBackClick);
+        backBtn.addEventListener("click", handleBackClick);
       }
 
       const completeBtn = document.getElementById("completeTaskBtn");
       if (completeBtn) {
+        completeBtn.onclick = null;
         completeBtn.onclick = async () => {
           if (!completeBtn.disabled) {
             console.log(
@@ -456,106 +621,6 @@ export function initializeSubtaskPage() {
           }
         };
       }
-
-      const modal = document.getElementById("subtaskModal");
-      const addSubtaskBtn = document.querySelector(".add-subtask");
-      const closeModal = document.querySelector(".close-modal");
-      const subtaskForm = document.getElementById("subtaskForm");
-      const subtaskInput = document.getElementById("subtaskName");
-
-      addSubtaskBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        modal.style.display = "flex";
-      });
-
-      closeModal.addEventListener("click", () => {
-        modal.style.display = "none";
-        subtaskForm.reset();
-      });
-
-      window.addEventListener("click", (e) => {
-        if (e.target === modal) {
-          modal.style.display = "none";
-          subtaskForm.reset();
-        }
-      });
-
-      subtaskForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (isSubmitting) {
-          console.log("Submission already in progress, skipping...");
-          return;
-        }
-        isSubmitting = true;
-
-        const addSubtaskBtn = document.querySelector(".submit-btn");
-        if (!addSubtaskBtn) {
-          console.error("Add Subtask button not found!");
-          isSubmitting = false;
-          return;
-        }
-
-        addSubtaskBtn.disabled = true;
-        console.log("Add Subtask button disabled");
-
-        const subtaskName = subtaskInput.value.trim();
-        console.log("Form submitted with subtask name:", subtaskName);
-
-        if (!subtaskName) {
-          console.log("No subtask name provided, submission ignored");
-          addSubtaskBtn.disabled = false;
-          isSubmitting = false;
-          return;
-        }
-
-        const tasksRef = collection(db, "tb_project_task");
-        const q = query(
-          tasksRef,
-          where("project_task_id", "==", Number(projectTaskId))
-        );
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          const existingSubtasks = querySnapshot.docs[0].data().subtasks || [];
-          const capitalizedName =
-            subtaskName.charAt(0).toUpperCase() +
-            subtaskName.slice(1).toLowerCase();
-          const isDuplicate = existingSubtasks.some(
-            (existing) =>
-              existing.subtask_name.toLowerCase() ===
-              capitalizedName.toLowerCase()
-          );
-
-          if (isDuplicate) {
-            subtaskInput.value = "";
-            alert(`"${capitalizedName}" is already existing.`);
-            console.log(`Duplicate found: "${capitalizedName}" - stopping`);
-            addSubtaskBtn.disabled = false;
-            isSubmitting = false;
-            return;
-          }
-
-          const success = await addSubtask(projectTaskId, capitalizedName);
-          console.log("AddSubtask result:", success);
-          if (success) {
-            console.log("Closing modal and resetting form");
-            modal.style.display = "none";
-            subtaskForm.reset();
-            await updateCompleteButtonState(projectTaskId);
-          } else {
-            console.log("Modal remains open due to error");
-          }
-        } else {
-          console.log(
-            "No task document found for projectTaskId:",
-            projectTaskId
-          );
-        }
-
-        addSubtaskBtn.disabled = false;
-        console.log("Add Subtask button re-enabled");
-        isSubmitting = false;
-      });
     } else {
       console.log("No project_task_id found in sessionStorage.");
       document.querySelector(".subtask-table tbody").innerHTML = `
