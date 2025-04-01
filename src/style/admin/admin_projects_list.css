@@ -24,7 +24,7 @@ body {
     color: #486581;
     font-size: 17px;
     font-weight: 500;
-    margin: 10px 0 20px 0;
+    margin: 10px 0 10px 0;
   }
 
   
@@ -60,6 +60,7 @@ body {
     background-color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+    border-radius: 10px;
     padding: 45px 20px 20px 20px;
 }
 
@@ -93,34 +94,52 @@ th {
     
 }
 
-th:nth-child(3), td:nth-child(3) {
+th:nth-child(1), td:nth-child(1) {
     width: 100px; /* Fixed width for the action column; adjust as needed */
     min-width: 120px; /* Minimum width to ensure usability */
     text-align: left;
 }
 
+th:nth-child(2), td:nth-child(2) {
+    width: 100px; /* Fixed width for the action column; adjust as needed */
+    min-width: 130px; /* Minimum width to ensure usability */
+    text-align: left;
+}
+
+th:nth-child(3), td:nth-child(3) {
+    width: 100px; /* Fixed width for the action column; adjust as needed */
+    min-width: 100px; /* Minimum width to ensure usability */
+    text-align: left;
+}
+
 th:nth-child(4), td:nth-child(4) {
     width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 110px; /* Minimum width to ensure usability */
+    min-width: 90px; /* Minimum width to ensure usability */
     text-align: left;
 }
 
 th:nth-child(5), td:nth-child(5) {
     width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 110px; /* Minimum width to ensure usability */
+    min-width: 90px; /* Minimum width to ensure usability */
     text-align: left;
 }
 
 th:nth-child(6), td:nth-child(6) {
     width: 250px; /* Fixed width for the action column; adjust as needed */
-    min-width: 150px; /* Minimum width to ensure usability */
+    min-width: 130px; /* Minimum width to ensure usability */
+    text-align: left;
+}
+
+th:nth-child(7), td:nth-child(7) {
+    width: 100px; /* Fixed width for the action column; adjust as needed */
+    min-width: 20px; /* Minimum width to ensure usability */
     text-align: left;
 }
 
 
 th:last-child, td:last-child {
     width: 170px; /* Fixed width for the action column; adjust as needed */
-    min-width: 200px; /* Minimum width to ensure usability */
+    min-width: 150px; /* Minimum width to ensure usability */
     text-align: center;
 }
 

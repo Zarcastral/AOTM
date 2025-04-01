@@ -8,6 +8,13 @@ body {
   flex-direction: column;
 }
 
+.title{
+  font-size: 20px;
+  font-weight: 500;
+  color: #486581;
+  margin-bottom: 20px;
+}
+
 .header {
   min-height: 60px;
   height: 60px;
@@ -188,10 +195,10 @@ body {
 #new-subtask-input,
 #new-subtask-input-subtasks {
   flex: 1;
-  padding: 10px;
+  padding: 20px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 12px;
   outline: none;
 }
 
@@ -279,11 +286,20 @@ tbody tr:hover {
 
 #crop-filter,
 #crop-type-filter {
-  padding: 10px;
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
   font-size: 16px;
-  border: 1px solid lightgray;
-  border-radius: 15px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
   outline: none;
+  width: 200px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
 }
 
 .edit-task-btn {
@@ -422,6 +438,13 @@ tbody tr:hover {
   margin: 0 0 0 auto; /* Aligns the button to the right */
   display: block; /* Keep it as a block element */
 }
+
+
+
+
+
+
+
 /* Responsive styles */
 @media (max-width: 768px) {
   .header-title {

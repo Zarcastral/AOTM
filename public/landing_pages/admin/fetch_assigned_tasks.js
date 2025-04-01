@@ -321,7 +321,7 @@ async function populateCropDropdown() {
           return;
       }
 
-      cropDropdown.innerHTML = `<option value="">All Crops</option>`;
+      cropDropdown.innerHTML = `<option value="">Crops</option>`;
       const cropsSnapshot = await getDocs(collection(db, "tb_crops"));
       cropsSnapshot.forEach((cropDoc) => {
           const cropData = cropDoc.data();
@@ -350,7 +350,7 @@ async function populateCropTypeDropdown(selectedCrop = "") {
           return;
       }
 
-      cropTypeDropdown.innerHTML = `<option value="">All Crop Types</option>`;
+      cropTypeDropdown.innerHTML = `<option value="">Crop Type</option>`;
       const tasksSnapshot = await getDocs(collection(db, "tb_task_list"));
       const cropTypes = new Set();
 

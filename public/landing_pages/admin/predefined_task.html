@@ -15,12 +15,12 @@
 
     <div class="main-content">
         <!-- Buttons for Adding and Assigning Tasks -->
-        <h2>Default Task</h2>
+        <div class="title">CURRENT TASK</div>
 
         <!-- Task List Section -->
         <div class="panel">
             <div class="btn-container">
-                <button id="open-add-task-modal" class="text-add-btn"> + Add New Task</button>
+                <button id="open-add-task-modal" class="text-add-btn"> + New Task</button>
             </div>
             <table>
                 <thead>
@@ -116,8 +116,8 @@
             </div>
         </div>
 
-        <h2>Assigned Tasks</h2>
-        <!-- Assigned Tasks Table -->
+        <div class="title">ASSIGNED TASK</div>
+            <!-- Assigned Tasks Table -->
         <div class="panel">
             <div class="btn-container">
                 <button id="open-assign-task-modal" class="text-add-btn"> + Assign Tasks to Crop Type</button>
@@ -129,7 +129,7 @@
                 </select>
                 <label for="crop-type-filter"></label>
                 <select id="crop-type-filter">
-                    <option value="">Crop Types</option>
+                    <option value="">Crop Type</option>
                 </select>
             </div>
             <table>
