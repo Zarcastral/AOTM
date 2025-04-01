@@ -18,6 +18,14 @@ body {
     align-items: center;
     padding: 0 20px;
   }
+
+  #title {
+    color: #486581;
+    font-size: 17px;
+    font-weight: 500;
+    margin: 10px 0 20px 0;
+  }
+
   
   .header-title {
     font-size: 30px;
@@ -40,7 +48,7 @@ body {
   .main-content {
     display: flex;
     flex-direction: column;
-    padding: 50px; /* Padding around the panels */
+    padding: 30px; /* Padding around the panels */
     overflow-y: auto; /* Enable vertical scrolling */
   }
 
@@ -51,7 +59,7 @@ body {
     background-color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
-    padding: 15px;
+    padding: 45px 20px 20px 20px;
 }
 
 
@@ -59,17 +67,19 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    
 }
 
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
+
 }
 
 th, td {
     padding: 1rem;
     text-align: left;
-    border-bottom: 5px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
     width: auto;
 }
 
@@ -93,7 +103,7 @@ th:nth-child(4), td:nth-child(4) {
 
 th:nth-child(5), td:nth-child(5) {
     width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 150px; /* Minimum width to ensure usability */
+    min-width: 110px; /* Minimum width to ensure usability */
     text-align: left;
 }
 
@@ -106,13 +116,13 @@ th:nth-child(6), td:nth-child(6) {
 
 th:last-child, td:last-child {
     width: 170px; /* Fixed width for the action column; adjust as needed */
-    min-width: 100px; /* Minimum width to ensure usability */
+    min-width: 200px; /* Minimum width to ensure usability */
     text-align: center;
 }
 
 tbody tr {
     background-color: white;
-    border-bottom: 4px solid #f0f0f0;
+    border-bottom: 3px solid #f0f0f0;
 }
 tbody tr:hover {
     background-color: #F3F4F6;
@@ -178,8 +188,8 @@ input[type="checkbox"] {
 .add-project-btn {
     background-color: #41A186;
     color: white;
-    padding: 12px 20px;
-    font-size: 18px;
+    padding: 8px 20px;
+    font-size: 15px;
     text-align: center;
     border-radius: 20px;
     cursor: pointer;
@@ -355,7 +365,7 @@ input[type="checkbox"] {
 }
 
 .action-btn {
-    padding: 8px;
+    padding: 1px;
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -494,8 +504,16 @@ input[type="checkbox"] {
     justify-content: space-between;
     margin-top: 20px;
 }
+
+
+
+
 /* Responsive styles */
 @media (max-width: 1024px) {
+
+    #title{
+        font-size: 15px;
+    }
     .main-content {
         padding: 30px;
     }
@@ -509,30 +527,29 @@ input[type="checkbox"] {
     }
 
     .add-project-btn {
-        font-size: 16px;
+        font-size: 12px;
         padding: 10px 16px;
     }
 }
 
 @media (max-width: 768px) {
+
+    #title{
+        font-size: 12px;
+    }
+
     .main-content {
-        padding: 20px;
+        padding: 10px;
     }
 
     .panel {
         width: 100%;
-        padding: 12px;
-    }
-
-    .search-container {
-        flex-direction: column;
-        align-items: stretch;
-        width: 100%;
+        padding: 20px;
     }
 
     #search-bar,
     #barangay-select {
-        width: 100%;
+        width: 80%;
     }
 
     table {
@@ -557,6 +574,11 @@ input[type="checkbox"] {
 }
 
 @media (max-width: 480px) {
+
+    #title{
+        font-size: 15px;
+    }
+
     .header {
         padding: 0 10px;
     }
@@ -574,8 +596,9 @@ input[type="checkbox"] {
         padding: 10px;
     }
 
-    #search-bar {
-        width: 100%;
+    #search-bar,
+    #barangay-select {
+        width: 80%;
     }
 
     .pagination-container {
