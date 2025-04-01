@@ -17,6 +17,53 @@ let isFetching = false;
 let isSubmitting = false;
 let isAddingSubtask = false;
 
+// Function to show success panel
+function showSuccessPanel(message) {
+  const successMessage = document.createElement("div");
+  successMessage.className = "success-message";
+  successMessage.textContent = message;
+
+  document.body.appendChild(successMessage);
+
+  // Fade in
+  successMessage.style.display = "block";
+  setTimeout(() => {
+    successMessage.style.opacity = "1";
+  }, 5);
+
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    successMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(successMessage);
+    }, 400);
+  }, 4000);
+}
+
+// Function to show error panel
+function showErrorPanel(message) {
+  const errorMessage = document.createElement("div");
+  errorMessage.className = "success-message";
+  errorMessage.textContent = message;
+  errorMessage.style.backgroundColor = "#AC415B";
+
+  document.body.appendChild(errorMessage);
+
+  // Fade in
+  errorMessage.style.display = "block";
+  setTimeout(() => {
+    errorMessage.style.opacity = "1";
+  }, 5);
+
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    errorMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(errorMessage);
+    }, 400);
+  }, 4000);
+}
+
 // Utility function to check if current date is past end_date
 function isPastEndDate(endDate) {
   const currentDate = new Date();
@@ -37,7 +84,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
       `Starting fetchSubtasks from ${source} for projectTaskId: ${projectTaskId}`
     );
     const endDate = sessionStorage.getItem("selected_project_end_date");
-    console.log(`Fetched end_date on subtask page: ${endDate}`); // Log end_date
+    console.log(`Fetched end_date on subtask page: ${endDate}`);
 
     const tasksRef = collection(db, "tb_project_task");
     const q = query(
@@ -153,7 +200,7 @@ function attachEventListeners(projectTaskId) {
 
   async function handleDeleteClick(event) {
     if (isPastEnd) {
-      alert("Project is way past the deadline, request extension of project");
+      showErrorPanel("Project is way past the deadline, request extension of project");
       return;
     }
     subtaskIndexToDelete = event.target.dataset.index;
@@ -168,7 +215,7 @@ function attachEventListeners(projectTaskId) {
       const subtasks = querySnapshot.docs[0].data().subtasks || [];
       const subtask = subtasks[subtaskIndexToDelete];
       if (subtask.status === "Completed") {
-        alert(`"${subtask.subtask_name}" is completed and cannot be deleted.`);
+        showErrorPanel(`"${subtask.subtask_name}" is completed and cannot be deleted.`);
         console.log(
           `Attempted to delete completed subtask: ${subtask.subtask_name}`
         );
@@ -198,7 +245,7 @@ function attachEventListeners(projectTaskId) {
 
   async function confirmDeleteHandler() {
     if (isPastEnd) {
-      alert("Project is way past the deadline, request extension of project");
+      showErrorPanel("Project is way past the deadline, request extension of project");
       deleteModal.style.display = "none";
       return;
     }
@@ -228,7 +275,7 @@ function attachEventListeners(projectTaskId) {
 async function deleteSubtask(projectTaskId, subtaskIndex) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   if (endDate && isPastEndDate(endDate)) {
-    alert("Project is way past the deadline, request extension of project");
+    showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
 
@@ -310,6 +357,7 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
       console.log(
         `✅ Subtask ${deletedSubtaskName} deleted from tb_project_task`
       );
+      showSuccessPanel("Subtask deleted successfully!");
 
       if (deletedSubtaskName === sessionStorage.getItem("subtask_name")) {
         sessionStorage.removeItem("subtask_status");
@@ -320,6 +368,7 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
     }
   } catch (error) {
     console.error("❌ Error deleting subtask or attendance records:", error);
+    showErrorPanel("Failed to delete subtask. Please try again.");
   }
 }
 
@@ -327,7 +376,7 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
 async function addSubtask(projectTaskId, newSubtaskName) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   if (endDate && isPastEndDate(endDate)) {
-    alert("Project is way past the deadline, request extension of project");
+    showErrorPanel("Project is way past the deadline, request extension of project");
     return false;
   }
 
@@ -358,10 +407,12 @@ async function addSubtask(projectTaskId, newSubtaskName) {
     try {
       await updateDoc(taskDocRef, { subtasks: updatedSubtasks });
       console.log("✅ Subtask saved successfully:", newSubtask);
+      showSuccessPanel("Subtask added successfully!");
       await fetchSubtasks(projectTaskId, "addSubtask");
       return true;
     } catch (error) {
       console.error("❌ Failed to save subtask to Firestore:", error);
+      showErrorPanel("Failed to add subtask. Please try again.");
       return false;
     }
   } else {
@@ -390,7 +441,6 @@ async function updateCompleteButtonState(projectTaskId) {
       (subtask) => subtask.status === "Completed"
     );
 
-    // Disable button if task is "Completed" or if not all subtasks are completed
     const isDisabled =
       taskStatus === "Completed" || !allCompleted || subtasks.length === 0;
     completeBtn.disabled = isDisabled;
@@ -406,7 +456,7 @@ async function updateCompleteButtonState(projectTaskId) {
 async function completeTask(projectTaskId) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   if (endDate && isPastEndDate(endDate)) {
-    alert("Project is way past the deadline, request extension of project");
+    showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
 
@@ -425,7 +475,6 @@ async function completeTask(projectTaskId) {
       const subtasks = taskData.subtasks || [];
       const today = new Date().toISOString().split("T")[0];
 
-      // Check if all subtasks are completed before allowing completion
       const allCompleted = subtasks.every(
         (subtask) => subtask.status === "Completed"
       );
@@ -433,11 +482,10 @@ async function completeTask(projectTaskId) {
         console.log(
           `Cannot complete task ${projectTaskId}: Not all subtasks are completed or no subtasks exist`
         );
-        alert("Cannot complete task: All subtasks must be completed first.");
+        showErrorPanel("Cannot complete task: All subtasks must be completed first.");
         return;
       }
 
-      // Update task_status to "Completed" and set end_date
       await updateDoc(taskDocRef, {
         task_status: "Completed",
         end_date: today,
@@ -445,19 +493,18 @@ async function completeTask(projectTaskId) {
       console.log(
         `✅ Task with project_task_id ${projectTaskId} marked as Completed`
       );
+      showSuccessPanel("Task marked as completed successfully!");
 
-      // Update button state after completion
       await updateCompleteButtonState(projectTaskId);
 
-      // Redirect back to headfarm_task.html
       window.location.href = "headfarm_task.html";
     } else {
       console.log(`No task found with project_task_id: ${projectTaskId}`);
-      alert("Task not found. Unable to mark as completed.");
+      showErrorPanel("Task not found. Unable to mark as completed.");
     }
   } catch (error) {
     console.error("❌ Error completing task:", error);
-    alert("Failed to mark task as completed. Please try again.");
+    showErrorPanel("Failed to mark task as completed. Please try again.");
   }
 }
 
@@ -473,7 +520,7 @@ async function handleAddSubtaskClick(e) {
     return;
   }
   isAddingSubtask = true;
-  console.log("Add Subtask button clicked"); // Debug log
+  console.log("Add Subtask button clicked");
 
   const projectTaskId = sessionStorage.getItem("project_task_id");
   const modal = document.getElementById("subtaskModal");
@@ -481,8 +528,8 @@ async function handleAddSubtaskClick(e) {
 
   try {
     if (endDate && isPastEndDate(endDate)) {
-      alert("Project is way past the deadline, request extension of project");
-      return; // Stop here if past end_date
+      showErrorPanel("Project is way past the deadline, request extension of project");
+      return;
     }
 
     const tasksRef = collection(db, "tb_project_task");
@@ -500,11 +547,11 @@ async function handleAddSubtaskClick(e) {
         console.log(
           `Cannot add subtask: Task ${projectTaskId} is already completed`
         );
-        alert("Adding subtask is not possible since task is already completed");
+        showErrorPanel("Adding subtask is not possible since task is already completed");
         return;
       }
 
-      modal.style.display = "flex"; // Only show modal if checks pass
+      modal.style.display = "flex";
     }
   } finally {
     isAddingSubtask = false;
@@ -578,7 +625,7 @@ async function handleSubtaskSubmit(e) {
 
     if (isDuplicate) {
       subtaskInput.value = "";
-      alert(`"${capitalizedName}" is already existing.`);
+      showErrorPanel(`"${capitalizedName}" is already existing.`);
       console.log(`Duplicate found: "${capitalizedName}" - stopping`);
       addSubtaskBtn.disabled = false;
       isSubmitting = false;
@@ -628,6 +675,8 @@ export function initializeSubtaskPage() {
         completeBtn.onclick = null;
         completeBtn.onclick = async () => {
           if (!completeBtn.disabled) {
+            // Show success panel before starting the completion process
+            showSuccessPanel("All subtasks are completed! Marking task as Completed...");
             console.log(
               "All subtasks are completed! Marking task as Completed..."
             );
@@ -643,12 +692,11 @@ export function initializeSubtaskPage() {
     }
   }
 
-  // Attach event listeners once at the module level
   const addSubtaskBtn = document.querySelector(".add-subtask");
   if (addSubtaskBtn) {
     addSubtaskBtn.removeEventListener("click", handleAddSubtaskClick);
     addSubtaskBtn.addEventListener("click", handleAddSubtaskClick);
-    console.log("Add Subtask event listener attached"); // Debug log
+    console.log("Add Subtask event listener attached");
   }
 
   const closeModal = document.querySelector(".close-modal");

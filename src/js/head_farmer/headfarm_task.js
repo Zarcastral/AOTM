@@ -54,7 +54,7 @@ function showErrorPanel(message) {
   const errorMessage = document.createElement("div");
   errorMessage.className = "success-message";
   errorMessage.textContent = message;
-  errorMessage.style.backgroundColor = "#dc2626";
+  errorMessage.style.backgroundColor = "#AC415B";
 
   document.body.appendChild(errorMessage);
 

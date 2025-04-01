@@ -14,6 +14,52 @@ import app from "../../config/firebase_config.js";
 // Initialize Firestore
 const db = getFirestore(app);
 
+// Function to show success panel
+function showSuccessPanel(message) {
+  const successMessage = document.createElement("div");
+  successMessage.className = "success-message";
+  successMessage.textContent = message;
+
+  document.body.appendChild(successMessage);
+
+  // Fade in
+  successMessage.style.display = "block";
+  setTimeout(() => {
+    successMessage.style.opacity = "1";
+  }, 5);
+
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    successMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(successMessage);
+    }, 400);
+  }, 4000);
+}
+
+// Function to show error panel
+function showErrorPanel(message) {
+  const errorMessage = document.createElement("div");
+  errorMessage.className = "error-message";
+  errorMessage.textContent = message;
+
+  document.body.appendChild(errorMessage);
+
+  // Fade in
+  errorMessage.style.display = "block";
+  setTimeout(() => {
+    errorMessage.style.opacity = "1";
+  }, 5);
+
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    errorMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(errorMessage);
+    }, 400);
+  }, 4000);
+}
+
 // Utility function to check if current date is past end_date
 function isPastEndDate(endDate) {
   const currentDate = new Date();
@@ -28,7 +74,7 @@ function confirmCompleteSubtask() {
     const confirmBtn = document.getElementById("confirmCompleteBtn");
     const cancelBtn = document.getElementById("cancelCompleteBtn");
 
-    modal.style.display = "block";
+    modal.style.display = "flex";
 
     confirmBtn.onclick = () => {
       modal.style.display = "none";
@@ -61,9 +107,8 @@ export function initializeSubtaskDetailsPage() {
       projectTaskId,
       endDate,
     });
-    console.log(`Fetched end_date on subtask details page: ${endDate}`); // Log end_date
+    console.log(`Fetched end_date on subtask details page: ${endDate}`);
 
-    // Fetch subtask status from Firestore and store it in sessionStorage at the start
     try {
       const tasksRef = collection(db, "tb_project_task");
       const taskQuery = query(
@@ -81,10 +126,7 @@ export function initializeSubtaskDetailsPage() {
         const subtasks = taskData.subtasks || [];
         const subtask = subtasks.find((st) => st.subtask_name === subtaskName);
 
-        // Get the initial subtask status (default to "Pending" if not found)
         const initialStatus = subtask ? subtask.status || "Pending" : "Pending";
-
-        // Store the initial status in sessionStorage as subtask_status
         sessionStorage.setItem("subtask_status", initialStatus);
         console.log(
           "Initial subtask_status fetched and stored in sessionStorage:",
@@ -97,7 +139,6 @@ export function initializeSubtaskDetailsPage() {
           cropName,
           projectTaskId,
         });
-        // Default to "Pending" if no task is found
         sessionStorage.setItem("subtask_status", "Pending");
         console.log(
           "No task found; subtask_status set to 'Pending' in sessionStorage"
@@ -111,7 +152,6 @@ export function initializeSubtaskDetailsPage() {
       );
     }
 
-    // Continue with the rest of the initialization
     const taskNameElement = document.getElementById("taskName");
     if (taskNameElement) {
       taskNameElement.textContent = subtaskName;
@@ -132,9 +172,7 @@ export function initializeSubtaskDetailsPage() {
     if (addDayBtn) {
       addDayBtn.addEventListener("click", async () => {
         if (endDate && isPastEndDate(endDate)) {
-          alert(
-            "Project is way past the deadline, request extension of project"
-          );
+          showErrorPanel("Project is way past the deadline, request extension of project");
           return;
         }
         await addNewDay(
@@ -150,9 +188,7 @@ export function initializeSubtaskDetailsPage() {
     if (completeBtn) {
       completeBtn.addEventListener("click", async () => {
         if (endDate && isPastEndDate(endDate)) {
-          alert(
-            "Project is way past the deadline, request extension of project"
-          );
+          showErrorPanel("Project is way past the deadline, request extension of project");
           return;
         }
         const confirmed = await confirmCompleteSubtask();
@@ -183,7 +219,7 @@ export function initializeSubtaskDetailsPage() {
                   "Subtask not found in the task document:",
                   subtaskName
                 );
-                alert("Error: Subtask not found in the task");
+                showErrorPanel("Error: Subtask not found in the task");
                 return;
               }
 
@@ -195,7 +231,6 @@ export function initializeSubtaskDetailsPage() {
                 subtasks: subtasks,
               });
 
-              // Update sessionStorage after marking as completed
               sessionStorage.setItem("subtask_status", "Completed");
               console.log(
                 "subtask_status updated in sessionStorage:",
@@ -205,7 +240,7 @@ export function initializeSubtaskDetailsPage() {
               console.log(
                 `Database updated: Status set to "Completed" for subtask: ${subtaskName} in tb_project_task/${taskId}`
               );
-              alert("Subtask marked as Completed and saved to database!");
+              showSuccessPanel("Subtask marked as Completed and saved to database!");
               completeBtn.disabled = true;
 
               await fetchAttendanceData(
@@ -222,11 +257,11 @@ export function initializeSubtaskDetailsPage() {
                 cropName,
                 projectTaskId,
               });
-              alert("Error: Could not find matching task");
+              showErrorPanel("Error: Could not find matching task");
             }
           } catch (error) {
             console.error("Error updating subtask status in database:", error);
-            alert("Error marking subtask as completed: " + error.message);
+            showErrorPanel("Error marking subtask as completed: " + error.message);
           }
         } else {
           console.log("Complete action canceled by user.");
@@ -258,9 +293,7 @@ export function initializeSubtaskDetailsPage() {
         window.location.href = "headfarm_attendance.html";
       } else if (event.target.matches(".action-icons img[alt='Delete']")) {
         if (endDate && isPastEndDate(endDate)) {
-          alert(
-            "Project is way past the deadline, request extension of project"
-          );
+          showErrorPanel("Project is way past the deadline, request extension of project");
           return;
         }
         const dateCreated = event.target
@@ -342,16 +375,13 @@ async function fetchAttendanceData(
     let hasZeroAttendance = false;
 
     const subtask = subtasks.find((st) => st.subtask_name === subtaskName);
-    // Set subtask_status to match the database status
     let subtask_status = subtask ? subtask.status || "Pending" : "Pending";
 
-    // Log initial subtask_status
     console.log(
       "Current value of subtask_status before update:",
       subtask_status
     );
 
-    // Set to "Ongoing" if there are attendance records and not "Completed"
     if (!attendanceSnapshot.empty && subtask_status !== "Completed") {
       const subtaskIndex = subtasks.findIndex(
         (st) => st.subtask_name === subtaskName
@@ -377,7 +407,6 @@ async function fetchAttendanceData(
       tbody.innerHTML = `<tr><td colspan="3">No attendance records found for subtask: ${subtaskName}.</td></tr>`;
       sessionStorage.setItem("totalAttendanceRecords", "0");
       completedBtn.disabled = true;
-      // If no attendance records, ensure subtask_status is "Pending" if not "Completed"
       if (subtask_status !== "Completed") {
         sessionStorage.setItem("subtask_status", "Pending");
         console.log(
@@ -444,7 +473,6 @@ async function fetchAttendanceData(
       }
     }
 
-    // Log final subtask_status
     console.log(`Final subtask_status after processing: ${subtask_status}`);
   } catch (error) {
     console.error("Error fetching attendance data:", error);
@@ -464,7 +492,7 @@ async function addNewDay(
 ) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   if (endDate && isPastEndDate(endDate)) {
-    alert("Project is way past the deadline, request extension of project");
+    showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
 
@@ -506,7 +534,7 @@ async function addNewDay(
       console.log(
         `Subtask ${subtaskName} is already Completed, blocking new day addition`
       );
-      alert(
+      showErrorPanel(
         "This subtask is already completed; adding new date records is not allowed."
       );
       return;
@@ -531,9 +559,7 @@ async function addNewDay(
         "Attendance record for today already exists:",
         todaySnapshot.docs[0].id
       );
-      alert(
-        "A record for today already exists. No new record will be created."
-      );
+      showErrorPanel("A record for today already exists. No new record will be created.");
       return;
     }
 
@@ -548,7 +574,6 @@ async function addNewDay(
       crop_name: cropName,
     });
 
-    // Update subtask status and start_date
     const subtaskIndex = subtasks.findIndex(
       (st) => st.subtask_name === subtaskName
     );
@@ -560,7 +585,6 @@ async function addNewDay(
       subtasks[subtaskIndex].start_date = currentDate;
     }
 
-    // Update task_status to "Ongoing" and set start_date to current date
     await updateDoc(doc(db, "tb_project_task", taskId), {
       task_status: "Ongoing",
       start_date: currentDate,
@@ -580,12 +604,10 @@ async function addNewDay(
       subtaskName
     );
 
-    alert(
-      `New day (${currentDate}) added successfully and saved to database! Click the view icon to add attendance details.`
-    );
+    showSuccessPanel(`New day (${currentDate}) added successfully and saved to database! Click the view icon to add attendance details.`);
   } catch (error) {
     console.error("Error adding new day to database:", error);
-    alert("Error adding new day: " + error.message);
+    showErrorPanel("Error adding new day: " + error.message);
   }
 }
 
@@ -598,7 +620,7 @@ function confirmDeleteModal(dateCreated) {
     const cancelBtn = document.getElementById("cancelDeleteBtn");
 
     message.textContent = `Are you sure you want to delete the attendance record for ${dateCreated}?`;
-    modal.style.display = "block";
+    modal.style.display = "flex";
 
     confirmBtn.onclick = () => {
       modal.style.display = "none";
@@ -623,7 +645,7 @@ async function deleteAttendanceRecord(
 ) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   if (endDate && isPastEndDate(endDate)) {
-    alert("Project is way past the deadline, request extension of project");
+    showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
 
@@ -663,9 +685,7 @@ async function deleteAttendanceRecord(
     const subtask_status = subtask ? subtask.status || "Pending" : "Pending";
 
     if (subtask_status === "Completed") {
-      alert(
-        "This subtask is already completed; deleting date records is not allowed."
-      );
+      showErrorPanel("This subtask is already completed; deleting date records is not allowed.");
       return;
     }
 
@@ -675,7 +695,6 @@ async function deleteAttendanceRecord(
       return;
     }
 
-    // Step 1: Delete from Attendance subcollection
     const attendanceRef = collection(
       db,
       "tb_project_task",
@@ -703,7 +722,6 @@ async function deleteAttendanceRecord(
       );
     }
 
-    // Step 2: Delete from tb_attendance collection
     const tbAttendanceRef = collection(db, "tb_attendance");
     const deleteTbAttendanceQuery = query(
       tbAttendanceRef,
@@ -726,7 +744,6 @@ async function deleteAttendanceRecord(
       );
     }
 
-    // Step 3: Check remaining attendance records and update task_status and start_date
     const remainingQuery = query(
       attendanceRef,
       where("subtask_name", "==", subtaskName)
@@ -739,7 +756,6 @@ async function deleteAttendanceRecord(
 
     if (subtaskIndex !== -1 && subtasks[subtaskIndex].status !== "Completed") {
       if (remainingSnapshot.empty) {
-        // No records remain, set task_status to "Pending" and start_date to null
         subtasks[subtaskIndex].status = "Pending";
         subtasks[subtaskIndex].start_date = null;
         subtasks[subtaskIndex].end_date = null;
@@ -753,7 +769,6 @@ async function deleteAttendanceRecord(
           `Database updated: task_status set to "Pending" and start_date cleared for task and subtask ${subtaskName} due to no remaining records`
         );
       } else {
-        // Records remain, set task_status to "Ongoing" and update start_date
         subtasks[subtaskIndex].status = "Ongoing";
         await updateDoc(doc(db, "tb_project_task", taskId), {
           task_status: "Ongoing",
@@ -771,12 +786,10 @@ async function deleteAttendanceRecord(
       );
     }
 
-    alert(
-      `Attendance record for ${dateCreated} deleted successfully from both collections!`
-    );
+    showSuccessPanel(`Attendance record for ${dateCreated} deleted successfully from both collections!`);
   } catch (error) {
     console.error("Error deleting attendance record from database:", error);
-    alert("Error deleting attendance record: " + error.message);
+    showErrorPanel("Error deleting attendance record: " + error.message);
   }
 }
 

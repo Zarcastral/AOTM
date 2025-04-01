@@ -54,19 +54,18 @@
         <button class="save-btn">Save</button>
     </div>
 
+    
     <!-- Modal for Save Confirmation -->
-    <div id="saveConfirmationModal" class="modal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-        <div
-            style="background: white; width: 300px; margin: 20% auto; padding: 20px; border-radius: 5px; text-align: center;">
-            <h3>Confirm Save</h3>
-            <p>Are you sure you want to save the attendance data?</p>
-            <button id="confirmSaveBtn"
-                style="margin: 10px; padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 3px;">Yes</button>
-            <button id="cancelSaveBtn"
-                style="margin: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px;">No</button>
+<div id="saveConfirmationModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2>Confirm Save</h2>
+        <p>Are you sure you want to save the attendance data?</p>
+        <div class="confirm-buttons">
+            <button id="cancelSaveBtn" class="cancel-btn">No</button>
+            <button id="confirmSaveBtn" class="confirm-btn">Yes</button>
         </div>
     </div>
+</div>
 
     <!-- Import the reusable script from src/auth -->
     <script type="module" src="../../../src/auth/header.js"></script>
