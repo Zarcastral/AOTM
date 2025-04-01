@@ -130,7 +130,6 @@ td:last-child {
 /* Updated action icons styling */
 .action-icons {
   display: flex;
-  justify-content: center;
   gap: 8px;
 }
 
@@ -309,10 +308,30 @@ td:last-child {
   background-color: #41a186;
   color: #ffffff;
 }
+#saveEditBtn {
+  background-color: #41a186;
+  color: #ffffff;
+}
 
 #confirmDeleteBtn {
   background-color: #dc2626;
   color: #ffffff;
+}
+.success-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #41a186; /* Green background like a success message */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 @media screen and (max-width: 768px) {
