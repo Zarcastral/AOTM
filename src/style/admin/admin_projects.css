@@ -69,7 +69,7 @@ body {
   }
 
   .btn-new-project {
-    background-color: #1ab394;
+    background-color: #41A186;
     color: white;
     padding: 0.5rem 1rem;
     border: none;
@@ -106,7 +106,7 @@ body {
 
   .progress {
     height: 8px;
-    background-color: #1ab394;
+    background-color: #41A186;
   }
 
   .pagination {
