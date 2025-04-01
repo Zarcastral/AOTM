@@ -14,6 +14,13 @@ import app from "../../../src/config/firebase_config.js";
 // Initialize Firestore
 const db = getFirestore(app);
 
+// Utility function to check if current date is past end_date
+function isPastEndDate(endDate) {
+  const currentDate = new Date();
+  const projectEndDate = new Date(endDate);
+  return currentDate > projectEndDate;
+}
+
 // Function to filter farmers based on search term
 function filterFarmers(farmerNames, farmerIds, attendanceData, searchTerm) {
   const filteredResults = [];
@@ -266,6 +273,12 @@ function confirmSaveAttendance() {
 
 // Function to save attendance data with modal confirmation
 async function saveAttendance(projectId) {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  if (endDate && isPastEndDate(endDate)) {
+    alert("Project is way past the deadline, request extension of project");
+    return;
+  }
+
   const confirmed = await confirmSaveAttendance();
   if (!confirmed) {
     console.log("Save canceled by user.");
@@ -514,6 +527,8 @@ function arraysEqual(a, b) {
 export function initializeAttendancePage() {
   document.addEventListener("DOMContentLoaded", async () => {
     const projectId = sessionStorage.getItem("selected_project_id");
+    const endDate = sessionStorage.getItem("selected_project_end_date");
+
     if (!projectId) {
       console.error("No selected_project_id found in sessionStorage.");
       document.querySelector(
@@ -521,6 +536,8 @@ export function initializeAttendancePage() {
       ).innerHTML = `<tr><td colspan="5">No project selected.</td></tr>`;
       return;
     }
+
+    console.log(`Fetched end_date on attendance page: ${endDate}`); // Log end_date
 
     const backArrow = document.querySelector(".back-arrow");
     if (backArrow) {
@@ -545,6 +562,12 @@ export function initializeAttendancePage() {
       }
 
       saveBtn.addEventListener("click", async () => {
+        if (endDate && isPastEndDate(endDate)) {
+          alert(
+            "Project is way past the deadline, request extension of project"
+          );
+          return;
+        }
         await saveAttendance(projectId);
       });
     } else {

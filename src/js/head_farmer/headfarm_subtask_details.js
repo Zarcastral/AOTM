@@ -14,6 +14,13 @@ import app from "../../config/firebase_config.js";
 // Initialize Firestore
 const db = getFirestore(app);
 
+// Utility function to check if current date is past end_date
+function isPastEndDate(endDate) {
+  const currentDate = new Date();
+  const projectEndDate = new Date(endDate);
+  return currentDate > projectEndDate;
+}
+
 // Function to show confirmation modal for completing subtask and return a Promise
 function confirmCompleteSubtask() {
   return new Promise((resolve) => {
@@ -36,7 +43,6 @@ function confirmCompleteSubtask() {
 }
 
 // Function to initialize the subtask details page
-// Function to initialize the subtask details page
 export function initializeSubtaskDetailsPage() {
   document.addEventListener("DOMContentLoaded", async () => {
     const subtaskName =
@@ -45,6 +51,7 @@ export function initializeSubtaskDetailsPage() {
     const cropType = sessionStorage.getItem("selected_crop_type");
     const cropName = sessionStorage.getItem("selected_crop_name");
     const projectTaskId = sessionStorage.getItem("project_task_id");
+    const endDate = sessionStorage.getItem("selected_project_end_date");
 
     console.log("Retrieved from sessionStorage:", {
       subtaskName,
@@ -52,7 +59,9 @@ export function initializeSubtaskDetailsPage() {
       cropType,
       cropName,
       projectTaskId,
+      endDate,
     });
+    console.log(`Fetched end_date on subtask details page: ${endDate}`); // Log end_date
 
     // Fetch subtask status from Firestore and store it in sessionStorage at the start
     try {
@@ -96,7 +105,6 @@ export function initializeSubtaskDetailsPage() {
       }
     } catch (error) {
       console.error("Error fetching initial subtask status:", error);
-      // Default to "Pending" on error
       sessionStorage.setItem("subtask_status", "Pending");
       console.log(
         "Error occurred; subtask_status set to 'Pending' in sessionStorage"
@@ -123,6 +131,12 @@ export function initializeSubtaskDetailsPage() {
 
     if (addDayBtn) {
       addDayBtn.addEventListener("click", async () => {
+        if (endDate && isPastEndDate(endDate)) {
+          alert(
+            "Project is way past the deadline, request extension of project"
+          );
+          return;
+        }
         await addNewDay(
           projectId,
           cropType,
@@ -135,6 +149,12 @@ export function initializeSubtaskDetailsPage() {
 
     if (completeBtn) {
       completeBtn.addEventListener("click", async () => {
+        if (endDate && isPastEndDate(endDate)) {
+          alert(
+            "Project is way past the deadline, request extension of project"
+          );
+          return;
+        }
         const confirmed = await confirmCompleteSubtask();
         if (confirmed) {
           try {
@@ -237,6 +257,12 @@ export function initializeSubtaskDetailsPage() {
         sessionStorage.setItem("selected_date", dateCreated);
         window.location.href = "headfarm_attendance.html";
       } else if (event.target.matches(".action-icons img[alt='Delete']")) {
+        if (endDate && isPastEndDate(endDate)) {
+          alert(
+            "Project is way past the deadline, request extension of project"
+          );
+          return;
+        }
         const dateCreated = event.target
           .closest("tr")
           .querySelector("td:first-child").textContent;
@@ -335,8 +361,8 @@ async function fetchAttendanceData(
         await updateDoc(doc(db, "tb_project_task", taskId), {
           subtasks: subtasks,
         });
-        subtask_status = "Ongoing"; // Update local variable
-        sessionStorage.setItem("subtask_status", "Ongoing"); // Sync to sessionStorage
+        subtask_status = "Ongoing";
+        sessionStorage.setItem("subtask_status", "Ongoing");
         console.log(
           `Database updated: Status set to "Ongoing" for subtask: ${subtaskName} due to existing attendance records`
         );
@@ -436,6 +462,12 @@ async function addNewDay(
   projectTaskId,
   subtaskName
 ) {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  if (endDate && isPastEndDate(endDate)) {
+    alert("Project is way past the deadline, request extension of project");
+    return;
+  }
+
   try {
     if (
       !projectId ||
@@ -531,7 +563,7 @@ async function addNewDay(
     // Update task_status to "Ongoing" and set start_date to current date
     await updateDoc(doc(db, "tb_project_task", taskId), {
       task_status: "Ongoing",
-      start_date: currentDate, // Set start_date at task level to current date
+      start_date: currentDate,
       subtasks: subtasks,
     });
 
@@ -581,7 +613,6 @@ function confirmDeleteModal(dateCreated) {
 }
 
 // Function to delete an attendance record from Firestore with modal confirmation
-// Function to delete an attendance record from Firestore with modal confirmation
 async function deleteAttendanceRecord(
   projectId,
   cropType,
@@ -590,6 +621,12 @@ async function deleteAttendanceRecord(
   subtaskName,
   dateCreated
 ) {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  if (endDate && isPastEndDate(endDate)) {
+    alert("Project is way past the deadline, request extension of project");
+    return;
+  }
+
   try {
     if (
       !projectId ||
@@ -708,7 +745,7 @@ async function deleteAttendanceRecord(
         subtasks[subtaskIndex].end_date = null;
         await updateDoc(doc(db, "tb_project_task", taskId), {
           task_status: "Pending",
-          start_date: null, // Clear start_date at task level
+          start_date: null,
           subtasks: subtasks,
         });
         sessionStorage.setItem("subtask_status", "Pending");
@@ -720,7 +757,7 @@ async function deleteAttendanceRecord(
         subtasks[subtaskIndex].status = "Ongoing";
         await updateDoc(doc(db, "tb_project_task", taskId), {
           task_status: "Ongoing",
-          start_date: currentDate, // Set start_date at task level to current date
+          start_date: currentDate,
           subtasks: subtasks,
         });
         sessionStorage.setItem("subtask_status", "Ongoing");
