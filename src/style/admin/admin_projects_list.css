@@ -17,6 +17,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
+    
   }
 
   #title {
@@ -81,23 +82,26 @@ th, td {
     text-align: left;
     border-bottom: 1px solid #f0f0f0;
     width: auto;
+    font-size: 12px;
 }
 
 th {
     background-color: white;
+    font-size: 15px;
     font-weight: 600;
     color: #333;
+    
 }
 
 th:nth-child(3), td:nth-child(3) {
     width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 100px; /* Minimum width to ensure usability */
+    min-width: 120px; /* Minimum width to ensure usability */
     text-align: left;
 }
 
 th:nth-child(4), td:nth-child(4) {
     width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 100px; /* Minimum width to ensure usability */
+    min-width: 110px; /* Minimum width to ensure usability */
     text-align: left;
 }
 
@@ -109,7 +113,7 @@ th:nth-child(5), td:nth-child(5) {
 
 th:nth-child(6), td:nth-child(6) {
     width: 250px; /* Fixed width for the action column; adjust as needed */
-    min-width: 250px; /* Minimum width to ensure usability */
+    min-width: 150px; /* Minimum width to ensure usability */
     text-align: left;
 }
 
@@ -184,12 +188,13 @@ input[type="checkbox"] {
   margin-bottom: 1rem;
 }
 
-/* New User Button */
+/* New Project Button */
 .add-project-btn {
     background-color: #41A186;
     color: white;
     padding: 8px 20px;
     font-size: 15px;
+    font-weight: 500;
     text-align: center;
     border-radius: 20px;
     cursor: pointer;
@@ -527,7 +532,7 @@ input[type="checkbox"] {
     }
 
     .add-project-btn {
-        font-size: 12px;
+        font-size: 15px;
         padding: 10px 16px;
     }
 }
@@ -543,8 +548,9 @@ input[type="checkbox"] {
     }
 
     .panel {
-        width: 100%;
+        width: 90%;
         padding: 20px;
+        border-radius: 10px;
     }
 
     #search-bar,
@@ -559,6 +565,11 @@ input[type="checkbox"] {
     th,
     td {
         padding: 0.8rem;
+    }
+
+    .add-project-btn {
+        font-size: 12px;
+        padding: 10px 16px;
     }
 
     .pagination-container {
@@ -593,7 +604,7 @@ input[type="checkbox"] {
     }
 
     .panel {
-        padding: 10px;
+        padding: 10%;
     }
 
     #search-bar,
