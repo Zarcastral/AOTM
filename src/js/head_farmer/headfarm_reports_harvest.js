@@ -19,105 +19,22 @@ const db = getFirestore(app);
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth();
 
-// <-----------------------ACTIVITY LOG CODE----------------------------->
-// [Activity log code remains unchanged]
-async function saveActivityLog(action, description) {
-  const allowedActions = ["Create", "Update", "Delete"];
-  
-  if (!allowedActions.includes(action)) {
-    console.error("Invalid action. Allowed actions are: create, update, delete.");
-    return;
-  }
-
-  if (!description || typeof description !== "string") {
-    console.error("Activity description is required and must be a string.");
-    return;
-  }
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const userDocRef = doc(db, "tb_users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-        console.error("User data not found in tb_users.");
-        return;
-      }
-
-      const userData = userDocSnap.data();
-      const userName = userData.user_name || "Unknown User";
-      const userType = userData.user_type || "Unknown Type";
-
-      const currentTimestamp = Timestamp.now().toDate();
-      const date = currentTimestamp.toLocaleDateString("en-US");
-      const time = currentTimestamp.toLocaleTimeString("en-US");
-
-      const activityLogCollection = collection(db, "tb_activity_log");
-
-      try {
-        const counterDocRef = doc(db, "tb_id_counters", "activity_log_id_counter");
-        const counterDocSnap = await getDoc(counterDocRef);
-
-        if (!counterDocSnap.exists()) {
-          console.error("Counter document not found.");
-          return;
-        }
-
-        let currentCounter = counterDocSnap.data().value || 0;
-        let newCounter = currentCounter + 1;
-
-        await updateDoc(counterDocRef, { value: newCounter });
-
-        await addDoc(activityLogCollection, {
-          activity_log_id: newCounter,
-          username: userName,
-          user_type: userType,
-          activity: action,
-          activity_desc: description,
-          date: date,
-          time: time
-        });
-
-        console.log("Activity log saved successfully with ID:", newCounter);
-      } catch (error) {
-        console.error("Error saving activity log:", error);
-      }
-    } else {
-      console.error("No authenticated user found.");
-    }
-  });
-}
-
 // <---------------------------------> GLOBAL VARIABLES <--------------------------------->
-let harvestList = []; // Full list of consolidated harvest records
-let filteredHarvest = []; // Filtered list of harvest records
+let harvestList = [];
+let filteredHarvest = [];
 let currentPage = 1;
 const rowsPerPage = 5;
 let selectedHarvest = [];
 let originalHarvestList = [];
 let selectedMonth = null;
-let selectedYear = new Date().getFullYear(); // Default to current year
+let selectedYear = new Date().getFullYear();
 
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
       if (user) {
-        try {
-          const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
-          const userSnapshot = await getDocs(userQuery);
-
-          if (!userSnapshot.empty) {
-            const userData = userSnapshot.docs[0].data();
-            resolve({ ...user, user_type: userData.user_type });
-          } else {
-            console.error("User record not found in tb_users collection.");
-            reject("User record not found.");
-          }
-        } catch (error) {
-          console.error("Error fetching user_type:", error);
-          reject(error);
-        }
+        resolve(user);
       } else {
         console.error("User not authenticated. Please log in.");
         reject("User not authenticated.");
@@ -126,108 +43,89 @@ async function getAuthenticatedUser() {
   });
 }
 
-// Fetch harvest data from tb_harvest and tb_harvest_history and consolidate by crop_type
+// Fetch harvest data from tb_headfarmer_harvest subcollection
 async function fetchHarvest() {
   try {
-    const user = await getAuthenticatedUser();
-    const usersCollection = collection(db, "tb_users");
-    const userQuery = query(usersCollection, where("email", "==", user.email));
-    const userSnapshot = await getDocs(userQuery);
+    await getAuthenticatedUser();
 
-    if (userSnapshot.empty) {
-      console.error("User not found in the database.");
-      return;
-    }
+    const harvestDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data");
+    const headFarmerHarvestCollection = collection(harvestDocRef, "tb_headfarmer_harvest");
 
-    const harvestCollection = collection(db, "tb_harvest");
-    const harvestHistoryCollection = collection(db, "tb_harvest_history");
-
-    const harvestQuery = query(harvestCollection);
-    const harvestHistoryQuery = query(harvestHistoryCollection);
-
-    onSnapshot(harvestQuery, (harvestSnapshot) => {
-      onSnapshot(harvestHistoryQuery, (historySnapshot) => {
-        const combinedHarvest = [
-          ...harvestSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-          ...historySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-        ];
-
-        // Consolidate by crop_type
-        harvestList = consolidateHarvestByCropType(combinedHarvest);
-        originalHarvestList = harvestList;
-        filterHarvest(); // Apply filters after fetching harvest
-      }, (error) => {
-        console.error("Error listening to Harvest History:", error);
-      });
+    onSnapshot(headFarmerHarvestCollection, (snapshot) => {
+      const harvestData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      harvestList = consolidateHarvestByCropType(harvestData);
+      originalHarvestList = harvestList;
+      filterHarvest();
     }, (error) => {
-      console.error("Error listening to Harvest:", error);
+      console.error("Error listening to tb_headfarmer_harvest:", error);
     });
   } catch (error) {
-    console.error("Error fetching Harvest:", error);
+    console.error("Error fetching harvest data:", error);
   }
 }
 
 // Function to convert kg to metric tons and round to 2 decimal places
 function convertToMetricTons(kgValue) {
   if (!kgValue || isNaN(kgValue)) return 0;
-  const mtValue = parseFloat(kgValue) / 1000; // 1 mt = 1000 kg
-  return Number(mtValue.toFixed(2)); // Round to 2 decimal places
+  const mtValue = parseFloat(kgValue) / 1000;
+  return Number(mtValue.toFixed(2));
 }
 
-// Function to consolidate harvest records by crop_type with oldest date and converted production
+// Function to consolidate harvest records by crop_type_name
 function consolidateHarvestByCropType(harvestData) {
   const consolidated = {};
 
   harvestData.forEach(harvest => {
-    const cropType = harvest.crop_type || "Unknown";
-    if (!consolidated[cropType]) {
-      consolidated[cropType] = {
-        crop_type: cropType,
-        barangay_name: new Set(),
+    const cropTypeName = harvest.crop_type_name || "Unknown";
+    if (!consolidated[cropTypeName]) {
+      consolidated[cropTypeName] = {
+        project_id: harvest.project_id || "N/A",
+        crop_type_name: cropTypeName,
         crop_name: harvest.crop_name || "N/A",
-        farmers_list: new Set(),
+        farmer_name: new Set(),
+        barangay_name: new Set(),
+        land_area: 0,
+        start_date: [],
+        end_date: [],
         harvest_date: [],
-        harvest_id: [],
-        total_harvest_crops_kg: 0, // Store original kg value
-        total_harvest_crops_mt: 0, // Store converted mt value
-        unit: "kg" // Default unit set to kg
+        total_harvest_crops_kg: 0,
+        total_harvest_crops_mt: 0
       };
     }
 
-    // Aggregate data
-    if (harvest.barangay_name) consolidated[cropType].barangay_name.add(harvest.barangay_name);
-    if (harvest.farmers_list && Array.isArray(harvest.farmers_list)) {
-      harvest.farmers_list.forEach(farmer => consolidated[cropType].farmers_list.add(farmer));
+    if (harvest.barangay_name) consolidated[cropTypeName].barangay_name.add(harvest.barangay_name);
+    if (harvest.farmer_name && Array.isArray(harvest.farmer_name)) {
+      harvest.farmer_name.forEach(farmer => consolidated[cropTypeName].farmer_name.add(farmer));
     }
-    if (harvest.harvest_date) consolidated[cropType].harvest_date.push(parseDate(harvest.harvest_date));
-    if (harvest.harvest_id) consolidated[cropType].harvest_id.push(harvest.harvest_id);
+    if (harvest.start_date) consolidated[cropTypeName].start_date.push(parseDate(harvest.start_date));
+    if (harvest.end_date) consolidated[cropTypeName].end_date.push(parseDate(harvest.end_date));
+    if (harvest.harvest_date) consolidated[cropTypeName].harvest_date.push(parseDate(harvest.harvest_date));
+    if (harvest.land_area) consolidated[cropTypeName].land_area += parseFloat(harvest.land_area) || 0;
     if (harvest.total_harvested_crops) {
       const kgValue = parseFloat(harvest.total_harvested_crops) || 0;
-      consolidated[cropType].total_harvest_crops_kg += kgValue;
-      consolidated[cropType].total_harvest_crops_mt = convertToMetricTons(consolidated[cropType].total_harvest_crops_kg);
+      consolidated[cropTypeName].total_harvest_crops_kg += kgValue;
+      consolidated[cropTypeName].total_harvest_crops_mt = convertToMetricTons(consolidated[cropTypeName].total_harvest_crops_kg);
     }
   });
 
-  // Convert Sets to arrays and format, picking the oldest date
   return Object.values(consolidated).map(item => ({
     ...item,
     barangay_name: Array.from(item.barangay_name).join(", "),
-    farmers_list: Array.from(item.farmers_list),
-    harvest_date: item.harvest_date.length ? item.harvest_date.sort((a, b) => a - b)[0] : null, // Oldest date
-    harvest_id: item.harvest_id // Store but won't display
+    farmer_name: Array.from(item.farmer_name),
+    start_date: item.start_date.length ? item.start_date.sort((a, b) => a - b)[0] : null,
+    end_date: item.end_date.length ? item.end_date.sort((a, b) => a - b)[0] : null,
+    harvest_date: item.harvest_date.length ? item.harvest_date.sort((a, b) => a - b)[0] : null
   }));
 }
 
-// Fetch Barangay names from tb_barangay collection
+// Fetch Barangay names
 async function fetchBarangayNames() {
   const barangaysCollection = collection(db, "tb_barangay");
   const barangaysSnapshot = await getDocs(barangaysCollection);
   const barangayNames = barangaysSnapshot.docs.map(doc => doc.data().barangay_name);
-
   populateBarangayDropdown(barangayNames);
 }
 
-// Populate the barangay dropdown with barangay names
 function populateBarangayDropdown(barangayNames) {
   const barangaySelect = document.querySelector(".barangay_select");
   if (!barangaySelect) {
@@ -235,7 +133,6 @@ function populateBarangayDropdown(barangayNames) {
     return;
   }
   const firstOption = barangaySelect.querySelector("option")?.outerHTML || "";
-
   barangaySelect.innerHTML = firstOption;
 
   barangayNames.forEach(barangayName => {
@@ -246,16 +143,14 @@ function populateBarangayDropdown(barangayNames) {
   });
 }
 
-// Fetch Crop Type names from tb_crop_types collection
+// Fetch Crop Type names
 async function fetchCropTypeNames() {
   const cropTypesCollection = collection(db, "tb_crop_types");
   const cropTypesSnapshot = await getDocs(cropTypesCollection);
   const cropTypeNames = cropTypesSnapshot.docs.map(doc => doc.data().crop_type_name);
-
   populateCropTypeDropdown(cropTypeNames);
 }
 
-// Populate the crop type dropdown with crop type names
 function populateCropTypeDropdown(cropTypeNames) {
   const cropSelect = document.querySelector(".crop_select");
   if (!cropSelect) {
@@ -263,7 +158,6 @@ function populateCropTypeDropdown(cropTypeNames) {
     return;
   }
   const firstOption = cropSelect.querySelector("option")?.outerHTML || "";
-
   cropSelect.innerHTML = firstOption;
 
   cropTypeNames.forEach(cropTypeName => {
@@ -274,80 +168,70 @@ function populateCropTypeDropdown(cropTypeNames) {
   });
 }
 
-// Function to parse dates
 function parseDate(dateValue) {
   if (!dateValue) return null;
-
   if (typeof dateValue.toDate === "function") {
     return dateValue.toDate();
   }
-
   return new Date(dateValue);
 }
 
-// Function to get month name from date
 function getMonthName(date) {
   if (!date) return "N/A";
   return date.toLocaleString('default', { month: 'long' });
 }
 
-// Function to sort harvest by crop_type alphabetically
-function sortHarvestByCropType() {
-  filteredHarvest.sort((a, b) => a.crop_type.localeCompare(b.crop_type));
+function formatDate(date) {
+  if (!date) return "N/A";
+  return date.toLocaleDateString("en-US");
 }
 
-// Unified function to filter harvest based on all criteria
+function sortHarvestByCropType() {
+  filteredHarvest.sort((a, b) => a.crop_type_name.localeCompare(b.crop_type_name));
+}
+
 function filterHarvest() {
   const searchQuery = document.getElementById("harvest-search-bar").value.toLowerCase().trim();
   const selectedBarangay = document.querySelector(".barangay_select").value.toLowerCase();
   const selectedCropType = document.querySelector(".crop_select").value.toLowerCase();
 
-  // Start with the full harvest list
   filteredHarvest = [...originalHarvestList];
 
-  // Apply search query filter
   if (searchQuery) {
     filteredHarvest = filteredHarvest.filter(harvest => {
       return (
         harvest.crop_name?.toLowerCase().includes(searchQuery) ||
-        harvest.crop_type?.toLowerCase().includes(searchQuery)
+        harvest.crop_type_name?.toLowerCase().includes(searchQuery)
       );
     });
   }
 
-  // Apply barangay filter (only if a barangay is selected)
   if (selectedBarangay) {
     filteredHarvest = filteredHarvest.filter(harvest => harvest.barangay_name?.toLowerCase().includes(selectedBarangay));
   }
 
-  // Apply crop type filter (only if a crop type is selected)
   if (selectedCropType) {
-    filteredHarvest = filteredHarvest.filter(harvest => harvest.crop_type?.toLowerCase() === selectedCropType);
+    filteredHarvest = filteredHarvest.filter(harvest => harvest.crop_type_name?.toLowerCase() === selectedCropType);
   }
 
-  // Apply month/year filter (if applicable)
   if (selectedMonth) {
     filteredHarvest = filteredHarvest.filter(harvest => {
       const harvestDate = harvest.harvest_date ? parseDate(harvest.harvest_date) : null;
       const harvestMonth = harvestDate ? harvestDate.getMonth() + 1 : null;
       const harvestYear = harvestDate ? harvestDate.getFullYear() : null;
-
       return harvestMonth === selectedMonth && harvestYear === selectedYear;
     });
   }
 
-  // Reset pagination and update the table
   currentPage = 1;
   sortHarvestByCropType();
   displayHarvest(filteredHarvest);
 }
 
-// Function to filter harvest by month
 function filterHarvestByMonth() {
   filterHarvest();
 }
 
-// Function to clear the month filter
 function clearMonthFilter() {
   selectedMonth = null;
   selectedYear = new Date().getFullYear();
@@ -363,7 +247,6 @@ function clearMonthFilter() {
   filterHarvest();
 }
 
-// Function to show the month picker
 function showMonthPicker() {
   const calendarIcon = document.querySelector('.calendar-btn-icon');
   const monthPicker = document.getElementById('month-picker');
@@ -377,11 +260,9 @@ function showMonthPicker() {
   monthPicker.style.top = `${calendarIcon.offsetHeight + 5}px`;
   monthPicker.style.right = '0px';
   monthPicker.style.left = 'auto';
-
   monthPicker.style.display = monthPicker.style.display === 'none' ? 'block' : 'none';
 }
 
-// Display harvest in the table
 function displayHarvest(harvestList) {
   const tableBody = document.querySelector(".harvest_table table tbody");
   if (!tableBody) {
@@ -398,57 +279,53 @@ function displayHarvest(harvestList) {
     const messageRow = document.createElement("tr");
     messageRow.classList.add("no-records-message");
     messageRow.innerHTML = `
-      <td colspan="10" style="text-align: center; color: red;">No records found</td>
+      <td colspan="10" style="text-align: center;">No records found</td>
     `;
     tableBody.appendChild(messageRow);
     return;
   }
 
-  const noRecordsMessage = document.querySelector(".no-records-message");
-  if (noRecordsMessage) {
-    noRecordsMessage.remove();
-  }
-
   paginatedHarvest.forEach((harvest) => {
     const row = document.createElement("tr");
-    const commodity = harvest.crop_name || "N/A";
-    const cropType = harvest.crop_type || "N/A";
-    const farmersCount = harvest.farmers_list?.length || 0;
+    const commodity = harvest.crop_type_name || "N/A";
+    const cropType = harvest.crop_name || "N/A";
+    const farmersCount = harvest.farmer_name?.length || 0;
     const barangay = harvest.barangay_name || "N/A";
+    const areaPlanted = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
+    const startDate = harvest.start_date ? formatDate(harvest.start_date) : "N/A";
+    const areaHarvested = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
+    const endDate = harvest.end_date ? formatDate(harvest.end_date) : "N/A";
     const production = harvest.total_harvest_crops_mt ? `${harvest.total_harvest_crops_mt} mt` : "N/A";
-    const harvestMonth = harvest.harvest_date ? getMonthName(harvest.harvest_date) : "N/A";
+    const harvestDate = harvest.harvest_date ? formatDate(harvest.harvest_date) : "N/A";
 
     row.innerHTML = `
       <td>${commodity}</td>
       <td>${cropType}</td>
       <td>${farmersCount}</td>
       <td>${barangay}</td>
-      <td>N/A</td> <!-- Area Planted (ha) -->
-      <td>N/A</td> <!-- To Date for Area Planted -->
-      <td>N/A</td> <!-- Area Harvested (ha) -->
-      <td>N/A</td> <!-- To Date for Area Harvested -->
+      <td>${areaPlanted}</td>
+      <td>${startDate}</td>
+      <td>${areaHarvested}</td>
+      <td>${endDate}</td>
       <td>${production}</td>
-      <td>${harvestMonth}</td>
+      <td>${harvestDate}</td>
     `;
     tableBody.appendChild(row);
   });
   updatePagination();
 }
 
-// Update pagination display
 function updatePagination() {
   const totalPages = Math.ceil(filteredHarvest.length / rowsPerPage) || 1;
   document.getElementById("harvest-page-number").textContent = `${currentPage} of ${totalPages}`;
   updatePaginationButtons();
 }
 
-// Enable or disable pagination buttons
 function updatePaginationButtons() {
   document.getElementById("harvest-prev-page").disabled = currentPage === 1;
   document.getElementById("harvest-next-page").disabled = currentPage >= Math.ceil(filteredHarvest.length / rowsPerPage);
 }
 
-// Event listeners
 document.addEventListener('DOMContentLoaded', () => {
   fetchBarangayNames();
   fetchCropTypeNames();
@@ -495,12 +372,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('month-picker').style.display = 'none';
   });
 
-  // Add event listeners for filters
   document.getElementById("harvest-search-bar").addEventListener("input", filterHarvest);
   document.querySelector(".barangay_select").addEventListener("change", filterHarvest);
   document.querySelector(".crop_select").addEventListener("change", filterHarvest);
 
-  // Pagination event listeners
   document.getElementById("harvest-prev-page").addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -527,18 +402,17 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // Get the authenticated user's data
   const user = await getAuthenticatedUser();
-  const usersCollection = collection(db, "tb_users");
-  const userQuery = query(usersCollection, where("email", "==", user.email));
-  const userSnapshot = await getDocs(userQuery);
-  const userData = userSnapshot.docs[0].data();
+  const farmersCollection = collection(db, "tb_farmers");
+  const farmerQuery = query(farmersCollection, where("email", "==", user.email));
+  const farmerSnapshot = await getDocs(farmerQuery);
+  const farmerData = farmerSnapshot.docs[0].data();
 
-  const firstName = userData.first_name || "Unknown";
-  const middleName = userData.middle_name ? `${userData.middle_name.charAt(0)}.` : "";
-  const lastName = userData.last_name || "User";
+  const firstName = farmerData.first_name || "Unknown";
+  const middleName = farmerData.middle_name ? `${farmerData.middle_name.charAt(0)}.` : "";
+  const lastName = farmerData.last_name || "User";
   const fullName = `${firstName} ${middleName} ${lastName}`.trim();
-  const userTypePrint = userData.user_type || "Unknown";
+  const userTypePrint = farmerData.user_type || "Unknown";
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -546,26 +420,29 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     day: "numeric",
   });
 
-  // Prepare table data from the full filteredHarvest array
   const tableData = filteredHarvest.map((harvest) => {
-    const commodity = harvest.crop_name || "N/A";
-    const cropType = harvest.crop_type || "N/A";
-    const farmersCount = harvest.farmers_list?.length || 0;
+    const commodity = harvest.crop_type_name || "N/A";
+    const cropType = harvest.crop_name || "N/A";
+    const farmersCount = harvest.farmer_name?.length || 0;
     const barangay = harvest.barangay_name || "N/A";
+    const areaPlanted = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
+    const startDate = harvest.start_date ? formatDate(harvest.start_date) : "N/A";
+    const areaHarvested = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
+    const endDate = harvest.end_date ? formatDate(harvest.end_date) : "N/A";
     const production = harvest.total_harvest_crops_mt ? `${harvest.total_harvest_crops_mt} mt` : "N/A";
-    const harvestMonth = harvest.harvest_date ? getMonthName(harvest.harvest_date) : "N/A";
+    const harvestDate = harvest.harvest_date ? formatDate(harvest.harvest_date) : "N/A";
 
     return [
       commodity,
       cropType,
       farmersCount.toString(),
       barangay,
-      "N/A", // Area Planted (ha)
-      "N/A", // To Date for Area Planted
-      "N/A", // Area Harvested (ha)
-      "N/A", // To Date for Area Harvested
-      production, // Production (mt)
-      harvestMonth
+      areaPlanted,
+      startDate,
+      areaHarvested,
+      endDate,
+      production,
+      harvestDate
     ];
   });
 
@@ -578,7 +455,6 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const totalTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
   const leftMargin = (pageWidth - totalTableWidth) / 2;
 
-  // Header container
   const addHeader = (doc) => {
     const headerImg = "../../../public/images/BarasHeader.png";
     const headerImgWidth = 60;
@@ -609,12 +485,10 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
     doc.setFontSize(15);
     doc.setFont("helvetica", "bold");
-    // Use selectedYear if set, otherwise use current year
     const reportYear = selectedYear || new Date().getFullYear();
-    doc.text(`AGRICULTURAL PRODUCTION DATA ${reportYear}`, pageWidth / 2, 100, { align: "center" });
+    doc.text(`HARVEST PRODUCTION DATA ${reportYear}`, pageWidth / 2, 100, { align: "center" });
   };
 
-  // Body container (table and bottom line)
   const addBody = (doc, data) => {
     const tableEndY = data.cursor.y + 35;
     if (tableEndY < pageHeight - 30) {
@@ -624,7 +498,6 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     }
   };
 
-  // Footer container
   const addFooter = (doc, data) => {
     const footerImg = "../../../public/images/BarasFooter.png";
     const footerImgWidth = 140;
@@ -642,7 +515,6 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth - 10, pageHeight - 10, { align: "right" });
   };
 
-  // Rest of the PDF generation code remains unchanged
   const maxTableHeight = pageHeight - 65;
   const rowHeightEstimate = 10;
   const baseRowsPerPage = Math.floor((maxTableHeight - 105) / rowHeightEstimate);
@@ -715,7 +587,6 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
   document.getElementById("preview-done-btn").onclick = async () => {
     doc.save(`Harvest_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
-    await saveActivityLog("Create", `Harvest Report downloaded by ${userTypePrint} ${fullName}`);
     previewPanel.style.display = "none";
     document.body.classList.remove("preview-active");
     URL.revokeObjectURL(pdfUrl);

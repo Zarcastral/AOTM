@@ -6,10 +6,9 @@ body {
     display: flex;
     flex-direction: column;
     font-family: 'Poppins', sans-serif;
-}
-
-/* Header Styles */
-.header {
+  }
+  
+  .header {
     height: 60px;
     background-color: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -18,110 +17,112 @@ body {
     align-items: center;
     padding: 0 20px;
     position: relative;
-}
-
-.header-title {
+  }
+  
+  .header-title {
     font-size: 30px;
     font-weight: bold;
     color: #41A186;
-}
-
-.header-icons {
+  }
+  
+  .header-icons {
     display: flex;
     align-items: center;
     gap: 15px;
-}
-
-.header-icons img {
+  }
+  
+  .header-icons img {
     width: 24px;
     height: 24px;
     cursor: pointer;
-}
-
-/* Main Content */
-.main-content {
+  }
+  
+  .main-content {
     flex: 1;
-    padding: 20px 40px;
+    padding: 0px 40px; /* Reduced top padding from 20px to 10px to minimize white space */
     overflow-y: auto;
-}
-
-/* Top Section: System Stats */
-.top-section {
-    margin-bottom: 40px;
-    position: relative;
-    display: block; /* Ensure top-section doesn't force flex behavior on children */
-}
-
-/* System Stats Section */
-.system-stats-section {
-    position: relative;
-    padding-top: 0;
-    width: auto; /* Prevent stretching */
-    display: inline-block; /* Only take the width of the content */
-}
-
-.system-stats {
+  }
+  
+  /* Top Section: System Stats */
+  .top-section {
     display: flex;
-    flex-direction: row;
     gap: 20px;
-    justify-content: flex-start;
-    width: auto; /* Prevent stretching */
-}
-
-.stats-card {
+    margin-bottom: 40px; /* Increased margin to create more space below */
+    position: relative;
+  }
+  
+  /* System Stats Section */
+  .system-stats-section {
+    flex: 1;
+    position: relative;
+    padding-top: 0; /* Removed padding-top to eliminate white space */
+  }
+  
+  .system-stats {
+    display: flex;
+    flex-direction: row; /* Changed to row to match the image */
+    gap: 20px;
+  }
+  
+  .stats-card {
     background-color: #fff;
-    border-radius: 15px;
-    padding: 10px 15px;
+    border-radius: 15px; /* Increased border-radius for a softer look */
+    padding: 15px; /* Adjusted padding to match the image */
     display: flex;
     align-items: center;
-    gap: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    width: 160px; /* Fixed width to match the reference image */
-    flex: none; /* Prevent flex from stretching the card */
-}
-
-.stats-icon {
-    width: 40px;
-    height: 40px;
-}
-
-.farmers-icon {
+    gap: 10px; /* Reduced gap to match the image */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Softer shadow */
+    flex: 1; /* Ensure each card takes equal width */
+  }
+  
+  .stats-icon {
+    width: 60px; /* Adjusted to match the image */
+    height: 60px; /* Adjusted to match the image */
+  }
+  
+  .farmers-icon {
     /* No background image needed anymore */
-}
-
-.stats-info {
+  }
+  
+  .projects-icon {
+    /* No background image needed anymore */
+  }
+  
+  .stats-info {
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-
-.stats-info p {
-    font-size: 18px;
+    gap: 10px; /* Adjusted to match the image */
+    flex: 1;
+    justify-content: space-between;
+  }
+  
+  .stats-info p {
+    font-size: 30px; /* Adjusted to match the image */
     font-weight: 500;
     color: #333;
     margin: 0;
-}
-
-.number-wrapper {
+  }
+  
+  .number-wrapper {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-}
-
-.number-wrapper h3 {
-    font-size: 28px;
-    font-weight: 600;
+  }
+  
+  .number-wrapper h3 {
+    font-size: 40px; /* Adjusted to match the image */
+    font-weight: 500; /* Bolder to match the image */
     margin: 0;
     color: #333;
-}
-
-.number-wrapper span {
-    font-size: 10px;
+  }
+  
+  .number-wrapper span {
+    font-size: 14px; /* Adjusted to match the image */
     color: #888;
-}
-
-/* Analytics Section */
-.analytics-section {
+  }
+  
+  /* Analytics Section */
+  .analytics-section {
     margin-top: 40px;
     margin-bottom: 20px;
     width: 100%;
@@ -129,9 +130,9 @@ body {
     height: 400px;
     position: relative;
     box-sizing: border-box;
-}
-
-.analytics {
+  }
+  
+  .analytics {
     background-color: #fff;
     border-radius: 10px;
     padding: 20px;
@@ -139,31 +140,31 @@ body {
     width: 100%;
     box-sizing: border-box;
     min-height: 100%;
-}
-
-.section-title {
+  }
+  
+  .section-title {
     font-size: 16px;
     font-weight: 600;
     color: #486581;
-    position: static;
-    margin-bottom: 5px;
-}
-
-.harvest-info h5 {
+    position: static; /* Remove absolute positioning */
+    margin-bottom: 5px; /* Reduced from 10px to minimize downward shift */
+  }
+  
+  .harvest-info h5 {
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 20px;
     color: #333;
-}
-
-.chart-wrapper {
+  }
+  
+  .chart-wrapper {
     display: flex;
     position: relative;
     width: 100%;
     overflow: visible;
-}
-
-.y-axis {
+  }
+  
+  .y-axis {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -177,9 +178,9 @@ body {
     min-height: 300px;
     position: relative;
     height: 100%;
-}
-
-.y-axis span {
+  }
+  
+  .y-axis span {
     line-height: 1;
     flex: 1;
     display: flex;
@@ -187,100 +188,101 @@ body {
     justify-content: flex-end;
     position: absolute;
     color: #333;
-}
-
-.year-selector-wrapper {
+  }
+  
+  .year-selector-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-}
-
-.year-selector-container {
+  }
+  
+  .year-selector-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-
-.year-selector-label {
+    gap: 10px; /* Space between label and select */
+  }
+  
+  .year-selector-label {
     font-size: 14px;
-    color: #333;
+    color: #333; /* Adjust color to match your design */
     font-weight: 500;
-}
-
-.year-selector {
+  }
+  
+  .year-selector {
     padding: 5px;
     font-size: 14px;
     border: 1px solid #ccc;
     border-radius: 4px;
     background-color: white;
     cursor: pointer;
-}
-
-.year-selector:focus {
+  }
+  
+  .year-selector:focus {
     outline: none;
     border-color: #41A186;
-}
-
-.bar-chart {
+  }
+  
+  .bar-chart {
     display: flex;
     gap: 10px;
     align-items: flex-end;
     position: relative;
     flex: 1;
-    overflow: hidden;
+    overflow: hidden; /* Prevent scrolling */
     min-height: 300px;
-    padding-bottom: 60px;
-}
-
-.bar-chart::after {
+    padding-bottom: 60px; /* Increased padding to make space for month labels */
+  }
+  
+  /* Create a pseudo-element for the horizontal line separator */
+  .bar-chart::after {
     content: '';
     position: absolute;
-    bottom: 30px;
+    bottom: 30px; /* Position the line above the month labels */
     left: 0;
     right: 0;
     height: 1px;
     background-color: #e0e0e0;
     z-index: 0;
-}
-
-.bar {
+  }
+  
+  .bar {
     flex: 1;
-    width: 20px;
+    width: 20px; /* Adjust as needed */
     margin: 0 5px;
     background-color: #d3e8e1;
     border-radius: 5px 5px 0 0;
     position: relative;
     height: var(--bar-height);
     transition: background-color 0.2s ease, transform 0.1s ease;
-    z-index: 1;
-}
-
-.bar.highlighted {
+    z-index: 1; /* Ensure bars are above the horizontal line */
+  }
+  
+  .bar.highlighted {
     background-color: #41A186;
     transition: background-color 0.2s ease;
-    box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
-}
-
-.bar::after {
+    box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2); /* Added shadow */
+  }
+  
+  .bar::after {
     content: attr(data-month);
     position: absolute;
-    top: calc(100% + 30px);
+    top: calc(100% + 30px); /* Position below the bar and the horizontal line */
     left: 50%;
     transform: translateX(-50%);
     font-size: 12px;
     color: #333;
     white-space: nowrap;
-    z-index: 2;
-}
-
-.bar-chart::before {
+    z-index: 2; /* Ensure labels are above the horizontal line */
+  }
+  
+  .bar-chart::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 30px;
+    bottom: 30px; /* Ensure grid lines stop at the horizontal line */
     background: repeating-linear-gradient(
         to bottom,
         transparent,
@@ -289,168 +291,170 @@ body {
         #e0e0e0 calc(100% / 13)
     );
     z-index: -1;
-}
-
-/* Responsive Design */
-@media screen and (max-width: 1024px) {
+  }
+  
+  /* Responsive Design */
+  @media screen and (max-width: 1024px) {
     .top-section {
-        margin-bottom: 30px;
+      flex-direction: column;
+      gap: 15px;
     }
-
+  
     .system-stats-section {
-        width: 100%;
+      flex: none;
+      width: 100%;
     }
-
+  
     .system-stats {
-        flex-direction: column;
+      flex-direction: column; /* Stack cards vertically on smaller screens */
     }
-
-    .stats-card {
-        width: 160px; /* Keep the fixed width */
-        max-width: none; /* Remove max-width in smaller screens to ensure consistency */
-    }
-
+  
     .analytics-section {
-        margin-top: 30px;
+      margin-top: 30px;
     }
-
+  
     .bar-chart {
-        height: 180px;
+      height: 180px;
     }
-
+  
     .bar-chart::before {
-        height: 180px;
-        background-size: 100% 18px;
+      height: 180px;
+      background-size: 100% 18px;
     }
-
+  
     .y-axis {
-        height: 180px;
-        font-size: 10px;
+      height: 180px;
+      font-size: 10px;
     }
-}
-
-@media screen and (max-width: 768px) {
+  }
+  
+  @media screen and (max-width: 768px) {
     .header {
-        padding: 0 10px;
+      padding: 0 10px;
     }
-
+  
     .header-title {
-        font-size: 1.25rem;
+      font-size: 1.25rem;
     }
-
+  
     .header-icons img {
-        width: 20px;
-        height: 20px;
+      width: 20px;
+      height: 20px;
     }
-
+  
     .main-content {
-        padding: 10px 20px;
+      padding: 5px 10px;
     }
-
+  
+    .header {
+      padding-left: 50px;
+    }
+  
     .top-section {
-        margin-bottom: 30px;
+      flex-direction: column;
+      margin-bottom: 30px;
     }
-
+  
     .stats-card {
-        padding: 10px 15px;
+      padding: 15px;
     }
-
+  
     .stats-icon {
-        width: 35px;
-        height: 35px;
+      width: 50px;
+      height: 50px;
     }
-
+  
     .stats-info p {
-        font-size: 16px;
+      font-size: 28px;
     }
-
+  
     .number-wrapper h3 {
-        font-size: 26px;
+      font-size: 36px;
     }
-
+  
     .number-wrapper span {
-        font-size: 10px;
+      font-size: 14px;
     }
-
+  
     .analytics-section {
-        margin-top: 20px;
+      margin-top: 20px;
     }
-
+  
     .bar-chart {
-        height: 150px;
+      height: 150px;
     }
-
+  
     .bar-chart::before {
-        height: 150px;
-        background-size: 100% 15px;
+      height: 150px;
+      background-size: 100% 15px;
     }
-
+  
     .y-axis {
-        height: 150px;
-        font-size: 10px;
+      height: 150px;
+      font-size: 10px;
     }
-
+  
     .bar::after {
-        font-size: 10px;
+      font-size: 10px;
     }
-}
-
-@media screen and (max-width: 480px) {
+  }
+  
+  @media screen and (max-width: 480px) {
     .header-title {
-        font-size: 1.1rem;
+      font-size: 1.1rem;
     }
-
+  
     .header-icons img {
-        width: 18px;
-        height: 18px;
+      width: 18px;
+      height: 18px;
     }
-
+  
     .main-content {
-        padding: 10px;
+      padding: 5px;
     }
-
+  
     .stats-card {
-        padding: 8px 12px;
+      padding: 10px;
     }
-
+  
     .stats-icon {
-        width: 30px;
-        height: 30px;
+      width: 40px;
+      height: 40px;
     }
-
+  
     .stats-info p {
-        font-size: 14px;
+      font-size: 24px;
     }
-
+  
     .number-wrapper h3 {
-        font-size: 22px;
+      font-size: 30px;
     }
-
+  
     .number-wrapper span {
-        font-size: 8px;
+      font-size: 12px;
     }
-
+  
     .analytics {
-        padding: 15px;
+      padding: 15px;
     }
-
+  
     .bar-chart {
-        height: 120px;
+      height: 120px;
     }
-
+  
     .bar-chart::before {
-        height: 120px;
-        background-size: 100% 12px;
+      height: 120px;
+      background-size: 100% 12px;
     }
-
+  
     .y-axis {
-        height: 120px;
-        font-size: 8px;
-        width: 25px;
+      height: 120px;
+      font-size: 8px;
+      width: 25px;
     }
-
+  
     .bar::after {
-        font-size: 8px;
-        bottom: -20px;
+      font-size: 8px;
+      bottom: -20px;
     }
-}
+  }

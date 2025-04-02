@@ -30,11 +30,11 @@ let teams = [];
 let isEditing = false;
 let currentHarvestDocId = null;
 
-function sortHarvestById() {
+function sortHarvestByDate() { // Renamed to reflect sorting by harvest_date
   filteredHarvest.sort((a, b) => {
-    const dateA = parseDate(a.dateAdded);
-    const dateB = parseDate(b.dateAdded);
-    return dateB - dateA;
+    const dateA = parseDate(a.harvest_date); // Sort by harvest_date
+    const dateB = parseDate(b.harvest_date);
+    return dateB - dateA; // Newest first
   });
 }
 
@@ -96,43 +96,33 @@ function showSuccessMessage(message, success = true) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   const modal = document.getElementById("harvest-report-modal");
-  const modalHeader = document.querySelector("#harvest-report-modal .modal-header h2"); // Select the h2 in modal header
+  const modalHeader = document.querySelector("#harvest-report-modal .modal-header h2");
   const closeBtn = document.getElementById("close-modal-btn");
   const closeHarvestBtn = document.getElementById("close-harvest-btn");
-  const addHarvestBtn = document.getElementById("add-harvest"); // Assuming this exists outside the modal
+  const addHarvestBtn = document.getElementById("add-harvest");
   const submitHarvestBtn = document.getElementById("submit-harvest-btn");
+
+  await fetchProjectsAndTeams();
 
   closeBtn.addEventListener("click", () => {
     modal.classList.remove("active");
     isEditing = false;
-    modalHeader.textContent = "Add Harvest"; // Reset modal header
-    submitHarvestBtn.textContent = "Save"; // Reset submit button
+    modalHeader.textContent = "Add Harvest";
+    submitHarvestBtn.textContent = "Save";
+    resetModalFields();
   });
 
   closeHarvestBtn.addEventListener("click", () => {
     modal.classList.remove("active");
     isEditing = false;
-    modalHeader.textContent = "Add Harvest"; // Reset modal header
-    submitHarvestBtn.textContent = "Save"; // Reset submit button
+    modalHeader.textContent = "Add Harvest";
+    submitHarvestBtn.textContent = "Save";
+    resetModalFields();
   });
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.remove("active");
-      isEditing = false;
-      modalHeader.textContent = "Add Harvest"; // Reset modal header
-      submitHarvestBtn.textContent = "Save"; // Reset submit button
-    }
-  });
-
-  // If addHarvestBtn exists in your full HTML, keep this; otherwise, you might need to adjust
   if (addHarvestBtn) {
-    addHarvestBtn.addEventListener("click", async () => {
-      await fetchProjectsAndTeams();
-      openEmptyHarvestModal();
-      isEditing = false;
-      modalHeader.textContent = "Add Harvest"; // Set modal header for add
-      submitHarvestBtn.textContent = "Save"; // Set submit button for add
+    addHarvestBtn.addEventListener("click", () => {
+      openModal(false);
     });
   }
 
@@ -141,6 +131,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (isSaving) return;
     isSaving = true;
     submitHarvestBtn.disabled = true;
+    closeHarvestBtn.disabled = true;
+    closeBtn.disabled = true;
 
     try {
       await saveHarvest();
@@ -149,6 +141,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     } finally {
       isSaving = false;
       submitHarvestBtn.disabled = false;
+      closeHarvestBtn.disabled = false;
+      closeBtn.disabled = false;
     }
   });
 
@@ -165,7 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     currentPage = 1;
-    sortHarvestById();
+    sortHarvestByDate(); // Updated to use new function name
     displayHarvest(filteredHarvest);
   }
 
@@ -286,7 +280,16 @@ async function saveHarvest() {
       throw new Error("Selected project not found");
     }
 
-    const harvestDate = new Date();
+    let landArea = "N/A";
+    if (selectedProject.farmland_id) {
+      const farmlandQuery = query(collection(db, "tb_farmland"), where("farmland_id", "==", selectedProject.farmland_id));
+      const farmlandSnapshot = await getDocs(farmlandQuery);
+      if (!farmlandSnapshot.empty) {
+        landArea = farmlandSnapshot.docs[0].data().land_area || "N/A";
+      }
+    }
+
+    const harvestDate = new Date(); // This is the date of the harvest event
     const harvestData = {
       project_id: selectedProject.project_id || selectedProject.id || "N/A",
       project_name: projectName,
@@ -300,8 +303,12 @@ async function saveHarvest() {
       farm_president: farmPresident,
       farmer_name: farmerNameData,
       lead_farmer: selectedTeam.lead_farmer || "N/A",
-      harvest_date: harvestDate,
-      dateAdded: new Date()
+      harvest_date: harvestDate, // Date of the harvest
+      dateAdded: new Date(), // Date the record was added/updated
+      farmland_id: selectedProject.farmland_id || "N/A",
+      land_area: landArea,
+      start_date: selectedProject.start_date || "N/A",
+      end_date: selectedProject.end_date || "N/A"
     };
 
     const headFarmerHarvestRef = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
@@ -319,8 +326,9 @@ async function saveHarvest() {
     const modal = document.getElementById("harvest-report-modal");
     modal.classList.remove("active");
     isEditing = false;
-    document.querySelector("#harvest-report-modal .modal-header h2").textContent = "Add Harvest"; // Reset header
-    document.getElementById("submit-harvest-btn").textContent = "Save"; // Reset button
+    document.querySelector("#harvest-report-modal .modal-header h2").textContent = "Add Harvest";
+    document.getElementById("submit-harvest-btn").textContent = "Save";
+    resetModalFields();
 
   } catch (error) {
     console.error("Error saving harvest:", error);
@@ -348,7 +356,7 @@ async function fetchHarvest() {
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(harvest => typeof harvest.harvest_id === 'number' && !isNaN(harvest.harvest_id));
       filteredHarvest = [...harvestList];
-      sortHarvestById();
+      sortHarvestByDate(); // Updated to use new function name
       displayHarvest(filteredHarvest);
     }, (error) => {
       console.error("Error listening to Harvest:", error);
@@ -392,18 +400,18 @@ function displayHarvest(harvestList) {
     const barangayName = harvest.barangay_name || "N/A";
     const cropName = harvest.crop_name || "N/A";
     const cropTypeName = harvest.crop_type_name || "N/A";
-    const totalHarvest = harvest.total_harvested_crops || "N/A";
-    const unit = harvest.unit || "N/A";
+    const totalHarvestKg = harvest.total_harvested_crops || 0;
+    const totalHarvestMt = (totalHarvestKg / 1000).toFixed(3);
+    const unit = "Mt";
 
     row.innerHTML = `
-      <td>${harvestId}</td>
       <td>${projectName}</td>
       <td>${harvestDate}</td>
       <td>${leadFarmer}</td>
       <td>${barangayName}</td>
       <td>${cropName}</td>
       <td>${cropTypeName}</td>
-      <td>${totalHarvest} ${unit}</td>
+      <td>${totalHarvestMt} ${unit}</td>
       <td>
         <button class="action-btn view-btn" data-id="${harvestId}" title="View">
           <img src="../../images/eye.png" alt="View">
@@ -414,16 +422,33 @@ function displayHarvest(harvestList) {
 
     const viewBtn = row.querySelector(".view-btn");
     viewBtn.addEventListener("click", async () => {
-      await openHarvestReportModal(harvestId);
-      document.querySelector("#harvest-report-modal .modal-header h2").textContent = "Edit Harvest"; // Change modal header
-      document.getElementById("submit-harvest-btn").textContent = "Update"; // Change submit button
-      isEditing = true;
+      await openModal(true, harvestId);
     });
   });
   updatePagination();
 }
 
-async function openHarvestReportModal(harvestId) {
+async function openModal(isViewOrEdit = false, harvestId = null) {
+  const modal = document.getElementById("harvest-report-modal");
+  const modalHeader = document.querySelector("#harvest-report-modal .modal-header h2");
+  const submitHarvestBtn = document.getElementById("submit-harvest-btn");
+
+  if (isViewOrEdit && harvestId) {
+    await populateHarvestData(harvestId);
+    modalHeader.textContent = "Edit Harvest";
+    submitHarvestBtn.textContent = "Update";
+    isEditing = true;
+  } else {
+    resetModalFields();
+    modalHeader.textContent = "Add Harvest";
+    submitHarvestBtn.textContent = "Save";
+    isEditing = false;
+  }
+
+  modal.classList.add("active");
+}
+
+async function populateHarvestData(harvestId) {
   try {
     const harvestQuery = query(collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest"), where("harvest_id", "==", parseInt(harvestId)));
     const harvestSnapshot = await getDocs(harvestQuery);
@@ -438,17 +463,7 @@ async function openHarvestReportModal(harvestId) {
     currentHarvestDocId = harvestSnapshot.docs[0].id;
 
     const projectSelect = document.getElementById("modal-project-name");
-    projectSelect.innerHTML = '<option value="" selected>Select Project</option>';
-    projects.forEach(project => {
-      const option = document.createElement("option");
-      option.value = project.project_name;
-      option.textContent = project.project_name;
-      option.dataset.teamId = project.team_id || "";
-      if (project.project_name === harvestData.project_name) {
-        option.selected = true;
-      }
-      projectSelect.appendChild(option);
-    });
+    projectSelect.value = harvestData.project_name || "";
 
     const teamSelect = document.getElementById("modal-team");
     teamSelect.innerHTML = '<option value="" selected>Select Team</option>';
@@ -466,7 +481,7 @@ async function openHarvestReportModal(harvestId) {
     }
 
     document.getElementById("modal-total-harvest").value = harvestData.total_harvested_crops || "N/A";
-    document.getElementById("modal-unit").value = harvestData.unit || "kg";
+    document.getElementById("modal-unit").value = harvestData.unit || "Kg";
     document.getElementById("modal-farm-president").value = harvestData.farm_president || "N/A";
     const farmerNameArray = harvestData.farmer_name || [];
     const farmerNames = farmerNameArray.map(farmer => farmer.farmer_name || "");
@@ -474,43 +489,24 @@ async function openHarvestReportModal(harvestId) {
     document.getElementById("modal-crop-name") && (document.getElementById("modal-crop-name").value = harvestData.crop_name || "N/A");
     document.getElementById("modal-crop-type-name") && (document.getElementById("modal-crop-type-name").value = harvestData.crop_type_name || "N/A");
     document.getElementById("modal-barangay-name") && (document.getElementById("modal-barangay-name").value = harvestData.barangay_name || "N/A");
-
-    const modal = document.getElementById("harvest-report-modal");
-    modal.classList.add("active");
   } catch (error) {
     console.error("Error fetching harvest data for modal:", error);
     await showSuccessMessage("Error loading harvest report.", false);
   }
 }
 
-async function openEmptyHarvestModal() {
-  try {
-    const projectSelect = document.getElementById("modal-project-name");
-    const teamSelect = document.getElementById("modal-team");
-    document.getElementById("modal-total-harvest").value = "";
-    document.getElementById("modal-unit").value = "kg";
-    document.getElementById("modal-farm-president").value = "";
-    document.getElementById("modal-farmers").value = "";
-    document.getElementById("modal-crop-name") && (document.getElementById("modal-crop-name").value = "");
-    document.getElementById("modal-crop-type-name") && (document.getElementById("modal-crop-type-name").value = "");
-    document.getElementById("modal-barangay-name") && (document.getElementById("modal-barangay-name").value = "");
-
-    projectSelect.innerHTML = '<option value="" selected>Select Project</option>';
-    projects.forEach(project => {
-      const option = document.createElement("option");
-      option.value = project.project_name;
-      option.textContent = project.project_name;
-      option.dataset.teamId = project.team_id || "";
-      projectSelect.appendChild(option);
-    });
-
-    teamSelect.innerHTML = '<option value="" selected>Select Team</option>';
-
-    const modal = document.getElementById("harvest-report-modal");
-    modal.classList.add("active");
-  } catch (error) {
-    console.error("Error opening empty harvest modal:", error);
-  }
+function resetModalFields() {
+  const projectSelect = document.getElementById("modal-project-name");
+  const teamSelect = document.getElementById("modal-team");
+  projectSelect.value = "";
+  teamSelect.innerHTML = '<option value="" selected>Select Team</option>';
+  document.getElementById("modal-total-harvest").value = "";
+  document.getElementById("modal-unit").value = "Kg";
+  document.getElementById("modal-farm-president").value = "";
+  document.getElementById("modal-farmers").value = "";
+  document.getElementById("modal-crop-name") && (document.getElementById("modal-crop-name").value = "");
+  document.getElementById("modal-crop-type-name") && (document.getElementById("modal-crop-type-name").value = "");
+  document.getElementById("modal-barangay-name") && (document.getElementById("modal-barangay-name").value = "");
 }
 
 function updatePagination() {

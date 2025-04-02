@@ -1,16 +1,10 @@
 import {
     collection,
     getDocs,
-    getDoc,
     getFirestore,
     query,
     where,
-    deleteDoc,
-    updateDoc,
     Timestamp,
-    onSnapshot,
-    addDoc,
-    arrayRemove,
     doc
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
@@ -58,7 +52,7 @@ async function getAuthenticatedUser() {
 function initializeDashboard() {
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // User is signed in, update the farmer count
+            // User is signed in, update the farmer count and bar graph
             updateTotalFarmerCount();
             updateBarGraph();
         } else {
@@ -95,7 +89,6 @@ function animateCount(element, finalCount) {
 }
 
 // Function to fetch and update the farmer count
-// Counts maps in farmer_name array for current user's farmer_id, restricted to current year
 async function updateTotalFarmerCount() {
     try {
         // Get authenticated user and their farmer_id
@@ -107,37 +100,32 @@ async function updateTotalFarmerCount() {
             return;
         }
 
-        // Reference to the tb_projects collection
-        const projectsCollection = collection(db, "tb_projects");
-
-        // Get current year boundaries
-        const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 1); // January 1st
-        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); // December 31st
-
-        // Query projects for this farmer_id
-        const projectsQuery = query(projectsCollection, where("farmer_id", "==", farmerId));
+        // Step 1: Query tb_projects where lead_farmer_id matches current user's farmer_id
+        const projectsQuery = query(collection(db, "tb_projects"), where("lead_farmer_id", "==", farmerId));
         const projectsSnapshot = await getDocs(projectsQuery);
 
         let totalFarmerCount = 0;
 
-        // Count maps in farmer_name array for projects within current year
-        projectsSnapshot.forEach(doc => {
-            const data = doc.data();
-            
-            // Convert timestamp to date
-            const dateCreated = data.date_created instanceof Timestamp 
-                ? data.date_created.toDate() 
-                : new Date(data.date_created);
+        // Step 2: For each project, get the team_id and match it with tb_teams
+        for (const projectDoc of projectsSnapshot.docs) {
+            const projectData = projectDoc.data();
+            const teamId = projectData.team_id;
 
-            // Check if project is within current year
-            if (dateCreated >= startOfYear && dateCreated <= endOfYear) {
-                // Check if farmer_name exists and is an array
-                if (Array.isArray(data.farmer_name)) {
-                    totalFarmerCount += data.farmer_name.length;
-                }
+            if (teamId) {
+                // Query tb_teams where team_id field matches
+                const teamsQuery = query(collection(db, "tb_teams"), where("team_id", "==", teamId));
+                const teamsSnapshot = await getDocs(teamsQuery);
+
+                // Step 3: Count the number of maps in the farmer_name array
+                teamsSnapshot.forEach(teamDoc => {
+                    const teamData = teamDoc.data();
+                    const farmerNameArray = teamData.farmer_name; // The array field
+                    if (Array.isArray(farmerNameArray)) {
+                        totalFarmerCount += farmerNameArray.length; // Count the number of maps
+                    }
+                });
             }
-        });
+        }
 
         // Update the DOM with the farmer count
         const farmerElementCount = document.querySelector("#total-farmers");
@@ -211,11 +199,13 @@ async function updateBarGraph() {
         yearSelector.value = currentYear.toString();
     };
 
-    // Fetch data from tb_harvest and aggregate by month for selected year
+    // Fetch data from tb_headfarmer_harvest subcollection and aggregate by month for selected year
     const fetchHarvestData = async (selectedYear) => {
         try {
-            const harvestCollection = collection(db, 'tb_harvest');
-            const harvestSnapshot = await getDocs(harvestCollection);
+            // Reference to the specific document headfarmer_harvest_data in tb_harvest
+            const harvestDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data");
+            const subCollectionRef = collection(harvestDocRef, "tb_headfarmer_harvest");
+            const harvestSnapshot = await getDocs(subCollectionRef);
             
             const monthlyTotals = Array(12).fill(0);
 
@@ -318,6 +308,7 @@ async function updateBarGraph() {
 
         gridCtx.beginPath();
         gridCtx.setLineDash([0, 0]);
+
         gridCtx.strokeStyle = '#d0d0d0';
         gridCtx.lineWidth = 1.2;
 
@@ -480,7 +471,7 @@ async function updateBarGraph() {
             }
             if (bar.classList.contains('highlighted')) {
                 const totalCrops = bar.dataset.value || 0;
-                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.textContent = `Total Harvest: ${totalCrops} Kg`;
                 tooltip.style.display = 'block';
                 const barRect = bar.getBoundingClientRect();
                 const chartRect = barChart.getBoundingClientRect();
