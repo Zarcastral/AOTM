@@ -102,7 +102,6 @@
 
         .subtask-table td.status-cell {
             font-weight: 500;
-            /* Optional: make status text bold */
         }
 
         .action-icons img {
@@ -142,7 +141,6 @@
             cursor: not-allowed;
         }
 
-        /* MODAL DESIGN */
         .modal {
             position: fixed;
             top: 0;
@@ -209,7 +207,6 @@
             background-color: #359171;
         }
 
-        /* DELETE MODAL */
         .confirm-buttons {
             display: flex;
             justify-content: flex-end;
@@ -228,6 +225,20 @@
         }
 
         .cancel-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .modal-cancel-btn {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .modal-cancel-btn:hover {
             background-color: #d0d0d0;
         }
 
@@ -251,18 +262,18 @@
         }
 
         #completeTaskBtn.disabled {
-  background-color: #cccccc; /* Gray when disabled */
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+            background-color: #cccccc;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
-/* Ensure the button looks distinct when disabled */
-#completeTaskBtn:disabled {
-  background-color: #cccccc;
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.success-message {
+        #completeTaskBtn:disabled {
+            background-color: #cccccc;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .success-message {
             position: fixed;
             top: 20px;
             left: 50%;
@@ -321,7 +332,10 @@
                     <label for="subtaskName">Subtask Name:</label>
                     <input type="text" id="subtaskName" required>
                 </div>
-                <button type="submit" class="submit-btn">Add Subtask</button>
+                <div class="confirm-buttons">
+                    <button type="button" class="cancel-btn modal-cancel-btn">Cancel</button>
+                    <button type="submit" class="submit-btn">Add Subtask</button>
+                </div>
             </form>
         </div>
     </div>
@@ -340,10 +354,7 @@
     </div>
 
     <script type="module" src="../../../src/auth/header.js"></script>
-    <script type="module">
-        import { initializeSubtaskPage } from "../../../src/js/head_farmer/headfarm_subtask.js";
-        initializeSubtaskPage();
-    </script>
+    <script type="module" src="../../../src/js/head_farmer/headfarm_subtask.js"></script>
 </body>
 
 </html>

@@ -325,12 +325,6 @@ async function saveAttendance(projectId) {
     return;
   }
 
-  const confirmed = await confirmSaveAttendance();
-  if (!confirmed) {
-    console.log("Save canceled by user.");
-    return;
-  }
-
   try {
     const checkboxes = document.querySelectorAll(".attendance-checkbox");
     const remarks = document.querySelectorAll(".remarks-select");
@@ -403,7 +397,7 @@ async function saveAttendance(projectId) {
     let hasChanges = false;
 
     checkboxes.forEach((checkbox, index) => {
-      const row = checkbox.closest("tr");
+      const row = checkbox.closest("tr"); // Fixed typo: changed 'rowDistance' to 'row'
       const farmerName = row.querySelector("td:nth-child(2)").textContent;
       const farmerId = row.querySelector("td:nth-child(6)").textContent;
       const remarkValue = remarks[index].value;
@@ -437,8 +431,16 @@ async function saveAttendance(projectId) {
       }
     });
 
+    // Check for no changes before showing the confirmation modal
     if (!hasChanges) {
       showErrorPanel("No changes detected in attendance data.");
+      return;
+    }
+
+    // Show confirmation modal only if there are changes
+    const confirmed = await confirmSaveAttendance();
+    if (!confirmed) {
+      console.log("Save canceled by user.");
       return;
     }
 

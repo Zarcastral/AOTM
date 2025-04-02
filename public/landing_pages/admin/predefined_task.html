@@ -22,6 +22,11 @@
             <div class="btn-container">
                 <button id="open-add-task-modal" class="text-add-btn"> + New Task</button>
             </div>
+
+           <div class="search-container">
+           <input type="text" id="search-bar" placeholder="Search" /> 
+            </div>
+
             <table>
                 <thead>
                     <tr>
@@ -33,6 +38,7 @@
                     <!-- Task rows will be populated dynamically -->
                 </tbody>
             </table>
+            
             <!-- Pagination Controls -->
             <div class="pagination-container">
                 <button id="next-page-btn" class="pagination-btn" disabled>&gt;</button>
@@ -45,11 +51,18 @@
         <div id="add-task-modal" class="modal">
             <div class="modal-content">
                 <span id="close-add-task-modal" class="close-btn">×</span>
-                <h2>Add New Task</h2>
+
+                <section id="addadd">New Task</section>
+
                 <ul id="new-task-list" class="task-list"></ul>
+
+                <section id="border"></section>
+
+                <section id="add">Add New Task</section>
+
                 <div class="task-input-container">
-                    <input type="text" id="new-task-input" placeholder="Enter task...">
-                    <button id="add-task-btn" class="add-task-btn">Add Task</button>
+                    <input type="text" id="new-task-input">
+                    <button id="add-task-btn" class="add-task-btn"> + Add Task</button>
                 </div>
                 <button id="save-tasks-btn" class="save-btn" disabled>Save</button>
             </div>
@@ -58,12 +71,19 @@
         <!-- Edit Task Modal -->
         <div id="edit-task-modal" class="modal">
             <div class="modal-content">
+                
                 <span id="close-edit-task-modal" class="close-btn">×</span>
-                <h2>Edit Task</h2>
+
+                <section id="addadd">Subtask</section>
+                
                 <ul id="subtask-list" class="task-list"></ul>
-                <h2>Add SubTask</h2>
+
+                <section id="border"></section>
+
+                <section id="add">Add Subtask</section>
+
                 <div class="task-input-container">
-                    <input type="text" id="new-subtask-input" placeholder="Enter subtask...">
+                    <input type="text" id="new-subtask-input">
                     <button id="add-subtask-btn" class="add-task-btn"> + Add Subtask</button>
                 </div>
                 <button id="save-subtasks-btn" class="save-btn" disabled>Save</button>
@@ -101,18 +121,30 @@
         <!-- Assign Task to Crop Type Modal -->
         <div id="assign-task-modal" class="modal">
             <div class="modal-content">
-                <span id="close-assign-task-modal" class="close-btn">×</span>
-                <h2>Assign Tasks to Crop Type</h2>
+
+                <section id="addadd">Assign Task</section>
+
                 <label for="crop-type-select">Select Crop Type</label>
+
                 <select id="crop-type-select">
-                    <option value="">Select a crop type</option>
+                    <option value="">Crop Type</option>
                     <!-- Crop types will be loaded dynamically -->
                 </select>
-                <h3>Select Tasks</h3>
+
+                <section id="border"></section>
+
+                <section id="taskselect">Task Selection</section>
+
                 <div id="task-checkboxes">
                     <!-- Default tasks will be loaded dynamically as checkboxes -->
                 </div>
-                <button id="assign-tasks-btn" class="add-user-btn">Save</button>
+                
+
+                <div class="button-container">
+                    <button id="close-assign-task-modal" class="close-btn-assign">Cancel</button>
+                
+                    <button id="assign-tasks-btn" class="add-user-btn">Save</button>
+                </div>
             </div>
         </div>
 
@@ -147,6 +179,7 @@
                     <!-- Task rows will be populated dynamically -->
                 </tbody>
             </table>
+
             <!-- Pagination Controls for Assigned Tasks -->
             <div class="pagination-container">
                 <button id="assigned-next-page-btn" class="pagination-btn" disabled>&gt;</button>
@@ -157,17 +190,36 @@
 
         <!-- Edit Subtasks Modal -->
         <div id="edit-subtasks-modal" class="modal">
+            
             <div class="modal-content">
+
                 <span class="close" id="close-edit-subtasks-modal">×</span>
-                <h2>Edit Subtask</h2>
+
+                
+
                 <p id="edit-task-name-display"></p>
+
                 <ul id="subtask-list-subtasks" class="task-list"></ul>
-                <h2>Add SubTask</h2>
+
+
+                <section id="border"></section>
+                    
+
+                <section id="add">Add Subtask</section>
+
+
                 <div class="task-input-container">
-                    <input type="text" id="new-subtask-input-subtasks" placeholder="Enter subtask...">
-                    <button id="add-subtask-btn-subtasks" class="add-task-btn"> + Add Subtask</button>
+                    <input type="text" id="new-subtask-input-subtasks">
+
+                    <button 
+                    id="add-subtask-btn-subtasks" class="add-task-btn"> + Add Subtask</button>
+
+                    
                 </div>
-                <button id="save-subtasks-btn-subtasks" class="save-btn" disabled>Save</button>
+
+                    <button id="save-subtasks-btn-subtasks" class="save-btn">Save</button>
+              
+
             </div>
         </div>
 
@@ -210,8 +262,8 @@
         <!-- Duplicate Tasks Modal -->
         <div id="duplicate-tasks-modal" class="modal">
             <div class="modal-content">
-                <h2>Sub Task Already Assigned</h2>
-                <p>The following sub tasks is/are already assigned to</p>
+                <h2>Subtask Already Assigned</h2>
+                <p>The following subtasks is/are already assigned to</p>
                 <p id="duplicate-crop-type-name" style="font-weight: bold;"></p>
                 <p id="duplicate-tasks-message"></p>
                 <button id="close-duplicate-tasks-modal" class="add-user-btn">Okay</button>

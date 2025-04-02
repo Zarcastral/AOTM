@@ -51,6 +51,7 @@ body {
     flex-direction: column;
     padding: 30px; /* Padding around the panels */
     overflow-y: auto; /* Enable vertical scrolling */
+    
   }
 
 
@@ -94,7 +95,7 @@ th {
     
 }
 
-th:nth-child(1), td:nth-child(1) {
+th:first-child {
     width: 100px; /* Fixed width for the action column; adjust as needed */
     min-width: 120px; /* Minimum width to ensure usability */
     text-align: left;
@@ -173,7 +174,7 @@ input[type="checkbox"] {
 
 #search-bar, #barangay-select {
     padding: 8px;
-    font-size: 16px;
+    font-size: 15px;
     border: 1px solid lightgray; 
     border-radius: 5px;
     outline: none;
@@ -181,6 +182,7 @@ input[type="checkbox"] {
 #search-bar {
     width: 300px;
 }
+
 
 #search-bar:focus, #barangay-select:focus {
     border-color: #aaa;
@@ -560,6 +562,7 @@ input[type="checkbox"] {
 
     #title{
         font-size: 12px;
+        margin-left: 20px;
     }
 
     .main-content {
@@ -570,6 +573,7 @@ input[type="checkbox"] {
         width: 90%;
         padding: 20px;
         border-radius: 10px;
+        margin-left: 20px;
     }
 
     #search-bar,

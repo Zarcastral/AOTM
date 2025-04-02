@@ -201,9 +201,9 @@ addTaskBtn.addEventListener("click", async () => {
   }
 
   tasks.push(taskName);
-  const li = document.createElement("li");
-  li.innerHTML = `${taskName} <button class="delete-task-popup-btn">X</button>`;
-  newTaskList.appendChild(li);
+const li = document.createElement("li");
+li.innerHTML = `${taskName} <button class="delete-task-popup-btn"><img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon"></button>`;
+newTaskList.appendChild(li);
 
   newTaskInput.value = "";
   checkTaskInput();
@@ -438,7 +438,7 @@ async function loadCropTypes() {
   try {
     const querySnapshot = await getDocs(collection(db, "tb_crop_types"));
     cropTypes = [];
-    cropTypeSelect.innerHTML = "<option value=''>Select a crop type</option>";
+    cropTypeSelect.innerHTML = "<option value=''></option>";
 
     if (querySnapshot.empty) {
       console.log("No crop types found in Firestore.");

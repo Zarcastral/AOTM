@@ -668,25 +668,33 @@ if (endDateObj < startDateObj) {
     // ✅ Save project data to Firestore
     await addDoc(collection(db, "tb_projects"), projectData);
 
-    // ✅ Update the stock in tb_crop_stock
-    await updateDoc(doc(db, "tb_crop_stock", cropDoc.id), {
-      current_stock: currentCropStock - quantityCropType,
-    });
-
 
     alert("✅ Project saved successfully!");
+
+    console.log("Fetching project details for project ID:", projectID);
+    const projectDetails = await fetchProjectDetails(projectID);
+    console.log("Project Details Retrieved:", projectDetails);
+
+    //CROP
+    await updateCropStockAfterAssignment(projectID);
+    await saveCropStockAfterTeamAssign(projectID);
+
+    //FERT
+    await processFertilizerStockAfterUse(projectID);
+    await fetchFertilizerStock(projectID);
+
+    //EQUI
+    await processEquipmentStockAfterUse(projectID);
+    await fetchEquipmentStock(projectID);
+    
+
+
     resetForm();
   } catch (error) {
     console.error("❌ Error saving project:", error);
     alert("Failed to save project. Please try again.");
   }
 };
-
-
-
-
-
-
 
 
 
@@ -753,3 +761,584 @@ document
       this.value = maxStock; // Auto-correct to max stock
     }
   });
+
+
+
+
+
+
+
+
+
+  // FETCH PROJECT DETAILS
+  async function fetchProjectDetails(projectID) {
+    try {
+        if (!projectID) {
+            console.warn("No project ID provided.");
+            return null;
+        }
+  
+        // Query Firestore using the provided project_id
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", projectID));
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+            let projectData = null;
+            querySnapshot.forEach((doc) => {
+                projectData = doc.data();
+            });
+  
+            if (projectData) {
+                const filteredProjectData = {
+                    project_created_by: projectData.project_creator || "N/A",
+                    farmer_id: projectData.farmer_id || "N/A",
+                    crop_name: projectData.crop_name || "N/A",
+                    crop_type_name: projectData.crop_type_name || "N/A",
+                    crop_type_quantity: projectData.crop_type_quantity || 0,
+                    equipment: projectData.equipment || [],
+                    fertilizer: projectData.fertilizer || []
+                };
+  
+                console.log("FertilizerData(tb_projects):", filteredProjectData.fertilizer);
+                console.log("EquipmentData(tb_projects):", filteredProjectData.equipment);
+                console.log("Fetched Project Details:", filteredProjectData);
+  
+                return filteredProjectData;
+            }
+        }
+  
+        console.warn("No project found with project_id:", projectID);
+        return null;
+    } catch (error) {
+        console.error("Error fetching project details:", error);
+        return null;
+    }
+  }
+  
+
+//--------------------------- C R O P S   S T O C K ---------------------------------
+//CROP STOCK
+async function fetchCropStockByOwner(project_created_by, crop_type_name) {  // Change function parameter
+  console.log("Fetching crop stock for project creator:", project_created_by);
+  
+  try {
+      const cropStockQuery = query(collection(db, "tb_crop_stock"));
+      const cropStockSnapshot = await getDocs(cropStockQuery);
+
+      let foundStock = null;
+
+      cropStockSnapshot.forEach((doc) => {
+          const cropStockData = doc.data();
+          
+          const matchingStock = cropStockData.stocks.find(stock => stock.owned_by === project_created_by);  // Change variable
+
+          if (matchingStock && cropStockData.crop_type_name === crop_type_name) {
+              foundStock = {
+                  crop_name: cropStockData.crop_name || "N/A",
+                  crop_type_id: cropStockData.crop_type_id || "N/A",
+                  crop_type_name: cropStockData.crop_type_name || "N/A",
+                  unit: cropStockData.unit || "N/A",
+                  stocks: cropStockData.stocks.map(stock => ({
+                      current_stock: stock.current_stock || 0,
+                      owned_by: stock.owned_by || "N/A",
+                      stock_date: stock.stock_date || "N/A"
+                  }))
+              };
+          }
+      });
+
+      if (foundStock) {
+          console.log("Fetched Crop Stock:", foundStock);
+      } else {
+          console.log("No crop stock found for project creator:", project_created_by);
+      }
+
+      return foundStock;
+  } catch (error) {
+      console.error("Error fetching crop stock:", error);
+      return null;
+  }
+}
+
+//DITO SYA MAGBABAWAS NG STOCK HA
+async function updateCropStockAfterAssignment(project_id) {
+  try {
+      // Fetch project details using the passed project_id
+      const projectData = await fetchProjectDetails(project_id);
+      if (!projectData || !projectData.project_created_by) {
+          console.warn("No project creator found, cannot update stock.");
+          return;
+      }
+
+      // Fetch crop stock for the project creator
+      const cropStockData = await fetchCropStockByOwner(projectData.project_created_by, projectData.crop_type_name);
+      if (!cropStockData || !cropStockData.stocks || cropStockData.stocks.length === 0) {
+          console.warn("No crop stock found for the project creator.");
+          return;
+      }
+
+      // Extract crop_name from the fetched stock data
+      const crop_name = cropStockData.crop_name;
+
+      const requiredQuantity = projectData.crop_type_quantity;
+      console.log(`Required quantity for project (${crop_name}): ${requiredQuantity}`);
+
+      let updatedStocks = [];
+
+      for (let stock of cropStockData.stocks) {
+          if (stock.owned_by === projectData.project_created_by) {
+              let updatedStockValue = stock.current_stock - requiredQuantity;
+              if (updatedStockValue < 0) {
+                  console.warn(`Not enough stock for ${crop_name}! Current: ${stock.current_stock}, Required: ${requiredQuantity}`);
+                  return;
+              }
+
+              console.log(`Updating stock for ${stock.owned_by}. New Stock for ${crop_name}: ${updatedStockValue}`);
+
+              updatedStocks.push({
+                  ...stock,
+                  current_stock: updatedStockValue
+              });
+
+              // Update Firestore
+              const cropStockQuery = query(collection(db, "tb_crop_stocks"), 
+                                           where("crop_name", "==", crop_name));
+              const cropStockSnapshot = await getDocs(cropStockQuery);
+
+              if (!cropStockSnapshot.empty) {
+                  cropStockSnapshot.forEach(async (doc) => {
+                      const cropStockRef = doc.ref;
+                      await updateDoc(cropStockRef, { stocks: updatedStocks });
+                  });
+                  console.log(`Stock updated successfully for ${crop_name}!`);
+              } else {
+                  console.warn(`Crop stock document not found in the database for ${crop_name}.`);
+              }
+          }
+      }
+  } catch (error) {
+      console.error("Error updating crop stock:", error);
+  }
+}
+
+
+//CROP SAVING
+async function saveCropStockAfterTeamAssign(project_id) {
+  try {
+      const projectData = await fetchProjectDetails(project_id);
+      if (!projectData || !projectData.crop_name) {
+          console.warn("Missing crop_name, cannot save crop stock.");
+          return;
+      }
+
+      const { crop_name, crop_type_quantity } = projectData;
+      const stock_date = new Date().toISOString(); 
+
+     
+
+      const cropStockQuery = query(collection(db, "tb_crop_stock"), where("crop_name", "==", crop_name));
+      const cropStockSnapshot = await getDocs(cropStockQuery);
+
+      if (!cropStockSnapshot.empty) {
+          const updatePromises = cropStockSnapshot.docs.map(async (doc) => {
+              const cropStockRef = doc.ref;
+              const existingData = doc.data();
+              let updatedStocks = existingData.stocks || [];
+
+              let stockDeducted = false;
+              updatedStocks = updatedStocks.map(stock => {
+                  if (stock.owned_by === projectData.project_created_by && !stockDeducted) {
+                      if (stock.current_stock >= crop_type_quantity) {
+                          stock.current_stock -= crop_type_quantity;
+                          stockDeducted = true;
+                      } else {
+                          console.warn(`Not enough stock for ${crop_name}!`);
+                          return stock;
+                      }
+                  }
+                  return stock;
+              });
+
+              if (!stockDeducted) {
+                  console.warn(`No available stock to deduct for ${crop_name}`);
+                  return;
+              }
+
+              updatedStocks.push({
+                  current_stock: crop_type_quantity,
+                  stock_date: stock_date,
+                  unit: "kg"
+              });
+
+              return updateDoc(cropStockRef, { stocks: updatedStocks });
+          });
+
+          await Promise.all(updatePromises);
+          console.log(`✅ Stock updated for ${crop_name}.`);
+      } else {
+          console.warn(`❌ No crop stock found for ${crop_name}. Creating a new entry.`);
+
+          await addDoc(collection(db, "tb_crop_stock"), {
+              crop_name: crop_name,
+              stocks: [
+                  {
+                      current_stock: crop_type_quantity,
+                      stock_date: stock_date,
+                      unit: "kg",
+                      //farmer_id: farmer_id
+                  }
+              ]
+          });
+
+          console.log(`✅ New crop stock entry created for ${crop_name}.`);
+      }
+  } catch (error) {
+      console.error("❌ Error saving crop stock:", error);
+  }
+}
+
+
+
+
+
+//--------------------------- F E R T I L I Z E R   S T O C K ---------------------------------
+
+// FETCH FERTILIZER STOCK
+async function fetchFertilizerStock(project_id) {
+  try {
+      // Fetch project details
+      const projectDetails = await fetchProjectDetails(project_id);
+      if (!projectDetails || !projectDetails.fertilizer || projectDetails.fertilizer.length === 0) {
+          console.warn("No fertilizer data found for this project.");
+          return;
+      }
+
+      const fertilizerNames = projectDetails.fertilizer.map(fert => fert.fertilizer_name);
+      const projectCreator = projectDetails.project_created_by; // Get project creator
+
+      console.log("Fertilizer Names to Search:", fertilizerNames);
+      console.log("Filtering by Owner:", projectCreator);
+
+      // Query tb_fertilizer_stock for matching fertilizer names
+      const q = query(
+          collection(db, "tb_fertilizer_stock"),
+          where("fertilizer_name", "in", fertilizerNames)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+          console.warn("No matching fertilizer stocks found.");
+          return;
+      }
+
+      // Store filtered fertilizer stock data
+      const filteredFertilizerStockList = [];
+      querySnapshot.forEach((doc) => {
+          const data = doc.data();
+
+          // Check if any stock entry has the matching owned_by value
+          const matchingStocks = data.stocks.filter(stock => stock.owned_by === projectCreator);
+
+          if (matchingStocks.length > 0) {
+              filteredFertilizerStockList.push({
+                  id: doc.id, // Include document ID
+                  ...data, // Include all document fields
+                  stocks: matchingStocks // Only include stocks that match project_creator
+              });
+          }
+      });
+
+      if (filteredFertilizerStockList.length === 0) {
+          console.warn("No fertilizer stock found for the specified owner.");
+          return;
+      }
+
+      console.log("FertilizerData(tb_fertilizer_stock)",filteredFertilizerStockList);
+  } catch (error) {
+      console.error("Error fetching fertilizer stock:", error);
+  }
+}
+
+
+async function processFertilizerStockAfterUse(project_id) {
+  try {
+    // Fetch project details
+    const projectData = await fetchProjectDetails(project_id);
+    if (!projectData || !projectData.fertilizer || projectData.fertilizer.length === 0) {
+      console.warn("No fertilizer data found for this project.");
+      return;
+    }
+    
+    const stock_date = new Date().toISOString();
+    const projectCreator = projectData.project_created_by;
+    
+    // Build a map: fertilizer name => quantity to deduct
+    const fertilizerMap = new Map();
+    projectData.fertilizer.forEach(fert => {
+      fertilizerMap.set(fert.fertilizer_name, fert.fertilizer_quantity || 0);
+    });
+    
+    console.log("Fertilizer Map:", fertilizerMap);
+    console.log("Processing for Owner:", projectCreator);
+    
+    // Query fertilizer stock for matching fertilizer names
+    const fertilizerNames = Array.from(fertilizerMap.keys());
+    const q = query(
+      collection(db, "tb_fertilizer_stock"),
+      where("fertilizer_name", "in", fertilizerNames)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      console.warn("No matching fertilizer stocks found. Creating new entries.");
+      
+      // Create new entries for each fertilizer from project data
+      const insertPromises = projectData.fertilizer.map(fert => 
+        addDoc(collection(db, "tb_fertilizer_stock"), {
+          fertilizer_name: fert.fertilizer_name,
+          stocks: [{
+            current_stock: fert.fertilizer_quantity, // initial stock used
+            stock_date: stock_date,
+            unit: "kg"
+          }]
+        })
+      );
+      await Promise.all(insertPromises);
+      console.log("✅ New fertilizer stock entries created.");
+      return;
+    }
+    
+    // Process each matching fertilizer stock document
+    const updatePromises = [];
+    
+    querySnapshot.forEach(async (docSnapshot) => {
+      const docRef = doc(db, "tb_fertilizer_stock", docSnapshot.id);
+      const data = docSnapshot.data();
+      
+      console.log("Fertilizer data from db:", data);
+      // Use document-level fertilizer_name as fallback
+      const docFertilizerName = data.fertilizer_name;
+      
+      // Flag to ensure we deduct only once per document for each fertilizer
+      const deductedFor = new Set();
+      
+      // Process each stock entry owned by the project creator
+      data.stocks.forEach(stock => {
+        if (stock.owned_by === projectCreator) {
+          // Use the stock's fertilizer_name or fallback to document-level name
+          const fertilizerName = stock.fertilizer_name || docFertilizerName;
+          if (!fertilizerName) {
+            console.warn("Missing fertilizer name in stock:", stock);
+            return;
+          }
+          // If we haven't deducted for this fertilizer in this document...
+          if (!deductedFor.has(fertilizerName)) {
+            const usedQuantity = fertilizerMap.get(fertilizerName) || 0;
+            if (stock.current_stock >= usedQuantity) {
+              const newStock = Math.max(stock.current_stock - usedQuantity, 0);
+              console.log(`Deducting for ${fertilizerName}: ${stock.current_stock} - ${usedQuantity} = ${newStock}`);
+              stock.current_stock = newStock;
+              deductedFor.add(fertilizerName);
+            } else {
+              console.warn(`Not enough stock for ${fertilizerName} (current: ${stock.current_stock}). Skipping deduction.`);
+              return;
+            }
+          }
+        }
+      });
+      
+      // After deduction, add a new entry to log the used quantity.
+      // (This simulates the "save after use" part.)
+      // We add one new record per fertilizer that we deducted in this document.
+      deductedFor.forEach(fertilizerName => {
+        const usedQuantity = fertilizerMap.get(fertilizerName) || 0;
+        data.stocks.push({
+          current_stock: usedQuantity, // this new entry represents the used amount
+          stock_date: stock_date,
+          unit: "kg",
+          // Optionally, you can record additional info here (e.g., a reference to the project)
+        });
+      });
+      
+      updatePromises.push(updateDoc(docRef, { stocks: data.stocks }));
+    });
+    
+    await Promise.all(updatePromises);
+    console.log("✅ Combined fertilizer stock process completed successfully.");
+  } catch (error) {
+    console.error("❌ Error processing fertilizer stock:", error);
+  }
+}
+
+
+
+//--------------------------- E Q U I P M E N T   S T O C K ---------------------------------
+
+// FETCH EQUIPMENT STOCK
+async function fetchEquipmentStock(project_id) {
+  try {
+      // Fetch project details
+      const projectDetails = await fetchProjectDetails(project_id);
+      if (!projectDetails || !projectDetails.equipment || projectDetails.equipment.length === 0) {
+          console.warn("No equipment data found for this project.");
+          return;
+      }
+
+      const equipmentNames = projectDetails.equipment.map(equi => equi.equipment_name);
+      const projectCreator = projectDetails.project_created_by; // Get project creator
+
+      console.log("Equipment Names to Search:", equipmentNames);
+      console.log("Filtering by Owner:", projectCreator);
+
+      // Query tb_equipment_stock for matching equipment names
+      const q = query(
+          collection(db, "tb_equipment_stock"),
+          where("equipment_name", "in", equipmentNames)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+          console.warn("No matching equipment stocks found.");
+          return;
+      }
+
+      // Store filtered equipment stock data
+      const filteredEquipmentStockList = [];
+      querySnapshot.forEach((doc) => {
+          const data = doc.data();
+
+          // Check if any stock entry has the matching owned_by value
+          const matchingStocks = data.stocks.filter(stock => stock.owned_by === projectCreator);
+
+          if (matchingStocks.length > 0) {
+              filteredEquipmentStockList.push({
+                  id: doc.id, // Include document ID
+                  ...data, // Include all document fields
+                  stocks: matchingStocks // Only include stocks that match project_creator
+              });
+          }
+      });
+
+      if (filteredEquipmentStockList.length === 0) {
+          console.warn("No equipment stock found for the specified owner.");
+          return;
+      }
+
+      console.log("EquipmentData(tb_equipment_stock)",filteredEquipmentStockList);
+  } catch (error) {
+      console.error("Error fetching equipment stock:", error);
+  }
+}
+
+
+async function processEquipmentStockAfterUse(project_id) {
+  try {
+    // Fetch project details
+    const projectData = await fetchProjectDetails(project_id);
+    if (!projectData || !projectData.equipment || projectData.equipment.length === 0) {
+      console.warn("No equipment data found for this project.");
+      return;
+    }
+    
+    const stock_date = new Date().toISOString();
+    const projectCreator = projectData.project_created_by;
+    
+    // Build a map: equipment name => quantity to deduct
+    const equipmentMap = new Map();
+    projectData.equipment.forEach(equi => {
+      equipmentMap.set(equi.equipment_name, equi.equipment_quantity || 0);
+    });
+    
+    console.log("Equipment Map:", equipmentMap);
+    console.log("Processing for Owner:", projectCreator);
+    
+    // Query equipment stock for matching equipment names
+    const equipmentNames = Array.from(equipmentMap.keys());
+    const q = query(
+      collection(db, "tb_equipment_stock"),
+      where("equipment_name", "in", equipmentNames)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      console.warn("No matching equipment stocks found. Creating new entries.");
+      
+      // Create new entries for each equipment from project data
+      const insertPromises = projectData.equipment.map(fert => 
+        addDoc(collection(db, "tb_equipment_stock"), {
+          equipment_name: fert.equipment_name,
+          stocks: [{
+            current_stock: equi.equipment_quantity, // initial stock used
+            stock_date: stock_date,
+            unit: "kg"
+          }]
+        })
+      );
+      await Promise.all(insertPromises);
+      console.log("✅ New equipment stock entries created.");
+      return;
+    }
+    
+    // Process each matching equipment stock document
+    const updatePromises = [];
+    
+    querySnapshot.forEach(async (docSnapshot) => {
+      const docRef = doc(db, "tb_equipment_stock", docSnapshot.id);
+      const data = docSnapshot.data();
+      
+      console.log("equipment data from db:", data);
+      // Use document-level equipment_name as fallback
+      const docEquipmentName = data.equipment_name;
+      
+      // Flag to ensure we deduct only once per document for each equipment
+      const deductedFor = new Set();
+      
+      // Process each stock entry owned by the project creator
+      data.stocks.forEach(stock => {
+        if (stock.owned_by === projectCreator) {
+          // Use the stock's equipment_name or fallback to document-level name
+          const equipmentName = stock.equipment_name || docEquipmentName;
+          if (!equipmentName) {
+            console.warn("Missing equipment name in stock:", stock);
+            return;
+          }
+          // If we haven't deducted for this equipment in this document...
+          if (!deductedFor.has(equipmentName)) {
+            const usedQuantity = equipmentMap.get(equipmentName) || 0;
+            if (stock.current_stock >= usedQuantity) {
+              const newStock = Math.max(stock.current_stock - usedQuantity, 0);
+              console.log(`Deducting for ${equipmentName}: ${stock.current_stock} - ${usedQuantity} = ${newStock}`);
+              stock.current_stock = newStock;
+              deductedFor.add(equipmentName);
+            } else {
+              console.warn(`Not enough stock for ${equipmentName} (current: ${stock.current_stock}). Skipping deduction.`);
+              return;
+            }
+          }
+        }
+      });
+      
+      // After deduction, add a new entry to log the used quantity.
+      // (This simulates the "save after use" part.)
+      // We add one new record per equipment that we deducted in this document.
+      deductedFor.forEach(equipmentName => {
+        const usedQuantity = equipmentMap.get(equipmentName) || 0;
+        data.stocks.push({
+          current_stock: usedQuantity, // this new entry represents the used amount
+          stock_date: stock_date,
+          unit: "kg",
+          // Optionally, you can record additional info here (e.g., a reference to the project)
+        });
+      });
+      
+      updatePromises.push(updateDoc(docRef, { stocks: data.stocks }));
+    });
+    
+    await Promise.all(updatePromises);
+    console.log("✅ Combined equipment stock process completed successfully.");
+  } catch (error) {
+    console.error("❌ Error processing equipment stock:", error);
+  }
+}
