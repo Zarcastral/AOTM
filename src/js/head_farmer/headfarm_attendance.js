@@ -14,6 +14,59 @@ import app from "../../../src/config/firebase_config.js";
 // Initialize Firestore
 const db = getFirestore(app);
 
+// Function to show success panel
+function showSuccessPanel(message) {
+  const successMessage = document.createElement("div");
+  successMessage.className = "success-message";
+  successMessage.textContent = message;
+
+  document.body.appendChild(successMessage);
+
+  // Fade in
+  successMessage.style.display = "block";
+  setTimeout(() => {
+    successMessage.style.opacity = "1";
+  }, 5);
+
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    successMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(successMessage);
+    }, 400);
+  }, 4000);
+}
+
+// Function to show error panel
+function showErrorPanel(message) {
+  const errorMessage = document.createElement("div");
+  errorMessage.className = "error-message";
+  errorMessage.textContent = message;
+
+  document.body.appendChild(errorMessage);
+
+  // Fade in
+  errorMessage.style.display = "block";
+  setTimeout(() => {
+    errorMessage.style.opacity = "1";
+  }, 5);
+
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    errorMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(errorMessage);
+    }, 400);
+  }, 4000);
+}
+
+// Utility function to check if current date is past end_date
+function isPastEndDate(endDate) {
+  const currentDate = new Date();
+  const projectEndDate = new Date(endDate);
+  return currentDate > projectEndDate;
+}
+
 // Function to filter farmers based on search term
 function filterFarmers(farmerNames, farmerIds, attendanceData, searchTerm) {
   const filteredResults = [];
@@ -250,7 +303,7 @@ function confirmSaveAttendance() {
     const confirmBtn = document.getElementById("confirmSaveBtn");
     const cancelBtn = document.getElementById("cancelSaveBtn");
 
-    modal.style.display = "block";
+    modal.style.display = "flex";
 
     confirmBtn.onclick = () => {
       modal.style.display = "none";
@@ -266,6 +319,12 @@ function confirmSaveAttendance() {
 
 // Function to save attendance data with modal confirmation
 async function saveAttendance(projectId) {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  if (endDate && isPastEndDate(endDate)) {
+    showErrorPanel("Project is way past the deadline, request extension of project");
+    return;
+  }
+
   const confirmed = await confirmSaveAttendance();
   if (!confirmed) {
     console.log("Save canceled by user.");
@@ -278,7 +337,7 @@ async function saveAttendance(projectId) {
 
     for (const remark of remarks) {
       if (!remark.value || remark.value === "") {
-        alert("Please select a remark for all farmers.");
+        showErrorPanel("Please select a remark for all farmers.");
         return;
       }
     }
@@ -379,7 +438,7 @@ async function saveAttendance(projectId) {
     });
 
     if (!hasChanges) {
-      alert("No changes detected in attendance data.");
+      showErrorPanel("No changes detected in attendance data.");
       return;
     }
 
@@ -482,11 +541,11 @@ async function saveAttendance(projectId) {
       }
     }
 
-    alert("Attendance data updated successfully!");
+    showSuccessPanel("Attendance data updated successfully!");
     await fetchFarmers(projectId);
   } catch (error) {
     console.error("Error saving attendance data:", error);
-    alert("Error saving attendance data: " + error.message);
+    showErrorPanel("Error saving attendance data: " + error.message);
   }
 }
 
@@ -514,6 +573,8 @@ function arraysEqual(a, b) {
 export function initializeAttendancePage() {
   document.addEventListener("DOMContentLoaded", async () => {
     const projectId = sessionStorage.getItem("selected_project_id");
+    const endDate = sessionStorage.getItem("selected_project_end_date");
+
     if (!projectId) {
       console.error("No selected_project_id found in sessionStorage.");
       document.querySelector(
@@ -521,6 +582,8 @@ export function initializeAttendancePage() {
       ).innerHTML = `<tr><td colspan="5">No project selected.</td></tr>`;
       return;
     }
+
+    console.log(`Fetched end_date on attendance page: ${endDate}`); // Log end_date
 
     const backArrow = document.querySelector(".back-arrow");
     if (backArrow) {
@@ -545,6 +608,10 @@ export function initializeAttendancePage() {
       }
 
       saveBtn.addEventListener("click", async () => {
+        if (endDate && isPastEndDate(endDate)) {
+          showErrorPanel("Project is way past the deadline, request extension of project");
+          return;
+        }
         await saveAttendance(projectId);
       });
     } else {

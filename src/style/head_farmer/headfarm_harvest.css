@@ -322,7 +322,7 @@ cursor: not-allowed;
   max-width: 600px;
   border-radius: 10px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  padding: 25px;
+  padding: 40px;
   position: relative;
 }
 
@@ -450,7 +450,7 @@ cursor: not-allowed;
   padding: 10px 30px;
   border: none;
   border-radius: 25px;
-  font-weight: bold;
+  font-weight: 500;
   cursor: pointer;
   font-size: 16px;
 }
@@ -469,7 +469,7 @@ cursor: not-allowed;
   border-radius: 25px;
   cursor: pointer;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 500;
 }
 
 /* Submit Button Hover */
@@ -483,25 +483,26 @@ cursor: not-allowed;
 }
 
 .btn-container {
+  width: 90%;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1rem;
+  margin-top: 20px;
 }
 
 /* New User Button */
 .add-user-btn {
     background-color: #41A186;
     color: white;
-    padding: 12px 20px;
-    font-size: 25px;
-    font-weight: bold;
+    padding: 15px 25px;
+    font-size: 20px;
+    font-weight: 550;
     text-align: center;
-    border-radius: 20px;
+    border-radius: 25px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     border: none;
     text-decoration: none;
-    margin-left: 900px;
+    margin-left: 500px;
 }
 
 .add-user-btn:hover {
@@ -517,6 +518,24 @@ cursor: not-allowed;
     vertical-align: middle;
     margin-right: -5px; /* Nudges the icon closer to the text */
     margin-top: -3px; /* Nudges the icon closer to the text */
+}
+
+
+.harvest-success-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color:  #41A186;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 @media screen and (max-width: 768px) {
   .header {

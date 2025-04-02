@@ -19,6 +19,13 @@ let tasksPerPage = 5;
 let currentPage = 1;
 let totalPages = 0;
 
+// Utility function to check if current date is past end_date
+function isPastEndDate(endDate) {
+  const currentDate = new Date();
+  const projectEndDate = new Date(endDate);
+  return currentDate > projectEndDate;
+}
+
 // Function to show success panel
 function showSuccessPanel(message) {
   const successMessage = document.createElement("div");
@@ -31,15 +38,15 @@ function showSuccessPanel(message) {
   successMessage.style.display = "block";
   setTimeout(() => {
     successMessage.style.opacity = "1";
-  }, 5); // Small delay to trigger transition
+  }, 5);
 
   // Fade out after 4 seconds
   setTimeout(() => {
     successMessage.style.opacity = "0";
     setTimeout(() => {
       document.body.removeChild(successMessage);
-    }, 400); // Match transition duration
-  }, 4000); // Display for 4 seconds
+    }, 400);
+  }, 4000);
 }
 
 // Function to show error panel
@@ -47,7 +54,7 @@ function showErrorPanel(message) {
   const errorMessage = document.createElement("div");
   errorMessage.className = "success-message";
   errorMessage.textContent = message;
-  errorMessage.style.backgroundColor = "#dc2626"; // Red background for error
+  errorMessage.style.backgroundColor = "#AC415B";
 
   document.body.appendChild(errorMessage);
 
@@ -55,15 +62,15 @@ function showErrorPanel(message) {
   errorMessage.style.display = "block";
   setTimeout(() => {
     errorMessage.style.opacity = "1";
-  }, 5); // Small delay to trigger transition
+  }, 5);
 
   // Fade out after 4 seconds
   setTimeout(() => {
     errorMessage.style.opacity = "0";
     setTimeout(() => {
       document.body.removeChild(errorMessage);
-    }, 400); // Match transition duration
-  }, 4000); // Display for 4 seconds
+    }, 400);
+  }, 4000);
 }
 
 export async function fetchProjectsForFarmer() {
@@ -93,6 +100,10 @@ export async function fetchProjectsForFarmer() {
         );
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
+        sessionStorage.setItem("selected_project_end_date", project.end_date);
+        console.log(
+          `Fetched end_date for project ${project.project_id}: ${project.end_date}`
+        );
         await fetchProjectTasks(project.crop_type_name, project.project_id);
       }
     });
@@ -155,6 +166,7 @@ function renderTasks() {
 
   const searchInput = document.querySelector(".search-container input");
   const searchTerm = searchInput ? searchInput.value.trim() : "";
+
   if (filteredTasks.length === 0) {
     taskTableBody.innerHTML = `<tr><td colspan="6">${
       searchTerm ? "No record found." : "No tasks found."
@@ -168,6 +180,7 @@ function renderTasks() {
       const task = taskObj.data;
       const taskId = taskObj.id;
 
+      // Always show all icons, restrictions handled in event listeners
       const taskRow = `
         <tr id="task-row-${taskId}">
           <td>${task.task_name}</td>
@@ -225,6 +238,13 @@ function attachGlobalEventListeners() {
   });
 
   document.getElementById("addTaskButton").addEventListener("click", () => {
+    const endDate = sessionStorage.getItem("selected_project_end_date");
+    if (endDate && isPastEndDate(endDate)) {
+      showErrorPanel(
+        "Project is way past the deadline, request extension of project"
+      );
+      return;
+    }
     addTaskModal.classList.remove("hidden");
   });
 
@@ -263,10 +283,19 @@ function attachGlobalEventListeners() {
 }
 
 function attachRowEventListeners() {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  const isPastEnd = endDate ? isPastEndDate(endDate) : false;
+
   document.querySelectorAll(".delete-icon").forEach((icon) => {
     const newIcon = icon.cloneNode(true);
     icon.parentNode.replaceChild(newIcon, icon);
     newIcon.addEventListener("click", async (event) => {
+      if (isPastEnd) {
+        showErrorPanel(
+          "Project is way past the deadline, request extension of project"
+        );
+        return;
+      }
       const taskId = event.currentTarget.dataset.taskId;
       try {
         const taskSnap = await getDocs(
@@ -279,7 +308,7 @@ function attachRowEventListeners() {
           const taskData = taskSnap.docs[0].data();
           const taskName = taskData.task_name;
           if (taskData.task_status === "Completed") {
-            showErrorPanel(`"${taskName}" is completed and cannot be deleted.`); // Replaced alert
+            showErrorPanel(`"${taskName}" is completed and cannot be deleted.`);
             console.log(`Attempted to delete completed task: ${taskName}`);
             return;
           }
@@ -314,6 +343,10 @@ function attachRowEventListeners() {
             const projectTaskId = taskData.project_task_id;
             sessionStorage.setItem("project_task_id", projectTaskId);
             sessionStorage.setItem("selected_task_name", taskName);
+            const endDate = sessionStorage.getItem("selected_project_end_date");
+            if (endDate) {
+              sessionStorage.setItem("selected_project_end_date", endDate);
+            }
             window.location.href = "headfarm_subtask.html";
           }
         })
@@ -327,6 +360,12 @@ function attachRowEventListeners() {
     const newIcon = icon.cloneNode(true);
     icon.parentNode.replaceChild(newIcon, icon);
     newIcon.addEventListener("click", (event) => {
+      if (isPastEnd) {
+        showErrorPanel(
+          "Project is way past the deadline, request extension of project"
+        );
+        return;
+      }
       const taskId = event.currentTarget.dataset.taskId;
       const taskRow = document.getElementById(`task-row-${taskId}`);
       const currentTaskName =
@@ -386,6 +425,14 @@ function checkTaskNameChange() {
 }
 
 async function saveEditHandler() {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  if (endDate && isPastEndDate(endDate)) {
+    showErrorPanel(
+      "Project is way past the deadline, request extension of project"
+    );
+    return;
+  }
+
   const newTaskNameRaw = editTaskNameInput.value.trim();
   if (!newTaskNameRaw) {
     alert("Please enter a task name.");
@@ -496,6 +543,14 @@ function cancelEditHandler() {
 }
 
 async function saveTaskHandler() {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  if (endDate && isPastEndDate(endDate)) {
+    showErrorPanel(
+      "Project is way past the deadline, request extension of project"
+    );
+    return;
+  }
+
   const taskName = taskNameInput.value.trim();
 
   if (!taskName) {
@@ -585,6 +640,15 @@ async function saveTaskHandler() {
 }
 
 async function deleteTaskHandler() {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  if (endDate && isPastEndDate(endDate)) {
+    showErrorPanel(
+      "Project is way past the deadline, request extension of project"
+    );
+    deleteTaskModal.classList.add("hidden");
+    return;
+  }
+
   if (!taskToDelete) return;
 
   try {
