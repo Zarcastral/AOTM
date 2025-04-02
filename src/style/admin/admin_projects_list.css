@@ -51,6 +51,7 @@ body {
     flex-direction: column;
     padding: 30px; /* Padding around the panels */
     overflow-y: auto; /* Enable vertical scrolling */
+    
   }
 
 
@@ -560,6 +561,7 @@ input[type="checkbox"] {
 
     #title{
         font-size: 12px;
+        margin-left: 20px;
     }
 
     .main-content {
@@ -570,6 +572,7 @@ input[type="checkbox"] {
         width: 90%;
         padding: 20px;
         border-radius: 10px;
+        margin-left: 20px;
     }
 
     #search-bar,
