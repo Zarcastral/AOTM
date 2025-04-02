@@ -37,6 +37,84 @@ body {
   cursor: pointer;
 }
 
+#crop-search-bar {
+    padding: 9px;
+    font-size: 15px;
+    border: 1px solid lightgray; 
+    border-radius: px;
+    outline: none;
+  }
+
+  
+  #fert-search-bar {
+    padding: 9px;
+    font-size: 15px;
+    border: 1px solid lightgray; 
+    border-radius: px;
+    outline: none;
+  }
+
+
+  #equip-search-bar {
+    padding: 9px;
+    font-size: 15px;
+    border: 1px solid lightgray; 
+    border-radius: px;
+    outline: none;
+  }
+
+  .crop_select{
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+      font-size: 16px;
+      color: #243B53;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+      width: 150px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      appearance: none; /* Removes default dropdown styling */
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+      background-repeat: no-repeat;
+      background-position: right 10px center; /* Moves the arrow closer */
+      background-size: 16px;
+      cursor: pointer;
+    }
+
+
+    .fertilizer_select{
+      padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+        font-size: 16px;
+        color: #243B53;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        outline: none;
+        width: 150px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        appearance: none; /* Removes default dropdown styling */
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+        background-repeat: no-repeat;
+        background-position: right 10px center; /* Moves the arrow closer */
+        background-size: 16px;
+        cursor: pointer;
+      }
+
+      .equipment_select{
+        padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+          font-size: 16px;
+          color: #243B53;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          outline: none;
+          width: 190px;
+          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+          appearance: none; /* Removes default dropdown styling */
+          background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+          background-repeat: no-repeat;
+          background-position: right 10px center; /* Moves the arrow closer */
+          background-size: 16px;
+          cursor: pointer;
+        }
+
 .main-content {
   display: flex;
   flex-direction: column;
@@ -151,7 +229,7 @@ th,
 td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 2px solid #E5E7EB;
 }
 
 th {
@@ -306,10 +384,10 @@ transition: color 0.3s ease;
 
 .add-crop-stock-btn, .add-fert-stock-btn,
 .add-equip-stock-btn {
-  background-color:  #41A186;
+  background-color:#41A186;
   color: white;
   padding: 10px 10px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   text-align: center;
   border-radius: 20px;
@@ -328,11 +406,11 @@ transition: color 0.3s ease;
 }
 
 .action-icon-add {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
   vertical-align: middle;
-  margin-right: -5px; /* Nudges the icon closer to the text */
+  margin-right: 2px; /* Nudges the icon closer to the text */
   margin-top: -3px; /* Nudges the icon closer to the text */
 }
 
@@ -341,7 +419,7 @@ transition: color 0.3s ease;
   height: 26px;
   object-fit: contain;
   vertical-align: middle;
-  margin-right: -8px; /* Nudges the icon closer to the text */
+  margin-right: -2px; /* Nudges the icon closer to the text */
   margin-top: -3px; /* Nudges the icon closer to the text */
 }
 
@@ -350,7 +428,7 @@ transition: color 0.3s ease;
   background-color:  #AC415B;
   color: white;
   padding: 10px 10px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   text-align: center;
   border-radius: 20px;
