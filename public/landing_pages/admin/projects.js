@@ -670,18 +670,21 @@ if (endDateObj < startDateObj) {
 
 
     alert("✅ Project saved successfully!");
+
+    console.log("Fetching project details for project ID:", projectID);
+    const projectDetails = await fetchProjectDetails(projectID);
+    console.log("Project Details Retrieved:", projectDetails); 
+
+    await updateCropStockAfterAssignment(projectID);  // Update crop stock
+    await saveCropStockAfterTeamAssign(projectID);    // Save crop stock for the team
+    
+
     resetForm();
   } catch (error) {
     console.error("❌ Error saving project:", error);
     alert("Failed to save project. Please try again.");
   }
 };
-
-
-
-
-
-
 
 
 
@@ -748,3 +751,238 @@ document
       this.value = maxStock; // Auto-correct to max stock
     }
   });
+
+
+
+
+
+
+
+
+
+  // FETCH PROJECT DETAILS
+  async function fetchProjectDetails(projectID) {
+    try {
+        if (!projectID) {
+            console.warn("No project ID provided.");
+            return null;
+        }
+  
+        // Query Firestore using the provided project_id
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", projectID));
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+            let projectData = null;
+            querySnapshot.forEach((doc) => {
+                projectData = doc.data();
+            });
+  
+            if (projectData) {
+                const filteredProjectData = {
+                    project_created_by: projectData.project_creator || "N/A",
+                    farmer_id: projectData.farmer_id || "N/A",
+                    crop_name: projectData.crop_name || "N/A",
+                    crop_type_name: projectData.crop_type_name || "N/A",
+                    crop_type_quantity: projectData.crop_type_quantity || 0,
+                    equipment: projectData.equipment || [],
+                    fertilizer: projectData.fertilizer || []
+                };
+  
+                console.log("FertilizerData(tb_projects):", filteredProjectData.fertilizer);
+                console.log("EquipmentData(tb_projects):", filteredProjectData.equipment);
+                console.log("Fetched Project Details:", filteredProjectData);
+  
+                return filteredProjectData;
+            }
+        }
+  
+        console.warn("No project found with project_id:", projectID);
+        return null;
+    } catch (error) {
+        console.error("Error fetching project details:", error);
+        return null;
+    }
+  }
+  
+
+//--------------------------- C R O P S   S T O C K ---------------------------------
+//CROP STOCK
+async function fetchCropStockByOwner(project_created_by, crop_type_name) {  // Change function parameter
+  console.log("Fetching crop stock for project creator:", project_created_by);
+  
+  try {
+      const cropStockQuery = query(collection(db, "tb_crop_stock"));
+      const cropStockSnapshot = await getDocs(cropStockQuery);
+
+      let foundStock = null;
+
+      cropStockSnapshot.forEach((doc) => {
+          const cropStockData = doc.data();
+          
+          const matchingStock = cropStockData.stocks.find(stock => stock.owned_by === project_created_by);  // Change variable
+
+          if (matchingStock && cropStockData.crop_type_name === crop_type_name) {
+              foundStock = {
+                  crop_name: cropStockData.crop_name || "N/A",
+                  crop_type_id: cropStockData.crop_type_id || "N/A",
+                  crop_type_name: cropStockData.crop_type_name || "N/A",
+                  unit: cropStockData.unit || "N/A",
+                  stocks: cropStockData.stocks.map(stock => ({
+                      current_stock: stock.current_stock || 0,
+                      owned_by: stock.owned_by || "N/A",
+                      stock_date: stock.stock_date || "N/A"
+                  }))
+              };
+          }
+      });
+
+      if (foundStock) {
+          console.log("Fetched Crop Stock:", foundStock);
+      } else {
+          console.log("No crop stock found for project creator:", project_created_by);
+      }
+
+      return foundStock;
+  } catch (error) {
+      console.error("Error fetching crop stock:", error);
+      return null;
+  }
+}
+
+//DITO SYA MAGBABAWAS NG STOCK HA
+async function updateCropStockAfterAssignment(project_id) {
+  try {
+      // Fetch project details using the passed project_id
+      const projectData = await fetchProjectDetails(project_id);
+      if (!projectData || !projectData.project_created_by) {
+          console.warn("No project creator found, cannot update stock.");
+          return;
+      }
+
+      // Fetch crop stock for the project creator
+      const cropStockData = await fetchCropStockByOwner(projectData.project_created_by, projectData.crop_type_name);
+      if (!cropStockData || !cropStockData.stocks || cropStockData.stocks.length === 0) {
+          console.warn("No crop stock found for the project creator.");
+          return;
+      }
+
+      // Extract crop_name from the fetched stock data
+      const crop_name = cropStockData.crop_name;
+
+      const requiredQuantity = projectData.crop_type_quantity;
+      console.log(`Required quantity for project (${crop_name}): ${requiredQuantity}`);
+
+      let updatedStocks = [];
+
+      for (let stock of cropStockData.stocks) {
+          if (stock.owned_by === projectData.project_created_by) {
+              let updatedStockValue = stock.current_stock - requiredQuantity;
+              if (updatedStockValue < 0) {
+                  console.warn(`Not enough stock for ${crop_name}! Current: ${stock.current_stock}, Required: ${requiredQuantity}`);
+                  return;
+              }
+
+              console.log(`Updating stock for ${stock.owned_by}. New Stock for ${crop_name}: ${updatedStockValue}`);
+
+              updatedStocks.push({
+                  ...stock,
+                  current_stock: updatedStockValue
+              });
+
+              // Update Firestore
+              const cropStockQuery = query(collection(db, "tb_crop_stocks"), 
+                                           where("crop_name", "==", crop_name));
+              const cropStockSnapshot = await getDocs(cropStockQuery);
+
+              if (!cropStockSnapshot.empty) {
+                  cropStockSnapshot.forEach(async (doc) => {
+                      const cropStockRef = doc.ref;
+                      await updateDoc(cropStockRef, { stocks: updatedStocks });
+                  });
+                  console.log(`Stock updated successfully for ${crop_name}!`);
+              } else {
+                  console.warn(`Crop stock document not found in the database for ${crop_name}.`);
+              }
+          }
+      }
+  } catch (error) {
+      console.error("Error updating crop stock:", error);
+  }
+}
+
+
+//CROP SAVING
+async function saveCropStockAfterTeamAssign(project_id) {
+  try {
+      const projectData = await fetchProjectDetails(project_id);
+      if (!projectData || !projectData.crop_name) {
+          console.warn("Missing crop_name, cannot save crop stock.");
+          return;
+      }
+
+      const { crop_name, crop_type_quantity } = projectData;
+      const stock_date = new Date().toISOString(); 
+
+     
+
+      const cropStockQuery = query(collection(db, "tb_crop_stock"), where("crop_name", "==", crop_name));
+      const cropStockSnapshot = await getDocs(cropStockQuery);
+
+      if (!cropStockSnapshot.empty) {
+          const updatePromises = cropStockSnapshot.docs.map(async (doc) => {
+              const cropStockRef = doc.ref;
+              const existingData = doc.data();
+              let updatedStocks = existingData.stocks || [];
+
+              let stockDeducted = false;
+              updatedStocks = updatedStocks.map(stock => {
+                  if (stock.owned_by === projectData.project_created_by && !stockDeducted) {
+                      if (stock.current_stock >= crop_type_quantity) {
+                          stock.current_stock -= crop_type_quantity;
+                          stockDeducted = true;
+                      } else {
+                          console.warn(`Not enough stock for ${crop_name}!`);
+                          return stock;
+                      }
+                  }
+                  return stock;
+              });
+
+              if (!stockDeducted) {
+                  console.warn(`No available stock to deduct for ${crop_name}`);
+                  return;
+              }
+
+              updatedStocks.push({
+                  current_stock: crop_type_quantity,
+                  stock_date: stock_date,
+                  unit: "kg"
+              });
+
+              return updateDoc(cropStockRef, { stocks: updatedStocks });
+          });
+
+          await Promise.all(updatePromises);
+          console.log(`✅ Stock updated for ${crop_name}.`);
+      } else {
+          console.warn(`❌ No crop stock found for ${crop_name}. Creating a new entry.`);
+
+          await addDoc(collection(db, "tb_crop_stock"), {
+              crop_name: crop_name,
+              stocks: [
+                  {
+                      current_stock: crop_type_quantity,
+                      stock_date: stock_date,
+                      unit: "kg",
+                      //farmer_id: farmer_id
+                  }
+              ]
+          });
+
+          console.log(`✅ New crop stock entry created for ${crop_name}.`);
+      }
+  } catch (error) {
+      console.error("❌ Error saving crop stock:", error);
+  }
+}
