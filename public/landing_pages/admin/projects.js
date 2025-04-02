@@ -675,9 +675,17 @@ if (endDateObj < startDateObj) {
     const projectDetails = await fetchProjectDetails(projectID);
     console.log("Project Details Retrieved:", projectDetails); 
 
-    await updateCropStockAfterAssignment(projectID);  // Update crop stock
-    await saveCropStockAfterTeamAssign(projectID);    // Save crop stock for the team
+    await processFertilizerStockAfterUse(projectID);
     
+    // ✅ Call fetchFertilizerStock after project save
+    await fetchFertilizerStock(projectID);  // Fetch fertilizer stock for the project
+    //await updateFertilizerStock(projectID);  // Update fertilizer stock
+    //await saveFertilizerStockAfterUse(projectID);  // Save fertilizer stock after use
+
+
+
+
+
 
     resetForm();
   } catch (error) {
@@ -986,3 +994,181 @@ async function saveCropStockAfterTeamAssign(project_id) {
       console.error("❌ Error saving crop stock:", error);
   }
 }
+
+
+
+
+
+//--------------------------- F E R T I L I Z E R   S T O C K ---------------------------------
+
+// FETCH FERTILIZER STOCK
+async function fetchFertilizerStock(project_id) {
+  try {
+      // Fetch project details
+      const projectDetails = await fetchProjectDetails(project_id);
+      if (!projectDetails || !projectDetails.fertilizer || projectDetails.fertilizer.length === 0) {
+          console.warn("No fertilizer data found for this project.");
+          return;
+      }
+
+      const fertilizerNames = projectDetails.fertilizer.map(fert => fert.fertilizer_name);
+      const projectCreator = projectDetails.project_created_by; // Get project creator
+
+      console.log("Fertilizer Names to Search:", fertilizerNames);
+      console.log("Filtering by Owner:", projectCreator);
+
+      // Query tb_fertilizer_stock for matching fertilizer names
+      const q = query(
+          collection(db, "tb_fertilizer_stock"),
+          where("fertilizer_name", "in", fertilizerNames)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+          console.warn("No matching fertilizer stocks found.");
+          return;
+      }
+
+      // Store filtered fertilizer stock data
+      const filteredFertilizerStockList = [];
+      querySnapshot.forEach((doc) => {
+          const data = doc.data();
+
+          // Check if any stock entry has the matching owned_by value
+          const matchingStocks = data.stocks.filter(stock => stock.owned_by === projectCreator);
+
+          if (matchingStocks.length > 0) {
+              filteredFertilizerStockList.push({
+                  id: doc.id, // Include document ID
+                  ...data, // Include all document fields
+                  stocks: matchingStocks // Only include stocks that match project_creator
+              });
+          }
+      });
+
+      if (filteredFertilizerStockList.length === 0) {
+          console.warn("No fertilizer stock found for the specified owner.");
+          return;
+      }
+
+      console.log("FertilizerData(tb_fertilizer_stock)",filteredFertilizerStockList);
+  } catch (error) {
+      console.error("Error fetching fertilizer stock:", error);
+  }
+}
+
+
+async function processFertilizerStockAfterUse(project_id) {
+  try {
+    // Fetch project details
+    const projectData = await fetchProjectDetails(project_id);
+    if (!projectData || !projectData.fertilizer || projectData.fertilizer.length === 0) {
+      console.warn("No fertilizer data found for this project.");
+      return;
+    }
+    
+    const stock_date = new Date().toISOString();
+    const projectCreator = projectData.project_created_by;
+    
+    // Build a map: fertilizer name => quantity to deduct
+    const fertilizerMap = new Map();
+    projectData.fertilizer.forEach(fert => {
+      fertilizerMap.set(fert.fertilizer_name, fert.fertilizer_quantity || 0);
+    });
+    
+    console.log("Fertilizer Map:", fertilizerMap);
+    console.log("Processing for Owner:", projectCreator);
+    
+    // Query fertilizer stock for matching fertilizer names
+    const fertilizerNames = Array.from(fertilizerMap.keys());
+    const q = query(
+      collection(db, "tb_fertilizer_stock"),
+      where("fertilizer_name", "in", fertilizerNames)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      console.warn("No matching fertilizer stocks found. Creating new entries.");
+      
+      // Create new entries for each fertilizer from project data
+      const insertPromises = projectData.fertilizer.map(fert => 
+        addDoc(collection(db, "tb_fertilizer_stock"), {
+          fertilizer_name: fert.fertilizer_name,
+          stocks: [{
+            current_stock: fert.fertilizer_quantity, // initial stock used
+            stock_date: stock_date,
+            unit: "kg"
+          }]
+        })
+      );
+      await Promise.all(insertPromises);
+      console.log("✅ New fertilizer stock entries created.");
+      return;
+    }
+    
+    // Process each matching fertilizer stock document
+    const updatePromises = [];
+    
+    querySnapshot.forEach(async (docSnapshot) => {
+      const docRef = doc(db, "tb_fertilizer_stock", docSnapshot.id);
+      const data = docSnapshot.data();
+      
+      console.log("Fertilizer data from db:", data);
+      // Use document-level fertilizer_name as fallback
+      const docFertilizerName = data.fertilizer_name;
+      
+      // Flag to ensure we deduct only once per document for each fertilizer
+      const deductedFor = new Set();
+      
+      // Process each stock entry owned by the project creator
+      data.stocks.forEach(stock => {
+        if (stock.owned_by === projectCreator) {
+          // Use the stock's fertilizer_name or fallback to document-level name
+          const fertilizerName = stock.fertilizer_name || docFertilizerName;
+          if (!fertilizerName) {
+            console.warn("Missing fertilizer name in stock:", stock);
+            return;
+          }
+          // If we haven't deducted for this fertilizer in this document...
+          if (!deductedFor.has(fertilizerName)) {
+            const usedQuantity = fertilizerMap.get(fertilizerName) || 0;
+            if (stock.current_stock >= usedQuantity) {
+              const newStock = Math.max(stock.current_stock - usedQuantity, 0);
+              console.log(`Deducting for ${fertilizerName}: ${stock.current_stock} - ${usedQuantity} = ${newStock}`);
+              stock.current_stock = newStock;
+              deductedFor.add(fertilizerName);
+            } else {
+              console.warn(`Not enough stock for ${fertilizerName} (current: ${stock.current_stock}). Skipping deduction.`);
+              return;
+            }
+          }
+        }
+      });
+      
+      // After deduction, add a new entry to log the used quantity.
+      // (This simulates the "save after use" part.)
+      // We add one new record per fertilizer that we deducted in this document.
+      deductedFor.forEach(fertilizerName => {
+        const usedQuantity = fertilizerMap.get(fertilizerName) || 0;
+        data.stocks.push({
+          current_stock: usedQuantity, // this new entry represents the used amount
+          stock_date: stock_date,
+          unit: "kg",
+          // Optionally, you can record additional info here (e.g., a reference to the project)
+        });
+      });
+      
+      updatePromises.push(updateDoc(docRef, { stocks: data.stocks }));
+    });
+    
+    await Promise.all(updatePromises);
+    console.log("✅ Combined fertilizer stock process completed successfully.");
+  } catch (error) {
+    console.error("❌ Error processing fertilizer stock:", error);
+  }
+}
+
+
+
+//--------------------------- E Q U I P M E N T   S T O C K ---------------------------------
