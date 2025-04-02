@@ -157,26 +157,32 @@ th:first-child{
 }
 
 td:first-child{
-  width: 50px; /* Adjusted width for the action column */
-  min-width: 50px; /* Minimum width to ensure usability */
-  text-align: middle; /* Center the content in the column for better appearance */
+  width: 140px; /* Adjusted width for the action column */
+  min-width: 140px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
 }
 
-th:nth-child(2), td:nth-child(2) {
+th:nth-child(3), td:nth-child(3) {
   width: 120px; /* Adjusted width for the action column */
   min-width: 130px; /* Minimum width to ensure usability */
   text-align: left; /* Center the content in the column for better appearance */
 }
 
-th:nth-child(6), td:nth-child(6) {
+th:nth-child(5), td:nth-child(5) {
   width: 170px; /* Adjusted width for the action column */
   min-width: 170px; /* Minimum width to ensure usability */
   text-align: left; /* Center the content in the column for better appearance */
 }
 
-.panel table th:nth-child(8), .panel table td:nth-child(8) {
-  width: 120px; /* Adjusted width for the action column */
-  min-width: 120px; /* Minimum width to ensure usability */
+th:nth-child(6), td:nth-child(6) {
+  width: 130px; /* Adjusted width for the action column */
+  min-width: 130px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
+}
+
+.panel table th:nth-child(7), .panel table td:nth-child(7) {
+  width: 140px; /* Adjusted width for the action column */
+  min-width: 140px; /* Minimum width to ensure usability */
   text-align: center; /* Center the content in the column for better appearance */
 }
 
@@ -293,8 +299,9 @@ cursor: not-allowed;
   margin: 0 5px;
 }
 .action-btn img {
-  width: 25px; 
-  height: 25px;
+  margin-top: 5px;
+  width: 35px; 
+  height: 35px;
   object-fit: contain;
 }
 .action-btn:hover {
@@ -528,8 +535,8 @@ cursor: not-allowed;
   transform: translateX(-50%);
   background-color:  #41A186;
   color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 15px 20px;
+  border-radius: 25px;
   display: none;
   font-size: 18px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);

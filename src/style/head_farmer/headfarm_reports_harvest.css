@@ -457,21 +457,22 @@ tbody tr:hover {
 }
 
 .preview-btn {
-  padding: 10px 20px;
+  padding: 10px 30px;
   border: none;
-  border-radius: 5px;
+  border-radius: 25px;
   cursor: pointer;
-  font-size: 14px;
+  font-weight: 550;
+  font-size: 17px;
   transition: background-color 0.2s;
 }
 
 .cancel-btn {
-  background-color: #E2E8F0;
-  color: #333;
+  background-color: #C3C3C3;
+  color: white;
 }
 
 .cancel-btn:hover {
-  background-color: #CBD5E0;
+  background-color: #888686;
 }
 
 .done-btn {

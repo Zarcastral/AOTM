@@ -4,10 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="module" src="../../../src/js/farm_president/farmpres_dash.js"></script>
+  <script type="module" src="../../../src/js/head_farmer/headfarm_dash.js"></script>
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../src/style/farm_president/farmpres_dash.css">
+  <link rel="stylesheet" href="../../../src/style/head_farmer/headfarm_dash.css">
 </head>
 
 <body>
@@ -21,15 +21,18 @@
       <div class="system-stats-section">
         <h4 class="section-title">SYSTEM</h4>
         <div class="system-stats">
-          <div class="stats-card">
-            <img src="../../../public/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
-            <div class="stats-info">
-              <p>Farmers</p>
-              <div class="number-wrapper">
+          <!-- Farmers Card with a unique wrapper -->
+          <div class="farmers-card-wrapper">
+            <div class="stats-card farmers-card">
+              <img src="../../../public/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
+              <div class="stats-info">
+                <p>Farmers</p>
+                <div class="number-wrapper">
                   <h3 id="total-farmers">
                     <!--Dynamically Updating Records-->
                   </h3>
-                <span>This Year</span>
+                  <span>Your Team</span>
+                </div>
               </div>
             </div>
           </div>
