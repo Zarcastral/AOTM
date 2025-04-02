@@ -668,11 +668,6 @@ if (endDateObj < startDateObj) {
     // ✅ Save project data to Firestore
     await addDoc(collection(db, "tb_projects"), projectData);
 
-    // ✅ Update the stock in tb_crop_stock
-    await updateDoc(doc(db, "tb_crop_stock", cropDoc.id), {
-      current_stock: currentCropStock - quantityCropType,
-    });
-
 
     alert("✅ Project saved successfully!");
     resetForm();
