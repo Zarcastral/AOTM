@@ -9,9 +9,16 @@ body {
 }
 
 .title{
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 500;
   color: #486581;
+  margin-bottom: 8px;
+  margin-top: -20px;
+}
+
+#addadd {
+  font-size: 20px;
+  font-weight: 600;
   margin-bottom: 20px;
 }
 
@@ -57,6 +64,7 @@ body {
   margin-bottom: 20px;
   padding: 15px;
   border-radius: 8px;
+  margin-bottom: 50px;
 }
 
 .btn-container {
@@ -122,15 +130,18 @@ body {
   top: 50%;
   transform: translate(-50%, -50%);
   background-color: white;
-  border-radius: 8px;
+  border-radius: 20px;
+  padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .modal-content {
   position: relative;
-  width: 400px;
-  padding: 20px;
+  width: 500px;
+  margin-top: 10px;
+  padding: 10px;
   box-sizing: border-box;
+
 }
 
 .close-btn {
@@ -187,7 +198,7 @@ body {
 .task-input-container {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   margin-bottom: 20px;
 }
 
@@ -197,7 +208,7 @@ body {
   flex: 1;
   padding: 20px;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 12px;
   outline: none;
 }
@@ -207,8 +218,10 @@ body {
   border: none;
   color: #41A186;
   font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
   transition: color 0.3s ease;
+  
 }
 
 .add-task-btn:hover {
@@ -232,7 +245,7 @@ body {
 }
 
 .save-btn:disabled {
-  background-color: #cccccc;
+  background-color: #41A186;
   cursor: not-allowed;
 }
 
@@ -265,12 +278,12 @@ th {
 th {
   background-color: white;
   color: #333;
-  font-weight: 550;
+  font-weight: 200px;
 }
 
 tbody tr {
   background-color: white;
-  border-bottom: 4px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 tbody tr:hover {
@@ -279,27 +292,68 @@ tbody tr:hover {
 
 .search-container {
   display: flex;
-  gap: 5px;
-  margin-bottom: 20px;
-  margin-left: 15px;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-#crop-filter,
-#crop-type-filter {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+#search-bar {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid lightgray; 
+  border-radius: 10px;
+  outline: none;
+  margin-left: 30px;
+  margin-bottom: 50px;
+  margin-top: -60px;
+}
+#search-bar {
+  width: 450px;
+}
+
+#search-bar:focus {
+  border-color: #aaa;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+}
+.search-container input{
+padding: 0.5rem;
+border: 1px solid #dcdcdc;
+border-radius: 5px;
+}
+
+#crop-filter {
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
-  width: 200px;
+  width: 150px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
+  margin-right: -30px; /* Add this to reduce the gap */
+}
+
+#crop-type-filter {
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+  margin-left: 5px; /* Add this to reduce the gap */
 }
 
 .edit-task-btn {
@@ -388,6 +442,7 @@ tbody tr:hover {
   gap: 5px;
   padding: 10px;
   transition: color 0.3s ease;
+  margin-right: 30px;
 }
 
 .text-add-btn:hover {
@@ -412,6 +467,7 @@ tbody tr:hover {
   color: #486581;
   font-family: 'Poppins';
 }
+
 .close-btn {
     position: absolute;
     top: 10px;
@@ -428,12 +484,14 @@ tbody tr:hover {
 .close-btn:hover .close-icon {
     opacity: 0.7; /* Optional hover effect */
 }
+
 #edit-task-modal .modal-content ul + h2 {
   font-size: 15px;
   color: #333333;
   margin-top: 20px;
   border-top: 3px solid #f0f0f0;
 }
+
 #edit-task-modal .save-btn {
   margin: 0 0 0 auto; /* Aligns the button to the right */
   display: block; /* Keep it as a block element */
@@ -472,7 +530,7 @@ tbody tr:hover {
 
   .modal-content {
       width: 90%;
-      padding: 15px;
+      padding: 30px;
   }
 
   table {
