@@ -31,7 +31,7 @@ function showSuccessPanel(message) {
     successMessage.style.opacity = "1";
   }, 5);
 
-  // Fade out after 4 seconds
+  // Fade out after 4 seconds 
   setTimeout(() => {
     successMessage.style.opacity = "0";
     setTimeout(() => {
@@ -565,6 +565,13 @@ function handleCloseModal() {
   subtaskForm.reset();
 }
 
+function handleCancelModal() {
+  const modal = document.getElementById("subtaskModal");
+  const subtaskForm = document.getElementById("subtaskForm");
+  modal.style.display = "none";
+  subtaskForm.reset();
+}
+
 function handleWindowClick(e) {
   const modal = document.getElementById("subtaskModal");
   const subtaskForm = document.getElementById("subtaskForm");
@@ -675,7 +682,6 @@ export function initializeSubtaskPage() {
         completeBtn.onclick = null;
         completeBtn.onclick = async () => {
           if (!completeBtn.disabled) {
-            // Show success panel before starting the completion process
             showSuccessPanel("All subtasks are completed! Marking task as Completed...");
             console.log(
               "All subtasks are completed! Marking task as Completed..."
@@ -703,6 +709,12 @@ export function initializeSubtaskPage() {
   if (closeModal) {
     closeModal.removeEventListener("click", handleCloseModal);
     closeModal.addEventListener("click", handleCloseModal);
+  }
+
+  const cancelModalBtn = document.querySelector(".modal-cancel-btn");
+  if (cancelModalBtn) {
+    cancelModalBtn.removeEventListener("click", handleCancelModal);
+    cancelModalBtn.addEventListener("click", handleCancelModal);
   }
 
   window.removeEventListener("click", handleWindowClick);
