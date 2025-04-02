@@ -673,19 +673,17 @@ if (endDateObj < startDateObj) {
 
     console.log("Fetching project details for project ID:", projectID);
     const projectDetails = await fetchProjectDetails(projectID);
-    console.log("Project Details Retrieved:", projectDetails); 
+    console.log("Project Details Retrieved:", projectDetails);
 
+    //CROP
+    await updateCropStockAfterAssignment(projectID);
+    await saveCropStockAfterTeamAssign(projectID);
+
+    //FERT
     await processFertilizerStockAfterUse(projectID);
+    await fetchFertilizerStock(projectID);
     
-    // ✅ Call fetchFertilizerStock after project save
-    await fetchFertilizerStock(projectID);  // Fetch fertilizer stock for the project
-    //await updateFertilizerStock(projectID);  // Update fertilizer stock
-    //await saveFertilizerStockAfterUse(projectID);  // Save fertilizer stock after use
-
-
-
-
-
+    
 
     resetForm();
   } catch (error) {
