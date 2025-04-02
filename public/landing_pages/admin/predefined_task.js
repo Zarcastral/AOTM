@@ -28,6 +28,7 @@ const deleteConfirmationModal = document.getElementById(
 );
 const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
 const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+const searchBar = document.getElementById("search-bar");
 let taskToDeleteId = null;
 
 const duplicateSubtaskModal = document.createElement("div");
@@ -66,6 +67,15 @@ const rowsPerPage = 5;
 let allTasks = [];
 
 addTaskBtn.disabled = true;
+
+// Debounce function to limit how often fetchTasks is called
+function debounce(func, delay) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
+  };
+}
 
 function showAlert(message) {
   const alertModal = document.getElementById("error-modal");
@@ -148,10 +158,9 @@ function checkSaveButtonState() {
   const taskListNotEmpty = newTaskList.children.length > 0;
 
   const subtaskListItems = Array.from(subtaskList.querySelectorAll("li")).map(
-    (li) => ({ subtask_name: li.textContent.trim() }) // Convert to object for comparison
+    (li) => ({ subtask_name: li.textContent.trim() })
   );
 
-  // Convert initialSubtasks to object format if they are strings
   const formattedInitialSubtasks = initialSubtasks.map((subtask) =>
     typeof subtask === "string" ? { subtask_name: subtask } : subtask
   );
@@ -201,22 +210,23 @@ addTaskBtn.addEventListener("click", async () => {
   }
 
   tasks.push(taskName);
-const li = document.createElement("li");
-li.innerHTML = `${taskName} <button class="delete-task-popup-btn"><img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon"></button>`;
-newTaskList.appendChild(li);
+  const li = document.createElement("li");
+  li.innerHTML = `${taskName} <button class="delete-task-popup-btn"><img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon"></button>`;
+  newTaskList.appendChild(li);
 
   newTaskInput.value = "";
   checkTaskInput();
   checkSaveButtonState();
 });
 
+// Updated event listener for deleting tasks in the "Add Task" modal
 newTaskList.addEventListener("click", (e) => {
-  if (e.target.classList.contains("delete-task-popup-btn")) {
-    e.target.parentElement.remove();
-    tasks = tasks.filter(
-      (task) =>
-        task !== e.target.parentElement.textContent.replace(" X", "").trim()
-    );
+  const deleteBtn = e.target.closest(".delete-task-popup-btn");
+  if (deleteBtn) {
+    const li = deleteBtn.parentElement;
+    const taskName = li.textContent.trim().split(" ")[0]; // Get only the task name
+    li.remove();
+    tasks = tasks.filter((task) => task !== taskName);
     checkSaveButtonState();
   }
 });
@@ -230,7 +240,7 @@ saveTasksBtn.addEventListener("click", async () => {
   for (const taskName of tasks) {
     await addDoc(collection(db, "tb_pretask"), {
       task_name: taskName,
-      subtasks: [], // Empty array, will contain objects later
+      subtasks: [],
     });
   }
 
@@ -243,10 +253,9 @@ saveSubtasksBtn.addEventListener("click", async () => {
   if (!editingTaskId) return;
 
   const updatedSubtasks = Array.from(subtaskList.querySelectorAll("li")).map(
-    (li) => ({ subtask_name: li.textContent.trim() }) // Convert to object
+    (li) => ({ subtask_name: li.textContent.trim() })
   );
 
-  // Convert initialSubtasks to the same format for comparison
   const formattedInitialSubtasks = initialSubtasks.map((subtask) =>
     typeof subtask === "string" ? { subtask_name: subtask } : subtask
   );
@@ -270,9 +279,11 @@ saveSubtasksBtn.addEventListener("click", async () => {
   }
 });
 
-async function fetchTasks() {
+async function fetchTasks(searchQuery = "") {
   const taskList = document.getElementById("task-list");
+  taskList.style.opacity = "0"; // Fade out before updating
   taskList.innerHTML = "";
+  
   const querySnapshot = await getDocs(collection(db, "tb_pretask"));
 
   allTasks = [];
@@ -283,26 +294,39 @@ async function fetchTasks() {
     });
   });
 
-  const totalPages = Math.ceil(allTasks.length / rowsPerPage);
+  // Filter tasks based on search query
+  let filteredTasks = allTasks;
+  if (searchQuery) {
+    filteredTasks = allTasks.filter((task) =>
+      task.data.task_name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  const totalPages = Math.ceil(filteredTasks.length / rowsPerPage);
 
   if (currentPage < 1) currentPage = 1;
   if (currentPage > totalPages) currentPage = totalPages;
 
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = Math.min(startIndex + rowsPerPage, allTasks.length);
+  const endIndex = Math.min(startIndex + rowsPerPage, filteredTasks.length);
 
   for (let i = startIndex; i < endIndex; i++) {
-    const taskData = allTasks[i].data;
+    const taskData = filteredTasks[i].data;
     const row = document.createElement("tr");
     row.innerHTML = `
         <td>${taskData.task_name}</td>
         <td>
-          <img src="../../images/image 27.png" alt="Edit" title="Edit Task" class="action-icon edit-task-icon" data-id="${allTasks[i].id}">
-          <img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon" data-id="${allTasks[i].id}">
+          <img src="../../images/image 27.png" alt="Edit" title="Edit Task" class="action-icon edit-task-icon" data-id="${filteredTasks[i].id}">
+          <img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon" data-id="${filteredTasks[i].id}">
         </td>
       `;
     taskList.appendChild(row);
   }
+
+  // Fade in after updating
+  setTimeout(() => {
+    taskList.style.opacity = "1";
+  }, 100);
 
   updatePaginationControls(totalPages);
 
@@ -326,7 +350,7 @@ async function fetchTasks() {
       if (taskSnap.exists()) {
         const taskData = taskSnap.data();
         subtaskList.innerHTML = "";
-        initialSubtasks = [...taskData.subtasks]; // Keep original format for comparison
+        initialSubtasks = [...taskData.subtasks];
 
         taskData.subtasks.forEach((subtask) => {
           const subtaskName =
@@ -360,7 +384,7 @@ confirmDeleteBtn.addEventListener("click", async () => {
     await deleteDoc(doc(db, "tb_pretask", taskToDeleteId));
     taskToDeleteId = null;
     deleteConfirmationModal.style.display = "none";
-    fetchTasks();
+    fetchTasks(searchBar.value.trim());
   }
 });
 
@@ -554,7 +578,6 @@ assignTasksBtn.addEventListener("click", async () => {
         continue;
       }
 
-      // Convert subtasks to object format if they are strings
       const formattedSubtasks = (taskData.subtasks || []).map((subtask) =>
         typeof subtask === "string" ? { subtask_name: subtask } : subtask
       );
@@ -564,7 +587,7 @@ assignTasksBtn.addEventListener("click", async () => {
         crop_type_name: selectedCropTypeName,
         crop_name: cropName,
         task_name: taskData.task_name,
-        subtasks: formattedSubtasks, // Use object format
+        subtasks: formattedSubtasks,
         assigned_on: new Date(),
       });
 
@@ -599,7 +622,18 @@ assignTasksBtn.addEventListener("click", async () => {
   }
 });
 
+// Debounced version of fetchTasks for search
+const debouncedFetchTasks = debounce(fetchTasks, 300);
+
+// Search bar event listener with debounce
+searchBar.addEventListener("input", (e) => {
+  currentPage = 1; // Reset to first page on search
+  const searchQuery = e.target.value.trim();
+  debouncedFetchTasks(searchQuery);
+});
+
 document.addEventListener("DOMContentLoaded", () => {
+  fetchTasks(); // Initial load without search query
   document
     .getElementById("open-add-task-modal")
     .addEventListener("click", function () {
@@ -616,7 +650,7 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("prev-page-btn").addEventListener("click", () => {
   if (currentPage > 1) {
     currentPage--;
-    fetchTasks();
+    fetchTasks(searchBar.value.trim());
   }
 });
 
@@ -624,8 +658,6 @@ document.getElementById("next-page-btn").addEventListener("click", () => {
   const totalPages = Math.ceil(allTasks.length / rowsPerPage);
   if (currentPage < totalPages) {
     currentPage++;
-    fetchTasks();
+    fetchTasks(searchBar.value.trim());
   }
 });
-
-fetchTasks();
