@@ -271,11 +271,10 @@ saveSubtasksBtn.addEventListener("click", async () => {
     const taskRef = doc(db, "tb_pretask", editingTaskId);
     await updateDoc(taskRef, { subtasks: updatedSubtasks });
 
-    console.log("Subtasks updated successfully!");
     closeEditTaskPopup();
     fetchTasks();
   } catch (error) {
-    console.error("Error updating subtasks:", error);
+    
   }
 });
 
@@ -362,8 +361,6 @@ async function fetchTasks(searchQuery = "") {
 
         saveSubtasksBtn.disabled = true;
         checkSaveButtonState();
-      } else {
-        console.error("Task not found in Firestore");
       }
     });
   });
@@ -400,7 +397,7 @@ function checkTaskInput() {
 
 newTaskInput.addEventListener("input", checkTaskInput);
 
-document.addEventListener("DOMContentLoaded", checkTaskInput);
+document.addEventListener("DOMContent доброLoaded", checkTaskInput);
 
 addSubtaskBtn.addEventListener("click", () => {
   let subtaskName = newSubtaskInput.value.trim();
@@ -465,7 +462,6 @@ async function loadCropTypes() {
     cropTypeSelect.innerHTML = "<option value=''></option>";
 
     if (querySnapshot.empty) {
-      console.log("No crop types found in Firestore.");
       return;
     }
 
@@ -490,7 +486,7 @@ async function loadCropTypes() {
       cropTypeSelect.appendChild(option);
     });
   } catch (error) {
-    console.error("Error fetching crop types:", error);
+    
   }
 }
 
@@ -533,7 +529,6 @@ assignTasksBtn.addEventListener("click", async () => {
     const cropSnap = await getDoc(cropRef);
 
     if (!cropSnap.exists()) {
-      console.error("Crop type not found in tb_crop_types.");
       showAlert("Error: Crop type not found.");
       assignTasksBtn.disabled = false;
       return;
@@ -560,7 +555,6 @@ assignTasksBtn.addEventListener("click", async () => {
       const taskSnap = await getDoc(taskRef);
 
       if (!taskSnap.exists()) {
-        console.warn(`Task with ID ${taskId} not found in tb_pretask.`);
         continue;
       }
 
@@ -615,7 +609,6 @@ assignTasksBtn.addEventListener("click", async () => {
       showSuccess("Tasks assigned successfully!");
     }
   } catch (error) {
-    console.error("Error assigning tasks:", error);
     showAlert("An error occurred while assigning tasks. Please try again.");
   } finally {
     assignTasksBtn.disabled = false;
