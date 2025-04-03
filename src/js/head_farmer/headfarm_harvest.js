@@ -300,7 +300,7 @@ async function saveHarvest() {
       team_name: teamName,
       total_harvested_crops: parseFloat(totalHarvest),
       unit: unit,
-      farm_president: farmPresident,
+      farm_president: selectedProject.farm_president,
       farmer_name: farmerNameData,
       lead_farmer: selectedTeam.lead_farmer || "N/A",
       harvest_date: harvestDate, // Date of the harvest
@@ -308,7 +308,8 @@ async function saveHarvest() {
       farmland_id: selectedProject.farmland_id || "N/A",
       land_area: landArea,
       start_date: selectedProject.start_date || "N/A",
-      end_date: selectedProject.end_date || "N/A"
+      end_date: selectedProject.end_date || "N/A",
+      farm_pres_id: selectedProject.farmer_id || "N/A" // Fetch farmer_id from project and save as farm_pres_id
     };
 
     const headFarmerHarvestRef = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
