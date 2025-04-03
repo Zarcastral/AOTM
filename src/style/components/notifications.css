@@ -1,0 +1,46 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #e0e0e0; /* Light gray background for the outer container */
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+}
+.notification-container {
+    background-color: white;
+    width: 300px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+.back-arrow {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 20px;
+    color: #333;
+    cursor: pointer;
+}
+.notification-header {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.notification-item {
+    margin-bottom: 20px;
+}
+.notification-item .title {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+.notification-item .title.unread::before {
+    content: "• ";
+    color: blue;
+}
+.notification-item .description {
+    font-size: 12px;
+    color: #333;
+}
