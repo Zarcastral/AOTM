@@ -11,6 +11,8 @@
 </head>
 
 <body>
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <div class="main-content">
   <div class="panel">
     <h1>Create Account</h1>
     <form id="createAccountForm" class="form-container">
@@ -114,7 +116,7 @@
       <button type="submit" class="submit-btn" disabled>Create Account</button>
     </form>
   </div>
-
+</div>
   <!-- 🚀 Pop-up Modal for Errors -->
   <div id="errorPopup" class="popup-container hidden">
     <div class="popup-box">
@@ -127,6 +129,7 @@
     import { updateFormFields } from "../../../src/auth/create_account.js";
     document.getElementById("user_type").addEventListener("change", updateFormFields);
   </script>
+    <script type="module" src="../../../src/auth/header.js"></script>
 
 </body>
 
