@@ -191,30 +191,93 @@ window.loadData = function() {
 
 document.addEventListener("DOMContentLoaded", loadData);
 
+//edit
 window.editItem = function(collection, id, name) {
+    // Validate inputs
+    if (!collection || !id || name === undefined) {
+        console.error('Invalid edit parameters:', {collection, id, name});
+        showCustomMessage('Cannot edit this item', false);
+        return;
+    }
+
+    // Sanitize name display (prevent XSS)
+    const sanitizedName = name.toString()
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    // Set form values
     document.getElementById('edit-item-id').value = id;
     document.getElementById('edit-item-collection').value = collection;
-    document.getElementById('edit-item-name').value = name;
+    document.getElementById('edit-item-name').value = sanitizedName;
 
+    // Show popup
     openPopup('edit-item-popup');
 };
-
-window.saveEditedItem = function() {
+//save edit
+window.saveEditedItem = async function() {
+    // Get form values
     const id = document.getElementById('edit-item-id').value;
     const collection = document.getElementById('edit-item-collection').value;
-    const newName = document.getElementById('edit-item-name').value;
+    const newName = document.getElementById('edit-item-name').value.trim();
 
-    db.collection(collection).doc(id).update({
-        [Object.keys(db.collection(collection).doc().data)[0]]: newName
-    }).then(() => {
+    if (!newName) {
+        showCustomMessage('Name cannot be empty', false);
+        return;
+    }
+
+    // Map collections to their respective name fields
+    const fieldMap = {
+        'tb_barangay': 'barangay_name',
+        'tb_crop_types': 'crop_type_name',
+        'tb_fertilizer': 'fertilizer_name',
+        'tb_equipment': 'equipment_name',
+        'tb_farmland': 'farmland_name'
+    };
+
+    const fieldToUpdate = fieldMap[collection];
+    
+    if (!fieldToUpdate) {
+        showCustomMessage('Invalid collection type', false);
+        return;
+    }
+
+    try {
+        // Check for duplicate names (except for the current item)
+        const querySnapshot = await db.collection(collection)
+            .where(fieldToUpdate, '==', newName)
+            .get();
+
+        const isDuplicate = querySnapshot.docs.some(doc => doc.id !== id);
+        
+        if (isDuplicate) {
+            showCustomMessage(`${fieldToUpdate.replace('_', ' ')} already exists!`, false);
+            return;
+        }
+
+        // Perform the update
+        await db.collection(collection).doc(id).update({
+            [fieldToUpdate]: newName
+        });
+
         showCustomMessage('Item updated successfully', true);
         closePopup('edit-item-popup');
-        loadData();
-    }).catch(error => {
+        loadData(); // Refresh the displayed data
+
+        // Special reload for dependent data
+        if (collection === 'tb_barangay') {
+            loadFarmlandsForBarangay();
+            populateBarangayDropdown();
+        }
+    } catch (error) {
         console.error('Error updating item:', error);
         showCustomMessage('Error updating item. Please try again.', false);
-    });
+    }
 };
+
+
+
+
+
 
 window.deleteItem = function(collection, id) {
     deleteItemCollection = collection;

@@ -190,16 +190,23 @@
             </div>
         </div>
 
-        <!-- Modal for Edit Item -->
+        <!-- Edit Modal -->
         <div id="edit-item-popup" class="popup">
             <div class="popup-content">
+                <span class="close-btn" onclick="closePopup('edit-item-popup')">&times;</span>
                 <h3>Edit Item</h3>
-                <input type="hidden" id="edit-item-id">
-                <input type="hidden" id="edit-item-collection">
-                <label for="edit-item-name">Name:</label>
-                <input type="text" id="edit-item-name" required><br><br>
-                <button class="add-button" onclick="saveEditedItem()">Save</button>
-                <button class="cancel-button" onclick="closePopup('edit-item-popup')">Cancel</button>
+                <form onsubmit="event.preventDefault(); saveEditedItem()">
+                    <input type="hidden" id="edit-item-id">
+                    <input type="hidden" id="edit-item-collection">
+                    <div class="form-group">
+                        <label for="edit-item-name">Name:</label>
+                        <input type="text" id="edit-item-name" required class="form-input">
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" onclick="closePopup('edit-item-popup')">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
 
