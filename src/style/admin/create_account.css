@@ -18,6 +18,63 @@ body {
   padding: 0 20px;
 }
 
+.back {
+  margin-bottom: 10px;
+  margin-left: 380px;
+  margin-top: -30px;
+}
+
+#sex {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  width: 500px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
+
+#user_type {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  width: 500px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
+
+#barangay {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  width: 500px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
+
 .header-title {
   font-size: 30px;
   font-weight: bold;
@@ -188,4 +245,55 @@ select {
 
 .remove-file:hover {
   color: #cc0000; /* Slightly darker red on hover */
+}
+
+
+@media (max-width: 768px) {
+  .back {
+    margin-left: 10px;
+    margin-bottom: 3px;
+    margin-top: 10px;
+  }
+  
+  
+  .panel {
+    padding: 30px;
+    margin: 10px;
+    
+  }
+  
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px; /* Padding around the panels */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Disable horizontal scrolling */
+  }
+ 
+}
+
+@media (max-width: 480px) {
+  .back {
+    margin-left: 10px;
+    margin-bottom: 5px;
+    margin-top: 50px;
+  }
+  
+  
+  .panel {
+    padding: 30px;
+    margin: 10px;
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; 
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px; /* Padding around the panels */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Disable horizontal scrolling */
+  }
+
+  
 }
