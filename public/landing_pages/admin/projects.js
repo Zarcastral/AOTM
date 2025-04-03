@@ -928,15 +928,16 @@ async function saveCropStockAfterTeamAssign(project_id) {
       const projectData = await fetchProjectDetails(project_id);
       if (!projectData || !projectData.crop_name) {
           console.warn("Missing crop_name, cannot save crop stock.");
-          return;
+          return false;
       }
 
-      const { crop_name, crop_type_quantity } = projectData;
-      const stock_date = new Date().toISOString(); 
+      const { crop_name, crop_type_quantity, project_created_by } = projectData;
+      const stock_date = new Date().toISOString();
 
-     
-
-      const cropStockQuery = query(collection(db, "tb_crop_stock"), where("crop_name", "==", crop_name));
+      const cropStockQuery = query(
+          collection(db, "tb_crop_stock"),
+          where("crop_name", "==", crop_name)
+      );
       const cropStockSnapshot = await getDocs(cropStockQuery);
 
       if (!cropStockSnapshot.empty) {
@@ -947,14 +948,9 @@ async function saveCropStockAfterTeamAssign(project_id) {
 
               let stockDeducted = false;
               updatedStocks = updatedStocks.map(stock => {
-                  if (stock.owned_by === projectData.project_created_by && !stockDeducted) {
-                      if (stock.current_stock >= crop_type_quantity) {
-                          stock.current_stock -= crop_type_quantity;
-                          stockDeducted = true;
-                      } else {
-                          console.warn(`Not enough stock for ${crop_name}!`);
-                          return stock;
-                      }
+                  if (stock.owned_by === project_created_by && stock.current_stock >= crop_type_quantity) {
+                      stock.current_stock -= crop_type_quantity;
+                      stockDeducted = true;
                   }
                   return stock;
               });
@@ -964,38 +960,22 @@ async function saveCropStockAfterTeamAssign(project_id) {
                   return;
               }
 
-              updatedStocks.push({
-                  current_stock: crop_type_quantity,
-                  stock_date: stock_date,
-                  unit: "kg"
-              });
-
               return updateDoc(cropStockRef, { stocks: updatedStocks });
           });
 
           await Promise.all(updatePromises);
           console.log(`✅ Stock updated for ${crop_name}.`);
+          return true;
       } else {
-          console.warn(`❌ No crop stock found for ${crop_name}. Creating a new entry.`);
-
-          await addDoc(collection(db, "tb_crop_stock"), {
-              crop_name: crop_name,
-              stocks: [
-                  {
-                      current_stock: crop_type_quantity,
-                      stock_date: stock_date,
-                      unit: "kg",
-                      //farmer_id: farmer_id
-                  }
-              ]
-          });
-
-          console.log(`✅ New crop stock entry created for ${crop_name}.`);
+          console.warn(`❌ No crop stock found for ${crop_name}. Stock will not be deducted.`);
+          return false;
       }
   } catch (error) {
-      console.error("❌ Error saving crop stock:", error);
+      console.error("❌ Error updating crop stock:", error);
+      return false;
   }
 }
+
 
 
 
@@ -1091,21 +1071,7 @@ async function processFertilizerStockAfterUse(project_id) {
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) {
-      console.warn("No matching fertilizer stocks found. Creating new entries.");
-      
-      // Create new entries for each fertilizer from project data
-      const insertPromises = projectData.fertilizer.map(fert => 
-        addDoc(collection(db, "tb_fertilizer_stock"), {
-          fertilizer_name: fert.fertilizer_name,
-          stocks: [{
-            current_stock: fert.fertilizer_quantity, // initial stock used
-            stock_date: stock_date,
-            unit: "kg"
-          }]
-        })
-      );
-      await Promise.all(insertPromises);
-      console.log("✅ New fertilizer stock entries created.");
+      console.warn("❌ No matching fertilizer stocks found. Stock will not be deducted.");
       return;
     }
     
@@ -1148,28 +1114,16 @@ async function processFertilizerStockAfterUse(project_id) {
         }
       });
       
-      // After deduction, add a new entry to log the used quantity.
-      // (This simulates the "save after use" part.)
-      // We add one new record per fertilizer that we deducted in this document.
-      deductedFor.forEach(fertilizerName => {
-        const usedQuantity = fertilizerMap.get(fertilizerName) || 0;
-        data.stocks.push({
-          current_stock: usedQuantity, // this new entry represents the used amount
-          stock_date: stock_date,
-          unit: "kg",
-          // Optionally, you can record additional info here (e.g., a reference to the project)
-        });
-      });
-      
       updatePromises.push(updateDoc(docRef, { stocks: data.stocks }));
     });
     
     await Promise.all(updatePromises);
-    console.log("✅ Combined fertilizer stock process completed successfully.");
+    console.log("✅ Fertilizer stock update process completed successfully.");
   } catch (error) {
     console.error("❌ Error processing fertilizer stock:", error);
   }
 }
+
 
 
 
@@ -1263,21 +1217,7 @@ async function processEquipmentStockAfterUse(project_id) {
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) {
-      console.warn("No matching equipment stocks found. Creating new entries.");
-      
-      // Create new entries for each equipment from project data
-      const insertPromises = projectData.equipment.map(fert => 
-        addDoc(collection(db, "tb_equipment_stock"), {
-          equipment_name: fert.equipment_name,
-          stocks: [{
-            current_stock: equi.equipment_quantity, // initial stock used
-            stock_date: stock_date,
-            unit: "kg"
-          }]
-        })
-      );
-      await Promise.all(insertPromises);
-      console.log("✅ New equipment stock entries created.");
+      console.warn("❌ No matching equipment stocks found. Stock will not be deducted.");
       return;
     }
     
@@ -1288,7 +1228,7 @@ async function processEquipmentStockAfterUse(project_id) {
       const docRef = doc(db, "tb_equipment_stock", docSnapshot.id);
       const data = docSnapshot.data();
       
-      console.log("equipment data from db:", data);
+      console.log("Equipment data from db:", data);
       // Use document-level equipment_name as fallback
       const docEquipmentName = data.equipment_name;
       
@@ -1320,24 +1260,11 @@ async function processEquipmentStockAfterUse(project_id) {
         }
       });
       
-      // After deduction, add a new entry to log the used quantity.
-      // (This simulates the "save after use" part.)
-      // We add one new record per equipment that we deducted in this document.
-      deductedFor.forEach(equipmentName => {
-        const usedQuantity = equipmentMap.get(equipmentName) || 0;
-        data.stocks.push({
-          current_stock: usedQuantity, // this new entry represents the used amount
-          stock_date: stock_date,
-          unit: "kg",
-          // Optionally, you can record additional info here (e.g., a reference to the project)
-        });
-      });
-      
       updatePromises.push(updateDoc(docRef, { stocks: data.stocks }));
     });
     
     await Promise.all(updatePromises);
-    console.log("✅ Combined equipment stock process completed successfully.");
+    console.log("✅ Equipment stock update process completed successfully.");
   } catch (error) {
     console.error("❌ Error processing equipment stock:", error);
   }
