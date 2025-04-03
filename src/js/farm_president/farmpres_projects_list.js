@@ -8,7 +8,10 @@ import {
     where,
     getFirestore,
     updateDoc,
-    addDoc
+    addDoc,
+    arrayUnion,
+    increment,
+    serverTimestamp
   } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
@@ -275,6 +278,133 @@ async function fetchProjectDetails(project_id) {
 }
 
 
+
+async function addStockToCropStock(project_id) {
+    try {
+        // 1. Get the project details and validate
+        const projectDetails = await fetchProjectDetails(project_id);
+        if (!projectDetails || !globalLeadFarmerId) {
+            console.warn("Missing project details or globalLeadFarmerId");
+            return false;
+        }
+
+        // 2. Find the matching crop stock document
+        const cropStockDoc = await findCropStockByProject(project_id);
+        if (!cropStockDoc) {
+            console.warn("No matching crop stock document found");
+            return false;
+        }
+
+        // 3. Prepare the new stock record
+        const newStock = {
+            current_stock: projectDetails.crop_type_quantity || 0,
+            owned_by: globalLeadFarmerId,
+            stock_date: new Date().toISOString() // Current timestamp in ISO format
+        };
+
+        // 4. Update the document (assuming you have the document ID from findCropStockByProject)
+        const docRef = doc(db, "tb_crop_stock", cropStockDoc.id); // Note: You'll need to modify findCropStockByProject to return the document ID
+        await updateDoc(docRef, {
+            stocks: arrayUnion(newStock),
+            current_stock: increment(projectDetails.crop_type_quantity || 0) // Update the top-level current_stock
+        });
+
+        console.log("Successfully added new stock record");
+        return true;
+    } catch (error) {
+        console.error("Error adding stock record:", error);
+        return false;
+    }
+}
+
+// Modified version of findCropStockByProject that returns both data and document ID
+async function findCropStockByProject(project_id) {
+    try {
+        const projectDetails = await fetchProjectDetails(project_id);
+        
+        if (!projectDetails || !projectDetails.crop_type_name || !projectDetails.project_created_by) {
+            console.warn("Missing required project details");
+            return null;
+        }
+        
+        const { crop_type_name, project_created_by } = projectDetails;
+        const q = query(collection(db, "tb_crop_stock"), where("crop_type_name", "==", crop_type_name));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+            for (const doc of querySnapshot.docs) {
+                const cropStockData = doc.data();
+                const stockArray = cropStockData.stocks || cropStockData.stocks;
+                
+                if (stockArray?.length > 0) {
+                    const firstStock = stockArray[0];
+                    if (firstStock.owned_by === project_created_by) {
+                        return {
+                            id: doc.id, // Include document ID for updating
+                            ...cropStockData
+                        };
+                    }
+                }
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.error("Error:", error);
+        return null;
+    }
+}
+
+
+
+
+
+
+
+
+
+//CROP STOCK
+async function fetchCropStockByOwner(project_created_by, crop_type_name) {  // Change function parameter
+    console.log("Fetching crop stock for project creator:", project_created_by);
+    
+    try {
+        const cropStockQuery = query(collection(db, "tb_crop_stock"));
+        const cropStockSnapshot = await getDocs(cropStockQuery);
+
+        let foundStock = null;
+
+        cropStockSnapshot.forEach((doc) => {
+            const cropStockData = doc.data();
+            
+            const matchingStock = cropStockData.stocks.find(stock => stock.owned_by === project_created_by);  // Change variable
+
+            if (matchingStock && cropStockData.crop_type_name === crop_type_name) {
+                foundStock = {
+                    crop_name: cropStockData.crop_name || "N/A",
+                    crop_type_id: cropStockData.crop_type_id || "N/A",
+                    crop_type_name: cropStockData.crop_type_name || "N/A",
+                    unit: cropStockData.unit || "N/A",
+                    stocks: cropStockData.stocks.map(stock => ({
+                        current_stock: stock.current_stock || 0,
+                        owned_by: stock.owned_by || "N/A",
+                        stock_date: stock.stock_date || "N/A"
+                    }))
+                };
+            }
+        });
+
+        if (foundStock) {
+            console.log("Fetched Crop Stock:", foundStock);
+        } else {
+            console.log("No crop stock found for project creator:", project_created_by);
+        }
+
+        return foundStock;
+    } catch (error) {
+        console.error("Error fetching crop stock:", error);
+        return null;
+    }
+}
 
 //TB PROJECT TASK ASSIGNING
 async function fetchProjectTasks(project_id) {
@@ -562,6 +692,8 @@ if (projectTasks && projectTasks.length > 0) {
 } else {
     console.warn("Failed to fetch project tasks, skipping save.");
 }  
+
+await addStockToCropStock(project_id);
 
                             // Redirect to farmpres_project.html after successful save
                             window.location.href = "farmpres_project.html";
