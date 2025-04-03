@@ -359,7 +359,6 @@ input[type="checkbox"] {
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-
 /* Styling for the Status select dropdown */
 #status_select {
     padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
@@ -570,7 +569,7 @@ input[type="checkbox"] {
     }
 
     .panel {
-        width: 90%;
+        width: 85%;
         padding: 20px;
         border-radius: 10px;
         margin-left: 20px;
