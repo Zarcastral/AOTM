@@ -119,7 +119,7 @@ body {
 
 
 .crop_select{
-padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
@@ -136,7 +136,7 @@ padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
 }
 
 .crop-type-select{
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
     font-size: 16px;
     color: #243B53;
     border: 1px solid #ccc;
@@ -150,10 +150,10 @@ padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
     background-position: right 10px center; /* Moves the arrow closer */
     background-size: 16px;
     cursor: pointer;
-  }
+}
 
   .barangay_select{
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+     padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
       font-size: 16px;
       color: #243B53;
       border: 1px solid #ccc;
@@ -167,7 +167,7 @@ padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
       background-position: right 10px center; /* Moves the arrow closer */
       background-size: 16px;
       cursor: pointer;
-    }
+  }
     
 
 
