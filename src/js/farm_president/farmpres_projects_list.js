@@ -298,7 +298,7 @@ async function addStockToCropStock(project_id) {
         // 3. Prepare the new stock record
         const newStock = {
             current_stock: projectDetails.crop_type_quantity || 0,
-            owned_by: globalLeadFarmerId,
+            farmer_id: globalLeadFarmerId,
             stock_date: new Date().toISOString() // Current timestamp in ISO format
         };
 
