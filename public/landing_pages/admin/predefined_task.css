@@ -178,7 +178,8 @@ body {
 .close-btn {
   position: absolute;
   right: 10px;
-  margin-top: -30px;
+  margin-top: -20px;
+  margin-right: 10px;
   font-size: 30px;
   cursor: pointer;
   color: #aaa;
@@ -624,6 +625,14 @@ border-radius: 5px;
       gap: 10px;
   }
 
+  #search-bar {
+    width: 200px;
+  }
+
+  .save-btn {
+    margin-left: 280px;
+  }
+
   .add-user-btn {
       margin-top: 10px;
   }
@@ -657,6 +666,10 @@ border-radius: 5px;
   .header-icons img {
       width: 20px;
       height: 20px;
+  }
+
+  #search-bar {
+    width: 100px;
   }
 
   .main-content {

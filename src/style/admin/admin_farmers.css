@@ -70,6 +70,7 @@ body {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   padding: 15px;
+  border-radius: 10px;
   min-height: 60px; /* Your specified minimum height */
   display: flex;
   flex-direction: column; /* Stack children vertically */
@@ -164,6 +165,7 @@ tbody tr:hover {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+  margin-top: 30px;
 }
 
 #search-bar, #barangay-select {
@@ -312,6 +314,7 @@ margin-bottom: 1rem;
   color: white;
   border: none;
 }
+
 
 #cancel-delete:hover {
   background-color: #B0B7C0;
