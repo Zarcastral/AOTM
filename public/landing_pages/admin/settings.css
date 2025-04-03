@@ -11,6 +11,23 @@ body {
     padding: 0px;
 }
 
+#barangay-select {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
 /* General button styling */
 button {
     margin: 2px;
@@ -24,9 +41,9 @@ button.add-button {
     background-color: #41A186;
     color: #FFFFFF;
     font-weight: bold;
-    padding: 10px 15px;
-    border-radius: 20px;
-    box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.2);
+    padding: 10px 15px ;
+    border-radius: 10px;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
     transition: background-color 0.3s ease;
 }
 
@@ -97,14 +114,54 @@ button.add-button:hover {
 }
 
 .popup button {
-    padding: 8px 30px;
-    margin: 10px;
+    padding: 9px 40px;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    margin-top: 10px;
+    margin-left: 5px;
     float: right;
+
 }
+
+
+.btn-primary{
+    background-color: #41A186;
+    color: white;
+    padding: 8px 25px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.btn-primary:hover {
+    background-color: #358e70;
+    transition: background-color 0.3s ease;
+}
+
+.btn-secondary {
+    background-color: #C3C3C3;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    
+    cursor: pointer;
+    font-size: 15px;
+}
+
+
+.btn-secondar:hover {
+    background-color: #999898;
+    transition: background-color 0.3s ease;
+}
+
+
+
+
 
 .popup .cancel-button {
     padding: 8px 30px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
     margin: 10px;
     float: right;
 }
@@ -209,9 +266,9 @@ button.add-button:hover {
 .barangay-modal .cancel-button,
 .cancel-button {
     background-color: #C3C3C3;
-    color: #FFFFFF;
-    padding: 10px 20px;
-    border-radius: 25px;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 10px;
     border: none;
     cursor: pointer;
     font-size: 15px;
@@ -225,9 +282,11 @@ button.add-button:hover {
 .barangay-modal .save-button {
     background-color: #41A186;
     color: white;
-    padding: 8px 25px;
-    border-radius: 25px;
+    padding: 5px 35px;
+    height: 38px;
+    border-radius: 10px;
     border: none;
+    margin-left: -12px;
     cursor: pointer;
     font-size: 15px;
 }
@@ -304,11 +363,12 @@ button.add-button:hover {
 
 .fertilizer-modal .cancel-button {
     background-color: #C3C3C3;
-    color: #FFFFFF;
-    padding: 8px 25px;
-    border-radius: 25px;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 10px;
     border: none;
     cursor: pointer;
+    font-size: 15px;
 }
 
 .fertilizer-modal .cancel-button:hover {
@@ -319,10 +379,12 @@ button.add-button:hover {
 .fertilizer-modal .save-button {
     background-color: #41A186;
     color: white;
-    padding: 10px 25px;
-    border-radius: 25px;
+    padding: 5px 35px;
+    height: 38px;
+    border-radius: 10px;
     border: none;
     cursor: pointer;
+    margin-left: -12px;
     font-size: 15px;
 }
 
@@ -372,6 +434,54 @@ button.add-button:hover {
     overflow-y: auto;
     background-color: #f0f0f0;
 }
+
+
+#crop-name {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    width: 450px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
+#equipment-category {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    width: 450px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
+.form-input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 300px;
+    margin-bottom: 30px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    
+}
+
 
 /* Account Panel Styles */
 .account-panel {
@@ -432,7 +542,7 @@ button.add-button:hover {
     transform: translateX(-50%);
     background-color: #41A186;
     color: white;
-    padding: 5px 5px;
+    padding: 20px 5px;
     border-radius: 20px;
     display: none;
     font-size: 18px;

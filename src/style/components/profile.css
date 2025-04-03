@@ -37,6 +37,7 @@ body {
 label {
   font-weight: bold;
 }
+
 .container {
   width: 400px;
   margin: 50px auto;
@@ -78,7 +79,7 @@ button[type="submit"]:hover {
 
 #close-button {
   flex: 1;
-  background-color: slategray;
+  background-color: #C3C3C3;
   color: white;
   padding: 5px;
   border: none;
@@ -191,7 +192,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 #confirmationPanel #confirmCancel {
-  background-color: slategray;
+  background-color: #C3C3C3;
   color: white;
 }
 
@@ -299,7 +300,7 @@ input[type="number"]::-webkit-outer-spin-button {
   object-fit: cover;
 }
 .remove-picture-btn {
-  background: red;
+  background: #AC415B;
   color: white;
   font-size: 16px;
   border: none;
@@ -340,7 +341,7 @@ input[type="number"]::-webkit-outer-spin-button {
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: red;
+  color: #AC415B;
   font-size: 20px;
   font-weight: bold;
   background: none;
@@ -384,7 +385,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .close:hover {
-  color: red;
+  color: #AC415B;
 }
 .choice-popup {
   position: fixed;
@@ -431,7 +432,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .choice-popup .cancel-btn {
-  background-color: slategray;
+  background-color: #C3C3C3;
   color: white;
 }
 
