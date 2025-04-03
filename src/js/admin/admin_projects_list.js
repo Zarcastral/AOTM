@@ -350,7 +350,7 @@ tableBody.addEventListener("click", async (event) => {
 
 
 
-/* <------------- DELETE BUTTON EVENT LISTENER ------------->
+// <------------- DELETE BUTTON EVENT LISTENER ------------->
 async function deleteProjects(project_id) {
     try {
         const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
@@ -511,7 +511,7 @@ cancelDeleteButton.addEventListener("click", () => {
     confirmationPanel.style.display = "none";
     editFormContainer.style.pointerEvents = "auto";
     selectedRowId = null;
-}); */
+});
 
 // EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
 searchBar.addEventListener("input", () => {

@@ -20,9 +20,6 @@ const auth = getAuth();
 // Lock flag to prevent multiple saveProject executions
 let isSaving = false;
 
-// Default border color
-const DEFAULT_BORDER_COLOR = "#ccc";
-
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
@@ -57,24 +54,21 @@ async function loadProjectData() {
 
   try {
     const projectData = JSON.parse(projectDataString);
+    console.log("Loaded projectData from localStorage:", projectData); // Debug: Check raw data
     
     document.getElementById("project-name").value = projectData.project_name || "";
     document.getElementById("status").value = projectData.status || "Pending";
     document.getElementById("barangay").value = projectData.barangay_name || "";
-    
-    // Handle start_date and end_date based on their original format
-    document.getElementById("start-date").value = projectData.start_date instanceof Object 
-      ? new Date(projectData.start_date.seconds * 1000).toISOString().split('T')[0]
-      : projectData.start_date || "";
-    document.getElementById("end-date").value = projectData.end_date instanceof Object 
-      ? new Date(projectData.end_date.seconds * 1000).toISOString().split('T')[0]
-      : projectData.end_date || "";
+    document.getElementById("start-date").value = projectData.start_date || "";
+    document.getElementById("end-date").value = projectData.end_date || "";
     
     await loadFarmPresidents(projectData.farmer_id);
     await loadCrops(projectData.crop_name);
     await loadCropTypes(projectData.crop_name, projectData.crop_type_name);
     
-    document.getElementById("quantity-crop-type").value = projectData.crop_type_quantity || "";
+    const quantityInput = document.getElementById("quantity-crop-type");
+    quantityInput.value = projectData.crop_type_quantity || ""; // Set as-is
+    console.log("Setting quantity-crop-type to:", projectData.crop_type_quantity); // Debug: Confirm value
     document.getElementById("crop-unit").value = projectData.crop_unit || "kg";
     
     if (projectData.fertilizer && projectData.fertilizer.length > 0) {
@@ -132,7 +126,7 @@ window.loadBarangay = async function (farmPresidentId) {
 
   if (!farmPresidentId) {
     barangayInput.value = "";
-    await loadFarmland(""); // Clear farmland if no farm president
+    await loadFarmland("");
     return;
   }
 
@@ -191,8 +185,6 @@ window.loadFarmland = async function (barangayName, selectedFarmland = null) {
     console.error("Error loading farmland:", error);
     farmlandSelect.innerHTML = '<option value="">Error loading farmland</option>';
   }
-
-  updateSaveButtonState();
 };
 
 window.loadCrops = async function (selectedCrop = null) {
@@ -275,13 +267,11 @@ window.loadCropTypes = async function (selectedCrop, selectedCropType = null) {
     quantityInput.value = "";
     quantityInput.disabled = maxStock === 0;
     quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
-    quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
-    updateSaveButtonState();
   });
 
   const quantityInput = document.getElementById("quantity-crop-type");
   quantityInput.addEventListener("input", function () {
-    updateSaveButtonState();
+    // No automatic disabling here
   });
 
   if (selectedCropType) {
@@ -389,12 +379,10 @@ async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, 
     quantityInput.value = "";
     quantityInput.disabled = maxStock === 0;
     quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
-    quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
-    updateSaveButtonState();
   });
 
   quantityInput.addEventListener("input", function () {
-    updateSaveButtonState();
+    // No automatic disabling here
   });
 }
 
@@ -498,23 +486,19 @@ async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdow
     quantityInput.value = "";
     quantityInput.disabled = maxStock === 0;
     quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
-    quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
-    updateSaveButtonState();
   });
 
   quantityInput.addEventListener("input", function () {
-    updateSaveButtonState();
+    // No automatic disabling here
   });
 }
 
 function removeFertilizerForm(button) {
   button.parentElement.remove();
-  updateSaveButtonState();
 }
 
 function removeEquipmentForm(button) {
   button.parentElement.remove();
-  updateSaveButtonState();
 }
 
 window.getNextProjectID = async function () {
@@ -562,128 +546,31 @@ async function getFarmerIdByName(farmPresidentName) {
 
 function updateSaveButtonState() {
   const saveButton = document.getElementById("save-button");
-  let allValid = true;
-
-  // Validate Crop Quantity
-  const cropType = document.getElementById("crop-type").value;
-  const newCropQuantity = parseInt(document.getElementById("quantity-crop-type").value) || 0;
-  const cropMaxStock = window.cropStockMap[cropType] || 0;
-  const cropQuantityInput = document.getElementById("quantity-crop-type");
-
-  if (cropType && newCropQuantity > 0) {
-    if (newCropQuantity > cropMaxStock) {
-      allValid = false;
-      cropQuantityInput.style.border = "2px solid red";
-      cropQuantityInput.title = `Requested ${newCropQuantity} exceeds available stock of ${cropMaxStock}`;
-    } else {
-      cropQuantityInput.style.border = "2px solid green";
-      cropQuantityInput.title = "";
-    }
-  } else {
-    cropQuantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
-    cropQuantityInput.title = "";
-  }
-
-  // Validate Fertilizer Quantities
-  const fertilizerGroups = document.querySelectorAll(".fertilizer__group");
-  fertilizerGroups.forEach((group) => {
-    const name = group.querySelector(".fertilizer__name").value;
-    const newQuantity = parseInt(group.querySelector(".fertilizer__quantity").value) || 0;
-    const maxStock = window.fertilizerStockMap[name] || 0;
-    const quantityInput = group.querySelector(".fertilizer__quantity");
-
-    if (name && newQuantity > 0) {
-      if (newQuantity > maxStock) {
-        allValid = false;
-        quantityInput.style.border = "2px solid red";
-        quantityInput.title = `Requested ${newQuantity} exceeds available stock of ${maxStock}`;
-      } else {
-        quantityInput.style.border = "2px solid green";
-        quantityInput.title = "";
-      }
-    } else {
-      quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
-      quantityInput.title = "";
-    }
-  });
-
-  // Validate Equipment Quantities
-  const equipmentGroups = document.querySelectorAll(".equipment__group");
-  equipmentGroups.forEach((group) => {
-    const name = group.querySelector(".equipment__name").value;
-    const newQuantity = parseInt(group.querySelector(".equipment__quantity").value) || 0;
-    const maxStock = window.equipmentStockMap[name] || 0;
-    const quantityInput = group.querySelector(".equipment__quantity");
-
-    if (name && newQuantity > 0) {
-      if (newQuantity > maxStock) {
-        allValid = false;
-        quantityInput.style.border = "2px solid red";
-        quantityInput.title = `Requested ${newQuantity} exceeds available stock of ${maxStock}`;
-      } else {
-        quantityInput.style.border = "2px solid green";
-        quantityInput.title = "";
-      }
-    } else {
-      quantityInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
-      quantityInput.title = "";
-    }
-  });
-
-  // Validate Dates
-  const startDateInput = document.getElementById("start-date");
-  const endDateInput = document.getElementById("end-date");
-  const startDateStr = startDateInput.value;
-  const endDateStr = endDateInput.value;
-
-  if (startDateStr && endDateStr) {
-    const startDate = new Date(startDateStr);
-    const endDate = new Date(endDateStr);
-    if (endDate < startDate) {
-      allValid = false;
-      endDateInput.style.border = "2px solid red";
-      endDateInput.title = "End date cannot be before start date";
-    } else {
-      endDateInput.style.border = "2px solid green";
-      endDateInput.title = "";
-    }
-  } else {
-    endDateInput.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
-    endDateInput.title = "";
-  }
-
-  // Validate Required Fields
-  const requiredFields = [
-    "project-name",
-    "assign-to",
-    "crops",
-    "barangay",
-    "farmland",
-    "crop-type",
-    "quantity-crop-type",
-    "crop-unit",
-    "start-date",
-    "end-date",
-  ];
-  requiredFields.forEach((id) => {
-    const value = document.getElementById(id).value.trim();
-    if (!value || value === "") {
-      allValid = false;
-    }
-  });
-
-  saveButton.disabled = !allValid;
+  saveButton.disabled = false; // Always enabled, no validation here
 }
 
-function resetInputColors() {
-  const inputs = document.querySelectorAll(".form__input, #start-date, #end-date");
-  inputs.forEach((input) => {
-    input.style.border = `2px solid ${DEFAULT_BORDER_COLOR}`;
-    input.title = "";
-  });
+function resetForm() {
+  document.getElementById("project-name").value = "";
+  document.getElementById("assign-to").selectedIndex = 0;
+  document.getElementById("status").value = "Pending";
+  document.getElementById("crops").selectedIndex = 0;
+  document.getElementById("barangay").value = "";
+  document.getElementById("farmland").innerHTML = '<option value="">Select Farmland</option>';
+  document.getElementById("crop-type").innerHTML = '<option value="">Select Crop Type</option>';
+  document.getElementById("quantity-crop-type").value = "";
+  document.getElementById("crop-unit").value = "kg";
+  document.getElementById("start-date").value = "";
+  document.getElementById("end-date").value = "";
+  document.getElementById("fertilizer-container").innerHTML = "";
+  document.getElementById("equipment-container").innerHTML = "";
+  localStorage.removeItem("projectData");
+  
+  setTimeout(() => {
+    window.location.href = "admin_projects_list.html";
+  }, 4300);
 }
 
-// Helper function to check if a value is a Firestore Timestamp object
+// Helper function to check if a value is a Firestore Timestamp object from localStorage
 function isTimestampObject(value) {
   return value && typeof value === "object" && "seconds" in value && "nanoseconds" in value;
 }
@@ -695,6 +582,14 @@ window.saveProject = async function () {
   }
 
   isSaving = true;
+  const cancelButton = document.getElementById("cancel-button");
+  const saveButton = document.getElementById("save-button");
+  cancelButton.disabled = true;
+  saveButton.disabled = true; // Disable during save
+
+  // Show "Saving..." popup with a 1-second minimum delay
+  showprojectUpdateMessage("Project is saving...", true, true);
+  await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second delay
 
   try {
     const userType = sessionStorage.getItem("user_type");
@@ -712,6 +607,37 @@ window.saveProject = async function () {
     const cropUnit = document.getElementById("crop-unit").value.trim();
     const startDate = document.getElementById("start-date").value;
     const endDate = document.getElementById("end-date").value;
+
+    console.log("quantityCropType before validation:", quantityCropType); // Debug: Check input value
+
+    // Validate required dropdowns and fields
+    if (!projectName) {
+      throw new Error("Project name is required");
+    }
+    if (!assignToSelect.value || farmPresidentName === "Select Farm President") {
+      throw new Error("Please select a Farm President");
+    }
+    if (!cropName || cropName === "Select Crop") {
+      throw new Error("Please select a crop");
+    }
+    if (!farmlandName || farmlandName === "Select Farmland") {
+      throw new Error("Please select a farmland");
+    }
+    if (!cropTypeName || cropTypeName === "Select Crop Type") {
+      throw new Error("Please select a crop type");
+    }
+    if (!quantityCropType || quantityCropType <= 0) {
+      throw new Error("Crop quantity must be a positive number");
+    }
+    if (!cropUnit) {
+      throw new Error("Crop unit is required");
+    }
+    if (!startDate) {
+      throw new Error("Start date is required");
+    }
+    if (!endDate) {
+      throw new Error("End date is required");
+    }
 
     const startDateObj = new Date(startDate);
     const endDateObj = new Date(endDate);
@@ -731,7 +657,7 @@ window.saveProject = async function () {
       const type = group.querySelector(".fertilizer__type").value;
       const name = group.querySelector(".fertilizer__name").value;
       const quantity = parseInt(group.querySelector(".fertilizer__quantity").value) || 0;
-      if (type && name && quantity > 0) {
+      if (type && name && quantity >= 0) { // Allow 0 for removal
         fertilizerData.push({
           fertilizer_type: type,
           fertilizer_name: name,
@@ -747,7 +673,7 @@ window.saveProject = async function () {
       const type = group.querySelector(".equipment__type").value;
       const name = group.querySelector(".equipment__name").value;
       const quantity = parseInt(group.querySelector(".equipment__quantity").value) || 0;
-      if (type && name && quantity > 0) {
+      if (type && name && quantity >= 0) { // Allow 0 for removal
         equipmentData.push({
           equipment_type: type,
           equipment_name: name,
@@ -765,33 +691,24 @@ window.saveProject = async function () {
     const projectID = existingProjectData.project_id;
     const projectCreator = existingProjectData.project_creator;
 
-    // Preserve original date format for each field
-    const currentDateTimestamp = Timestamp.fromDate(new Date());
     const currentDateString = new Date().toISOString().split("T")[0];
+    const currentDateTimestamp = Timestamp.fromDate(new Date());
 
-    const cropDate = isTimestampObject(existingProjectData.crop_date)
+    const cropDateOriginal = existingProjectData.crop_date;
+    const fertilizerDateOriginal = existingProjectData.fertilizer_date;
+    const equipmentDateOriginal = existingProjectData.equipment_date;
+
+    const cropDate = isTimestampObject(cropDateOriginal)
       ? currentDateTimestamp
       : currentDateString;
 
-    const fertilizerDate = isTimestampObject(existingProjectData.fertilizer_date)
+    const fertilizerDate = isTimestampObject(fertilizerDateOriginal)
       ? currentDateTimestamp
       : currentDateString;
 
-    const equipmentDate = isTimestampObject(existingProjectData.equipment_date)
+    const equipmentDate = isTimestampObject(equipmentDateOriginal)
       ? currentDateTimestamp
       : currentDateString;
-
-    const dateCreated = isTimestampObject(existingProjectData.date_created)
-      ? existingProjectData.date_created
-      : existingProjectData.date_created;
-
-    const startDateValue = isTimestampObject(existingProjectData.start_date)
-      ? Timestamp.fromDate(new Date(startDate))
-      : startDate;
-
-    const endDateValue = isTimestampObject(existingProjectData.end_date)
-      ? Timestamp.fromDate(new Date(endDate))
-      : endDate;
 
     const projectData = {
       project_id: projectID,
@@ -804,79 +721,191 @@ window.saveProject = async function () {
       farm_land: farmlandName,
       farmland_id: farmlandId,
       crop_type_name: cropTypeName,
-      crop_type_quantity: quantityCropType,
+      crop_type_quantity: quantityCropType, // Ensure integer
       crop_unit: cropUnit,
-      start_date: startDateValue,
-      end_date: endDateValue,
+      start_date: startDate,
+      end_date: endDate,
       fertilizer: fertilizerData,
       equipment: equipmentData,
       crop_date: cropDate,
       fertilizer_date: fertilizerDate,
       equipment_date: equipmentDate,
-      date_created: dateCreated,
+      date_created: existingProjectData.date_created,
       project_creator: projectCreator,
     };
 
-    // Validate Crop Quantity Against Inventory
-    const cropQuery = query(
-      collection(db, "tb_crop_stock"),
-      where("crop_type_name", "==", cropTypeName)
-    );
-    const cropSnapshot = await getDocs(cropQuery);
-    if (!cropSnapshot.empty) {
-      const cropDoc = cropSnapshot.docs[0];
-      const cropStocks = cropDoc.data().stocks || [];
-      const stockEntry = cropStocks.find(stock => stock.owned_by === projectCreator);
-      const currentStock = stockEntry ? parseInt(stockEntry.current_stock) : 0;
-      if (quantityCropType > currentStock) {
-        throw new Error(`Requested ${quantityCropType} of '${cropTypeName}' exceeds available stock of ${currentStock}.`);
+    console.log("projectData before save:", projectData); // Debug: Confirm quantity before saving
+
+    // --- Stock Adjustment Logic ---
+    // 1. Crop Stock Update
+    const originalCropQuantity = parseInt(existingProjectData.crop_type_quantity) || 0;
+    const cropQuantityDiff = quantityCropType - originalCropQuantity;
+    console.log("originalCropQuantity:", originalCropQuantity, "quantityCropType:", quantityCropType, "cropQuantityDiff:", cropQuantityDiff); // Debug
+    if (cropQuantityDiff !== 0) {
+      const cropQuery = query(
+        collection(db, "tb_crop_stock"),
+        where("crop_type_name", "==", cropTypeName)
+      );
+      const cropSnapshot = await getDocs(cropQuery);
+      if (!cropSnapshot.empty) {
+        const cropDoc = cropSnapshot.docs[0];
+        const cropDocRef = cropDoc.ref;
+        const cropData = cropDoc.data();
+        const stocksArray = cropData.stocks || [];
+        const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
+        
+        if (stockIndex !== -1) {
+          const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
+          const newStock = currentStock - cropQuantityDiff; // Negative diff = take, Positive diff = give
+          console.log("currentStock:", currentStock, "newStock:", newStock); // Debug
+          
+          if (newStock < 0) {
+            throw new Error(`Not enough stock for: ${cropTypeName}. Available stock is: ${currentStock}.`);
+          }
+          
+          stocksArray[stockIndex].current_stock = newStock;
+          await updateDoc(cropDocRef, { stocks: stocksArray });
+        } else {
+          throw new Error(`No stock entry found for '${cropTypeName}' owned by ${projectCreator}`);
+        }
+      } else {
+        throw new Error(`Crop type '${cropTypeName}' not found in inventory`);
       }
-    } else {
-      throw new Error(`Crop type '${cropTypeName}' not found in inventory.`);
     }
 
-    // Validate Fertilizer Quantities Against Inventory
+    // 2. Fertilizer Stock Update
+    const originalFertilizerMap = new Map(
+      (existingProjectData.fertilizer || []).map(f => [`${f.fertilizer_type}:${f.fertilizer_name}`, f.fertilizer_quantity])
+    );
     for (const newFert of fertilizerData) {
+      const key = `${newFert.fertilizer_type}:${newFert.fertilizer_name}`;
+      const originalQuantity = originalFertilizerMap.get(key) || 0;
+      const fertQuantityDiff = newFert.fertilizer_quantity - originalQuantity;
+      
+      if (fertQuantityDiff !== 0) {
+        const fertQuery = query(
+          collection(db, "tb_fertilizer_stock"),
+          where("fertilizer_type", "==", newFert.fertilizer_type),
+          where("fertilizer_name", "==", newFert.fertilizer_name)
+        );
+        const fertSnapshot = await getDocs(fertQuery);
+        if (!fertSnapshot.empty) {
+          const fertDoc = fertSnapshot.docs[0];
+          const fertDocRef = fertDoc.ref;
+          const fertData = fertDoc.data();
+          const stocksArray = fertData.stocks || [];
+          const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
+          
+          if (stockIndex !== -1) {
+            const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
+            const newStock = currentStock - fertQuantityDiff;
+            
+            if (newStock < 0) {
+              throw new Error(`Not enough stock for: ${newFert.fertilizer_name}. Available stock is: ${currentStock}.`);
+            }
+            
+            stocksArray[stockIndex].current_stock = newStock;
+            await updateDoc(fertDocRef, { stocks: stocksArray });
+          } else {
+            throw new Error(`No stock entry found for '${newFert.fertilizer_name}' owned by ${projectCreator}`);
+          }
+        } else {
+          throw new Error(`Fertilizer '${newFert.fertilizer_name}' not found in inventory`);
+        }
+      }
+      originalFertilizerMap.delete(key); // Remove processed items
+    }
+    // Handle removed fertilizers (give stock back)
+    for (const [key, originalQuantity] of originalFertilizerMap) {
+      const [type, name] = key.split(":");
       const fertQuery = query(
         collection(db, "tb_fertilizer_stock"),
-        where("fertilizer_name", "==", newFert.fertilizer_name),
-        where("fertilizer_type", "==", newFert.fertilizer_type)
+        where("fertilizer_type", "==", type),
+        where("fertilizer_name", "==", name)
       );
       const fertSnapshot = await getDocs(fertQuery);
       if (!fertSnapshot.empty) {
         const fertDoc = fertSnapshot.docs[0];
-        const fertStocks = fertDoc.data().stocks || [];
-        const stockEntry = fertStocks.find(stock => stock.owned_by === projectCreator);
-        const currentStock = stockEntry ? parseInt(stockEntry.current_stock) : 0;
-        if (newFert.fertilizer_quantity > currentStock) {
-          throw new Error(`Requested ${newFert.fertilizer_quantity} of '${newFert.fertilizer_name}' exceeds available stock of ${currentStock}.`);
+        const fertDocRef = fertDoc.ref;
+        const fertData = fertDoc.data();
+        const stocksArray = fertData.stocks || [];
+        const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
+        
+        if (stockIndex !== -1) {
+          const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
+          stocksArray[stockIndex].current_stock = currentStock + originalQuantity;
+          await updateDoc(fertDocRef, { stocks: stocksArray });
         }
-      } else {
-        throw new Error(`Fertilizer '${newFert.fertilizer_name}' not found in inventory.`);
       }
     }
 
-    // Validate Equipment Quantities Against Inventory
+    // 3. Equipment Stock Update
+    const originalEquipmentMap = new Map(
+      (existingProjectData.equipment || []).map(e => [`${e.equipment_type}:${e.equipment_name}`, e.equipment_quantity])
+    );
     for (const newEquip of equipmentData) {
+      const key = `${newEquip.equipment_type}:${newEquip.equipment_name}`;
+      const originalQuantity = originalEquipmentMap.get(key) || 0;
+      const equipQuantityDiff = newEquip.equipment_quantity - originalQuantity;
+      
+      if (equipQuantityDiff !== 0) {
+        const equipQuery = query(
+          collection(db, "tb_equipment_stock"),
+          where("equipment_type", "==", newEquip.equipment_type),
+          where("equipment_name", "==", newEquip.equipment_name)
+        );
+        const equipSnapshot = await getDocs(equipQuery);
+        if (!equipSnapshot.empty) {
+          const equipDoc = equipSnapshot.docs[0];
+          const equipDocRef = equipDoc.ref;
+          const equipData = equipDoc.data();
+          const stocksArray = equipData.stocks || [];
+          const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
+          
+          if (stockIndex !== -1) {
+            const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
+            const newStock = currentStock - equipQuantityDiff;
+            
+            if (newStock < 0) {
+              throw new Error(`Not enough stock for: ${newEquip.equipment_name}. Available stock is: ${currentStock}.`);
+            }
+            
+            stocksArray[stockIndex].current_stock = newStock;
+            await updateDoc(equipDocRef, { stocks: stocksArray });
+          } else {
+            throw new Error(`No stock entry found for '${newEquip.equipment_name}' owned by ${projectCreator}`);
+          }
+        } else {
+          throw new Error(`Equipment '${newEquip.equipment_name}' not found in inventory`);
+        }
+      }
+      originalEquipmentMap.delete(key); // Remove processed items
+    }
+    // Handle removed equipment (give stock back)
+    for (const [key, originalQuantity] of originalEquipmentMap) {
+      const [type, name] = key.split(":");
       const equipQuery = query(
         collection(db, "tb_equipment_stock"),
-        where("equipment_name", "==", newEquip.equipment_name),
-        where("equipment_type", "==", newEquip.equipment_type)
+        where("equipment_type", "==", type),
+        where("equipment_name", "==", name)
       );
       const equipSnapshot = await getDocs(equipQuery);
       if (!equipSnapshot.empty) {
         const equipDoc = equipSnapshot.docs[0];
-        const equipStocks = equipDoc.data().stocks || [];
-        const stockEntry = equipStocks.find(stock => stock.owned_by === projectCreator);
-        const currentStock = stockEntry ? parseInt(stockEntry.current_stock) : 0;
-        if (newEquip.equipment_quantity > currentStock) {
-          throw new Error(`Requested ${newEquip.equipment_quantity} of '${newEquip.equipment_name}' exceeds available stock of ${currentStock}.`);
+        const equipDocRef = equipDoc.ref;
+        const equipData = equipDoc.data();
+        const stocksArray = equipData.stocks || [];
+        const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
+        
+        if (stockIndex !== -1) {
+          const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
+          stocksArray[stockIndex].current_stock = currentStock + originalQuantity;
+          await updateDoc(equipDocRef, { stocks: stocksArray });
         }
-      } else {
-        throw new Error(`Equipment '${newEquip.equipment_name}' not found in inventory.`);
       }
     }
 
+    // Update project document
     const projectQuery = query(
       collection(db, "tb_projects"),
       where("project_id", "==", projectID)
@@ -894,64 +923,56 @@ window.saveProject = async function () {
     await window.saveActivityLog("Update", description);
 
     await updateDoc(projectDocRef, projectData);
+    console.log("Saved projectData to Firestore:", projectData); // Debug: Confirm saved data
 
     showprojectUpdateMessage("Project saved successfully!", true);
-    resetInputColors();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     resetForm();
   } catch (error) {
-    console.error("Error updating project:", error);
-    showprojectUpdateMessage(error.message || "Something went wrong. Please try again.", false);
+    console.error("SaveProject Error:", error); // Debug log
+    showprojectUpdateMessage(error.message || "Something went wrong. Please try again.", false); // Error popup
+    cancelButton.disabled = false; // Re-enable cancel button
+    saveButton.disabled = false; // Re-enable save button
   } finally {
     isSaving = false;
   }
 };
 
-const projectUpdateMessage = document.getElementById("project-update-message");
+// Message display function
+function showprojectUpdateMessage(message, success, isLoading = false) {
+  const projectUpdateMessage = document.getElementById("project-update-message");
+  if (!projectUpdateMessage) {
+    console.error("project-update-message element not found in DOM");
+    return;
+  }
+  const messageElement = projectUpdateMessage.querySelector("p");
+  if (!messageElement) {
+    console.error("No <p> element found inside project-update-message");
+    return;
+  }
 
-function showprojectUpdateMessage(message, success) {
-  projectUpdateMessage.querySelector("p").textContent = message;
-  projectUpdateMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  messageElement.textContent = message;
+  projectUpdateMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336"; // Green for success, red for error
   projectUpdateMessage.style.opacity = "1";
   projectUpdateMessage.style.display = "block";
 
-  setTimeout(() => {
-    projectUpdateMessage.style.opacity = "0";
+  if (!isLoading) {
     setTimeout(() => {
-      projectUpdateMessage.style.display = "none";
-    }, 300);
-  }, 4000);
+      projectUpdateMessage.style.opacity = "0";
+      setTimeout(() => {
+        projectUpdateMessage.style.display = "none";
+      }, 300);
+    }, 4000);
+  }
 }
-
-window.resetForm = function () {
-  document.getElementById("project-name").value = "";
-  document.getElementById("assign-to").selectedIndex = 0;
-  document.getElementById("status").value = "Pending";
-  document.getElementById("crops").selectedIndex = 0;
-  document.getElementById("barangay").value = "";
-  document.getElementById("farmland").innerHTML = '<option value="">Select Farmland</option>';
-  document.getElementById("crop-type").innerHTML = '<option value="">Select Crop Type</option>';
-  document.getElementById("quantity-crop-type").value = "";
-  document.getElementById("crop-unit").value = "kg";
-  document.getElementById("start-date").value = "";
-  document.getElementById("end-date").value = "";
-  document.getElementById("fertilizer-container").innerHTML = "";
-  document.getElementById("equipment-container").innerHTML = "";
-  localStorage.removeItem("projectData");
-  
-  setTimeout(() => {
-    window.location.href = "admin_projects_list.html";
-  }, 4300);
-};
 
 // Event listeners
 document.getElementById("assign-to").addEventListener("change", function () {
   loadBarangay(this.value);
-  updateSaveButtonState();
 });
 
 document.getElementById("crops").addEventListener("change", function () {
   loadCropTypes(this.value);
-  updateSaveButtonState();
 });
 
 document.getElementById("cancel-button").addEventListener("click", function () {
@@ -961,11 +982,11 @@ document.getElementById("cancel-button").addEventListener("click", function () {
 document.getElementById("save-button").addEventListener("click", saveProject);
 
 document.getElementById("start-date").addEventListener("change", function () {
-  updateSaveButtonState();
+  // No automatic disabling here
 });
 
 document.getElementById("end-date").addEventListener("change", function () {
-  updateSaveButtonState();
+  // No automatic disabling here
 });
 
 // Global stock maps
@@ -977,5 +998,4 @@ window.onload = async function () {
   await loadFarmPresidents();
   await loadCrops();
   await loadProjectData();
-  updateSaveButtonState();
 };
