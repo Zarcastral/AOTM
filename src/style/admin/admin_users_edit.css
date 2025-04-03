@@ -81,7 +81,7 @@ button[type="submit"]:hover {
 
 #close-button {
     flex: 1;
-    background-color: slategray;
+    background-color: #C3C3C3;
     color: white;
     padding: 5px;
     border: none;
@@ -91,8 +91,7 @@ button[type="submit"]:hover {
 }
 
 #close-button:hover {
-    background-color:rgb(90, 101, 112);
-    transition: background-color 0.3s ease, opacity 0.3s ease; 
+  background-color: #B0B7C0;
 
 }
 
@@ -200,13 +199,13 @@ button[type="submit"]:hover {
 }
 
 #confirmationPanel #confirmCancel {
-  background-color: slategray;
+  background-color: #C3C3C3;
   color: white;
 }
 
 #confirmationPanel #confirmCancel:hover {
-  background-color:rgb(90, 101, 112);
-  transition: background-color 0.3s ease, opacity 0.3s ease; 
+  background-color: #B0B7C0;
+
 
 }
 
