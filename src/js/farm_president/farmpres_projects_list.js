@@ -278,7 +278,7 @@ async function fetchProjectDetails(project_id) {
 }
 
 
-
+//CROP
 async function addStockToCropStock(project_id) {
     try {
         // 1. Get the project details and validate
@@ -316,8 +316,6 @@ async function addStockToCropStock(project_id) {
         return false;
     }
 }
-
-// Modified version of findCropStockByProject that returns both data and document ID
 async function findCropStockByProject(project_id) {
     try {
         const projectDetails = await fetchProjectDetails(project_id);
@@ -355,9 +353,129 @@ async function findCropStockByProject(project_id) {
     }
 }
 
+//FERTILIZER
+async function saveFertilizerStockAfterUse(project_id) {
+    try {
+        // 1. Fetch project details
+        const projectData = await fetchProjectDetails(project_id);
+        if (!projectData || !projectData.fertilizer || projectData.fertilizer.length === 0) {
+            console.warn("No fertilizer data found for this project.");
+            return;
+        }
 
+        // 2. Get the project creator (owner)
+        const project_owner = projectData.project_created_by;
+        if (!project_owner) {
+            console.error("Project owner not found");
+            return;
+        }
 
+        const stock_date = new Date().toISOString();
+        const updatePromises = [];
 
+        // 3. Process each fertilizer in the project
+        for (const fert of projectData.fertilizer) {
+            // Find documents with matching fertilizer_name
+            const fertilizerQuery = query(
+                collection(db, "tb_fertilizer_stock"),
+                where("fertilizer_name", "==", fert.fertilizer_name)
+            );
+            const snapshot = await getDocs(fertilizerQuery);
+
+            // Check each matching document
+            for (const docSnapshot of snapshot.docs) {
+                const docData = docSnapshot.data();
+                const stocks = docData.stocks || [];
+
+                // Find if any stock entry has matching owned_by
+                const hasMatchingOwner = stocks.some(stock => stock.owned_by === project_owner);
+                
+                if (hasMatchingOwner) {
+                    // Add new stock entry
+                    updatePromises.push(
+                        updateDoc(docSnapshot.ref, {
+                            stocks: arrayUnion({
+                                current_stock: fert.fertilizer_quantity,
+                                stock_date: stock_date,
+                                unit: "kg",
+                                farmer_id: globalLeadFarmerId // Using global ID for who recorded this
+                            })
+                        })
+                    );
+                    break; // Only update the first matching document
+                }
+            }
+        }
+
+        await Promise.all(updatePromises);
+        console.log("✅ Fertilizer usage successfully recorded.");
+    } catch (error) {
+        console.error("❌ Error saving fertilizer stock:", error);
+    }
+}
+
+//EQUIPMENT
+async function saveEquipmentStockAfterUse(project_id) {
+    try {
+        // 1. Fetch project details
+        const projectData = await fetchProjectDetails(project_id);
+        if (!projectData || !projectData.equipment || projectData.equipment.length === 0) {
+            console.warn("No equipment data found for this project.");
+            return;
+        }
+
+        // 2. Get the project creator (owner)
+        const project_owner = projectData.project_created_by;
+        if (!project_owner) {
+            console.error("Project owner not found");
+            return;
+        }
+
+        const stock_date = new Date().toISOString();
+        const lead_farmer_id = globalLeadFarmerId;
+        const updatePromises = [];
+
+        // 3. Process each equipment in the project
+        for (const equip of projectData.equipment) {
+            // Find documents with matching equipment_name
+            const equipmentQuery = query(
+                collection(db, "tb_equipment_stock"),
+                where("equipment_name", "==", equip.equipment_name)
+            );
+            const snapshot = await getDocs(equipmentQuery);
+
+            // Check each matching document
+            for (const docSnapshot of snapshot.docs) {
+                const docData = docSnapshot.data();
+                const stocks = docData.stocks || [];
+
+                // Find if any stock entry has matching owned_by
+                const hasMatchingOwner = stocks.some(stock => stock.owned_by === project_owner);
+                
+                if (hasMatchingOwner) {
+                    // Add new usage record
+                    updatePromises.push(
+                        updateDoc(docSnapshot.ref, {
+                            stocks: arrayUnion({
+                                current_stock: equip.equipment_quantity,
+                                stock_date: stock_date,
+                                unit: "unit", // Changed from "kg" to "unit" for equipment
+                                farmer_id: lead_farmer_id,
+                                action: "used" // Optional: track usage type
+                            })
+                        })
+                    );
+                    break; // Only update the first matching document
+                }
+            }
+        }
+
+        await Promise.all(updatePromises);
+        console.log("✅ Equipment usage successfully recorded.");
+    } catch (error) {
+        console.error("❌ Error saving equipment stock:", error);
+    }
+}
 
 
 
@@ -692,9 +810,12 @@ if (projectTasks && projectTasks.length > 0) {
 } else {
     console.warn("Failed to fetch project tasks, skipping save.");
 }  
-
+//crop
 await addStockToCropStock(project_id);
-
+//fertilizer
+await saveFertilizerStockAfterUse(project_id);
+//equipment
+await saveEquipmentStockAfterUse(project_id);
                             // Redirect to farmpres_project.html after successful save
                             window.location.href = "farmpres_project.html";
                         });
