@@ -159,7 +159,7 @@ iframe {
 #mobile-menu-button {
   display: none;
   position: fixed;
-  top: 10px;
+  top: 5px;
   left: 10px;
   z-index: 60;
   background-color: #41A186;
