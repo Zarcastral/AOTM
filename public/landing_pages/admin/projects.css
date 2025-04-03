@@ -15,6 +15,7 @@ body {
 
 }
 
+
 .panel {
   background-color: white;
   padding: 5px 30px 50px 30px;
@@ -23,7 +24,7 @@ body {
   width: 800px;
   margin-left: -50px;
   margin-left: -50px;
-  
+  border-radius: 10px;
 }
 
 .panel2 {
@@ -487,3 +488,54 @@ body {
   font-family: "Poppins";
 }
 
+
+@media (max-width: 768px) {
+  .back {
+    margin-left: 10px;
+    margin-bottom: 5px;
+    margin-top: 50px;
+  }
+  
+  
+  .panel {
+    padding: 30px;
+    margin: 10px;
+  }
+
+  .panel2 {
+    padding: 30px;
+    margin: 10px;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-left: 540px;
+    
+  }
+}
+
+@media (max-width: 480px) {
+  .back {
+    margin-left: 10px;
+    margin-bottom: 5px;
+    margin-top: 50px;
+  }
+
+  .panel {
+    padding: 30px;
+    margin: 10px;
+  }
+
+  .panel2 {
+    padding: 30px;
+    margin: 10px;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-left: 540px;
+    
+  }
+}
