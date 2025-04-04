@@ -157,32 +157,38 @@ th:first-child{
 }
 
 td:first-child{
-  width: 50px; /* Adjusted width for the action column */
-  min-width: 50px; /* Minimum width to ensure usability */
-  text-align: middle; /* Center the content in the column for better appearance */
+  width: 140px; /* Adjusted width for the action column */
+  min-width: 140px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
 }
 
-th:nth-child(2), td:nth-child(2) {
+th:nth-child(3), td:nth-child(3) {
   width: 120px; /* Adjusted width for the action column */
   min-width: 130px; /* Minimum width to ensure usability */
   text-align: left; /* Center the content in the column for better appearance */
 }
 
-th:nth-child(6), td:nth-child(6) {
+th:nth-child(5), td:nth-child(5) {
   width: 170px; /* Adjusted width for the action column */
   min-width: 170px; /* Minimum width to ensure usability */
   text-align: left; /* Center the content in the column for better appearance */
 }
 
-.panel table th:nth-child(8), .panel table td:nth-child(8) {
-  width: 120px; /* Adjusted width for the action column */
-  min-width: 120px; /* Minimum width to ensure usability */
+th:nth-child(6), td:nth-child(6) {
+  width: 130px; /* Adjusted width for the action column */
+  min-width: 130px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
+}
+
+.panel table th:nth-child(7), .panel table td:nth-child(7) {
+  width: 140px; /* Adjusted width for the action column */
+  min-width: 140px; /* Minimum width to ensure usability */
   text-align: center; /* Center the content in the column for better appearance */
 }
 
 .panel table th:last-child, .panel table td:last-child {
-  width: 100px; /* Fixed width for the action column; adjust as needed */
-  min-width: 100px; /* Minimum width to ensure usability */
+  width: 150px; /* Fixed width for the action column; adjust as needed */
+  min-width: 150px; /* Minimum width to ensure usability */
   text-align: center;
 }
 
@@ -293,8 +299,9 @@ cursor: not-allowed;
   margin: 0 5px;
 }
 .action-btn img {
-  width: 25px; 
-  height: 25px;
+  margin-top: 5px;
+  width: 30px; 
+  height: 30px;
   object-fit: contain;
 }
 .action-btn:hover {
@@ -322,7 +329,7 @@ cursor: not-allowed;
   max-width: 600px;
   border-radius: 10px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  padding: 25px;
+  padding: 40px;
   position: relative;
 }
 
@@ -450,7 +457,7 @@ cursor: not-allowed;
   padding: 10px 30px;
   border: none;
   border-radius: 25px;
-  font-weight: bold;
+  font-weight: 500;
   cursor: pointer;
   font-size: 16px;
 }
@@ -469,7 +476,7 @@ cursor: not-allowed;
   border-radius: 25px;
   cursor: pointer;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 500;
 }
 
 /* Submit Button Hover */
@@ -493,16 +500,16 @@ cursor: not-allowed;
 .add-user-btn {
     background-color: #41A186;
     color: white;
-    padding: 15px 30px;
-    font-size: 22px;
-    font-weight: 600;
+    padding: 15px 25px;
+    font-size: 20px;
+    font-weight: 550;
     text-align: center;
     border-radius: 25px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     border: none;
     text-decoration: none;
-    margin-left: 860px;
+    margin-left: 500px;
 }
 
 .add-user-btn:hover {
@@ -519,37 +526,67 @@ cursor: not-allowed;
     margin-right: -5px; /* Nudges the icon closer to the text */
     margin-top: -3px; /* Nudges the icon closer to the text */
 }
-.button-container {
-  width: 90%;
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
+
+.disabled-field {
+  background-color: #E2E8F0;
+  cursor: not-allowed;
 }
 
-.download-btn {
-  background-color: #41A186;
+.harvest-success-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color:  #41A186;
   color: white;
-  padding: 20px;
-  font-weight: 700;
+  padding: 15px 20px;
+  border-radius: 25px;
+  display: none;
   font-size: 18px;
-  border: none;
-  border-radius: 40px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.download-icon {
-  width: 25px;
+.action-icon-add {
+  width: 22px;
   height: 22px;
   object-fit: contain;
   vertical-align: middle;
-  margin-top: -4px; /* Nudges the icon closer to the text */
+  margin-right: -5px; /* Nudges the icon closer to the text */
+  margin-top: -3px; /* Nudges the icon closer to the text */
+}
+.button-container {
+width: 90%;
+display: flex;
+justify-content: flex-end;
+margin-top: 20px;
 }
 
-.download-btn:hover {
-  background-color: #318a71;
+.submit-harvest-btn {
+background-color: #41A186;
+color: white;
+padding: 20px;
+font-weight: 700;
+font-size: 18px;
+border: none;
+border-radius: 40px;
+cursor: pointer;
+transition: background-color 0.2s;
 }
 
+.submit-harvest-icon {
+width: 25px;
+height: 22px;
+object-fit: contain;
+vertical-align: middle;
+margin-top: -4px; /* Nudges the icon closer to the text */
+}
+
+.submit-harvest-btn:hover {
+background-color: #318a71;
+}
 @media screen and (max-width: 768px) {
   .header {
     padding: 0 10px;
