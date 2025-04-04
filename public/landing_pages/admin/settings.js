@@ -42,7 +42,15 @@ window.openAddCropTypePopup = function() {
 
 window.loadCropNames = async function() {
     const cropNameSelect = document.getElementById('crop-name');
+    
+    // Clear existing options and add default "Select Crop Name" option
     cropNameSelect.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Crop Name';
+    defaultOption.selected = true;
+    defaultOption.disabled = true;
+    cropNameSelect.appendChild(defaultOption);
 
     try {
         const snapshot = await db.collection('tb_crops').get();
@@ -55,6 +63,7 @@ window.loadCropNames = async function() {
         });
     } catch (error) {
         console.error('Error loading crop names:', error);
+        showCustomMessage('Failed to load crop names', false);
     }
 };
 
@@ -65,7 +74,15 @@ window.openAddEquipmentPopup = function() {
 
 window.loadEquipmentTypes = async function() {
     const equipmentCategorySelect = document.getElementById('equipment-category');
+    
+    // Clear existing options and add default option
     equipmentCategorySelect.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Equipment Category';
+    defaultOption.selected = true;
+    defaultOption.disabled = true;
+    equipmentCategorySelect.appendChild(defaultOption);
 
     try {
         const snapshot = await db.collection('tb_equipment_types').get();
@@ -78,6 +95,7 @@ window.loadEquipmentTypes = async function() {
         });
     } catch (error) {
         console.error('Error loading equipment types:', error);
+        showCustomMessage('Failed to load equipment categories', false);
     }
 };
 
@@ -88,7 +106,15 @@ window.openAddFertilizerPopup = function() {
 
 window.loadFertilizerTypes = async function() {
     const fertilizerCategorySelect = document.getElementById('fertilizer-category');
+    
+    // Clear existing options and add default option
     fertilizerCategorySelect.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Fertilizer Type';
+    defaultOption.selected = true;
+    defaultOption.disabled = true;
+    fertilizerCategorySelect.appendChild(defaultOption);
 
     try {
         const snapshot = await db.collection('tb_fertilizer_types').get();
@@ -101,6 +127,7 @@ window.loadFertilizerTypes = async function() {
         });
     } catch (error) {
         console.error('Error loading fertilizer types:', error);
+        showCustomMessage('Failed to load fertilizer types', false);
     }
 };
 
@@ -139,20 +166,35 @@ window.getNextId = async function(counterName) {
     }
 };
 
+/**
+ * Populates the barangay dropdown without duplicates
+ */
 window.populateBarangayDropdown = async function() {
     const barangaySelect = document.getElementById('barangay-select');
-
+    
+    // Clear existing options (keep the default/placeholder if needed)
+    barangaySelect.innerHTML = '<option value="" selected disabled>Select Barangay</option>';
+    
     try {
         const snapshot = await db.collection('tb_barangay').get();
+        const uniqueBarangays = new Set(); // Using Set to track unique names
+        
         snapshot.forEach(doc => {
             const data = doc.data();
-            const option = document.createElement('option');
-            option.value = data.barangay_name.trim();
-            option.textContent = data.barangay_name;
-            barangaySelect.appendChild(option);
+            const barangayName = data.barangay_name.trim();
+            
+            // Only add if not already in the Set
+            if (barangayName && !uniqueBarangays.has(barangayName)) {
+                uniqueBarangays.add(barangayName);
+                const option = document.createElement('option');
+                option.value = barangayName;
+                option.textContent = barangayName;
+                barangaySelect.appendChild(option);
+            }
         });
     } catch (error) {
         console.error("Error loading barangays:", error);
+        showCustomMessage("Failed to load barangays.", false);
     }
 };
 
@@ -182,11 +224,13 @@ window.fetchData = async function(collection, listId, field) {
     }
 };
 
+// Update loadData() to include farmlands
 window.loadData = function() {
     fetchData('tb_barangay', 'barangay-list', 'barangay_name');
     fetchData('tb_crop_types', 'crop-type-list', 'crop_type_name');
     fetchData('tb_equipment', 'equipment-list', 'equipment_name');
     fetchData('tb_fertilizer', 'fertilizer-list', 'fertilizer_name');
+    fetchData('tb_farmland', 'farmland-list', 'farmland_name'); // +++ New
 };
 
 document.addEventListener("DOMContentLoaded", loadData);
@@ -659,6 +703,7 @@ window.addFarmland = async function() {
             clearFarmlandInputs();
             loadData();
             loadFarmlandsForBarangay();
+            populateBarangayDropdown();
 
             displayNewFarmland(newFarmland);
 

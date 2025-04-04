@@ -222,6 +222,7 @@ input[type="checkbox"] {
     transition: background-color 0.3s ease;
     border: none;
     text-decoration: none;
+    margin-bottom: -20px;
 }
 
 .add-project-btn:hover {
@@ -358,7 +359,6 @@ input[type="checkbox"] {
     width: 400px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-
 
 /* Styling for the Status select dropdown */
 #status_select {
@@ -565,12 +565,18 @@ input[type="checkbox"] {
         margin-left: 20px;
     }
 
+    .add-project-btn {
+        margin-top: 20px;
+        margin-right: 40px;
+        margin-bottom: -20px;
+    }
+
     .main-content {
         padding: 10px;
     }
 
     .panel {
-        width: 90%;
+        width: 85%;
         padding: 20px;
         border-radius: 10px;
         margin-left: 20px;

@@ -80,7 +80,7 @@ window.loadFarmPresidents = async function () {
     )
   );
   const assignToSelect = document.getElementById("assign-to");
-  assignToSelect.innerHTML = '<option value="">Select Farm President</option>';
+  assignToSelect.innerHTML = '<option value="" selected disabled>Select Farm President</option>';
   querySnapshot.forEach((doc) => {
     const option = document.createElement("option");
     option.value = doc.id;
@@ -111,7 +111,7 @@ window.loadFarmland = async function (barangayName) {
     )
   );
   const farmlandSelect = document.getElementById("farmland");
-  farmlandSelect.innerHTML = '<option value="">Select Farmland</option>';
+  farmlandSelect.innerHTML = '<option value="" selected disabled>Select Farmland</option>';
   querySnapshot.forEach((doc) => {
     const option = document.createElement("option");
     option.value = doc.id;
@@ -146,7 +146,7 @@ window.loadCrops = async function () {
       }
     });
     
-    cropsSelect.innerHTML = '<option value="">Select Crop</option>';
+    cropsSelect.innerHTML = '<option value="" selected disabled>Select Crop</option>';
     uniqueCrops.forEach(crop => {
       const option = document.createElement("option");
       option.value = crop;
@@ -164,7 +164,7 @@ window.loadCropTypes = async function (selectedCrop) {
   if (!selectedCrop) return;
 
   const cropTypeSelect = document.getElementById("crop-type");
-  cropTypeSelect.innerHTML = '<option value="">Select Crop Type</option>';
+  cropTypeSelect.innerHTML = '<option value="" selected disabled>Select Crop Type</option>';
 
   let cropStockMap = {};
   const userType = sessionStorage.getItem("user_type");
@@ -227,14 +227,14 @@ async function addEquipmentForm() {
       <div class="form__group">
           <label class="form__label">Equipment Type:</label>
           <select class="form__select1 equipment__type">
-              <option value="">Select Equipment Type</option>
+              <option value="" selected disabled>Select Equipment Type</option>
               ${equipmentTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
           </select>
       </div>
       <div class="form__group">
           <label class="form__label">Equipment Name:</label>
           <select class="form__select equipment__name">
-              <option value="">Select Equipment Type First</option>
+              <option value="" selected disabled>Select Equipment Type First</option>
           </select>
       </div>
       <div class="form__group">
@@ -280,18 +280,18 @@ async function getEquipmentTypes() {
 
 async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput) {
   const selectedType = equipmentTypeDropdown.value;
-  equipmentNameDropdown.innerHTML = '<option value="">Loading...</option>';
+  equipmentNameDropdown.innerHTML = '<option value="" selected disabled>Loading...</option>';
   equipmentNameDropdown.dataset.stock = "";
   quantityInput.placeholder = "Available Stock: -";
 
   if (!selectedType) {
-      equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Type First</option>';
+      equipmentNameDropdown.innerHTML = '<option value="" selected disabled>Select Equipment Type First</option>';
       return;
   }
 
   const q = query(collection(db, "tb_equipment_stock"), where("equipment_type", "==", selectedType));
   const querySnapshot = await getDocs(q);
-  equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Name</option>';
+  equipmentNameDropdown.innerHTML = '<option value="" selected disabled>Select Equipment Name</option>';
 
   querySnapshot.forEach(doc => {
       const data = doc.data();
@@ -340,14 +340,14 @@ async function addFertilizerForm() {
       <div class="form__group">
           <label class="form__label">Fertilizer Type:</label>
           <select class="form__select1 fertilizer__type">
-              <option value="">Select Fertilizer Type</option>
+              <option value="" selected disabled>Select Fertilizer Type</option>
               ${fertilizerTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
           </select>
       </div>
       <div class="form__group">
           <label class="form__label">Fertilizer Name:</label>
           <select class="form__select fertilizer__name">
-              <option value="">Select Fertilizer Type First</option>
+              <option value="" selected disabled>Select Fertilizer Type First</option>
           </select>
       </div>
       <div class="form__group">
@@ -393,18 +393,18 @@ async function getFertilizerTypes() {
 
 async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput) {
   const selectedType = fertilizerTypeDropdown.value;
-  fertilizerNameDropdown.innerHTML = '<option value="">Loading...</option>';
+  fertilizerNameDropdown.innerHTML = '<option value="" selected disabled>Loading...</option>';
   fertilizerNameDropdown.dataset.stock = "";
   quantityInput.placeholder = "Available Stock: -";
 
   if (!selectedType) {
-      fertilizerNameDropdown.innerHTML = '<option value="">Select Fertilizer Type First</option>';
+      fertilizerNameDropdown.innerHTML = '<option value="" selected disabled>Select Fertilizer Type First</option>';
       return;
   }
 
   const q = query(collection(db, "tb_fertilizer_stock"), where("fertilizer_type", "==", selectedType));
   const querySnapshot = await getDocs(q);
-  fertilizerNameDropdown.innerHTML = '<option value="">Select Fertilizer Name</option>';
+  fertilizerNameDropdown.innerHTML = '<option value="" selected disabled>Select Fertilizer Name</option>';
 
   querySnapshot.forEach(doc => {
       const data = doc.data();
@@ -644,8 +644,8 @@ window.resetForm = function () {
   document.getElementById("status").value = "pending";
   document.getElementById("crops").selectedIndex = 0;
   document.getElementById("barangay").value = "";
-  document.getElementById("farmland").innerHTML = '<option value="">Select Farmland</option>';
-  document.getElementById("crop-type").innerHTML = '<option value="">Select Crop Type</option>';
+  document.getElementById("farmland").innerHTML = '<option value="" selected disabled>Select Farmland</option>';
+  document.getElementById("crop-type").innerHTML = '<option value="" selected disabled>Select Crop Type</option>';
   document.getElementById("quantity-crop-type").value = "";
   document.getElementById("crop-unit").value = "";
   document.getElementById("start-date").value = "";
