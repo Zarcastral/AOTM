@@ -11,8 +11,7 @@
 </head>
 
 <body>
-  <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <div id="header-container"></div>
   <div class="main-content">
     <div class="panel">
       <div class="btn-container">
@@ -21,40 +20,43 @@
         </button>
       </div>
       <div class="table-wrapper">
-      <h2>Harvest</h2>
-      <div class="harvest-search-bar">
-        <input type="text" id="harvest-search-bar" placeholder="Search">
-      </div>
-      <div class="harvest_table">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Project Name</th>
-              <th>Team</th>
-              <th>Lead Farmer</th>
-              <th>Harvest Date</th>
-              <th>Total Harvest</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="table_body">
-            <!-- Harvests will be populated here -->
-          </tbody>
-        </table>   
+        <h2>Harvest List</h2>
+        <div class="harvest-search-bar">
+          <input type="text" id="harvest-search-bar" placeholder="Search">
+        </div>
+        <div class="harvest_table">
+          <table>
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Harvest Date</th>
+                <th>Lead Farmer</th>
+                <th>Barangay</th>
+                <th>Crops</th>
+                <th>Crop Type</th>
+                <th>Total Harvest <br>(mt)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="table_body">
+            </tbody>
+          </table>
           <div class="harvest-pagination">
             <span id="harvest-page-number">Page 1</span>
             <button id="harvest-prev-page" class="harvest-pagination-btn" disabled>&lt;</button>
             <button id="harvest-next-page" class="harvest-pagination-btn">&gt;</button>
-          </div> <!-- Closing harvest-pagination -->
-        </div> <!-- Closing harvest_table -->
+          </div>
+        </div>
       </div>
-    </div> <!-- Closing panel -->
+    </div>
     <div class="button-container">
-      <button class="download-btn" id="download-btn">
-          <img src="../../../public/images/checkmark.png" alt="Check Icon" class="download-icon">
-          <span>Complete</span>
+      <button class="submit-harvest-btn" id="submit-harvest-btn">
+        <img src="../../../public/images/checkmark.png" alt="Check Icon" class="submit-harvest-icon">
+        <span>Complete</span>
       </button>
+    </div>
+    <div id="harvest-success-message" style="display: none;" class="harvest-success-message">
+      <p>Harvest successfully created!</p>
     </div>
     <div class="modal-overlay" id="harvest-report-modal">
       <div class="modal-content">
@@ -67,30 +69,28 @@
             <label>Project Name</label>
             <select id="modal-project-name">
               <option value="" disabled selected>Select Project</option>
-              <!-- Options will be populated dynamically -->
             </select>
           </div>
           <div class="form-group">
             <label>Team</label>
             <select id="modal-team">
               <option value="" disabled selected>Select Team</option>
-              <!-- Options will be populated dynamically -->
             </select>
           </div>
           <div class="form-group total-harvest-group">
             <div>
               <label>Quantity</label>
-              <input type="text" id="modal-total-harvest">
+              <input type="number" id="modal-total-harvest" step="0.01" min="0" placeholder="Enter total harvest">
             </div>
             <div>
               <label>Unit</label>
-              <select id="modal-unit">
-                <option value="kg" selected>kg</option>
+              <select id="modal-unit" disabled>
+                <option value="Kg" selected>Kg</option>
               </select>
             </div>
           </div>
           <div class="form-group">
-            <h3>Team Details</h3>
+            <h3>Harvest Details</h3>
             <div class="details-row">
               <div>
                 <label>Lead Farmer</label>
@@ -104,16 +104,16 @@
           </div>
           <div class="modal-footer">
             <button class="close-btn" id="close-harvest-btn">Cancel</button>
-            <button class="submit-btn" id="submit-harvest-btn">Save</button>
+            <button class="submit-btn" id="save-harvest-btn">Save</button>
+            <button class="submit-btn" id="update-harvest-btn">Update</button>
+            <button class="submit-btn" id="submit-harvest-modal-btn" style="display: none;">Submit Harvest</button>
+            <button class="close-btn" id="view-close-btn" style="display: none;">Close</button>
           </div>
         </div>
       </div>
     </div>
-</div>
-</div> <!-- Missing closing div for main-content -->
-  <!-- Import the reusable script from src/auth -->
+  </div>
   <script type="module" src="../../../src/auth/header.js"></script>
-
 </body>
 
 </html>
