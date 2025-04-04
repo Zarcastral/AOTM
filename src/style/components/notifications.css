@@ -1,46 +1,66 @@
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #e0e0e0; /* Light gray background for the outer container */
-    display: flex;
-    justify-content: center;
-    height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  height: 100vh;
 }
+
 .notification-container {
-    background-color: white;
-    width: 300px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    position: relative;
+  background-color: #ffffff;
+  width: 300px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  position: relative;
 }
+
 .back-arrow {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    font-size: 20px;
-    color: #333;
-    cursor: pointer;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 20px;
+  color: #444;
+  cursor: pointer;
 }
+
 .notification-header {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 20px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #222;
 }
+
 .notification-item {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
 }
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
 .notification-item .title {
-    font-size: 14px;
-    font-weight: bold;
-    text-transform: uppercase;
-    margin-bottom: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  color: #333;
 }
+
 .notification-item .title.unread::before {
-    content: "• ";
-    color: blue;
+  content: "• ";
+  color: #1e90ff;
 }
+
 .notification-item .description {
-    font-size: 12px;
-    color: #333;
+  font-size: 12px;
+  color: #555;
+}
+
+.title.unread {
+  font-weight: bold;
+  color: #ff4500;
 }
