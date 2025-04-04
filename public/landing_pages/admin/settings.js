@@ -139,20 +139,35 @@ window.getNextId = async function(counterName) {
     }
 };
 
+/**
+ * Populates the barangay dropdown without duplicates
+ */
 window.populateBarangayDropdown = async function() {
     const barangaySelect = document.getElementById('barangay-select');
-
+    
+    // Clear existing options (keep the default/placeholder if needed)
+    barangaySelect.innerHTML = '<option value="" selected disabled>Select Barangay</option>';
+    
     try {
         const snapshot = await db.collection('tb_barangay').get();
+        const uniqueBarangays = new Set(); // Using Set to track unique names
+        
         snapshot.forEach(doc => {
             const data = doc.data();
-            const option = document.createElement('option');
-            option.value = data.barangay_name.trim();
-            option.textContent = data.barangay_name;
-            barangaySelect.appendChild(option);
+            const barangayName = data.barangay_name.trim();
+            
+            // Only add if not already in the Set
+            if (barangayName && !uniqueBarangays.has(barangayName)) {
+                uniqueBarangays.add(barangayName);
+                const option = document.createElement('option');
+                option.value = barangayName;
+                option.textContent = barangayName;
+                barangaySelect.appendChild(option);
+            }
         });
     } catch (error) {
         console.error("Error loading barangays:", error);
+        showCustomMessage("Failed to load barangays.", false);
     }
 };
 
@@ -661,6 +676,7 @@ window.addFarmland = async function() {
             clearFarmlandInputs();
             loadData();
             loadFarmlandsForBarangay();
+            populateBarangayDropdown();
 
             displayNewFarmland(newFarmland);
 
