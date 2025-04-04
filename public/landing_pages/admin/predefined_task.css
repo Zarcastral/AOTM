@@ -610,8 +610,12 @@ border-radius: 5px;
       font-size: 24px;
   }
 
+  .title{
+    margin-top: 10px;
+  }
+
   .main-content {
-      padding: 20px;
+    padding: 5px 50px;
   }
 
   .panel {
@@ -668,12 +672,16 @@ border-radius: 5px;
       height: 20px;
   }
 
+  .title{
+    margin-top: 10px;
+  }
+
   #search-bar {
     width: 100px;
   }
 
   .main-content {
-      padding: 10px;
+    padding: 5px 50px;
   }
 
   .panel {

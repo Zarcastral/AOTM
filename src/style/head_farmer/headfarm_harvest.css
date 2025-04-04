@@ -40,6 +40,21 @@ body {
   cursor: pointer;
 }
 
+#harvest-search-bar{
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 500px;
+}
+
+#harvest-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
+
 .main-content {
   display: flex;
   flex-direction: column;
@@ -68,6 +83,10 @@ body {
   font-weight: bold;
   color: #41A186;
   margin-bottom: 20px;
+  padding: 20px 20px;
+  /* Remove negative margin-top to avoid overlap with content above */
+  margin-top: 0; /* Reset to default */
+  margin-left: -20px;
 }
 .account-panel.active {
   display: block;
@@ -144,7 +163,7 @@ th,
 td {
   padding: 12px;
   text-align: left;
-  border-bottom: 5px solid #f0f0f0;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 th {
@@ -329,7 +348,7 @@ cursor: not-allowed;
   max-width: 600px;
   border-radius: 10px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  padding: 40px;
+  padding: 30px;
   position: relative;
 }
 
@@ -341,10 +360,11 @@ cursor: not-allowed;
   border-bottom: 1px solid #E2E8F0;
   padding-bottom: 15px;
   margin-bottom: 25px;
+  margin-top: 15px;
 }
 
 .modal-header h2 {
-  font-size: 40px;
+  font-size: 35px;
   font-weight: 600;
   color: #243B53;
   margin: 0;
@@ -352,16 +372,19 @@ cursor: not-allowed;
 
 .modal-close-btn {
   background: none;
+  margin-right: -10px;
   border: none;
-  font-size: 24px;
+  font-size: 35px;
   cursor: pointer;
-  color: #333;
+  color: #C4C4C4;
+  margin-top: -75px
 }
 
 .modal-close-btn:hover {
-  color: #41A186;
+  color: #B0B7C0;
   transition: color 0.3s ease;
 }
+
 
 /* Modal Body */
 .modal-body {
@@ -382,8 +405,7 @@ cursor: not-allowed;
 }
 
 .form-group input,
-.form-group textarea,
-.form-group select {
+.form-group textarea{
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #D1D5DB;
@@ -392,6 +414,23 @@ cursor: not-allowed;
   color: #333333;
   background-color: #FFFFFF;
   box-sizing: border-box;
+}
+
+.form-group select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
 }
 
 .form-group textarea {
@@ -498,24 +537,26 @@ cursor: not-allowed;
 
 /* New User Button */
 .add-user-btn {
-    background-color: #41A186;
-    color: white;
-    padding: 15px 25px;
-    font-size: 20px;
-    font-weight: 550;
-    text-align: center;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    border: none;
-    text-decoration: none;
-    margin-left: 500px;
+  background-color: white;
+  color: #41A186;
+  padding: 10px 20px;
+  font-size: 20px;
+  font-weight: 500;
+  text-align: center;
+  border-radius: 20px;
+  margin-top: -10px;
+  margin-right: -90px;
+  margin-bottom: -90px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  text-decoration: none;
 }
 
 .add-user-btn:hover {
-    background-color: #318a71; 
-    text-decoration: none;
-    transition: background-color 0.3s ease;
+  color: #318a71; 
+  text-decoration: none;
+  transition: background-color 0.3s ease;
 }
 
 .action-icon-add {
@@ -545,6 +586,29 @@ cursor: not-allowed;
   transition: opacity 0.3s ease;
 }
 @media screen and (max-width: 768px) {
+  .add-user-btn {
+    background-color: white;
+    color: #41A186;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 20px;
+    margin-top: -10px;
+    margin-right: -50px;
+    margin-bottom: -90px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+    text-decoration: none;
+  }
+  
+  .add-user-btn:hover {
+    color: #318a71; 
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+  
   .header {
     padding: 0 10px;
   }
@@ -576,6 +640,29 @@ cursor: not-allowed;
 }
 
 @media screen and (max-width: 480px) {
+  .add-user-btn {
+    background-color: white;
+    color: #41A186;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 20px;
+    margin-top: -10px;
+    margin-right: -30px;
+    margin-bottom: -90px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+    text-decoration: none;
+  }
+  
+  .add-user-btn:hover {
+    color: #318a71; 
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+
   .header-title {
     font-size: 1.1rem;
   }
