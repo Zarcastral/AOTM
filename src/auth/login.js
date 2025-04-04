@@ -156,8 +156,11 @@ loginForm.addEventListener("submit", async (e) => {
         userData.middle_name ? userData.middle_name + " " : ""
       }${userData.last_name}`.trim();
       userPicture = userData.user_picture || "";
-      sessionEmailKey = "userEmail"; // Unique session key for tb_users
+      const userName = userData.user_name || ""; // Fetch the user_name field
+      sessionEmailKey = "userEmail";
 
+      // Storing data in sessionStorage
+      sessionStorage.setItem("user_name", userName); // Store the user_name from tb_users
       sessionStorage.setItem("userEmail", email);
       sessionStorage.setItem("user_type", userType);
       sessionStorage.setItem("barangay_name", barangayName);

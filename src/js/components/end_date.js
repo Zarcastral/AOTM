@@ -27,9 +27,10 @@ function daysUntil(endDate) {
 async function addNotification(farmerId, projectId, endDate, daysLeft) {
   try {
     const notificationsRef = collection(db, "tb_notifications");
+    // Updated: Query using "recipient" instead of "farmer_id"
     const q = query(
       notificationsRef,
-      where("farmer_id", "==", farmerId),
+      where("recipient", "==", farmerId),
       where("project_id", "==", projectId),
       where("type", "==", "upcoming_deadline")
     );
@@ -37,7 +38,7 @@ async function addNotification(farmerId, projectId, endDate, daysLeft) {
 
     if (querySnapshot.empty) {
       await addDoc(notificationsRef, {
-        farmer_id: farmerId,
+        recipient: farmerId,
         project_id: projectId,
         type: "upcoming_deadline",
         title: "PROJECT REMINDER",
