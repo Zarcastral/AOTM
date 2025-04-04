@@ -13,7 +13,7 @@ const db = getFirestore(app);
 document.addEventListener("DOMContentLoaded", async () => {
   await loadHeader("header-container");
   initializeHeaderEvents();
-  setupRealtimeNotificationListener(); // Set up real-time listener
+  setupRealtimeNotificationListener();
 });
 
 async function loadHeader(containerId) {
@@ -35,24 +35,50 @@ function updateUnreadCount(unreadCount) {
 }
 
 function setupRealtimeNotificationListener() {
+  const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
-  if (!farmerId) {
-    console.error("No farmer_id found in sessionStorage");
+  const username = sessionStorage.getItem("user_name");
+
+  console.log("User Type:", userType);
+  console.log("Farmer ID:", farmerId);
+  console.log("Username:", username);
+
+  if (!userType) {
+    console.error("No user_type found in sessionStorage");
     return;
   }
 
+  let recipientValue;
+  if (["Farmer", "Head Farmer", "Farm President"].includes(userType)) {
+    if (!farmerId) {
+      console.error("No farmer_id found in sessionStorage for this user type");
+      return;
+    }
+    recipientValue = farmerId;
+  } else if (["Admin", "Supervisor"].includes(userType)) {
+    if (!username) {
+      console.error("No user_name found in sessionStorage for this user type");
+      return;
+    }
+    recipientValue = username;
+  } else {
+    console.error("Unknown user_type:", userType);
+    return;
+  }
+
+  console.log("Setting up listener for recipient:", recipientValue);
+
   const q = query(
     collection(db, "tb_notifications"),
-    where("farmer_id", "==", farmerId),
+    where("recipient", "==", recipientValue),
     where("read", "==", false)
   );
 
-  // Real-time listener for unread notifications
   onSnapshot(
     q,
     (querySnapshot) => {
       const unreadCount = querySnapshot.size;
-      console.log(`Real-time unread count updated: ${unreadCount}`); // Debug
+      console.log(`Real-time unread count updated: ${unreadCount}`);
       updateUnreadCount(unreadCount);
     },
     (error) => {
@@ -100,7 +126,6 @@ function initializeHeaderEvents() {
   function handleIframeMessages(event) {
     if (event.data === "notificationRead") {
       console.log("Received notificationRead message from iframe");
-      // No need to call updateUnreadCount here; real-time listener handles it
       return;
     }
 

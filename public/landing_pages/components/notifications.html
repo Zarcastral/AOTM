@@ -37,8 +37,8 @@
             const now = new Date();
             const time = timestamp instanceof Object
                 ? timestamp.toDate() // Firestore Timestamp
-                : new Date(timestamp); // String like "April 4, 2025 at 9:17:46 AM UTC+8"
-            const diffMs = now - time; // Difference in milliseconds
+                : new Date(timestamp); // String like "April 4, 2025 at 6:49:14 AM UTC+8"
+            const diffMs = now - time;
 
             const diffSeconds = Math.floor(diffMs / 1000);
             const diffMinutes = Math.floor(diffSeconds / 60);
@@ -54,7 +54,6 @@
             } else if (diffDays < 7) {
                 return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
             } else {
-                // Fallback to full date for older notifications
                 return time.toLocaleString([], {
                     month: 'short',
                     day: 'numeric',
@@ -65,30 +64,62 @@
 
         async function fetchNotifications() {
             try {
+                const userType = sessionStorage.getItem("user_type");
                 const farmerId = sessionStorage.getItem("farmer_id");
+                const username = sessionStorage.getItem("user_name");
 
-                if (!farmerId) {
-                    console.error("No farmer_id found in sessionStorage");
-                    notificationList.innerHTML = '<div>No farmer ID found. Please log in.</div>';
+                console.log("User Type:", userType);
+                console.log("Farmer ID:", farmerId);
+                console.log("Username:", username);
+
+                if (!userType) {
+                    console.error("No user_type found in sessionStorage");
+                    notificationList.innerHTML = '<div>No user type found. Please log in.</div>';
                     return;
                 }
 
+                let recipientValue;
+                if (["Farmer", "Head Farmer", "Farm President"].includes(userType)) {
+                    if (!farmerId) {
+                        console.error("No farmer_id found in sessionStorage for this user type");
+                        notificationList.innerHTML = '<div>No farmer ID found. Please log in.</div>';
+                        return;
+                    }
+                    recipientValue = farmerId;
+                } else if (["Admin", "Supervisor"].includes(userType)) {
+                    if (!username) {
+                        console.error("No user_name found in sessionStorage for this user type");
+                        notificationList.innerHTML = '<div>No username found. Please log in.</div>';
+                        return;
+                    }
+                    recipientValue = username;
+                } else {
+                    console.error("Unknown user_type:", userType);
+                    notificationList.innerHTML = '<div>Invalid user type.</div>';
+                    return;
+                }
+
+                console.log("Fetching notifications for recipient:", recipientValue);
+
                 const q = query(
                     collection(db, "tb_notifications"),
-                    where("farmer_id", "==", farmerId)
+                    where("recipient", "==", recipientValue)
                 );
 
                 const querySnapshot = await getDocs(q);
                 notificationList.innerHTML = '';
 
                 if (querySnapshot.empty) {
-                    notificationList.innerHTML = '<div>No notifications found for this farmer.</div>';
+                    console.log("No notifications found for recipient:", recipientValue);
+                    notificationList.innerHTML = '<div>No notifications found.</div>';
                     return;
                 }
 
                 querySnapshot.forEach((docSnapshot) => {
                     const data = docSnapshot.data();
                     const docId = docSnapshot.id;
+
+                    console.log("Notification found:", data);
 
                     const notificationItem = document.createElement('div');
                     notificationItem.className = 'notification-item';
