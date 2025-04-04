@@ -32,6 +32,37 @@
         const db = getFirestore(app);
         const notificationList = document.getElementById('notification-list');
 
+        // Function to format timestamp as relative time (e.g., "45 mins ago")
+        function getRelativeTime(timestamp) {
+            const now = new Date();
+            const time = timestamp instanceof Object
+                ? timestamp.toDate() // Firestore Timestamp
+                : new Date(timestamp); // String like "April 4, 2025 at 9:17:46 AM UTC+8"
+            const diffMs = now - time; // Difference in milliseconds
+
+            const diffSeconds = Math.floor(diffMs / 1000);
+            const diffMinutes = Math.floor(diffSeconds / 60);
+            const diffHours = Math.floor(diffMinutes / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMinutes < 1) {
+                return "Just now";
+            } else if (diffMinutes < 60) {
+                return `${diffMinutes} min${diffMinutes === 1 ? '' : 's'} ago`;
+            } else if (diffHours < 24) {
+                return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+            } else if (diffDays < 7) {
+                return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+            } else {
+                // Fallback to full date for older notifications
+                return time.toLocaleString([], {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                }); // e.g., "Apr 4, 2025"
+            }
+        }
+
         async function fetchNotifications() {
             try {
                 const farmerId = sessionStorage.getItem("farmer_id");
@@ -57,7 +88,7 @@
 
                 querySnapshot.forEach((docSnapshot) => {
                     const data = docSnapshot.data();
-                    const docId = docSnapshot.id; // Get the document ID
+                    const docId = docSnapshot.id;
 
                     const notificationItem = document.createElement('div');
                     notificationItem.className = 'notification-item';
@@ -70,20 +101,22 @@
                     description.className = 'description';
                     description.textContent = data.description;
 
+                    const timestamp = document.createElement('div');
+                    timestamp.className = 'timestamp';
+                    timestamp.textContent = getRelativeTime(data.timestamp);
+
                     notificationItem.appendChild(title);
                     notificationItem.appendChild(description);
+                    notificationItem.appendChild(timestamp);
                     notificationList.appendChild(notificationItem);
 
-                    // Add click event to mark as read
                     notificationItem.addEventListener('click', async () => {
-                        if (!data.read) { // Only update if not already read
+                        if (!data.read) {
                             try {
-                                // Update Firestore document
                                 const notificationRef = doc(db, "tb_notifications", docId);
                                 await updateDoc(notificationRef, { read: true });
-
-                                // Update UI: Remove unread class
                                 title.classList.remove('unread');
+                                window.parent.postMessage("notificationRead", "*");
                             } catch (error) {
                                 console.error("Error marking notification as read: ", error);
                             }

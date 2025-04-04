@@ -1,7 +1,6 @@
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
   Timestamp,
-  addDoc,
   collection,
   doc,
   getDocs,
@@ -10,6 +9,7 @@ import {
   where,
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
+import { checkProjectReminders } from "../components/end_date.js"; // Import the notification function
 
 // Initialize Firestore and Auth
 const db = getFirestore(app);
@@ -48,88 +48,6 @@ async function getAuthenticatedUser() {
       }
     });
   });
-}
-
-// Helper function to check if today is exactly 3 days before the end_date
-function isThreeDaysBefore(endDate) {
-  const currentDate = new Date();
-  const projectEndDate = new Date(endDate);
-
-  const threeDaysBefore = new Date(projectEndDate);
-  threeDaysBefore.setDate(projectEndDate.getDate() - 3);
-
-  currentDate.setHours(0, 0, 0, 0);
-  threeDaysBefore.setHours(0, 0, 0, 0);
-
-  return currentDate.getTime() === threeDaysBefore.getTime();
-}
-
-// Function to add a notification to Firestore if it doesn’t already exist
-async function addNotification(farmerId, projectId, endDate) {
-  try {
-    const notificationsRef = collection(db, "tb_notifications");
-    const q = query(
-      notificationsRef,
-      where("farmer_id", "==", farmerId),
-      where("project_id", "==", projectId),
-      where("type", "==", "three_day_reminder")
-    );
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      // No existing notification, add a new one
-      await addDoc(notificationsRef, {
-        farmer_id: farmerId,
-        project_id: projectId,
-        type: "three_day_reminder",
-        title: "PROJECT REMINDER",
-        description: `Project ${projectId} ends in 3 days on ${endDate}!`,
-        timestamp: Timestamp.now(),
-        read: false,
-      });
-      console.log(`✅ Added notification for Project ${projectId}`);
-    } else {
-      console.log(`Notification for Project ${projectId} already exists`);
-    }
-  } catch (error) {
-    console.error("❌ Error adding notification:", error);
-  }
-}
-
-// Function to check projects for three-day reminders
-async function checkProjectReminders(farmerId) {
-  try {
-    const projectsRef = collection(db, "tb_projects");
-    const q = query(projectsRef, where("lead_farmer_id", "==", farmerId));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      console.log("No projects found for this farmer.");
-      return;
-    }
-
-    querySnapshot.forEach(async (doc) => {
-      const project = doc.data();
-      if (project.status === "Ongoing") {
-        if (isThreeDaysBefore(project.end_date)) {
-          await addNotification(farmerId, project.project_id, project.end_date);
-          console.log(
-            `⚠️ Project ${project.project_id} is 3 days from ending on ${project.end_date}`
-          );
-        } else {
-          const daysUntilThreeDaysBefore = Math.ceil(
-            (new Date(project.end_date) - new Date()) / (1000 * 60 * 60 * 24) -
-              3
-          );
-          console.log(
-            `Project ${project.project_id} has ${daysUntilThreeDaysBefore} days until the 3-day reminder`
-          );
-        }
-      }
-    });
-  } catch (error) {
-    console.error("❌ Error checking project reminders:", error);
-  }
 }
 
 // Function to check authentication state and update dashboard
@@ -231,7 +149,7 @@ async function updateTotalFarmerCount() {
   }
 }
 
-// Function to update the bar graph (unchanged from your original)
+// Function to update the bar graph (unchanged)
 async function updateBarGraph() {
   const bars = document.querySelectorAll(".bar");
   const yAxis = document.querySelector(".y-axis");
@@ -239,7 +157,6 @@ async function updateBarGraph() {
   const analyticsSection = document.querySelector(".analytics-section");
   const yearSelector = document.querySelector("#year-selector");
 
-  // Create canvas for grid lines (behind everything)
   const gridCanvas = document.createElement("canvas");
   const gridCtx = gridCanvas.getContext("2d");
   gridCanvas.style.position = "absolute";
@@ -250,7 +167,6 @@ async function updateBarGraph() {
   barChart.style.position = "relative";
   barChart.appendChild(gridCanvas);
 
-  // Create canvas for dashed lines (on top of everything)
   const dashCanvas = document.createElement("canvas");
   const dashCtx = dashCanvas.getContext("2d");
   dashCanvas.style.position = "absolute";
@@ -260,7 +176,6 @@ async function updateBarGraph() {
   dashCanvas.style.zIndex = "3";
   barChart.appendChild(dashCanvas);
 
-  // Create tooltip element
   const tooltip = document.createElement("div");
   tooltip.style.position = "absolute";
   tooltip.style.background = "rgba(0, 0, 0, 0.8)";
@@ -493,7 +408,6 @@ async function updateBarGraph() {
 
       if (!bar.classList.contains("highlighted")) {
         dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
-        drawGridLines(labelPositions);
         return;
       }
 
