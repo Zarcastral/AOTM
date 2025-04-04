@@ -182,11 +182,13 @@ window.fetchData = async function(collection, listId, field) {
     }
 };
 
+// Update loadData() to include farmlands
 window.loadData = function() {
     fetchData('tb_barangay', 'barangay-list', 'barangay_name');
     fetchData('tb_crop_types', 'crop-type-list', 'crop_type_name');
     fetchData('tb_equipment', 'equipment-list', 'equipment_name');
     fetchData('tb_fertilizer', 'fertilizer-list', 'fertilizer_name');
+    fetchData('tb_farmland', 'farmland-list', 'farmland_name'); // +++ New
 };
 
 document.addEventListener("DOMContentLoaded", loadData);
