@@ -613,7 +613,7 @@ async function checkProjectTeam(project_id) {
             });
 
             if (projectData && projectData.team_id) {
-                alert(`This project already has a team assigned: Team ID ${projectData.team_id}.`);
+                showDeleteMessage(`This project already has a team assigned: Team ID ${projectData.team_id}.`);
                 return false; // Prevents the popup from opening
             }
         }
@@ -759,7 +759,7 @@ async function teamAssign(project_id) {
         if (confirmBtn) {
             confirmBtn.onclick = async function () {
                 if (!selectedTeam) {
-                    alert("Please select a team first.");
+                    showDeleteMessage("Please select a team first.");
                     return;
                 }
 
@@ -798,7 +798,7 @@ async function teamAssign(project_id) {
                                 status: "Ongoing"
                             }));
 
-                            alert(`Team "${selectedTeam.team_name}" has been successfully assigned! Project status updated to Ongoing.`);
+                            showDeleteMessage(`Team "${selectedTeam.team_name}" has been successfully assigned! Project status updated to Ongoing.`);
 
                             // ✅ Inserted Code: Save the gathered data to `tb_project_task`
 const projectTasks = await  fetchProjectTasks(project_id)
@@ -820,11 +820,11 @@ await saveEquipmentStockAfterUse(project_id);
                             window.location.href = "farmpres_project.html";
                         });
                     } else {
-                        alert("No matching project found. Unable to proceed.");
+                        showDeleteMessage("No matching project found. Unable to proceed.");
                     }
                 } catch (error) {
                     console.error("Error updating project with team assignment:", error);
-                    alert("An error occurred while assigning the team. Please try again.");
+                    showDeleteMessage("An error occurred while assigning the team. Please try again.");
                 }
 
                 panel.style.display = "none";
