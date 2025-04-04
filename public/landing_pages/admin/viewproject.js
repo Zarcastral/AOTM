@@ -59,6 +59,20 @@ async function fetchProjectDetails() {
     }
 }
 
+
+
+function storeProjectIdAndRedirect(projectId, teamId) {
+    sessionStorage.setItem("selected_project_id", projectId);
+    window.location.href = `../../../landing_pages/head_farmer/headfarm_task.html?team_id=${teamId}`;
+}
+
+// Expose the function to the global scope
+window.storeProjectIdAndRedirect = storeProjectIdAndRedirect;
+
+
+
+
+
 // Fetch and display teams
 async function fetchTeams() {
     const teamsTableBody = document.getElementById("teamsTableBody");
@@ -67,104 +81,54 @@ async function fetchTeams() {
     try {
         const projectId = sessionStorage.getItem("selectedProjectId");
         if (!projectId) {
-            console.error("❌ No project ID found in sessionStorage.");
-            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No project selected.</td></tr>";
+            teamsTableBody.innerHTML = "<tr><td colspan='4'>No project selected.</td></tr>";
             return;
         }
 
-        const projectsRef = collection(db, "tb_projects");
-        const q = query(projectsRef, where("project_id", "==", parseInt(projectId)));
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(
+            query(collection(db, "tb_projects"), 
+            where("project_id", "==", parseInt(projectId))
+        ));
 
         teamsTableBody.innerHTML = "";
 
         if (querySnapshot.empty) {
-            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No teams found.</td></tr>";
+            teamsTableBody.innerHTML = "<tr><td colspan='4'>No teams found.</td></tr>";
             return;
         }
 
-        let hasTeam = false;
-
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
             const project = doc.data();
-
-            if (!project.team_id) {
-                return;
-            }
-
-            hasTeam = true;
+            if (!project.team_id) return;
 
             const teamName = project.team_name || "Unknown Team";
             const leadFarmer = project.lead_farmer || "No Leader";
             const farmers = project.farmer_name || [];
+            const teamId = project.team_id; // Assuming `team_id` exists in Firestore
 
             const row = document.createElement("tr");
             row.innerHTML = `
-              <td>${teamName}</td>
-              <td>${leadFarmer}</td>
-              <td>${farmers.length}</td>
-              <td>
-                <button class="view-btn">
-                  <img src="../../images/eye.png" alt="View" class="view-icon">
-                </button>
-              </td>
-            `;
+    <td>${teamName}</td>
+    <td>${leadFarmer}</td>
+    <td>${farmers.length}</td>
+    <td>
+        <button 
+            class="view-btn" 
+            onclick="storeProjectIdAndRedirect(sessionStorage.getItem('selectedProjectId'), '${teamId}')"
+        >
+            <img src="../../images/eye.png" alt="View" class="view-icon">
+        </button>
+    </td>
+`;
+teamsTableBody.appendChild(row);
 
-            const viewButton = row.querySelector(".view-btn");
-            viewButton.addEventListener("click", () => openPopup(teamName, leadFarmer, farmers));
-
-            teamsTableBody.appendChild(row);
         });
-
-        if (!hasTeam) {
-            teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>No selected Team yet.</td></tr>";
-        }
 
     } catch (error) {
-        console.error("🔥 Error fetching teams:", error);
-        teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>Failed to load teams.</td></tr>";
+        console.error("Error fetching teams:", error);
+        teamsTableBody.innerHTML = "<tr><td colspan='4'>Failed to load teams.</td></tr>";
     }
 }
-
-// Attach the function globally so HTML can access it
-window.openPopup = function (teamName, leadFarmer, farmers) {
-    const popup = document.getElementById("viewTeamPopup");
-    
-    document.getElementById("popupTeamName").textContent = teamName;
-    document.getElementById("popupLeadFarmer").textContent = leadFarmer;
-
-    const farmerList = document.getElementById("popupFarmerList");
-    farmerList.innerHTML = "";
-
-    if (farmers.length > 0) {
-        farmers.forEach(farmer => {
-            const listItem = document.createElement("li");
-            listItem.textContent = farmer;
-            farmerList.appendChild(listItem);
-        });
-    } else {
-        farmerList.innerHTML = "<li>No farmers assigned</li>";
-    }
-
-    popup.style.display = "flex";
-    console.log("✅ Popup opened for:", teamName);
-};
-
-// Close Popup Function
-window.closePopup = function () {
-    document.getElementById("viewTeamPopup").style.display = "none";
-};
-
-// Attach event to the X button
-document.getElementById("closePopup").addEventListener("click", closePopup);
-
-// Close Popup if Clicking Outside of the Content
-window.addEventListener("click", (event) => {
-    const popup = document.getElementById("viewTeamPopup");
-    if (event.target === popup) {
-        closePopup();
-    }
-});
 
 document.addEventListener("DOMContentLoaded", function () {
     window.openFeedbackPopup = function () {

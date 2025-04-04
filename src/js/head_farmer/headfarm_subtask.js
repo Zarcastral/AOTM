@@ -116,6 +116,8 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
 
       let allCompleted = true;
 
+      const userType = sessionStorage.getItem("user_type");
+
       subtasks.forEach((subtask, index) => {
         const status = subtask.status || "Pending";
         const startDate = subtask.start_date || "-";
@@ -125,6 +127,12 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
         const safeSubtaskName = subtask.subtask_name
           ? subtask.subtask_name.replace(/"/g, "")
           : "Unnamed Subtask";
+        
+        let deleteButton = '';
+        if (userType === "Head Farmer") {
+          deleteButton = `<img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">`;
+        }
+
         const row = `
           <tr>
             <td>${safeSubtaskName}</td>
@@ -133,7 +141,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
             <td>${endDate}</td>
             <td class="action-icons">
               <img src="../../images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}" data-subtask-name="${safeSubtaskName}">
-              <img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">
+              ${deleteButton} <!-- Delete button is only shown for Head Farmer -->
             </td>
           </tr>
         `;
@@ -163,6 +171,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
   }
   return false;
 }
+
 
 // Function to attach event listeners to table elements
 function attachEventListeners(projectTaskId) {
