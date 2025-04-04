@@ -14,6 +14,7 @@ html, body {
   left: 0;
   height: 100vh;
   width: 250px;
+  border-radius: 0px 0px 30px;
   background-color: white;
   display: flex;
   flex-direction: column;
@@ -130,7 +131,6 @@ html, body {
   font-size: 18px;
   color: #41A186;
 }
-
 
 
 .sett a:hover,

@@ -37,6 +37,60 @@ body {
   cursor: pointer;
 }
 
+
+.crop_select{
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 150px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+  }
+
+  .barangay_select{
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+      font-size: 16px;
+      color: #243B53;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+      width: 200px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      appearance: none; /* Removes default dropdown styling */
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+      background-repeat: no-repeat;
+      background-position: right 10px center; /* Moves the arrow closer */
+      background-size: 16px;
+      cursor: pointer;
+    }
+
+  
+  #harvest-search-bar {
+      padding: 8px;
+      font-size: 15px;
+      border: 1px solid lightgray; 
+      border-radius: 5px;
+      outline: none;
+  }
+  #harvest-search-bar {
+      width: 300px;
+  }
+  
+  
+  #harvest-search-bar:focus {
+      border-color: #aaa;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+  }
+ 
+
 .main-content {
   display: flex;
   flex-direction: column;
@@ -373,7 +427,7 @@ tbody tr:hover {
   background-color: #41A186;
   color: white;
   padding: 20px;
-  font-weight: 700;
+  font-weight: 600;
   border: none;
   border-radius: 40px;
   cursor: pointer;
@@ -381,11 +435,13 @@ tbody tr:hover {
 }
 
 .download-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
   vertical-align: middle;
   margin-top: -5px; /* Nudges the icon closer to the text */
+  margin-right: 3px;
+  margin-left: 3px;
 }
 
 .download-btn:hover {

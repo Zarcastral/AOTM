@@ -10,6 +10,7 @@ body {
   width: 100%;
   overflow-x: auto;
 }
+
 .header {
   min-height: 60px;
   height: 60px;
@@ -40,6 +41,23 @@ body {
   cursor: pointer;
 }
 
+
+#harvest-search-bar{
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 500px;
+}
+
+#harvest-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
+
+
 .main-content {
   display: flex;
   flex-direction: column;
@@ -63,12 +81,18 @@ body {
   display: none;
   z-index: 10;
 }
+
 .panel h2 {
   font-size: 30px;
   font-weight: bold;
   color: #41A186;
   margin-bottom: 20px;
+  padding: 20px 20px;
+  /* Remove negative margin-top to avoid overlap with content above */
+  margin-top: 0; /* Reset to default */
+  margin-left: -20px;
 }
+
 .account-panel.active {
   display: block;
 }
@@ -144,7 +168,7 @@ th,
 td {
   padding: 12px;
   text-align: left;
-  border-bottom: 5px solid #f0f0f0;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 th {
@@ -247,6 +271,7 @@ color: slategray;
 transition: color 0.3s ease;
 }
 
+
 /* Pagination styles */
 .harvest-pagination,
 .fertilizer-pagination,
@@ -322,7 +347,7 @@ cursor: not-allowed;
   max-width: 600px;
   border-radius: 10px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  padding: 25px;
+  padding: 30px;
   position: relative;
 }
 
@@ -334,10 +359,11 @@ cursor: not-allowed;
   border-bottom: 1px solid #E2E8F0;
   padding-bottom: 15px;
   margin-bottom: 25px;
+  margin-top: 15px;
 }
 
 .modal-header h2 {
-  font-size: 40px;
+  font-size: 35px;
   font-weight: 600;
   color: #243B53;
   margin: 0;
@@ -345,14 +371,16 @@ cursor: not-allowed;
 
 .modal-close-btn {
   background: none;
+  margin-right: -10px;
   border: none;
-  font-size: 24px;
+  font-size: 35px;
   cursor: pointer;
-  color: #333;
+  color: #C4C4C4;
+  margin-top: -75px
 }
 
 .modal-close-btn:hover {
-  color: #41A186;
+  color: #B0B7C0;
   transition: color 0.3s ease;
 }
 
@@ -381,11 +409,30 @@ cursor: not-allowed;
   padding: 10px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 15px;
   color: #333333;
   background-color: #FFFFFF;
   box-sizing: border-box;
 }
+
+.form-group select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
+
 
 .form-group textarea {
   height: 150px;
@@ -491,34 +538,29 @@ cursor: not-allowed;
 
 /* New User Button */
 .add-user-btn {
-    background-color: #41A186;
-    color: white;
-    padding: 15px 30px;
-    font-size: 22px;
-    font-weight: 600;
-    text-align: center;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    border: none;
-    text-decoration: none;
-    margin-left: 860px;
+  background-color: white;
+  color: #41A186;
+  padding: 10px 20px;
+  font-size: 20px;
+  font-weight: 500;
+  text-align: center;
+  border-radius: 20px;
+  margin-top: -10px;
+  margin-right: -90px;
+  margin-bottom: -90px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  text-decoration: none;
 }
 
 .add-user-btn:hover {
-    background-color: #318a71; 
-    text-decoration: none;
-    transition: background-color 0.3s ease;
+  color: #318a71; 
+  text-decoration: none;
+  transition: background-color 0.3s ease;
 }
 
-.action-icon-add {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    vertical-align: middle;
-    margin-right: -5px; /* Nudges the icon closer to the text */
-    margin-top: -3px; /* Nudges the icon closer to the text */
-}
+
 .button-container {
   width: 90%;
   display: flex;
@@ -529,18 +571,21 @@ cursor: not-allowed;
 .download-btn {
   background-color: #41A186;
   color: white;
-  padding: 20px;
-  font-weight: 700;
+  padding: 12px 45px;
+  margin-top: -12px;
+  margin-right: -20px;
+  font-weight: 500;
   font-size: 18px;
   border: none;
   border-radius: 40px;
   cursor: pointer;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
   transition: background-color 0.2s;
 }
 
 .download-icon {
-  width: 25px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
   vertical-align: middle;
   margin-top: -4px; /* Nudges the icon closer to the text */
@@ -551,6 +596,29 @@ cursor: not-allowed;
 }
 
 @media screen and (max-width: 768px) {
+  .add-user-btn {
+    background-color: white;
+    color: #41A186;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 20px;
+    margin-top: -10px;
+    margin-right: -50px;
+    margin-bottom: -90px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+    text-decoration: none;
+  }
+  
+  .add-user-btn:hover {
+    color: #318a71; 
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+  
   .header {
     padding: 0 10px;
   }
@@ -582,6 +650,29 @@ cursor: not-allowed;
 }
 
 @media screen and (max-width: 480px) {
+  .add-user-btn {
+    background-color: white;
+    color: #41A186;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 20px;
+    margin-top: -10px;
+    margin-right: -30px;
+    margin-bottom: -90px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+    text-decoration: none;
+  }
+  
+  .add-user-btn:hover {
+    color: #318a71; 
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+
   .header-title {
     font-size: 1.1rem;
   }

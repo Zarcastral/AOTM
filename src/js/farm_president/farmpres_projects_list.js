@@ -683,8 +683,8 @@ async function teamAssign(project_id) {
         let displayedTeamIds = [];
         let teamListHtml = `
             <div class="team-assign-box">
-                <h3>Available Teams</h3>
-                <div class="team-list-container">
+    <h4 style="font-weight: normal;">Available Teams:</h4>
+    <div class="team-list-container">
         `;
 
         teamSnapshot.forEach((doc) => {
@@ -735,7 +735,7 @@ async function teamAssign(project_id) {
             item.style.color = "";
         });
     
-        selectedElement.style.backgroundColor = "#4CAF50";
+        selectedElement.style.backgroundColor = "#318a71";
         selectedElement.style.color = "white";
     
         // Store selected team details
