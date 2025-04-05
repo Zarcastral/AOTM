@@ -17,7 +17,7 @@
 
 .header-icons {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 15px;
 }
 
