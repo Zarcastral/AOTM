@@ -740,8 +740,15 @@ window.resetForm = function () {
     '<option value="" selected disabled>Select Farmland</option>';
   document.getElementById("crop-type").innerHTML =
     '<option value="" selected disabled>Select Crop Type</option>';
-  document.getElementById("quantity-crop-type").value = "";
-  document.getElementById("crop-unit").value = "";
+
+  // Fully reset quantity-crop-type
+  const quantityInput = document.getElementById("quantity-crop-type");
+  quantityInput.value = "";
+  quantityInput.max = ""; // Clear the max attribute
+  quantityInput.placeholder = ""; // Clear the placeholder
+  quantityInput.disabled = false; // Ensure it’s enabled by default
+
+  document.getElementById("crop-unit").value = "Kg";
   document.getElementById("start-date").value = "";
   document.getElementById("end-date").value = "";
   const equipmentContainer = document.getElementById("equipment-container");
