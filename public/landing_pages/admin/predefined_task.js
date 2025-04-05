@@ -86,7 +86,7 @@ function showAlert(message) {
   alertModal.style.display = "flex";
 
   closeAlertBtn.onclick = () => {
-    alertModal.style.display = "none";
+    alertModal.style.display = "none"; // Fixed to hide the modal
   };
 }
 
@@ -112,28 +112,6 @@ function showDuplicateTasks(duplicateTasks, selectedCropTypeName) {
     duplicateTasksModal.style.display = "none";
   };
 }
-
-function showSuccess(message) {
-  const successModal = document.getElementById("success-modal");
-  const successMessage = document.getElementById("success-message");
-  const closeSuccessBtn = document.getElementById("close-success-modal");
-
-  successMessage.textContent = message;
-  successModal.style.display = "flex";
-
-  closeSuccessBtn.onclick = () => {
-    successModal.style.display = "none";
-  };
-}
-
-const duplicateTaskMessage = document.getElementById("duplicate-task-message");
-closeDuplicateTaskModal.addEventListener("click", () => {
-  duplicateTaskModal.style.display = "none";
-});
-
-closeNoChangesModal.addEventListener("click", () => {
-  noChangesModal.style.display = "none";
-});
 
 function closeAddTaskPopup() {
   addTaskModal.style.display = "none";
@@ -274,7 +252,7 @@ saveSubtasksBtn.addEventListener("click", async () => {
     closeEditTaskPopup();
     fetchTasks();
   } catch (error) {
-    
+    console.error("Error updating subtasks:", error);
   }
 });
 
@@ -397,7 +375,7 @@ function checkTaskInput() {
 
 newTaskInput.addEventListener("input", checkTaskInput);
 
-document.addEventListener("DOMContent доброLoaded", checkTaskInput);
+document.addEventListener("DOMContentLoaded", checkTaskInput);
 
 addSubtaskBtn.addEventListener("click", () => {
   let subtaskName = newSubtaskInput.value.trim();
@@ -486,7 +464,7 @@ async function loadCropTypes() {
       cropTypeSelect.appendChild(option);
     });
   } catch (error) {
-    
+    console.error("Error loading crop types:", error);
   }
 }
 
@@ -606,10 +584,22 @@ assignTasksBtn.addEventListener("click", async () => {
         fetchAssignedTasks();
       }
 
-      showSuccess("Tasks assigned successfully!");
+      // Show success modal and close assign task modal when "Okay" is clicked
+      const successModal = document.getElementById("success-modal");
+      const successMessage = document.getElementById("success-message");
+      const closeSuccessBtn = document.getElementById("close-success-modal");
+
+      successMessage.textContent = "Tasks assigned successfully!";
+      successModal.style.display = "flex";
+
+      closeSuccessBtn.onclick = () => {
+        successModal.style.display = "none";
+        assignTaskModal.style.display = "none"; // Close the assign task modal
+      };
     }
   } catch (error) {
     showAlert("An error occurred while assigning tasks. Please try again.");
+    console.error("Error assigning tasks:", error);
   } finally {
     assignTasksBtn.disabled = false;
   }
@@ -653,4 +643,13 @@ document.getElementById("next-page-btn").addEventListener("click", () => {
     currentPage++;
     fetchTasks(searchBar.value.trim());
   }
+});
+
+const duplicateTaskMessage = document.getElementById("duplicate-task-message");
+closeDuplicateTaskModal.addEventListener("click", () => {
+  duplicateTaskModal.style.display = "none";
+});
+
+closeNoChangesModal.addEventListener("click", () => {
+  noChangesModal.style.display = "none";
 });

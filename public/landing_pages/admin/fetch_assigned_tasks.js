@@ -27,7 +27,7 @@ import {
     const closeBtn = document.getElementById("close-success-modal");
   
     messageElement.textContent = message;
-    modal.style.display = "block";
+    modal.style.display = "flex";
   
     closeBtn.onclick = () => (modal.style.display = "none");
     window.onclick = (event) => {

@@ -42,7 +42,15 @@ window.openAddCropTypePopup = function() {
 
 window.loadCropNames = async function() {
     const cropNameSelect = document.getElementById('crop-name');
+    
+    // Clear existing options and add default "Select Crop Name" option
     cropNameSelect.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Crop Name';
+    defaultOption.selected = true;
+    defaultOption.disabled = true;
+    cropNameSelect.appendChild(defaultOption);
 
     try {
         const snapshot = await db.collection('tb_crops').get();
@@ -55,6 +63,7 @@ window.loadCropNames = async function() {
         });
     } catch (error) {
         console.error('Error loading crop names:', error);
+        showCustomMessage('Failed to load crop names', false);
     }
 };
 
@@ -65,7 +74,15 @@ window.openAddEquipmentPopup = function() {
 
 window.loadEquipmentTypes = async function() {
     const equipmentCategorySelect = document.getElementById('equipment-category');
+    
+    // Clear existing options and add default option
     equipmentCategorySelect.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Equipment Category';
+    defaultOption.selected = true;
+    defaultOption.disabled = true;
+    equipmentCategorySelect.appendChild(defaultOption);
 
     try {
         const snapshot = await db.collection('tb_equipment_types').get();
@@ -78,6 +95,7 @@ window.loadEquipmentTypes = async function() {
         });
     } catch (error) {
         console.error('Error loading equipment types:', error);
+        showCustomMessage('Failed to load equipment categories', false);
     }
 };
 
@@ -88,7 +106,15 @@ window.openAddFertilizerPopup = function() {
 
 window.loadFertilizerTypes = async function() {
     const fertilizerCategorySelect = document.getElementById('fertilizer-category');
+    
+    // Clear existing options and add default option
     fertilizerCategorySelect.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select Fertilizer Type';
+    defaultOption.selected = true;
+    defaultOption.disabled = true;
+    fertilizerCategorySelect.appendChild(defaultOption);
 
     try {
         const snapshot = await db.collection('tb_fertilizer_types').get();
@@ -101,6 +127,7 @@ window.loadFertilizerTypes = async function() {
         });
     } catch (error) {
         console.error('Error loading fertilizer types:', error);
+        showCustomMessage('Failed to load fertilizer types', false);
     }
 };
 

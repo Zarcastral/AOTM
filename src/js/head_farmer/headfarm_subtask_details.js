@@ -168,7 +168,15 @@ export function initializeSubtaskDetailsPage() {
 
     const addDayBtn = document.querySelector(".add-day-btn");
     const completeBtn = document.querySelector(".completed-btn");
-
+    const userType = sessionStorage.getItem("user_type");
+    
+    // Disable the addDayBtn if the user is not Head Farmer
+    if (userType !== "Head Farmer" && addDayBtn) {
+      addDayBtn.disabled = true;
+      addDayBtn.style.opacity = "0.5";
+      addDayBtn.style.cursor = "not-allowed";
+    }
+    
     if (addDayBtn) {
       addDayBtn.addEventListener("click", async () => {
         if (endDate && isPastEndDate(endDate)) {
@@ -184,6 +192,7 @@ export function initializeSubtaskDetailsPage() {
         );
       });
     }
+    
 
     if (completeBtn) {
       completeBtn.addEventListener("click", async () => {
@@ -419,6 +428,8 @@ async function fetchAttendanceData(
       const selectedDate = sessionStorage.getItem("selected_date");
       let latestAttendanceData = null;
 
+      const userType = sessionStorage.getItem("user_type"); // Get the user type from sessionStorage
+
       attendanceSnapshot.forEach((doc) => {
         const data = doc.data();
         const dateCreated = data.date_created || "No Date";
@@ -436,13 +447,19 @@ async function fetchAttendanceData(
 
         console.log(`Date Created: ${dateCreated}, Farmers:`, farmers);
 
+        // Conditionally render the Delete button based on user_type
+        let deleteButton = '';
+        if (userType === "Head Farmer") {
+          deleteButton = `<img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${doc.id}">`;
+        }
+
         const row = `
           <tr>
             <td>${dateCreated}</td>
             <td>${attendanceSummary}</td>
             <td class="action-icons">
               <img src="../../images/eye.png" alt="View">
-              <img src="../../images/Delete.png" alt="Delete">
+              ${deleteButton} <!-- Delete button only shows for Head Farmer -->
             </td>
           </tr>
         `;
@@ -481,6 +498,7 @@ async function fetchAttendanceData(
     `;
   }
 }
+
 
 // Function to add a new day to Firestore and update the table
 async function addNewDay(

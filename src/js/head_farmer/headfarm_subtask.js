@@ -116,6 +116,8 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
 
       let allCompleted = true;
 
+      const userType = sessionStorage.getItem("user_type");
+
       subtasks.forEach((subtask, index) => {
         const status = subtask.status || "Pending";
         const startDate = subtask.start_date || "-";
@@ -125,6 +127,12 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
         const safeSubtaskName = subtask.subtask_name
           ? subtask.subtask_name.replace(/"/g, "")
           : "Unnamed Subtask";
+        
+        let deleteButton = '';
+        if (userType === "Head Farmer") {
+          deleteButton = `<img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">`;
+        }
+
         const row = `
           <tr>
             <td>${safeSubtaskName}</td>
@@ -133,7 +141,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
             <td>${endDate}</td>
             <td class="action-icons">
               <img src="../../images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}" data-subtask-name="${safeSubtaskName}">
-              <img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">
+              ${deleteButton} <!-- Delete button is only shown for Head Farmer -->
             </td>
           </tr>
         `;
@@ -163,6 +171,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
   }
   return false;
 }
+
 
 // Function to attach event listeners to table elements
 function attachEventListeners(projectTaskId) {
@@ -678,32 +687,50 @@ export function initializeSubtaskPage() {
       }
 
       const completeBtn = document.getElementById("completeTaskBtn");
+      const userType = sessionStorage.getItem("user_type");
+      
       if (completeBtn) {
+        // Disable the button if user is not Head Farmer
+        const isNotHeadFarmer = userType !== "Head Farmer";
+        if (isNotHeadFarmer) {
+          completeBtn.disabled = true;
+          completeBtn.classList.add("disabled");
+          completeBtn.style.cursor = "not-allowed";
+        }
+      
         completeBtn.onclick = null;
         completeBtn.onclick = async () => {
-          if (!completeBtn.disabled) {
+          // Only allow click if not disabled and user is Head Farmer
+          if (!completeBtn.disabled && !isNotHeadFarmer) {
             showSuccessPanel("All subtasks are completed! Marking task as Completed...");
-            console.log(
-              "All subtasks are completed! Marking task as Completed..."
-            );
+            console.log("All subtasks are completed! Marking task as Completed...");
             await completeTask(projectTaskId);
           }
         };
+      } else {
+        console.log("No project_task_id found in sessionStorage.");
+        document.querySelector(".subtask-table tbody").innerHTML = `
+          <tr><td colspan="5">No task selected.</td></tr>
+        `;
       }
-    } else {
-      console.log("No project_task_id found in sessionStorage.");
-      document.querySelector(".subtask-table tbody").innerHTML = `
-        <tr><td colspan="5">No task selected.</td></tr>
-      `;
     }
-  }
+  }      
 
   const addSubtaskBtn = document.querySelector(".add-subtask");
+  const userType = sessionStorage.getItem("user_type");
+  
   if (addSubtaskBtn) {
-    addSubtaskBtn.removeEventListener("click", handleAddSubtaskClick);
-    addSubtaskBtn.addEventListener("click", handleAddSubtaskClick);
-    console.log("Add Subtask event listener attached");
+    if (userType !== "Head Farmer") {
+      addSubtaskBtn.disabled = true;
+      addSubtaskBtn.style.opacity = "0.5";
+      addSubtaskBtn.style.cursor = "not-allowed";
+    } else {
+      addSubtaskBtn.removeEventListener("click", handleAddSubtaskClick);
+      addSubtaskBtn.addEventListener("click", handleAddSubtaskClick);
+      console.log("Add Subtask event listener attached");
+    }
   }
+  
 
   const closeModal = document.querySelector(".close-modal");
   if (closeModal) {

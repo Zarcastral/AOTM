@@ -9,174 +9,644 @@ import {
   getDoc,
   setDoc,
   onSnapshot,
-  doc
+  doc,
+  addDoc,
+  increment,
+  runTransaction
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth(app);
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 
-let harvestList = []; // Declare harvestsList globally for filtering
+let harvestList = [];
 let currentPage = 1;
 const rowsPerPage = 5;
-let filteredHarvest = []; // Initialize filteredHarvests with an empty array
+let filteredHarvest = [];
 let selectedHarvest = [];
-let currentFarmerId = ""; // Variable to store the current user's farmer_id
+let currentUserName = "";
+let projects = [];
+let teams = [];
+let isEditing = false;
+let currentHarvestDocId = null;
+let harvestDocs = [];
+let authData = null;
 
-// Sort Harvests by date (latest to oldest)
-function sortHarvestById() {
+function sortHarvestByDate() {
   filteredHarvest.sort((a, b) => {
-    const dateA = parseDate(a.dateAdded);
-    const dateB = parseDate(b.dateAdded);
-    return dateB - dateA; // Sort latest to oldest
+    const dateA = parseDate(a.harvest_date);
+    const dateB = parseDate(b.harvest_date);
+    return dateB - dateA;
   });
 }
 
 function parseDate(dateValue) {
-  if (!dateValue) return new Date(0); // Default to epoch if no date
-
-  // If Firestore Timestamp object, convert it
+  if (!dateValue) return new Date(0);
   if (typeof dateValue.toDate === "function") {
     return dateValue.toDate();
   }
-
-  return new Date(dateValue); // Convert string/ISO formats to Date
+  return new Date(dateValue);
 }
 
-async function getAuthenticatedUser() {
+async function initializeAuth() {
   return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
           const farmerQuery = query(collection(db, "tb_farmers"), where("email", "==", user.email));
           const farmerSnapshot = await getDocs(farmerQuery);
-
           if (!farmerSnapshot.empty) {
-            const farmerId = farmerSnapshot.docs[0].data().farmer_id;
-            currentFarmerId = farmerId; // Store farmer_id globally
-            console.log("Authenticated user's farmer_id:", farmerId);
-            resolve(user); // Resolve with user object if needed
+            const farmerData = farmerSnapshot.docs[0].data();
+            authData = {
+              user,
+              farmerId: farmerData.farmer_id,
+              userType: farmerData.user_type
+            };
+            console.log("Initialized auth data:", authData);
+            resolve(authData);
           } else {
             console.error("Farmer record not found in tb_farmers collection.");
             reject("Farmer record not found.");
           }
         } catch (error) {
-          console.error("Error fetching farmer_id:", error);
+          console.error("Error fetching farmer data:", error);
           reject(error);
         }
       } else {
+        authData = null;
         console.error("User not authenticated. Please log in.");
         reject("User not authenticated.");
       }
+    }, (error) => {
+      console.error("Auth state listener error:", error);
+      reject(error);
     });
   });
 }
 
-// Initialize fetches when DOM is loaded
+async function getAuthData() {
+  if (!authData) {
+    await initializeAuth();
+  }
+  if (!authData) {
+    throw new Error("Authentication data not available.");
+  }
+  return authData;
+}
+
+const harvestSuccessMessage = document.getElementById("harvest-success-message");
+
+function showSuccessMessage(message, success = true) {
+  harvestSuccessMessage.textContent = message;
+  harvestSuccessMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  harvestSuccessMessage.style.opacity = '1';
+  harvestSuccessMessage.style.display = 'block';
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      harvestSuccessMessage.style.opacity = '0';
+      setTimeout(() => {
+        harvestSuccessMessage.style.display = 'none';
+        resolve();
+      }, 300);
+    }, 4000);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const modal = document.getElementById("harvest-report-modal");
+  const modalHeader = document.querySelector("#harvest-report-modal .modal-header h2");
   const closeBtn = document.getElementById("close-modal-btn");
   const closeHarvestBtn = document.getElementById("close-harvest-btn");
+  const viewCloseBtn = document.getElementById("view-close-btn");
+  const addHarvestBtn = document.getElementById("add-harvest");
+  const saveHarvestBtn = document.getElementById("save-harvest-btn");
+  const updateHarvestBtn = document.getElementById("update-harvest-btn"); // New button for update
+  const submitHarvestBtn = document.getElementById("submit-harvest-btn");
+  const submitHarvestModalBtn = document.getElementById("submit-harvest-modal-btn");
 
-  // Close modal when "X" is clicked
+  try {
+    await getAuthData();
+    await fetchProjectsAndTeams();
+    await fetchHarvestDocsForSubmit();
+    fetchHarvest();
+  } catch (error) {
+    console.error("Initialization failed:", error);
+    await showSuccessMessage("Failed to initialize application. Please log in again.", false);
+    return;
+  }
+
   closeBtn.addEventListener("click", () => {
     modal.classList.remove("active");
+    isEditing = false;
+    modalHeader.textContent = "Add Harvest";
+    saveHarvestBtn.style.display = "block"; // Show save for add
+    updateHarvestBtn.style.display = "none"; // Hide update when closing
+    resetModalFields();
+    enableFormFields();
   });
 
-  // Close modal when "Close" button in footer is clicked
   closeHarvestBtn.addEventListener("click", () => {
     modal.classList.remove("active");
+    isEditing = false;
+    modalHeader.textContent = "Add Harvest";
+    saveHarvestBtn.style.display = "block"; // Show save for add
+    updateHarvestBtn.style.display = "none"; // Hide update when closing
+    resetModalFields();
+    enableFormFields();
   });
 
-  // Close modal when clicking outside the modal content
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.remove("active");
+  viewCloseBtn.addEventListener("click", () => {
+    modal.classList.remove("active");
+    enableFormFields();
+  });
+
+  if (addHarvestBtn) {
+    addHarvestBtn.addEventListener("click", () => {
+      openModal(false);
+    });
+  }
+
+  let isSaving = false;
+
+  // Save button for adding new harvest
+  saveHarvestBtn.addEventListener("click", async () => {
+    if (isSaving) return;
+    isSaving = true;
+    saveHarvestBtn.disabled = true;
+    closeHarvestBtn.disabled = true;
+    closeBtn.disabled = true;
+
+    try {
+      await addHarvest();
+    } catch (error) {
+      console.error("Add failed:", error);
+    } finally {
+      isSaving = false;
+      saveHarvestBtn.disabled = false;
+      closeHarvestBtn.disabled = false;
+      closeBtn.disabled = false;
     }
   });
 
-  fetchHarvest();
+  // Update button for editing existing harvest
+  updateHarvestBtn.addEventListener("click", async () => {
+    if (isSaving) return;
+    isSaving = true;
+    updateHarvestBtn.disabled = true;
+    closeHarvestBtn.disabled = true;
+    closeBtn.disabled = true;
 
-  // Function to apply search filter
+    try {
+      await updateHarvest();
+    } catch (error) {
+      console.error("Update failed:", error);
+    } finally {
+      isSaving = false;
+      updateHarvestBtn.disabled = false;
+      closeHarvestBtn.disabled = false;
+      closeBtn.disabled = false;
+    }
+  });
+
+  submitHarvestBtn.addEventListener("click", () => {
+    openModal(false, null, false, true);
+  });
+
+  submitHarvestModalBtn.addEventListener("click", async () => {
+    await submitHarvestToTbHarvest();
+  });
+
   function applyFilters() {
     const searchQuery = document.getElementById("harvest-search-bar").value.toLowerCase().trim();
 
     filteredHarvest = harvestList.filter(harvest => {
       const matchesSearch = searchQuery ? 
-        (harvest.project_name?.toLowerCase().includes(searchQuery) || 
-         harvest.farm_president?.toLowerCase().includes(searchQuery)) : true;
-
+        (harvest.project_name?.toLowerCase().includes(searchQuery) || harvest.farm_president?.toLowerCase().includes(searchQuery)) : 
+        true;
       return matchesSearch;
     });
 
     currentPage = 1;
-    sortHarvestById();
+    sortHarvestByDate();
     displayHarvest(filteredHarvest);
   }
 
   document.getElementById("harvest-search-bar").addEventListener("input", applyFilters);
 });
 
-// Real-time listener for tb_headfarmer_harvest subcollection
-async function fetchHarvest() {
+async function fetchProjectsAndTeams() {
   try {
-    const user = await getAuthenticatedUser();
-    if (!currentFarmerId) {
-      console.error("No farmer_id available for querying harvests.");
+    const { farmerId } = await getAuthData();
+
+    const projectQuery = query(
+      collection(db, "tb_projects"), 
+      where("farmer_id", "==", farmerId),
+      where("status", "==", "Ongoing")
+    );
+    const projectSnapshot = await getDocs(projectQuery);
+    projects = projectSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const teamCollection = collection(db, "tb_teams");
+    const teamSnapshot = await getDocs(teamCollection);
+    teams = teamSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const projectSelect = document.getElementById("modal-project-name");
+    projectSelect.innerHTML = '<option value="" selected>Select Project</option>';
+    projects.forEach(project => {
+      const option = document.createElement("option");
+      option.value = project.project_name;
+      option.textContent = project.project_name;
+      option.dataset.teamId = project.team_id || "";
+      projectSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Error fetching projects and teams:", error);
+  }
+}
+
+async function fetchHarvestDocsForSubmit() {
+  try {
+    const { farmerId } = await getAuthData();
+    const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
+    const harvestQuery = query(harvestCollection, where("farm_pres_id", "==", farmerId));
+    const harvestSnapshot = await getDocs(harvestQuery);
+
+    harvestDocs = harvestSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error fetching harvest docs for submit:", error);
+  }
+}
+
+async function getNextHarvestId() {
+  const counterRef = doc(db, "tb_id_counters", "harvest_id_counter");
+  return await runTransaction(db, async (transaction) => {
+    const counterDoc = await transaction.get(counterRef);
+    let newId;
+    if (!counterDoc.exists()) {
+      newId = 1;
+      transaction.set(counterRef, { count: newId });
+    } else {
+      newId = (counterDoc.data().count || 0) + 1;
+      transaction.update(counterRef, { count: increment(1) });
+    }
+    return newId;
+  });
+}
+
+async function addHarvest() {
+  try {
+    const projectName = document.getElementById("modal-project-name").value;
+    const teamName = document.getElementById("modal-team").value;
+    const totalHarvest = document.getElementById("modal-total-harvest").value;
+    const unit = document.getElementById("modal-unit").value;
+    const farmPresident = document.getElementById("modal-farm-president").value;
+    const farmerNamesInput = document.getElementById("modal-farmers").value.split("\n").filter(farmer => farmer.trim() !== "");
+
+    if (!totalHarvest || isNaN(totalHarvest) || parseFloat(totalHarvest) < 0) {
+      await showSuccessMessage("Please enter a valid positive number for total harvest", false);
+      throw new Error("Invalid total harvest value");
+    }
+
+    if (!projectName || !teamName || !farmPresident) {
+      await showSuccessMessage("Please fill in all required fields", false);
+      throw new Error("Missing required fields");
+    }
+
+    const selectedTeam = teams.find(t => t.team_name === teamName);
+    const farmerNameArray = selectedTeam.farmer_name || [];
+    const farmerNameData = farmerNameArray.filter(farmer => 
+      farmerNamesInput.includes(farmer.farmer_name)
+    );
+
+    const selectedProject = projects.find(p => p.project_name === projectName);
+    if (!selectedProject) {
+      await showSuccessMessage("Selected project not found.", false);
+      throw new Error("Selected project not found");
+    }
+
+    const teamId = selectedProject.team_id || "";
+    const projectId = selectedProject.project_id || selectedProject.id || "N/A"; // Use project_id
+    const { farmerId } = await getAuthData(); // Current user's farmer_id
+    const projectLeadFarmerId = selectedProject.lead_farmer_id || "N/A"; // For lead_farmer_id
+
+    const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
+
+    // First Duplicate Check: Current User as Lead Farmer
+    const farmPresDuplicateQuery = query(
+      harvestCollection,
+      where("lead_farmer_id", "==", farmerId),
+      where("team_id", "==", teamId),
+      where("project_id", "==", projectId) // Added project_id
+    );
+    const farmPresDuplicateSnapshot = await getDocs(farmPresDuplicateQuery);
+
+    if (!farmPresDuplicateSnapshot.empty) {
+      await showSuccessMessage("You have already created a harvest report as the lead farmer for this team in this project.", false);
+      throw new Error("Duplicate harvest detected for farm president as lead farmer");
+    }
+
+    // Second Duplicate Check: Head Farmer
+    const leadFarmerDuplicateQuery = query(
+      harvestCollection,
+      where("lead_farmer_id", "==", projectLeadFarmerId),
+      where("project_id", "==", projectId) // Added project_id
+    );
+    const leadFarmerDuplicateSnapshot = await getDocs(leadFarmerDuplicateQuery);
+
+    if (!leadFarmerDuplicateSnapshot.empty) {
+      const leadFarmerName = selectedTeam.lead_farmer || "Unknown Lead Farmer";
+      await showSuccessMessage(
+        `Lead Farmer ${leadFarmerName} already made a Harvest Report for this project`,
+        false
+      );
+      throw new Error("Duplicate harvest detected for head farmer");
+    }
+
+    let landArea = "N/A";
+    if (selectedProject.farmland_id) {
+      const farmlandQuery = query(collection(db, "tb_farmland"), where("farmland_id", "==", selectedProject.farmland_id));
+      const farmlandSnapshot = await getDocs(farmlandQuery);
+      if (!farmlandSnapshot.empty) {
+        landArea = farmlandSnapshot.docs[0].data().land_area || "N/A";
+      }
+    }
+
+    const harvestDate = new Date();
+    const harvestData = {
+      project_id: projectId,
+      project_name: projectName,
+      project_creator: selectedProject.project_creator || "N/A",
+      crop_name: selectedProject.crop_name || "N/A",
+      crop_type_name: selectedProject.crop_type_name || "N/A",
+      barangay_name: selectedProject.barangay_name || "N/A",
+      team_name: teamName,
+      team_id: teamId,
+      total_harvested_crops: parseFloat(totalHarvest),
+      unit: unit,
+      farm_president: selectedProject.farm_president,
+      farmer_name: farmerNameData,
+      lead_farmer: selectedTeam.lead_farmer || "N/A",
+      farm_pres_id: farmerId,
+      lead_farmer_id: projectLeadFarmerId,
+      harvest_date: harvestDate,
+      dateAdded: new Date(),
+      farmland_id: selectedProject.farmland_id || "N/A",
+      land_area: landArea,
+      start_date: selectedProject.start_date || "N/A",
+      end_date: selectedProject.end_date || "N/A"
+    };
+
+    const newHarvestId = await getNextHarvestId();
+    harvestData.harvest_id = newHarvestId;
+    await addDoc(harvestCollection, harvestData);
+    await showSuccessMessage("Harvest Report successfully created!");
+
+    const modal = document.getElementById("harvest-report-modal");
+    modal.classList.remove("active");
+    isEditing = false;
+    document.getElementById("save-harvest-btn").style.display = "block";
+    document.getElementById("update-harvest-btn").style.display = "none";
+    resetModalFields();
+    enableFormFields();
+
+  } catch (error) {
+    console.error("Error adding harvest:", error);
+    throw error;
+  }
+}
+
+async function updateHarvest() {
+  try {
+    const projectName = document.getElementById("modal-project-name").value;
+    const teamName = document.getElementById("modal-team").value;
+    const totalHarvest = document.getElementById("modal-total-harvest").value;
+    const unit = document.getElementById("modal-unit").value;
+    const farmPresident = document.getElementById("modal-farm-president").value;
+    const farmerNamesInput = document.getElementById("modal-farmers").value.split("\n").filter(farmer => farmer.trim() !== "");
+
+    if (!totalHarvest || isNaN(totalHarvest) || parseFloat(totalHarvest) < 0) {
+      await showSuccessMessage("Please enter a valid positive number for total harvest", false);
+      throw new Error("Invalid total harvest value");
+    }
+
+    if (!projectName || !teamName || !farmPresident) {
+      await showSuccessMessage("Please fill in all required fields", false);
+      throw new Error("Missing required fields");
+    }
+
+    const selectedTeam = teams.find(t => t.team_name === teamName);
+    const farmerNameArray = selectedTeam.farmer_name || [];
+    const farmerNameData = farmerNameArray.filter(farmer => 
+      farmerNamesInput.includes(farmer.farmer_name)
+    );
+
+    const selectedProject = projects.find(p => p.project_name === projectName);
+    if (!selectedProject) {
+      await showSuccessMessage("Selected project not found.", false);
+      throw new Error("Selected project not found");
+    }
+
+    const teamId = selectedProject.team_id || "";
+    const projectId = selectedProject.project_id || selectedProject.id || "N/A"; // Use project_id
+    const { farmerId } = await getAuthData(); // Current user's farmer_id
+    const projectLeadFarmerId = selectedProject.lead_farmer_id || "N/A"; // For lead_farmer_id
+
+    const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
+
+    const originalDocRef = doc(harvestCollection, currentHarvestDocId);
+    const originalDocSnapshot = await getDoc(originalDocRef);
+    if (!originalDocSnapshot.exists()) {
+      await showSuccessMessage("Original harvest record not found.", false);
+      throw new Error("Original harvest record not found");
+    }
+
+    const originalData = originalDocSnapshot.data();
+    const originalTeamId = originalData.team_id || "";
+
+    if (teamId !== originalTeamId && teamId !== "") {
+      // First Duplicate Check: Current User as Lead Farmer
+      const farmPresDuplicateQuery = query(
+        harvestCollection,
+        where("lead_farmer_id", "==", farmerId),
+        where("team_id", "==", teamId),
+        where("project_id", "==", projectId) // Added project_id
+      );
+      const farmPresDuplicateSnapshot = await getDocs(farmPresDuplicateQuery);
+
+      if (!farmPresDuplicateSnapshot.empty) {
+        const isSameDoc = farmPresDuplicateSnapshot.docs.some(doc => doc.id === currentHarvestDocId);
+        if (!isSameDoc) {
+          await showSuccessMessage("You have already created a harvest report as the lead farmer for this team in this project.", false);
+          throw new Error("Duplicate harvest detected for farm president as lead farmer");
+        }
+      }
+
+      // Second Duplicate Check: Head Farmer
+      const leadFarmerDuplicateQuery = query(
+        harvestCollection,
+        where("lead_farmer_id", "==", projectLeadFarmerId),
+        where("project_id", "==", projectId) // Added project_id
+      );
+      const leadFarmerDuplicateSnapshot = await getDocs(leadFarmerDuplicateQuery);
+
+      if (!leadFarmerDuplicateSnapshot.empty) {
+        const isSameDoc = leadFarmerDuplicateSnapshot.docs.some(doc => doc.id === currentHarvestDocId);
+        if (!isSameDoc) {
+          const leadFarmerName = selectedTeam.lead_farmer || "Unknown Lead Farmer";
+          await showSuccessMessage(
+            `Lead Farmer ${leadFarmerName} already made a Harvest Report for this project`,
+            false
+          );
+          throw new Error("Duplicate harvest detected for head farmer");
+        }
+      }
+    }
+
+    let landArea = "N/A";
+    if (selectedProject.farmland_id) {
+      const farmlandQuery = query(collection(db, "tb_farmland"), where("farmland_id", "==", selectedProject.farmland_id));
+      const farmlandSnapshot = await getDocs(farmlandQuery);
+      if (!farmlandSnapshot.empty) {
+        landArea = farmlandSnapshot.docs[0].data().land_area || "N/A";
+      }
+    }
+
+    const harvestDate = new Date();
+    const harvestData = {
+      project_id: projectId,
+      project_name: projectName,
+      project_creator: selectedProject.project_creator || "N/A",
+      crop_name: selectedProject.crop_name || "N/A",
+      crop_type_name: selectedProject.crop_type_name || "N/A",
+      barangay_name: selectedProject.barangay_name || "N/A",
+      team_name: teamName,
+      team_id: teamId,
+      total_harvested_crops: parseFloat(totalHarvest),
+      unit: unit,
+      farm_president: selectedProject.farm_president,
+      farmer_name: farmerNameData,
+      lead_farmer: selectedTeam.lead_farmer || "N/A",
+      farm_pres_id: farmerId,
+      lead_farmer_id: projectLeadFarmerId,
+      harvest_date: harvestDate,
+      dateAdded: new Date(),
+      farmland_id: selectedProject.farmland_id || "N/A",
+      land_area: landArea,
+      start_date: selectedProject.start_date || "N/A",
+      end_date: selectedProject.end_date || "N/A"
+    };
+
+    await setDoc(doc(harvestCollection, currentHarvestDocId), harvestData, { merge: true });
+    await showSuccessMessage("Harvest Report updated successfully!");
+
+    const modal = document.getElementById("harvest-report-modal");
+    modal.classList.remove("active");
+    isEditing = false;
+    document.getElementById("save-harvest-btn").style.display = "block";
+    document.getElementById("update-harvest-btn").style.display = "none";
+    resetModalFields();
+    enableFormFields();
+
+  } catch (error) {
+    console.error("Error updating harvest:", error);
+    throw error;
+  }
+}
+
+async function submitHarvestToTbHarvest() {
+  try {
+    const projectName = document.getElementById("modal-project-name").value;
+    const teamName = document.getElementById("modal-team").value;
+
+    if (!projectName || !teamName) {
+      await showSuccessMessage("Please select a project and team to submit.", false);
       return;
     }
 
-    // Reference to tb_headfarmer_harvest subcollection
-    const subCollectionRef = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
-    const harvestQuery = query(subCollectionRef, where("farmer_id", "==", currentFarmerId));
+    const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
+    const harvestQuery = query(
+      harvestCollection,
+      where("project_name", "==", projectName),
+      where("team_name", "==", teamName)
+    );
+    const harvestSnapshot = await getDocs(harvestQuery);
 
-    onSnapshot(harvestQuery, async (snapshot) => {
-      const harvestData = snapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
+    if (harvestSnapshot.empty) {
+      await showSuccessMessage("No harvest found for the selected project and team.", false);
+      return;
+    }
+
+    const harvestDoc = harvestSnapshot.docs[0];
+    const harvestData = harvestDoc.data();
+    currentHarvestDocId = harvestDoc.id;
+
+    // Duplicate Check: Check if harvest_id already exists in tb_harvest
+    const tbHarvestCollection = collection(db, "tb_harvest");
+    const duplicateQuery = query(
+      tbHarvestCollection,
+      where("harvest_id", "==", harvestData.harvest_id)
+    );
+    const duplicateSnapshot = await getDocs(duplicateQuery);
+
+    if (!duplicateSnapshot.empty) {
+      await showSuccessMessage(
+        `Harvest with ID ${harvestData.harvest_id} has already been submitted to tb_harvest.`,
+        false
+      );
+      return; // Stop submission if duplicate found
+    }
+
+    const newHarvestRef = collection(db, "tb_harvest");
+    const newDocRef = await addDoc(newHarvestRef, {
+      ...harvestData,
+      submitted_date: new Date(),
+      original_doc_id: currentHarvestDocId
+    });
+
+    const newDocSnapshot = await getDoc(newDocRef);
+    if (!newDocSnapshot.exists()) {
+      await showSuccessMessage("Failed to submit harvest: Could not verify new document.", false);
+      throw new Error("New document not found after submission");
+    }
+
+    const originalDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest", currentHarvestDocId);
+    await deleteDoc(originalDocRef);
+
+    await showSuccessMessage("Harvest Report successfully submitted!");
+    const modal = document.getElementById("harvest-report-modal");
+    modal.classList.remove("active");
+    enableFormFields();
+    await fetchHarvest();
+
+  } catch (error) {
+    console.error("Error submitting harvest:", error);
+    await showSuccessMessage(`Error submitting harvest: ${error.message}`, false);
+  }
+}
+
+async function fetchHarvest() {
+  try {
+    const { farmerId } = await getAuthData();
+    
+    const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
+    const harvestQuery = query(
+      harvestCollection,
+      where("farm_pres_id", "==", farmerId)
+    );
+
+    onSnapshot(harvestQuery, (snapshot) => {
+      harvestList = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(harvest => typeof harvest.harvest_id === 'number' && !isNaN(harvest.harvest_id));
-
-      await processExpiredRecords(harvestData);
-      harvestList = harvestData.filter(harvest => !isExpired(harvest.harvest_date));
       filteredHarvest = [...harvestList];
-      sortHarvestById();
+      sortHarvestByDate();
       displayHarvest(filteredHarvest);
     }, (error) => {
-      console.error("Error listening to tb_headfarmer_harvest:", error);
+      console.error("Error listening to Harvest:", error);
     });
   } catch (error) {
-    console.error("Error fetching tb_headfarmer_harvest:", error);
-  }
-}
-
-function isExpired(harvestDate) {
-  if (!harvestDate) return false;
-  const date = harvestDate.toDate ? harvestDate.toDate() : new Date(harvestDate);
-  const now = new Date();
-  const sixMonthsAgo = new Date(now.setMonth(now.getMonth() - 6));
-  return date < sixMonthsAgo;
-}
-
-async function processExpiredRecords(harvestData) {
-  const batch = writeBatch(db);
-  const historyCollection = collection(db, "tb_harvest_history");
-
-  for (const harvest of harvestData) {
-    if (isExpired(harvest.harvest_date)) {
-      const historyDocRef = doc(historyCollection, harvest.id);
-      batch.set(historyDocRef, harvest);
-      const harvestDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest", harvest.id);
-      batch.delete(harvestDocRef);
-      console.log(`Moving harvest ${harvest.id} to history (expired)`);
-    }
-  }
-
-  try {
-    await batch.commit();
-  } catch (error) {
-    console.error("Error processing expired records:", error);
+    console.error("Error fetching Harvest:", error);
   }
 }
 
@@ -193,77 +663,388 @@ function displayHarvest(harvestList) {
   const paginatedHarvest = harvestList.slice(startIndex, endIndex);
 
   if (paginatedHarvest.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No records found</td></tr>`;
+    const messageRow = document.createElement("tr");
+    messageRow.classList.add("no-records-message");
+    messageRow.innerHTML = `<td colspan="9" style="text-align: center;">No records found</td>`;
+    tableBody.appendChild(messageRow);
     return;
   }
+
+  const noRecordsMessage = document.querySelector(".no-records-message");
+  if (noRecordsMessage) noRecordsMessage.remove();
 
   paginatedHarvest.forEach((harvest) => {
     const row = document.createElement("tr");
     const harvestId = harvest.harvest_id || "N/A";
     const projectName = harvest.project_name || "N/A";
-    const harvestDate = harvest.harvest_date ? 
-      (harvest.harvest_date.toDate ? harvest.harvest_date.toDate().toLocaleDateString() : new Date(harvest.harvest_date).toLocaleDateString()) : 
-      "Stock has not been updated";
-    const totalHarvest = harvest.total_harvested_crops || "N/A";
-    const unit = harvest.unit || "N/A";
+    const harvestDate = harvest.harvest_date
+      ? (harvest.harvest_date.toDate ? harvest.harvest_date.toDate().toLocaleDateString() : new Date(harvest.harvest_date).toLocaleDateString())
+      : "Stock has not been updated";
+    const leadFarmer = harvest.lead_farmer || "N/A";
+    const barangayName = harvest.barangay_name || "N/A";
+    const cropName = harvest.crop_name || "N/A";
+    const cropTypeName = harvest.crop_type_name || "N/A";
+    const totalHarvestKg = harvest.total_harvested_crops || 0;
+    const totalHarvestMt = (totalHarvestKg / 1000).toFixed(3);
+    const unit = "Mt";
 
     row.innerHTML = `
-      <td>${harvestId}</td>
       <td>${projectName}</td>
-      <td>"Team Name"</td>
-      <td>"Lead Farmer"</td>
       <td>${harvestDate}</td>
-      <td>${totalHarvest} ${unit}</td>
+      <td>${leadFarmer}</td>
+      <td>${barangayName}</td>
+      <td>${cropName}</td>
+      <td>${cropTypeName}</td>
+      <td>${totalHarvestMt} ${unit}</td>
       <td>
+        <button class="action-btn edit-btn" data-id="${harvestId}" title="Edit">
+          <img src="../../images/editBig.png" alt="Edit">
+        </button>
         <button class="action-btn view-btn" data-id="${harvestId}" title="View">
-          <img src="../../images/eye.png" alt="View">
+          <img src="../../images/Eye.png" alt="View">
         </button>
       </td>
     `;
     tableBody.appendChild(row);
 
+    const editBtn = row.querySelector(".edit-btn");
     const viewBtn = row.querySelector(".view-btn");
+    
+    editBtn.addEventListener("click", async () => {
+      await openModal(true, harvestId);
+    });
+    
     viewBtn.addEventListener("click", async () => {
-      await openHarvestReportModal(harvestId);
+      await openModal(true, harvestId, true);
     });
   });
   updatePagination();
 }
 
-async function openHarvestReportModal(harvestId) {
+async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = false, isSubmitMode = false) {
+  const modal = document.getElementById("harvest-report-modal");
+  const modalHeader = document.querySelector("#harvest-report-modal .modal-header h2");
+  const saveHarvestBtn = document.getElementById("save-harvest-btn");
+  const updateHarvestBtn = document.getElementById("update-harvest-btn");
+  const submitHarvestModalBtn = document.getElementById("submit-harvest-modal-btn");
+  const closeHarvestBtn = document.getElementById("close-harvest-btn");
+  const viewCloseBtn = document.getElementById("view-close-btn");
+
+  const projectSelect = document.getElementById("modal-project-name");
+  const teamSelect = document.getElementById("modal-team");
+  const newProjectSelect = projectSelect.cloneNode(true);
+  const newTeamSelect = teamSelect.cloneNode(true);
+  projectSelect.parentNode.replaceChild(newProjectSelect, projectSelect);
+  teamSelect.parentNode.replaceChild(newTeamSelect, teamSelect);
+
+  let previousProject = ""; // Track the previously selected project
+
+  if (isViewOrEdit && harvestId) {
+    await populateHarvestData(harvestId);
+    previousProject = document.getElementById("modal-project-name").value; // Set initial value for edit mode
+    if (isViewOnly) {
+      modalHeader.textContent = "View Harvest";
+      saveHarvestBtn.style.display = "none";
+      updateHarvestBtn.style.display = "none";
+      submitHarvestModalBtn.style.display = "none";
+      closeHarvestBtn.style.display = "none";
+      viewCloseBtn.style.display = "block";
+      disableFormFields();
+    } else {
+      modalHeader.textContent = "Edit Harvest";
+      saveHarvestBtn.style.display = "none"; // Hide save for edit
+      updateHarvestBtn.style.display = "block"; // Show update for edit
+      submitHarvestModalBtn.style.display = "none";
+      closeHarvestBtn.style.display = "block";
+      viewCloseBtn.style.display = "none";
+      enableFormFields();
+      newProjectSelect.addEventListener("change", (e) => {
+        const selectedProjectName = e.target.value;
+        if (previousProject && previousProject !== selectedProjectName) {
+          resetNonEditableFields(); // Reset non-editable fields only
+          newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>'; // Reset team dropdown
+        }
+        previousProject = selectedProjectName; // Update previous project
+        if (selectedProjectName) {
+          const selectedProject = projects.find(p => p.project_name === selectedProjectName);
+          const teamId = selectedProject ? selectedProject.team_id || "" : "";
+          const matchingTeam = teams.find(team => team.team_id === teamId);
+          if (matchingTeam) {
+            const option = document.createElement("option");
+            option.value = matchingTeam.team_name;
+            option.textContent = matchingTeam.team_name;
+            newTeamSelect.appendChild(option);
+          }
+        }
+      });
+
+      newTeamSelect.addEventListener("change", () => {
+        const selectedTeamName = newTeamSelect.value;
+        if (selectedTeamName) {
+          const selectedTeam = teams.find(t => t.team_name === selectedTeamName);
+          if (selectedTeam) {
+            const farmerNames = selectedTeam.farmer_name?.map(f => f.farmer_name || "") || [];
+            document.getElementById("modal-farmers").value = farmerNames.join("\n") || "";
+            document.getElementById("modal-farm-president").value = selectedTeam.lead_farmer || "";
+          }
+        } else {
+          resetNonEditableFields();
+        }
+      });
+    }
+  } else if (isSubmitMode) {
+    modalHeader.textContent = "Harvest Report";
+    saveHarvestBtn.style.display = "none";
+    updateHarvestBtn.style.display = "none";
+    submitHarvestModalBtn.style.display = "block";
+    closeHarvestBtn.style.display = "block";
+    viewCloseBtn.style.display = "none";
+    resetModalFields();
+    populateSubmitModeDropdowns();
+    disableNonEditableFieldsForSubmit();
+
+    newProjectSelect.addEventListener("change", async (e) => {
+      const selectedProjectName = e.target.value;
+      if (previousProject && previousProject !== selectedProjectName) {
+        resetNonEditableFields(); // Reset non-editable fields only
+        newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>'; // Reset team dropdown
+      }
+      previousProject = selectedProjectName; // Update previous project
+      await populateTeamsForSubmit(selectedProjectName);
+    });
+
+    newTeamSelect.addEventListener("change", async () => {
+      const selectedTeamName = newTeamSelect.value;
+      if (selectedTeamName) {
+        await populateFieldsForSubmit(selectedTeamName);
+      } else {
+        resetNonEditableFields();
+      }
+    });
+  } else {
+    resetModalFields();
+    modalHeader.textContent = "Add Harvest";
+    saveHarvestBtn.style.display = "block"; // Show save for add
+    updateHarvestBtn.style.display = "none"; // Hide update for add
+    submitHarvestModalBtn.style.display = "none";
+    closeHarvestBtn.style.display = "block";
+    viewCloseBtn.style.display = "none";
+    enableFormFields();
+    populateAddModeDropdowns();
+
+    newProjectSelect.addEventListener("change", (e) => {
+      const selectedProjectName = e.target.value;
+      if (previousProject && previousProject !== selectedProjectName) {
+        resetNonEditableFields(); // Reset non-editable fields only
+        newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>'; // Reset team dropdown
+      }
+      previousProject = selectedProjectName; // Update previous project
+      if (selectedProjectName) {
+        const selectedProject = projects.find(p => p.project_name === selectedProjectName);
+        const teamId = selectedProject ? selectedProject.team_id || "" : "";
+        const matchingTeam = teams.find(team => team.team_id === teamId);
+        if (matchingTeam) {
+          const option = document.createElement("option");
+          option.value = matchingTeam.team_name;
+          option.textContent = matchingTeam.team_name;
+          newTeamSelect.appendChild(option);
+        }
+      }
+    });
+
+    newTeamSelect.addEventListener("change", () => {
+      const selectedTeamName = newTeamSelect.value;
+      if (selectedTeamName) {
+        const selectedTeam = teams.find(t => t.team_name === selectedTeamName);
+        if (selectedTeam) {
+          const farmerNames = selectedTeam.farmer_name?.map(f => f.farmer_name || "") || [];
+          document.getElementById("modal-farmers").value = farmerNames.join("\n") || "";
+          document.getElementById("modal-farm-president").value = selectedTeam.lead_farmer || "";
+        }
+      } else {
+        resetNonEditableFields();
+      }
+    });
+  }
+
+  modal.classList.add("active");
+}
+
+async function populateHarvestData(harvestId) {
   try {
-    const harvestQuery = query(
-      collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest"),
-      where("harvest_id", "==", parseInt(harvestId)),
-      where("farmer_id", "==", currentFarmerId)
-    );
+    const harvestQuery = query(collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest"), where("harvest_id", "==", parseInt(harvestId)));
     const harvestSnapshot = await getDocs(harvestQuery);
 
     if (harvestSnapshot.empty) {
-      console.error(`No harvest found with harvest_id: ${harvestId} for farmer_id: ${currentFarmerId}`);
-      alert("Harvest record not found.");
+      console.error(`No harvest found with harvest_id: ${harvestId}`);
+      await showSuccessMessage("Harvest record not found.", false);
       return;
     }
 
     const harvestData = harvestSnapshot.docs[0].data();
+    currentHarvestDocId = harvestSnapshot.docs[0].id;
 
-    // Safely assign values with fallbacks for missing fields
-    document.getElementById("modal-project-name").value = harvestData.project_name || "N/A";
-    document.getElementById("modal-total-harvest").value = harvestData.total_harvested_crops || "N/A";
-    document.getElementById("modal-unit").value = harvestData.unit || "kg"; // Default to "kg" if missing
+    document.getElementById("modal-project-name").value = harvestData.project_name || "";
+    
+    const teamSelect = document.getElementById("modal-team");
+    teamSelect.innerHTML = '<option value="">Select Team</option>'; // Non-disabled default
+    const selectedProject = projects.find(p => p.project_name === harvestData.project_name);
+    const teamId = selectedProject ? selectedProject.team_id || "" : "";
+    const matchingTeam = teams.find(team => team.team_id === teamId);
+    if (matchingTeam) {
+      const option = document.createElement("option");
+      option.value = matchingTeam.team_name;
+      option.textContent = matchingTeam.team_name;
+      if (matchingTeam.team_name === harvestData.team_name) {
+        option.selected = true;
+      }
+      teamSelect.appendChild(option);
+    }
+
+    document.getElementById("modal-total-harvest").value = harvestData.total_harvested_crops?.toString() || "";
+    document.getElementById("modal-unit").value = harvestData.unit || "Kg";
     document.getElementById("modal-farm-president").value = harvestData.farm_president || "N/A";
-    document.getElementById("modal-barangay").value = harvestData.barangay_name || "N/A";
-    document.getElementById("modal-crop-type").value = harvestData.crop_type || "N/A";
-    document.getElementById("modal-crop").value = harvestData.crop_name || "N/A";
-    const farmers = harvestData.farmers_list || [];
-    document.getElementById("modal-farmers").value = Array.isArray(farmers) ? farmers.join("\n") : "N/A";
-
-    const modal = document.getElementById("harvest-report-modal");
-    modal.classList.add("active");
+    const farmerNameArray = harvestData.farmer_name || [];
+    const farmerNames = farmerNameArray.map(farmer => farmer.farmer_name || "");
+    document.getElementById("modal-farmers").value = farmerNames.join("\n") || "N/A";
   } catch (error) {
     console.error("Error fetching harvest data for modal:", error);
-    alert("Error loading harvest report: " + error.message); // Improved error message
+    await showSuccessMessage("Error loading harvest report.", false);
   }
+}
+
+function populateAddModeDropdowns() {
+  const projectSelect = document.getElementById("modal-project-name");
+  projectSelect.innerHTML = '<option value="">Select Project</option>';
+  projects.forEach(project => {
+    const option = document.createElement("option");
+    option.value = project.project_name;
+    option.textContent = project.project_name;
+    option.dataset.teamId = project.team_id || "";
+    projectSelect.appendChild(option);
+  });
+
+  const teamSelect = document.getElementById("modal-team");
+  teamSelect.innerHTML = '<option value="">Select Team</option>';
+}
+
+async function populateSubmitModeDropdowns() {
+  const projectSelect = document.getElementById("modal-project-name");
+  projectSelect.innerHTML = '<option value="" selected>Select Project</option>';
+  const uniqueProjects = [...new Set(harvestDocs.map(h => h.project_name))];
+  uniqueProjects.forEach(projectName => {
+    const option = document.createElement("option");
+    option.value = projectName;
+    option.textContent = projectName;
+    projectSelect.appendChild(option);
+  });
+
+  const teamSelect = document.getElementById("modal-team");
+  teamSelect.innerHTML = '<option value="" selected>Select Team</option>';
+}
+
+async function populateTeamsForSubmit(projectName) {
+  const teamSelect = document.getElementById("modal-team");
+  teamSelect.innerHTML = '<option value="" selected>Select Team</option>';
+
+  const matchingHarvests = harvestDocs.filter(h => h.project_name === projectName);
+  const uniqueTeams = [...new Set(matchingHarvests.map(h => h.team_name))];
+  uniqueTeams.forEach(teamName => {
+    const option = document.createElement("option");
+    option.value = teamName;
+    option.textContent = teamName;
+    teamSelect.appendChild(option);
+  });
+}
+
+async function populateFieldsForSubmit(teamName) {
+  const projectName = document.getElementById("modal-project-name").value;
+  const harvest = harvestDocs.find(h => h.project_name === projectName && h.team_name === teamName);
+
+  if (harvest) {
+    document.getElementById("modal-total-harvest").value = harvest.total_harvested_crops?.toString() || "";
+    document.getElementById("modal-unit").value = harvest.unit || "Kg";
+    document.getElementById("modal-farm-president").value = harvest.farm_president || "N/A";
+    const farmerNames = harvest.farmer_name?.map(f => f.farmer_name || "") || [];
+    document.getElementById("modal-farmers").value = farmerNames.join("\n") || "N/A";
+    currentHarvestDocId = harvest.id;
+  } else {
+    resetNonEditableFields();
+  }
+}
+
+function resetModalFields() {
+  const projectSelect = document.getElementById("modal-project-name");
+  const teamSelect = document.getElementById("modal-team");
+  projectSelect.selectedIndex = 0;
+  teamSelect.selectedIndex = 0;
+  resetNonEditableFields();
+}
+
+function resetNonEditableFields() {
+  document.getElementById("modal-total-harvest").value = "";
+  document.getElementById("modal-unit").value = "Kg";
+  document.getElementById("modal-farm-president").value = "";
+  document.getElementById("modal-farmers").value = "";
+}
+
+function disableFormFields() {
+  const fields = [
+    "modal-project-name",
+    "modal-team",
+    "modal-total-harvest",
+    "modal-unit",
+    "modal-farm-president",
+    "modal-farmers"
+  ];
+  fields.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.disabled = true;
+      element.classList.add("disabled-field");
+    }
+  });
+}
+
+function enableFormFields() {
+  const fields = [
+    "modal-project-name",
+    "modal-team",
+    "modal-total-harvest",
+    "modal-unit",
+    "modal-farm-president",
+    "modal-farmers"
+  ];
+  fields.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.disabled = false;
+      element.classList.remove("disabled-field");
+    }
+  });
+}
+
+function disableNonEditableFieldsForSubmit() {
+  const fields = [
+    "modal-total-harvest",
+    "modal-unit",
+    "modal-farm-president",
+    "modal-farmers"
+  ];
+  fields.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.disabled = true;
+      element.classList.add("disabled-field");
+    }
+  });
+  ["modal-project-name", "modal-team"].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.disabled = false;
+      element.classList.remove("disabled-field");
+    }
+  });
 }
 
 function updatePagination() {
@@ -291,120 +1072,44 @@ document.getElementById("harvest-next-page").addEventListener("click", () => {
   }
 });
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const modal = document.getElementById("harvest-report-modal");
-  const closeBtn = document.getElementById("close-modal-btn");
-  const closeHarvestBtn = document.getElementById("close-harvest-btn");
-  const addHarvestBtn = document.getElementById("add-harvest");
-  const submitHarvestBtn = document.getElementById("submit-harvest-btn");
+function restrictHarvestInput() {
+  const totalHarvestInput = document.getElementById("modal-total-harvest");
 
-  // Close modal when "X" is clicked
-  closeBtn.addEventListener("click", () => {
-    modal.classList.remove("active");
-  });
+  totalHarvestInput.addEventListener("input", (e) => {
+    const input = e.target;
+    let value = input.value;
 
-  // Close modal when "Close" button in footer is clicked
-  closeHarvestBtn.addEventListener("click", () => {
-    modal.classList.remove("active");
-  });
+    if (value.startsWith("-")) {
+      value = value.replace("-", "");
+    }
 
-  // Close modal when clicking outside the modal content
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.remove("active");
+    if (value.includes(".")) {
+      const [whole, decimal] = value.split(".");
+      if (decimal.length > 3) {
+        value = `${whole}.${decimal.slice(0, 3)}`;
+      }
+    }
+
+    if (value !== input.value) {
+      input.value = value || "";
+    }
+
+    if (parseFloat(value) < 0) {
+      input.value = "";
     }
   });
 
-  // Open modal when "Add Harvest" button is clicked
-  addHarvestBtn.addEventListener("click", async () => {
-    await fetchProjectsAndTeams();
-    openEmptyHarvestModal();
+  totalHarvestInput.addEventListener("paste", (e) => {
+    const pastedData = e.clipboardData.getData("text");
+    if (!/^\d*\.?\d{0,3}$/.test(pastedData) || parseFloat(pastedData) < 0) {
+      e.preventDefault();
+    }
   });
 
-  // Close modal after submitting harvest data
-  submitHarvestBtn.addEventListener("click", async () => {
-    await saveHarvest();
-    modal.classList.remove("active");
-  });
+  totalHarvestInput.setAttribute("min", "0");
+  totalHarvestInput.setAttribute("step", "0.001");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  restrictHarvestInput();
 });
-
-async function fetchProjectsAndTeams() {
-  try {
-    // Fetch projects
-    const projectCollection = collection(db, "tb_projects");
-    const projectSnapshot = await getDocs(projectCollection);
-    projects = projectSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    // Fetch teams (assuming teams are stored in a collection named tb_teams)
-    const teamCollection = collection(db, "tb_teams");
-    const teamSnapshot = await getDocs(teamCollection);
-    teams = teamSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    // Populate dropdowns
-    const projectSelect = document.getElementById("modal-project-name");
-    projectSelect.innerHTML = '<option value="" disabled selected>Select Project</option>';
-    projects.forEach(project => {
-      const option = document.createElement("option");
-      option.value = project.project_name;
-      option.textContent = project.project_name;
-      projectSelect.appendChild(option);
-    });
-
-    const teamSelect = document.getElementById("modal-team");
-    teamSelect.innerHTML = '<option value="" disabled selected>Select Team</option>';
-    teams.forEach(team => {
-      const option = document.createElement("option");
-      option.value = team.team_name;
-      option.textContent = team.team_name;
-      teamSelect.appendChild(option);
-    });
-  } catch (error) {
-    console.error("Error fetching projects and teams:", error);
-  }
-}
-
-function openEmptyHarvestModal() {
-  document.getElementById("modal-project-name").value = "";
-  document.getElementById("modal-team").value = "";
-  document.getElementById("modal-total-harvest").value = "";
-  document.getElementById("modal-unit").value = "kg";
-  document.getElementById("modal-farm-president").value = "";
-  document.getElementById("modal-farmers").value = "";
-
-  const modal = document.getElementById("harvest-report-modal");
-  modal.classList.add("active");
-}
-
-async function saveHarvest() {
-  try {
-    const projectName = document.getElementById("modal-project-name").value;
-    const teamName = document.getElementById("modal-team").value;
-    const totalHarvest = document.getElementById("modal-total-harvest").value;
-    const unit = document.getElementById("modal-unit").value;
-    const farmPresident = document.getElementById("modal-farm-president").value;
-    const farmers = document.getElementById("modal-farmers").value.split("\n").filter(farmer => farmer.trim() !== "");
-
-    if (!projectName || !teamName || !totalHarvest || !farmPresident) {
-      alert("Please fill in all required fields.");
-      return;
-    }
-
-    const harvestData = {
-      project_name: projectName,
-      team_name: teamName,
-      total_harvested_crops: parseFloat(totalHarvest),
-      unit: unit,
-      farm_president: farmPresident,
-      farmers_list: farmers,
-      harvest_date: new Date(),
-      harvest_id: harvestList.length + 1,
-      dateAdded: new Date()
-    };
-
-    await addDoc(collection(db, "tb_harvest"), harvestData);
-    alert("Harvest added successfully!");
-  } catch (error) {
-    console.error("Error saving harvest:", error);
-    alert("Error saving harvest.");
-  }
-}
