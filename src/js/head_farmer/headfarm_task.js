@@ -295,7 +295,18 @@ function attachGlobalEventListeners() {
     }
   });
 
-  document.getElementById("addTaskButton").addEventListener("click", () => {
+  const addTaskButton = document.getElementById("addTaskButton");
+const userType = sessionStorage.getItem("user_type");
+
+// Disable button + style it if user is not Head Farmer
+if (userType !== "Head Farmer") {
+  addTaskButton.disabled = true;
+  addTaskButton.style.opacity = "0.5";
+  addTaskButton.style.cursor = "not-allowed";
+}
+
+
+  addTaskButton.addEventListener("click", () => {
     const endDate = sessionStorage.getItem("selected_project_end_date");
     if (endDate && isPastEndDate(endDate)) {
       showErrorPanel(
