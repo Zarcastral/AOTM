@@ -95,6 +95,7 @@ function renderTable(filteredFarmers, selectedDate) {
   }
 
   const sessionedDate = sessionStorage.getItem("selected_date");
+  const userType = sessionStorage.getItem("user_type"); // Get user_type
 
   filteredFarmers.forEach((farmer, index) => {
     const isChecked = farmer.attendance.present === "Yes";
@@ -110,36 +111,45 @@ function renderTable(filteredFarmers, selectedDate) {
       ? remarkValue.charAt(0).toUpperCase() + remarkValue.slice(1).toLowerCase()
       : "";
 
+    // Conditionally render checkbox and remarks select
+    const checkboxCell =
+      userType === "Head Farmer"
+        ? `<input type="checkbox" class="attendance-checkbox" data-index="${index}" ${
+            isChecked ? "checked" : ""
+          }>`
+        : `<span>—</span>`;
+
+    const remarksCell =
+      userType === "Head Farmer"
+        ? `
+        <select class="remarks-select" data-index="${index}" required>
+          <option value="" ${!remarkValue ? "selected" : ""}>Select remark</option>
+          <option value="productive" ${
+            capitalizedRemark === "Productive" ? "selected" : ""
+          } style="color: #28a745;">Productive</option>
+          <option value="average" ${
+            capitalizedRemark === "Average" ? "selected" : ""
+          }>Average</option>
+          <option value="needs-improvement" ${
+            capitalizedRemark === "Needs-improvement" ? "selected" : ""
+          } style="color: #dc3545;">Needs improvement</option>
+        </select>`
+        : `<span>${capitalizedRemark || "—"}</span>`;
+
     const row = `
       <tr>
-        <td><input type="checkbox" class="attendance-checkbox" data-index="${index}" ${
-      isChecked ? "checked" : ""
-    }></td>
+        <td>${checkboxCell}</td>
         <td>${farmer.name || "Unknown Farmer"}</td>
         <td>Farmer</td>
         <td ${dateStyle}>${farmerDate}</td>
-        <td>
-          <select class="remarks-select" data-index="${index}" required>
-            <option value="" ${
-              !remarkValue ? "selected" : ""
-            }>Select remark</option>
-            <option value="productive" ${
-              capitalizedRemark === "Productive" ? "selected" : ""
-            } style="color: #28a745;">Productive</option>
-            <option value="average" ${
-              capitalizedRemark === "Average" ? "selected" : ""
-            }>Average</option>
-            <option value="needs-improvement" ${
-              capitalizedRemark === "Needs-improvement" ? "selected" : ""
-            } style="color: #dc3545;">Needs improvement</option>
-          </select>
-        </td>
+        <td>${remarksCell}</td>
         <td style="display: none;">${farmer.id}</td>
       </tr>
     `;
     tbody.insertAdjacentHTML("beforeend", row);
   });
 }
+
 
 // Function to fetch farmers and set up search
 async function fetchFarmers(projectId) {
