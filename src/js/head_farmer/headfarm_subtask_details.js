@@ -168,7 +168,15 @@ export function initializeSubtaskDetailsPage() {
 
     const addDayBtn = document.querySelector(".add-day-btn");
     const completeBtn = document.querySelector(".completed-btn");
-
+    const userType = sessionStorage.getItem("user_type");
+    
+    // Disable the addDayBtn if the user is not Head Farmer
+    if (userType !== "Head Farmer" && addDayBtn) {
+      addDayBtn.disabled = true;
+      addDayBtn.style.opacity = "0.5";
+      addDayBtn.style.cursor = "not-allowed";
+    }
+    
     if (addDayBtn) {
       addDayBtn.addEventListener("click", async () => {
         if (endDate && isPastEndDate(endDate)) {
@@ -184,6 +192,7 @@ export function initializeSubtaskDetailsPage() {
         );
       });
     }
+    
 
     if (completeBtn) {
       completeBtn.addEventListener("click", async () => {

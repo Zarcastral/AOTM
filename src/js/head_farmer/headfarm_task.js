@@ -295,7 +295,7 @@ function attachGlobalEventListeners() {
     }
   });
 
-  const addTaskButton = document.getElementById("addTaskButton");
+  const addTaskButton = document.getElementById("addTaskButton");  
 const userType = sessionStorage.getItem("user_type");
 
 // Disable button + style it if user is not Head Farmer
