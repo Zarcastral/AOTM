@@ -14,12 +14,12 @@
   <div id="header-container"></div>
   <div class="main-content">
     <div class="panel">
-      <div class="btn-container">
-        <button class="add-user-btn" id="add-harvest">
-          <span>+ Add Harvest</span>
-        </button>
-      </div>
       <div class="table-wrapper">
+        <div class="btn-container">
+          <button class="add-user-btn" id="add-harvest">
+            <span>+ Add Harvest</span>
+          </button>
+        </div>
         <h2>Harvest List</h2>
         <div class="harvest-search-bar">
           <input type="text" id="harvest-search-bar" placeholder="Search">
@@ -111,6 +111,13 @@
           </div>
         </div>
       </div>
+    </div>
+    <div id="confirmation-panel" class="confirmation-panel">
+      <div class="confirmation-message">
+          <p></p>
+          <button id="cancel-delete" class="cancel-btn">Cancel</button>
+          <button id="confirm-delete" class="confirm-btn">Confirm</button>
+        </div>
     </div>
   </div>
   <script type="module" src="../../../src/auth/header.js"></script>

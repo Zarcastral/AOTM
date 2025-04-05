@@ -81,7 +81,7 @@ const harvestSuccessMessage = document.getElementById("harvest-success-message")
 
 function showSuccessMessage(message, success = true) {
   harvestSuccessMessage.textContent = message;
-  harvestSuccessMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  harvestSuccessMessage.style.backgroundColor = success ? "#41A186" : "#f44336";
   harvestSuccessMessage.style.opacity = '1';
   harvestSuccessMessage.style.display = 'block';
 

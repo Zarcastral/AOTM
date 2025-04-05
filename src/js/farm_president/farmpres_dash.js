@@ -24,18 +24,17 @@ const auth = getAuth();
 document.addEventListener("DOMContentLoaded", () => {
     initializeDashboard();
 });
+
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
-                    // Query the tb_farmers collection to find the farmer record by email
                     const farmerQuery = query(collection(db, "tb_farmers"), where("email", "==", user.email));
                     const farmerSnapshot = await getDocs(farmerQuery);
 
                     if (!farmerSnapshot.empty) {
                         const farmerData = farmerSnapshot.docs[0].data();
-                        // Resolve with the user object including the farmer_id
                         resolve({ ...user, farmer_id: farmerData.farmer_id });
                     } else {
                         console.error("Farmer record not found in tb_farmers collection.");
@@ -53,27 +52,22 @@ async function getAuthenticatedUser() {
     });
 }
 
-// Function to check authentication state and update dashboard
 function initializeDashboard() {
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // User is signed in, update the farmer count
             updateTotalFarmerCount();
             updateTotalProjectsCount();
             updateBarGraph();
         } else {
-            // No user is signed in, redirect or handle accordingly
             console.log("No user is signed in");
-            // Optionally redirect to a login page
-            // window.location.href = "/login.html";
         }
     });
 }
-// Function to animate the counting effect
+
 function animateCount(element, finalCount) {
     let currentCount = 0;
-    const duration = 1000; // Animation duration in milliseconds
-    const stepTime = 16;   // Approximately 60fps
+    const duration = 1000;
+    const stepTime = 16;
     const steps = Math.ceil(duration / stepTime);
     const increment = finalCount / steps;
 
@@ -84,19 +78,15 @@ function animateCount(element, finalCount) {
         } else {
             requestAnimationFrame(updateCount);
         }
-        
         element.textContent = Math.round(currentCount).toLocaleString();
     }
 
-    // Start with 0
     element.textContent = "0";
     requestAnimationFrame(updateCount);
 }
-// Function to fetch and update the farmer count
-// Counts maps in farmer_name array for current user's farmer_id, restricted to current year
+
 async function updateTotalFarmerCount() {
     try {
-        // Get authenticated user and their farmer_id
         const currentUser = await getAuthenticatedUser();
         const farmerId = currentUser.farmer_id;
 
@@ -105,39 +95,29 @@ async function updateTotalFarmerCount() {
             return;
         }
 
-        // Reference to the tb_projects collection
         const projectsCollection = collection(db, "tb_projects");
-
-        // Get current year boundaries
         const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 1); // January 1st
-        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); // December 31st
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
 
-        // Query projects for this farmer_id
         const projectsQuery = query(projectsCollection, where("farmer_id", "==", farmerId));
         const projectsSnapshot = await getDocs(projectsQuery);
 
         let totalFarmerCount = 0;
 
-        // Count maps in farmer_name array for projects within current year
         projectsSnapshot.forEach(doc => {
             const data = doc.data();
-            
-            // Convert timestamp to date
             const dateCreated = data.date_created instanceof Timestamp 
                 ? data.date_created.toDate() 
                 : new Date(data.date_created);
 
-            // Check if project is within current year
             if (dateCreated >= startOfYear && dateCreated <= endOfYear) {
-                // Check if farmer_name exists and is an array
                 if (Array.isArray(data.farmer_name)) {
                     totalFarmerCount += data.farmer_name.length;
                 }
             }
         });
 
-        // Update the DOM with the farmer count
         const farmerElementCount = document.querySelector("#total-farmers");
         if (farmerElementCount) {
             animateCount(farmerElementCount, totalFarmerCount);
@@ -149,10 +129,6 @@ async function updateTotalFarmerCount() {
     }
 }
 
-// Function to fetch and update the projects count
-// NEEDS TO HAVE A RESTRICTION OF ONLY FETCHING TOTAL PROJECTS PER MONTH
-
-// Function to fetch and update projects count for the current year
 async function updateTotalProjectsCount(statusFilter = "ongoing") {
     try {
         const currentUser = await getAuthenticatedUser();
@@ -166,8 +142,7 @@ async function updateTotalProjectsCount(statusFilter = "ongoing") {
         }
 
         const farmerData = farmerSnapshot.docs[0].data();
-        // Ensure farmer_id is a string, e.g., "2"
-        const farmerId = String(farmerData.farmer_id).trim(); // Converts 2 or "2" to "2" and trims whitespace
+        const farmerId = String(farmerData.farmer_id).trim();
 
         if (!farmerId) {
             console.error("Farmer ID not found or invalid for the current user.");
@@ -179,17 +154,13 @@ async function updateTotalProjectsCount(statusFilter = "ongoing") {
         const startOfYear = new Date(now.getFullYear(), 0, 1);
         const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
         
-        // Query all projects for the farmer_id (no status filter in query)
         const projectsQuery = query(
             projectsCollection,
-            where("farmer_id", "==", farmerId) // farmerId is a string like "2"
+            where("farmer_id", "==", farmerId)
         );
         const projectsSnapshot = await getDocs(projectsQuery);
 
-        // Normalize the input statusFilter to lowercase for comparison
         const normalizedFilter = statusFilter.toLowerCase();
-        
-        // Validate the status filter
         const validStatuses = ["ongoing", "completed"];
         if (!validStatuses.includes(normalizedFilter)) {
             console.error(`Invalid status filter: ${statusFilter}. Must be "ongoing" or "completed" (case-insensitive).`);
@@ -203,7 +174,6 @@ async function updateTotalProjectsCount(statusFilter = "ongoing") {
                 ? data.date_created.toDate() 
                 : new Date(data.date_created);
 
-            // Check date range and case-insensitive status match
             if (dateCreated >= startOfYear && dateCreated <= endOfYear) {
                 const projectStatus = data.status ? String(data.status).toLowerCase() : "";
                 if (projectStatus === normalizedFilter) {
@@ -230,7 +200,6 @@ async function updateBarGraph() {
     const analyticsSection = document.querySelector('.analytics-section');
     const yearSelector = document.querySelector('#year-selector');
 
-    // Create canvas for grid lines (behind everything)
     const gridCanvas = document.createElement('canvas');
     const gridCtx = gridCanvas.getContext('2d');
     gridCanvas.style.position = 'absolute';
@@ -241,7 +210,6 @@ async function updateBarGraph() {
     barChart.style.position = 'relative';
     barChart.appendChild(gridCanvas);
 
-    // Create canvas for dashed lines (on top of everything)
     const dashCanvas = document.createElement('canvas');
     const dashCtx = dashCanvas.getContext('2d');
     dashCanvas.style.position = 'absolute';
@@ -251,7 +219,6 @@ async function updateBarGraph() {
     dashCanvas.style.zIndex = '3';
     barChart.appendChild(dashCanvas);
 
-    // Create tooltip element
     const tooltip = document.createElement('div');
     tooltip.style.position = 'absolute';
     tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
@@ -266,28 +233,35 @@ async function updateBarGraph() {
 
     let labelPositions = [];
 
-    // Populate year selector with current year + previous 5 years
     const populateYearSelector = () => {
         const currentYear = new Date().getFullYear();
         const years = [];
-        
-        // Add current year and previous 5 years (6 total)
         for (let i = 0; i < 6; i++) {
             years.push(currentYear - i);
         }
-
         yearSelector.innerHTML = years.map(year => 
             `<option value="${year}">${year}</option>`
         ).join('');
-        
         yearSelector.value = currentYear.toString();
     };
 
-    // Fetch data from tb_harvest and aggregate by month for selected year
+    // Fetch data from tb_validatedharvest and aggregate by month for selected year, filtered by farm_pres_id
     const fetchHarvestData = async (selectedYear) => {
         try {
-            const harvestCollection = collection(db, 'tb_harvest');
-            const harvestSnapshot = await getDocs(harvestCollection);
+            const currentUser = await getAuthenticatedUser();
+            const farmerId = currentUser.farmer_id;
+
+            if (!farmerId) {
+                console.error("Farmer ID not found for the current user.");
+                return Array(12).fill(0);
+            }
+
+            const validatedHarvestCollection = collection(db, 'tb_validatedharvest');
+            const harvestQuery = query(
+                validatedHarvestCollection,
+                where("farm_pres_id", "==", farmerId)
+            );
+            const harvestSnapshot = await getDocs(harvestQuery);
             
             const monthlyTotals = Array(12).fill(0);
 
@@ -314,12 +288,11 @@ async function updateBarGraph() {
 
             return monthlyTotals;
         } catch (error) {
-            console.error('Error fetching harvest data:', error);
+            console.error('Error fetching validated harvest data:', error);
             return Array(12).fill(0);
         }
     };
 
-    // Set bar heights based on fetched data
     const setBarHeights = async (selectedYear) => {
         const monthlyTotals = await fetchHarvestData(selectedYear);
         const maxDataValue = Math.max(...monthlyTotals);
@@ -552,7 +525,7 @@ async function updateBarGraph() {
             }
             if (bar.classList.contains('highlighted')) {
                 const totalCrops = bar.dataset.value || 0;
-                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.textContent = `Total Harvest: ${totalCrops} Kg`;
                 tooltip.style.display = 'block';
                 const barRect = bar.getBoundingClientRect();
                 const chartRect = barChart.getBoundingClientRect();
@@ -598,7 +571,7 @@ async function updateBarGraph() {
                 cancelAnimation = animateDashedLine(bar);
                 
                 const totalCrops = bar.dataset.value || 0;
-                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.textContent = `Total Harvest: ${totalCrops} Kg`;
                 tooltip.style.display = 'block';
                 const barRect = bar.getBoundingClientRect();
                 const chartRect = barChart.getBoundingClientRect();
@@ -637,8 +610,7 @@ async function updateBarGraph() {
         highlightHighestBar();
     };
 
-    // Initial setup
-    populateYearSelector(); // Now independent of chart update
+    populateYearSelector();
     updateChart(yearSelector.value);
 
     yearSelector.addEventListener('change', async (e) => {

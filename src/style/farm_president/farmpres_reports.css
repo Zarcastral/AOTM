@@ -302,23 +302,25 @@ th {
   color: #41A186;
   font-weight: 600;
 }
-
-th:nth-child(5),
-td:nth-child(5) {
-  width: 150px; /* Adjusted width for the barangay column */
-  min-width: 150px; /* Minimum width to ensure usability */
+th:nth-child(1),
+td:nth-child(1) {
+  width: 100px; /* Adjusted width for the barangay column */
+  min-width: 100px; /* Minimum width to ensure usability */
 }
-
-th:nth-child(6),
-td:nth-child(6) {
-  width: 150px; /* Adjusted width for the Area Planted column */
-  min-width: 150px; /* Minimum width to ensure usability */
+th:nth-child(2),
+td:nth-child(2) {
+  width: 100px; /* Adjusted width for the barangay column */
+  min-width: 100px; /* Minimum width to ensure usability */
 }
-
-th:nth-child(7),
-td:nth-child(7) {
-  width: 150px; /* Adjusted width for the To Date column */
-  min-width: 150px; /* Minimum width to ensure usability */
+th:nth-child(3),
+td:nth-child(3) {
+  width: 70px; /* Adjusted width for the barangay column */
+  min-width: 70px; /* Minimum width to ensure usability */
+}
+th:nth-child(4),
+td:nth-child(4) {
+  width: 100px; /* Adjusted width for the barangay column */
+  min-width: 100px; /* Minimum width to ensure usability */
 }
 
 th:last-child,
@@ -507,27 +509,28 @@ tbody tr:hover {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 15px 20px; /* Add padding to the button area */
+  padding: 15px 50px; /* Add padding to the button area */
   background-color: #f5f6fa; /* Match the background color of the main content */
   border-top: 1px solid #D1D5DB; /* Add a separator line above the buttons */
 }
 
 .preview-btn {
-  padding: 10px 20px;
+  padding: 10px 40px;
   border: none;
-  border-radius: 5px;
+  border-radius: 25px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 17px;
+  font-weight: 600; 
   transition: background-color 0.2s;
 }
 
 .cancel-btn {
-  background-color: #E2E8F0;
-  color: #333;
+  background-color: #C3C3C3;
+  color: white;
 }
 
 .cancel-btn:hover {
-  background-color: #CBD5E0;
+  background-color: rgb(167, 167, 167);
 }
 
 .done-btn {

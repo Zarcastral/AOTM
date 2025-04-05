@@ -98,7 +98,7 @@ const harvestSuccessMessage = document.getElementById("harvest-success-message")
 
 function showSuccessMessage(message, success = true) {
   harvestSuccessMessage.textContent = message;
-  harvestSuccessMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  harvestSuccessMessage.style.backgroundColor = success ? "#41A186" : "#f44336";
   harvestSuccessMessage.style.opacity = '1';
   harvestSuccessMessage.style.display = 'block';
 
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const viewCloseBtn = document.getElementById("view-close-btn");
   const addHarvestBtn = document.getElementById("add-harvest");
   const saveHarvestBtn = document.getElementById("save-harvest-btn");
-  const updateHarvestBtn = document.getElementById("update-harvest-btn"); // New button for update
+  const updateHarvestBtn = document.getElementById("update-harvest-btn");
   const submitHarvestBtn = document.getElementById("submit-harvest-btn");
   const submitHarvestModalBtn = document.getElementById("submit-harvest-modal-btn");
 
@@ -140,8 +140,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     modal.classList.remove("active");
     isEditing = false;
     modalHeader.textContent = "Add Harvest";
-    saveHarvestBtn.style.display = "block"; // Show save for add
-    updateHarvestBtn.style.display = "none"; // Hide update when closing
+    saveHarvestBtn.style.display = "block";
+    updateHarvestBtn.style.display = "none";
     resetModalFields();
     enableFormFields();
   });
@@ -150,8 +150,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     modal.classList.remove("active");
     isEditing = false;
     modalHeader.textContent = "Add Harvest";
-    saveHarvestBtn.style.display = "block"; // Show save for add
-    updateHarvestBtn.style.display = "none"; // Hide update when closing
+    saveHarvestBtn.style.display = "block";
+    updateHarvestBtn.style.display = "none";
     resetModalFields();
     enableFormFields();
   });
@@ -169,7 +169,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let isSaving = false;
 
-  // Save button for adding new harvest
   saveHarvestBtn.addEventListener("click", async () => {
     if (isSaving) return;
     isSaving = true;
@@ -179,6 +178,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       await addHarvest();
+      await fetchProjectsAndTeams();
+      await fetchHarvestDocsForSubmit();
     } catch (error) {
       console.error("Add failed:", error);
     } finally {
@@ -189,7 +190,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Update button for editing existing harvest
   updateHarvestBtn.addEventListener("click", async () => {
     if (isSaving) return;
     isSaving = true;
@@ -199,6 +199,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       await updateHarvest();
+      await fetchProjectsAndTeams();
+      await fetchHarvestDocsForSubmit();
     } catch (error) {
       console.error("Update failed:", error);
     } finally {
@@ -215,6 +217,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   submitHarvestModalBtn.addEventListener("click", async () => {
     await submitHarvestToTbHarvest();
+    await fetchProjectsAndTeams();
+    await fetchHarvestDocsForSubmit();
   });
 
   function applyFilters() {
@@ -244,24 +248,35 @@ async function fetchProjectsAndTeams() {
       where("farmer_id", "==", farmerId),
       where("status", "==", "Ongoing")
     );
-    const projectSnapshot = await getDocs(projectQuery);
-    projects = projectSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    onSnapshot(projectQuery, (projectSnapshot) => {
+      projects = projectSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      updateProjectDropdown();
+    }, (error) => {
+      console.error("Error listening to projects:", error);
+    });
 
     const teamCollection = collection(db, "tb_teams");
     const teamSnapshot = await getDocs(teamCollection);
     teams = teamSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    const projectSelect = document.getElementById("modal-project-name");
-    projectSelect.innerHTML = '<option value="" selected>Select Project</option>';
-    projects.forEach(project => {
-      const option = document.createElement("option");
-      option.value = project.project_name;
-      option.textContent = project.project_name;
-      option.dataset.teamId = project.team_id || "";
-      projectSelect.appendChild(option);
-    });
   } catch (error) {
     console.error("Error fetching projects and teams:", error);
+  }
+}
+
+function updateProjectDropdown() {
+  const projectSelect = document.getElementById("modal-project-name");
+  const currentValue = projectSelect.value;
+  projectSelect.innerHTML = '<option value="" selected>Select Project</option>';
+  projects.forEach(project => {
+    const option = document.createElement("option");
+    option.value = project.project_name;
+    option.textContent = project.project_name;
+    option.dataset.teamId = project.team_id || "";
+    projectSelect.appendChild(option);
+  });
+  if (currentValue && projects.some(p => p.project_name === currentValue)) {
+    projectSelect.value = currentValue;
   }
 }
 
@@ -270,9 +285,12 @@ async function fetchHarvestDocsForSubmit() {
     const { farmerId } = await getAuthData();
     const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
     const harvestQuery = query(harvestCollection, where("farm_pres_id", "==", farmerId));
-    const harvestSnapshot = await getDocs(harvestQuery);
 
-    harvestDocs = harvestSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    onSnapshot(harvestQuery, (harvestSnapshot) => {
+      harvestDocs = harvestSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }, (error) => {
+      console.error("Error listening to harvest docs:", error);
+    });
   } catch (error) {
     console.error("Error fetching harvest docs for submit:", error);
   }
@@ -304,7 +322,7 @@ async function addHarvest() {
     const farmerNamesInput = document.getElementById("modal-farmers").value.split("\n").filter(farmer => farmer.trim() !== "");
 
     if (!totalHarvest || isNaN(totalHarvest) || parseFloat(totalHarvest) < 0) {
-      await showSuccessMessage("Please enter a valid positive number for total harvest", false);
+      await showSuccessMessage("Please enter a valid quantity for the total harvest", false);
       throw new Error("Invalid total harvest value");
     }
 
@@ -326,18 +344,17 @@ async function addHarvest() {
     }
 
     const teamId = selectedProject.team_id || "";
-    const projectId = selectedProject.project_id || selectedProject.id || "N/A"; // Use project_id
-    const { farmerId } = await getAuthData(); // Current user's farmer_id
-    const projectLeadFarmerId = selectedProject.lead_farmer_id || "N/A"; // For lead_farmer_id
+    const projectId = selectedProject.project_id || selectedProject.id || "N/A";
+    const { farmerId } = await getAuthData();
+    const projectLeadFarmerId = selectedProject.lead_farmer_id || "N/A";
 
     const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
 
-    // First Duplicate Check: Current User as Lead Farmer
     const farmPresDuplicateQuery = query(
       harvestCollection,
       where("lead_farmer_id", "==", farmerId),
       where("team_id", "==", teamId),
-      where("project_id", "==", projectId) // Added project_id
+      where("project_id", "==", projectId)
     );
     const farmPresDuplicateSnapshot = await getDocs(farmPresDuplicateQuery);
 
@@ -346,21 +363,20 @@ async function addHarvest() {
       throw new Error("Duplicate harvest detected for farm president as lead farmer");
     }
 
-    // Second Duplicate Check: Head Farmer
     const leadFarmerDuplicateQuery = query(
       harvestCollection,
       where("lead_farmer_id", "==", projectLeadFarmerId),
-      where("project_id", "==", projectId) // Added project_id
+      where("project_id", "==", projectId)
     );
     const leadFarmerDuplicateSnapshot = await getDocs(leadFarmerDuplicateQuery);
 
     if (!leadFarmerDuplicateSnapshot.empty) {
       const leadFarmerName = selectedTeam.lead_farmer || "Unknown Lead Farmer";
       await showSuccessMessage(
-        `Lead Farmer ${leadFarmerName} already made a Harvest Report for this project`,
+        `A Harvest Report already exists for the Selected Team of Lead Farmer ${leadFarmerName}`,
         false
       );
-      throw new Error("Duplicate harvest detected for head farmer");
+      throw new Error("Duplicate harvest detected");
     }
 
     let landArea = "N/A";
@@ -400,7 +416,7 @@ async function addHarvest() {
     const newHarvestId = await getNextHarvestId();
     harvestData.harvest_id = newHarvestId;
     await addDoc(harvestCollection, harvestData);
-    await showSuccessMessage("Harvest Report successfully created!");
+    await showSuccessMessage("Harvest Report has been successfully created!");
 
     const modal = document.getElementById("harvest-report-modal");
     modal.classList.remove("active");
@@ -448,9 +464,9 @@ async function updateHarvest() {
     }
 
     const teamId = selectedProject.team_id || "";
-    const projectId = selectedProject.project_id || selectedProject.id || "N/A"; // Use project_id
-    const { farmerId } = await getAuthData(); // Current user's farmer_id
-    const projectLeadFarmerId = selectedProject.lead_farmer_id || "N/A"; // For lead_farmer_id
+    const projectId = selectedProject.project_id || selectedProject.id || "N/A";
+    const { farmerId } = await getAuthData();
+    const projectLeadFarmerId = selectedProject.lead_farmer_id || "N/A";
 
     const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
 
@@ -465,12 +481,11 @@ async function updateHarvest() {
     const originalTeamId = originalData.team_id || "";
 
     if (teamId !== originalTeamId && teamId !== "") {
-      // First Duplicate Check: Current User as Lead Farmer
       const farmPresDuplicateQuery = query(
         harvestCollection,
         where("lead_farmer_id", "==", farmerId),
         where("team_id", "==", teamId),
-        where("project_id", "==", projectId) // Added project_id
+        where("project_id", "==", projectId)
       );
       const farmPresDuplicateSnapshot = await getDocs(farmPresDuplicateQuery);
 
@@ -482,11 +497,10 @@ async function updateHarvest() {
         }
       }
 
-      // Second Duplicate Check: Head Farmer
       const leadFarmerDuplicateQuery = query(
         harvestCollection,
         where("lead_farmer_id", "==", projectLeadFarmerId),
-        where("project_id", "==", projectId) // Added project_id
+        where("project_id", "==", projectId)
       );
       const leadFarmerDuplicateSnapshot = await getDocs(leadFarmerDuplicateQuery);
 
@@ -555,6 +569,7 @@ async function updateHarvest() {
 }
 
 async function submitHarvestToTbHarvest() {
+  let validatedHarvestRef = null;
   try {
     const projectName = document.getElementById("modal-project-name").value;
     const teamName = document.getElementById("modal-team").value;
@@ -564,47 +579,91 @@ async function submitHarvestToTbHarvest() {
       return;
     }
 
-    const harvestCollection = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
-    const harvestQuery = query(
-      harvestCollection,
-      where("project_name", "==", projectName),
-      where("team_name", "==", teamName)
-    );
-    const harvestSnapshot = await getDocs(harvestQuery);
-
-    if (harvestSnapshot.empty) {
-      await showSuccessMessage("No harvest found for the selected project and team.", false);
+    const matchingHarvest = harvestDocs.find(h => h.project_name === projectName && h.team_name === teamName);
+    if (!matchingHarvest) {
+      await showSuccessMessage("No harvest report found for the selected project and team.", false);
       return;
     }
 
-    const harvestDoc = harvestSnapshot.docs[0];
-    const harvestData = harvestDoc.data();
-    currentHarvestDocId = harvestDoc.id;
+    const harvestData = matchingHarvest;
+    currentHarvestDocId = harvestData.id;
 
-    // Duplicate Check: Check if harvest_id already exists in tb_harvest
-    const tbHarvestCollection = collection(db, "tb_harvest");
-    const duplicateQuery = query(
-      tbHarvestCollection,
-      where("harvest_id", "==", harvestData.harvest_id)
-    );
-    const duplicateSnapshot = await getDocs(duplicateQuery);
+    const collectionsToCheck = [
+      collection(db, "tb_harvest"),
+      collection(db, "tb_validatedharvest")
+    ];
 
-    if (!duplicateSnapshot.empty) {
-      await showSuccessMessage(
-        `Harvest with ID ${harvestData.harvest_id} has already been submitted to tb_harvest.`,
-        false
+    for (const coll of collectionsToCheck) {
+      const farmPresQuery = query(
+        coll,
+        where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A")
       );
-      return; // Stop submission if duplicate found
+      const farmPresSnapshot = await getDocs(farmPresQuery);
+      if (farmPresSnapshot.empty) continue;
+
+      const projectQuery = query(
+        coll,
+        where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A"),
+        where("project_id", "==", harvestData.project_id || "N/A")
+      );
+      const projectSnapshot = await getDocs(projectQuery);
+      if (projectSnapshot.empty) continue;
+
+      const leadFarmerQuery = query(
+        coll,
+        where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A"),
+        where("project_id", "==", harvestData.project_id || "N/A"),
+        where("lead_farmer_id", "==", harvestData.lead_farmer_id || "N/A")
+      );
+      const leadFarmerSnapshot = await getDocs(leadFarmerQuery);
+      if (leadFarmerSnapshot.empty) continue;
+
+      const teamQuery = query(
+        coll,
+        where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A"),
+        where("project_id", "==", harvestData.project_id || "N/A"),
+        where("lead_farmer_id", "==", harvestData.lead_farmer_id || "N/A"),
+        where("team_id", "==", harvestData.team_id || "N/A")
+      );
+      const teamSnapshot = await getDocs(teamQuery);
+      if (!teamSnapshot.empty) {
+        const isSameDoc = teamSnapshot.docs.some(doc => doc.id === currentHarvestDocId);
+        if (!isSameDoc) {
+          showConfirmationPopup(harvestData);
+          return;
+        }
+      }
     }
 
-    const newHarvestRef = collection(db, "tb_harvest");
-    const newDocRef = await addDoc(newHarvestRef, {
+    const validatedHarvestCollection = collection(db, "tb_validatedharvest");
+    const validatedHarvestData = {
+      project_id: harvestData.project_id || "N/A",
+      project_name: harvestData.project_name || "N/A", // Added project_name here
+      farm_pres_id: harvestData.farm_pres_id || "N/A",
+      lead_farmer_id: harvestData.lead_farmer_id || "N/A",
+      total_harvested_crops: harvestData.total_harvested_crops || 0,
+      harvest_date: harvestData.harvest_date || new Date(),
+      crop_type_name: harvestData.crop_type_name || "N/A",
+      crop_name: harvestData.crop_name || "N/A",
+      harvest_id: harvestData.harvest_id,
+      validated_date: new Date()
+    };
+
+    validatedHarvestRef = await addDoc(validatedHarvestCollection, validatedHarvestData);
+    const validatedDocSnapshot = await getDoc(validatedHarvestRef);
+    if (!validatedDocSnapshot.exists()) {
+      await showSuccessMessage("Failed to submit validated harvest data.", false);
+      throw new Error("Validated harvest document not found after submission");
+    }
+
+    const tbHarvestCollection = collection(db, "tb_harvest");
+    const newHarvestRef = await addDoc(tbHarvestCollection, {
       ...harvestData,
       submitted_date: new Date(),
       original_doc_id: currentHarvestDocId
     });
 
-    const newDocSnapshot = await getDoc(newDocRef);
+    const newDocSnapshot = await getDoc(newHarvestRef);
     if (!newDocSnapshot.exists()) {
       await showSuccessMessage("Failed to submit harvest: Could not verify new document.", false);
       throw new Error("New document not found after submission");
@@ -613,7 +672,7 @@ async function submitHarvestToTbHarvest() {
     const originalDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest", currentHarvestDocId);
     await deleteDoc(originalDocRef);
 
-    await showSuccessMessage("Harvest Report successfully submitted!");
+    await showSuccessMessage("Harvest Report successfully submitted and validated!");
     const modal = document.getElementById("harvest-report-modal");
     modal.classList.remove("active");
     enableFormFields();
@@ -621,7 +680,63 @@ async function submitHarvestToTbHarvest() {
 
   } catch (error) {
     console.error("Error submitting harvest:", error);
-    await showSuccessMessage(`Error submitting harvest: ${error.message}`, false);
+    if (validatedHarvestRef) {
+      try {
+        await deleteDoc(validatedHarvestRef);
+        console.log(`Rolled back: Deleted document ${validatedHarvestRef.id} from tb_validatedharvest due to error`);
+        await showSuccessMessage("Submission failed, rolled back validated data.", false);
+      } catch (rollbackError) {
+        console.error("Rollback failed:", rollbackError);
+        await showSuccessMessage("Submission failed and rollback unsuccessful. Please contact support.", false);
+      }
+    } else {
+      await showSuccessMessage(`Error submitting harvest: ${error.message}`, false);
+    }
+  }
+}
+
+function showConfirmationPopup(harvestData) {
+  const confirmationPanel = document.getElementById("confirmation-panel");
+  const message = confirmationPanel.querySelector("p");
+  const cancelBtn = document.getElementById("cancel-delete");
+  const confirmBtn = document.getElementById("confirm-delete");
+
+  message.textContent = `A harvest report for this team in this project already exists, please proceed to delete this duplicate harvest record`;
+  confirmationPanel.style.display = "flex";
+
+  cancelBtn.onclick = async () => {
+    confirmationPanel.style.display = "none";
+    markRowAsDuplicate(harvestData.id);
+    const modal = document.getElementById("harvest-report-modal");
+    modal.classList.remove("active");
+  };
+
+  confirmBtn.onclick = async () => {
+    try {
+      const originalDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest", currentHarvestDocId);
+      await deleteDoc(originalDocRef);
+      await showSuccessMessage("Duplicate harvest record deleted successfully!");
+      confirmationPanel.style.display = "none";
+      const modal = document.getElementById("harvest-report-modal");
+      modal.classList.remove("active");
+      await fetchHarvest();
+    } catch (error) {
+      console.error("Error deleting duplicate harvest:", error);
+      await showSuccessMessage("Failed to delete duplicate harvest.", false);
+    }
+  };
+}
+
+function markRowAsDuplicate(docId) {
+  const row = document.querySelector(`tr[data-doc-id="${docId}"]`);
+  if (row) {
+    row.classList.add("duplicate-row");
+  } else {
+    const harvestIndex = harvestList.findIndex(h => h.id === docId);
+    if (harvestIndex !== -1) {
+      harvestList[harvestIndex].isDuplicate = true;
+      displayHarvest(filteredHarvest);
+    }
   }
 }
 
@@ -675,6 +790,9 @@ function displayHarvest(harvestList) {
 
   paginatedHarvest.forEach((harvest) => {
     const row = document.createElement("tr");
+    row.setAttribute("data-doc-id", harvest.id);
+    if (harvest.isDuplicate) row.classList.add("duplicate-row");
+
     const harvestId = harvest.harvest_id || "N/A";
     const projectName = harvest.project_name || "N/A";
     const harvestDate = harvest.harvest_date
@@ -737,11 +855,11 @@ async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = fa
   projectSelect.parentNode.replaceChild(newProjectSelect, projectSelect);
   teamSelect.parentNode.replaceChild(newTeamSelect, teamSelect);
 
-  let previousProject = ""; // Track the previously selected project
+  let previousProject = "";
 
   if (isViewOrEdit && harvestId) {
     await populateHarvestData(harvestId);
-    previousProject = document.getElementById("modal-project-name").value; // Set initial value for edit mode
+    previousProject = document.getElementById("modal-project-name").value;
     if (isViewOnly) {
       modalHeader.textContent = "View Harvest";
       saveHarvestBtn.style.display = "none";
@@ -752,8 +870,8 @@ async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = fa
       disableFormFields();
     } else {
       modalHeader.textContent = "Edit Harvest";
-      saveHarvestBtn.style.display = "none"; // Hide save for edit
-      updateHarvestBtn.style.display = "block"; // Show update for edit
+      saveHarvestBtn.style.display = "none";
+      updateHarvestBtn.style.display = "block";
       submitHarvestModalBtn.style.display = "none";
       closeHarvestBtn.style.display = "block";
       viewCloseBtn.style.display = "none";
@@ -761,10 +879,10 @@ async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = fa
       newProjectSelect.addEventListener("change", (e) => {
         const selectedProjectName = e.target.value;
         if (previousProject && previousProject !== selectedProjectName) {
-          resetNonEditableFields(); // Reset non-editable fields only
-          newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>'; // Reset team dropdown
+          resetNonEditableFields();
+          newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>';
         }
-        previousProject = selectedProjectName; // Update previous project
+        previousProject = selectedProjectName;
         if (selectedProjectName) {
           const selectedProject = projects.find(p => p.project_name === selectedProjectName);
           const teamId = selectedProject ? selectedProject.team_id || "" : "";
@@ -806,10 +924,10 @@ async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = fa
     newProjectSelect.addEventListener("change", async (e) => {
       const selectedProjectName = e.target.value;
       if (previousProject && previousProject !== selectedProjectName) {
-        resetNonEditableFields(); // Reset non-editable fields only
-        newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>'; // Reset team dropdown
+        resetNonEditableFields();
+        newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>';
       }
-      previousProject = selectedProjectName; // Update previous project
+      previousProject = selectedProjectName;
       await populateTeamsForSubmit(selectedProjectName);
     });
 
@@ -824,8 +942,8 @@ async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = fa
   } else {
     resetModalFields();
     modalHeader.textContent = "Add Harvest";
-    saveHarvestBtn.style.display = "block"; // Show save for add
-    updateHarvestBtn.style.display = "none"; // Hide update for add
+    saveHarvestBtn.style.display = "block";
+    updateHarvestBtn.style.display = "none";
     submitHarvestModalBtn.style.display = "none";
     closeHarvestBtn.style.display = "block";
     viewCloseBtn.style.display = "none";
@@ -835,10 +953,10 @@ async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = fa
     newProjectSelect.addEventListener("change", (e) => {
       const selectedProjectName = e.target.value;
       if (previousProject && previousProject !== selectedProjectName) {
-        resetNonEditableFields(); // Reset non-editable fields only
-        newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>'; // Reset team dropdown
+        resetNonEditableFields();
+        newTeamSelect.innerHTML = '<option value="" selected>Select Team</option>';
       }
-      previousProject = selectedProjectName; // Update previous project
+      previousProject = selectedProjectName;
       if (selectedProjectName) {
         const selectedProject = projects.find(p => p.project_name === selectedProjectName);
         const teamId = selectedProject ? selectedProject.team_id || "" : "";
@@ -887,7 +1005,7 @@ async function populateHarvestData(harvestId) {
     document.getElementById("modal-project-name").value = harvestData.project_name || "";
     
     const teamSelect = document.getElementById("modal-team");
-    teamSelect.innerHTML = '<option value="">Select Team</option>'; // Non-disabled default
+    teamSelect.innerHTML = '<option value="">Select Team</option>';
     const selectedProject = projects.find(p => p.project_name === harvestData.project_name);
     const teamId = selectedProject ? selectedProject.team_id || "" : "";
     const matchingTeam = teams.find(team => team.team_id === teamId);
@@ -928,7 +1046,7 @@ function populateAddModeDropdowns() {
   teamSelect.innerHTML = '<option value="">Select Team</option>';
 }
 
-async function populateSubmitModeDropdowns() {
+function populateSubmitModeDropdowns() {
   const projectSelect = document.getElementById("modal-project-name");
   projectSelect.innerHTML = '<option value="" selected>Select Project</option>';
   const uniqueProjects = [...new Set(harvestDocs.map(h => h.project_name))];

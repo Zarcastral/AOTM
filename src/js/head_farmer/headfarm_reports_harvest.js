@@ -52,8 +52,7 @@ async function fetchHarvest() {
     const headFarmerHarvestCollection = collection(harvestDocRef, "tb_headfarmer_harvest");
 
     onSnapshot(headFarmerHarvestCollection, (snapshot) => {
-      const harvestData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      harvestList = consolidateHarvestByCropType(harvestData);
+      harvestList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       originalHarvestList = harvestList;
       filterHarvest();
     }, (error) => {
@@ -69,103 +68,6 @@ function convertToMetricTons(kgValue) {
   if (!kgValue || isNaN(kgValue)) return 0;
   const mtValue = parseFloat(kgValue) / 1000;
   return Number(mtValue.toFixed(2));
-}
-
-// Function to consolidate harvest records by crop_type_name
-function consolidateHarvestByCropType(harvestData) {
-  const consolidated = {};
-
-  harvestData.forEach(harvest => {
-    const cropTypeName = harvest.crop_type_name || "Unknown";
-    if (!consolidated[cropTypeName]) {
-      consolidated[cropTypeName] = {
-        project_id: harvest.project_id || "N/A",
-        crop_type_name: cropTypeName,
-        crop_name: harvest.crop_name || "N/A",
-        farmer_name: new Set(),
-        barangay_name: new Set(),
-        land_area: 0,
-        start_date: [],
-        end_date: [],
-        harvest_date: [],
-        total_harvest_crops_kg: 0,
-        total_harvest_crops_mt: 0
-      };
-    }
-
-    if (harvest.barangay_name) consolidated[cropTypeName].barangay_name.add(harvest.barangay_name);
-    if (harvest.farmer_name && Array.isArray(harvest.farmer_name)) {
-      harvest.farmer_name.forEach(farmer => consolidated[cropTypeName].farmer_name.add(farmer));
-    }
-    if (harvest.start_date) consolidated[cropTypeName].start_date.push(parseDate(harvest.start_date));
-    if (harvest.end_date) consolidated[cropTypeName].end_date.push(parseDate(harvest.end_date));
-    if (harvest.harvest_date) consolidated[cropTypeName].harvest_date.push(parseDate(harvest.harvest_date));
-    if (harvest.land_area) consolidated[cropTypeName].land_area += parseFloat(harvest.land_area) || 0;
-    if (harvest.total_harvested_crops) {
-      const kgValue = parseFloat(harvest.total_harvested_crops) || 0;
-      consolidated[cropTypeName].total_harvest_crops_kg += kgValue;
-      consolidated[cropTypeName].total_harvest_crops_mt = convertToMetricTons(consolidated[cropTypeName].total_harvest_crops_kg);
-    }
-  });
-
-  return Object.values(consolidated).map(item => ({
-    ...item,
-    barangay_name: Array.from(item.barangay_name).join(", "),
-    farmer_name: Array.from(item.farmer_name),
-    start_date: item.start_date.length ? item.start_date.sort((a, b) => a - b)[0] : null,
-    end_date: item.end_date.length ? item.end_date.sort((a, b) => a - b)[0] : null,
-    harvest_date: item.harvest_date.length ? item.harvest_date.sort((a, b) => a - b)[0] : null
-  }));
-}
-
-// Fetch Barangay names
-async function fetchBarangayNames() {
-  const barangaysCollection = collection(db, "tb_barangay");
-  const barangaysSnapshot = await getDocs(barangaysCollection);
-  const barangayNames = barangaysSnapshot.docs.map(doc => doc.data().barangay_name);
-  populateBarangayDropdown(barangayNames);
-}
-
-function populateBarangayDropdown(barangayNames) {
-  const barangaySelect = document.querySelector(".barangay_select");
-  if (!barangaySelect) {
-    console.error("Barangay dropdown not found!");
-    return;
-  }
-  const firstOption = barangaySelect.querySelector("option")?.outerHTML || "";
-  barangaySelect.innerHTML = firstOption;
-
-  barangayNames.forEach(barangayName => {
-    const option = document.createElement("option");
-    option.textContent = barangayName;
-    option.value = barangayName;
-    barangaySelect.appendChild(option);
-  });
-}
-
-// Fetch Crop Type names
-async function fetchCropTypeNames() {
-  const cropTypesCollection = collection(db, "tb_crop_types");
-  const cropTypesSnapshot = await getDocs(cropTypesCollection);
-  const cropTypeNames = cropTypesSnapshot.docs.map(doc => doc.data().crop_type_name);
-  populateCropTypeDropdown(cropTypeNames);
-}
-
-function populateCropTypeDropdown(cropTypeNames) {
-  const cropSelect = document.querySelector(".crop_select");
-  if (!cropSelect) {
-    console.error("Crop type dropdown not found!");
-    return;
-  }
-  const firstOption = cropSelect.querySelector("option")?.outerHTML || "";
-  cropSelect.innerHTML = firstOption;
-
-  cropTypeNames.forEach(cropTypeName => {
-    const option = document.createElement("option");
-    option.textContent = cropTypeName;
-    option.value = cropTypeName;
-    cropSelect.appendChild(option);
-  });
 }
 
 function parseDate(dateValue) {
@@ -192,26 +94,27 @@ function sortHarvestByCropType() {
 
 function filterHarvest() {
   const searchQuery = document.getElementById("harvest-search-bar").value.toLowerCase().trim();
-  const selectedBarangay = document.querySelector(".barangay_select").value.toLowerCase();
-  const selectedCropType = document.querySelector(".crop_select").value.toLowerCase();
 
   filteredHarvest = [...originalHarvestList];
 
   if (searchQuery) {
     filteredHarvest = filteredHarvest.filter(harvest => {
+      const cropName = harvest.crop_name?.toLowerCase() || "";
+      const cropTypeName = harvest.crop_type_name?.toLowerCase() || "";
+      const harvestDate = harvest.harvest_date ? formatDate(parseDate(harvest.harvest_date)).toLowerCase() : "";
+      const endDate = harvest.end_date ? formatDate(parseDate(harvest.end_date)).toLowerCase() : "";
+      const startDate = harvest.start_date ? formatDate(parseDate(harvest.start_date)).toLowerCase() : "";
+      const totalHarvestedCrops = harvest.total_harvested_crops ? harvest.total_harvested_crops.toString().toLowerCase() : "";
+
       return (
-        harvest.crop_name?.toLowerCase().includes(searchQuery) ||
-        harvest.crop_type_name?.toLowerCase().includes(searchQuery)
+        cropName.includes(searchQuery) ||
+        cropTypeName.includes(searchQuery) ||
+        harvestDate.includes(searchQuery) ||
+        endDate.includes(searchQuery) ||
+        startDate.includes(searchQuery) ||
+        totalHarvestedCrops.includes(searchQuery)
       );
     });
-  }
-
-  if (selectedBarangay) {
-    filteredHarvest = filteredHarvest.filter(harvest => harvest.barangay_name?.toLowerCase().includes(selectedBarangay));
-  }
-
-  if (selectedCropType) {
-    filteredHarvest = filteredHarvest.filter(harvest => harvest.crop_type_name?.toLowerCase() === selectedCropType);
   }
 
   if (selectedMonth) {
@@ -289,14 +192,14 @@ function displayHarvest(harvestList) {
     const row = document.createElement("tr");
     const commodity = harvest.crop_type_name || "N/A";
     const cropType = harvest.crop_name || "N/A";
-    const farmersCount = harvest.farmer_name?.length || 0;
+    const farmersCount = harvest.farmer_name?.length || (harvest.farmer_name ? 1 : 0);
     const barangay = harvest.barangay_name || "N/A";
     const areaPlanted = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
-    const startDate = harvest.start_date ? formatDate(harvest.start_date) : "N/A";
+    const startDate = harvest.start_date ? formatDate(parseDate(harvest.start_date)) : "N/A";
     const areaHarvested = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
-    const endDate = harvest.end_date ? formatDate(harvest.end_date) : "N/A";
-    const production = harvest.total_harvest_crops_mt ? `${harvest.total_harvest_crops_mt} mt` : "N/A";
-    const harvestDate = harvest.harvest_date ? formatDate(harvest.harvest_date) : "N/A";
+    const endDate = harvest.end_date ? formatDate(parseDate(harvest.end_date)) : "N/A";
+    const production = harvest.total_harvested_crops ? `${convertToMetricTons(harvest.total_harvested_crops)} mt` : "N/A";
+    const harvestDate = harvest.harvest_date ? formatDate(parseDate(harvest.harvest_date)) : "N/A";
 
     row.innerHTML = `
       <td>${commodity}</td>
@@ -327,8 +230,6 @@ function updatePaginationButtons() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  fetchBarangayNames();
-  fetchCropTypeNames();
   fetchHarvest();
 
   const calendarIcon = document.querySelector('.calendar-btn-icon');
@@ -373,8 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById("harvest-search-bar").addEventListener("input", filterHarvest);
-  document.querySelector(".barangay_select").addEventListener("change", filterHarvest);
-  document.querySelector(".crop_select").addEventListener("change", filterHarvest);
 
   document.getElementById("harvest-prev-page").addEventListener("click", () => {
     if (currentPage > 1) {
@@ -412,8 +311,6 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const middleName = farmerData.middle_name ? `${farmerData.middle_name.charAt(0)}.` : "";
   const lastName = farmerData.last_name || "User";
   const fullName = `${firstName} ${middleName} ${lastName}`.trim();
-  const userTypePrint = farmerData.user_type || "Unknown";
-
   const currentDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -423,14 +320,14 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const tableData = filteredHarvest.map((harvest) => {
     const commodity = harvest.crop_type_name || "N/A";
     const cropType = harvest.crop_name || "N/A";
-    const farmersCount = harvest.farmer_name?.length || 0;
+    const farmersCount = harvest.farmer_name?.length || (harvest.farmer_name ? 1 : 0);
     const barangay = harvest.barangay_name || "N/A";
     const areaPlanted = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
-    const startDate = harvest.start_date ? formatDate(harvest.start_date) : "N/A";
+    const startDate = harvest.start_date ? formatDate(parseDate(harvest.start_date)) : "N/A";
     const areaHarvested = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
-    const endDate = harvest.end_date ? formatDate(harvest.end_date) : "N/A";
-    const production = harvest.total_harvest_crops_mt ? `${harvest.total_harvest_crops_mt} mt` : "N/A";
-    const harvestDate = harvest.harvest_date ? formatDate(harvest.harvest_date) : "N/A";
+    const endDate = harvest.end_date ? formatDate(parseDate(harvest.end_date)) : "N/A";
+    const production = harvest.total_harvested_crops ? `${convertToMetricTons(harvest.total_harvested_crops)} mt` : "N/A";
+    const harvestDate = harvest.harvest_date ? formatDate(parseDate(harvest.harvest_date)) : "N/A";
 
     return [
       commodity,
@@ -447,7 +344,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   });
 
   const columns = [
-    "Commodity", "Type of Crop", "No. of Farmers Served", "Barangay",
+    "Commodity", "Type of Crop", "No. of Farmers", "Barangay",
     "Area Planted (ha)", "To Date", "Area Harvested (ha)", "To Date", "Production (mt)", "To Date"
   ];
 
