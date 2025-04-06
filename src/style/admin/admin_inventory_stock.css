@@ -678,15 +678,13 @@ transition: color 0.3s ease;
 .crop-cancel,
 .fert-cancel,
 .equip-cancel {
-  background: #8b8989;
+  background: #C3C3C3;
   color: white;
 }
 .crop-cancel:hover,
 .fert-cancel:hover,
 .equip-cancel:hover{
-  background: #7c7a7a;
-  transition: background-color 0.3s ease;
-  color: white;
+  opacity: 0.8;
 }
 
 .crop-stock-message,
