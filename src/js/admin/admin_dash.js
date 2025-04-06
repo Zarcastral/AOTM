@@ -24,7 +24,8 @@ const auth = getAuth();
 document.addEventListener("DOMContentLoaded", () => {
     initializeDashboard();
 });
-// Authentication function (unchanged)
+
+// Authentication function
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
         onAuthStateChanged(auth, async (user) => {
@@ -56,24 +57,21 @@ async function getAuthenticatedUser() {
 function initializeDashboard() {
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // User is signed in, update the farmer count
             updateTotalFarmerCount();
             updateTotalProjectsCount();
             updateProjectStatus();
             updateBarGraph();
         } else {
-            // No user is signed in, redirect or handle accordingly
             console.log("No user is signed in");
-            // Optionally redirect to a login page
-            // window.location.href = "/login.html";
         }
     });
 }
+
 // Function to animate the counting effect
 function animateCount(element, finalCount) {
     let currentCount = 0;
-    const duration = 1000; // Animation duration in milliseconds
-    const stepTime = 16;   // Approximately 60fps
+    const duration = 1000;
+    const stepTime = 16;
     const steps = Math.ceil(duration / stepTime);
     const increment = finalCount / steps;
 
@@ -88,25 +86,17 @@ function animateCount(element, finalCount) {
         element.textContent = Math.round(currentCount).toLocaleString();
     }
 
-    // Start with 0
     element.textContent = "0";
     requestAnimationFrame(updateCount);
 }
 
 // Function to fetch and update the farmer count
-// NEEDS TO HAVE A RESTRICTION OF ONLY FETCHING TOTAL FARMER ACCOUNTS PER YEAR
 async function updateTotalFarmerCount() {
     try {
-        // Reference to the tb_farmers collection
         const farmersCollection = collection(db, "tb_farmers");
-
-        // Get all documents in the collection
         const farmersSnapshot = await getDocs(farmersCollection);
-
-        // Get the total number of farmers
         const farmerCount = farmersSnapshot.size;
-
-        // Update the DOM with the farmer count
+        
         const farmerElementCount = document.querySelector("#total-farmers");
         if (farmerElementCount) {
             animateCount(farmerElementCount, farmerCount);
@@ -118,50 +108,34 @@ async function updateTotalFarmerCount() {
     }
 }
 
-// Function to fetch and update the projects count
-// NEEDS TO HAVE A RESTRICTION OF ONLY FETCHING TOTAL PROJECTS PER MONTH
-
 // Function to fetch and update projects count for current month
 async function updateTotalProjectsCount() {
     try {
-        // Get authenticated user first
         const currentUser = await getAuthenticatedUser();
-        
-        // Reference to the tb_projects collection
         const projectsCollection = collection(db, "tb_projects");
-
-        // Get current date and set start/end of current month
+        
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-        // Create base query
         const baseQuery = query(projectsCollection);
-
-        // Get all documents (we'll filter client-side for the creator fields)
         const projectsSnapshot = await getDocs(baseQuery);
 
-        // Filter documents client-side for both date and creator match
         let projectCount = 0;
         projectsSnapshot.forEach(doc => {
             const data = doc.data();
-            
-            // Check if document has either field and matches current user's user_type
             const creatorMatch = (data.project_created_by === currentUser.user_type) || 
-                               (data.project_creator === currentUser.user_type);
+                              (data.project_creator === currentUser.user_type);
             
-            // Convert timestamp to date
             const dateCreated = data.date_created instanceof Timestamp 
                 ? data.date_created.toDate() 
                 : new Date(data.date_created);
             
-            // Count if both creator matches and date is in current month
             if (creatorMatch && dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
                 projectCount++;
             }
         });
 
-        // Update the DOM with the project count
         const projectElementCount = document.querySelector("#total-projects");
         if (projectElementCount) {
             animateCount(projectElementCount, projectCount);
@@ -172,11 +146,12 @@ async function updateTotalProjectsCount() {
         console.error("Error fetching project count:", error);
     }
 }
+
 // Function to animate the conic gradient
 function animateGradient(element, finalPercentage, color) {
     let currentPercentage = 0;
-    const duration = 500; // Animation duration in milliseconds
-    const stepTime = 16;   // Approximately 60fps
+    const duration = 500;
+    const stepTime = 16;
     const steps = Math.ceil(duration / stepTime);
     const increment = finalPercentage / steps;
 
@@ -197,37 +172,54 @@ function animateGradient(element, finalPercentage, color) {
 // Function to fetch and update project status counts
 async function updateProjectStatus() {
     try {
+        const currentUser = await getAuthenticatedUser();
+        
+        // Fetch all projects and filter client-side instead of using compound query
         const projectsCollection = collection(db, "tb_projects");
+        const projectsSnapshot = await getDocs(projectsCollection);
 
-        // Get all projects with project_id
-        const allProjectsSnapshot = await getDocs(query(projectsCollection, where("project_id", "!=", null)));
-        const totalProjects = allProjectsSnapshot.size;
+        const historyCollection = collection(db, "tb_project_history");
+        const historyQuery = query(
+            historyCollection,
+            where("project_creator", "==", currentUser.user_type)
+        );
+        const historySnapshot = await getDocs(historyQuery);
 
-        // Count statuses with case-insensitive comparison
         let completedCount = 0;
         let ongoingCount = 0;
         let pendingCount = 0;
 
-        allProjectsSnapshot.forEach(doc => {
-            const status = doc.data().status?.toLowerCase();
-            if (status === "completed") completedCount++;
-            else if (status === "ongoing") ongoingCount++;
-            else if (status === "pending") pendingCount++;
+        // Filter tb_projects client-side
+        projectsSnapshot.forEach(doc => {
+            const data = doc.data();
+            const status = data.status?.toLowerCase();
+            const hasProjectId = data.project_id !== null && data.project_id !== undefined;
+            const creatorMatch = data.project_creator === currentUser.user_type;
+
+            if (hasProjectId && creatorMatch) {
+                if (status === "ongoing") ongoingCount++;
+                else if (status === "pending") pendingCount++;
+            }
         });
 
-        // Calculate percentages
+        // Count from tb_project_history
+        historySnapshot.forEach(doc => {
+            const status = doc.data().status?.toLowerCase();
+            if (status === "completed" || status === "complete") completedCount++;
+        });
+
+        const totalProjects = completedCount + ongoingCount + pendingCount;
+
         const completedPercentage = totalProjects > 0 ? (completedCount / totalProjects) * 100 : 0;
         const inProgressPercentage = totalProjects > 0 ? (ongoingCount / totalProjects) * 100 : 0;
         const notStartedPercentage = totalProjects > 0 ? (pendingCount / totalProjects) * 100 : 0;
 
-        // Update the DOM with the counts and animate gradients
         const completedElement = document.getElementById("total-completed-projects");
         const inProgressElement = document.getElementById("total-inprogress-projects");
         const notStartedElement = document.getElementById("total-notstarted-projects");
 
         if (completedElement) {
             completedElement.setAttribute("data-count", completedCount.toLocaleString());
-            // Start with empty gradient
             completedElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #41A186 100% 100%)`;
             animateGradient(completedElement, completedPercentage, "#41A186");
         } else {
@@ -236,7 +228,6 @@ async function updateProjectStatus() {
 
         if (inProgressElement) {
             inProgressElement.setAttribute("data-count", ongoingCount.toLocaleString());
-            // Start with empty gradient
             inProgressElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #6277B3 100% 100%)`;
             animateGradient(inProgressElement, inProgressPercentage, "#6277B3");
         } else {
@@ -245,7 +236,6 @@ async function updateProjectStatus() {
 
         if (notStartedElement) {
             notStartedElement.setAttribute("data-count", pendingCount.toLocaleString());
-            // Start with empty gradient
             notStartedElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #F28F8F 100% 100%)`;
             animateGradient(notStartedElement, notStartedPercentage, "#F28F8F");
         } else {
@@ -263,7 +253,6 @@ async function updateBarGraph() {
     const analyticsSection = document.querySelector('.analytics-section');
     const yearSelector = document.querySelector('#year-selector');
 
-    // Create canvas for grid lines (behind everything)
     const gridCanvas = document.createElement('canvas');
     const gridCtx = gridCanvas.getContext('2d');
     gridCanvas.style.position = 'absolute';
@@ -274,7 +263,6 @@ async function updateBarGraph() {
     barChart.style.position = 'relative';
     barChart.appendChild(gridCanvas);
 
-    // Create canvas for dashed lines (on top of everything)
     const dashCanvas = document.createElement('canvas');
     const dashCtx = dashCanvas.getContext('2d');
     dashCanvas.style.position = 'absolute';
@@ -284,7 +272,6 @@ async function updateBarGraph() {
     dashCanvas.style.zIndex = '3';
     barChart.appendChild(dashCanvas);
 
-    // Create tooltip element
     const tooltip = document.createElement('div');
     tooltip.style.position = 'absolute';
     tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
@@ -299,28 +286,27 @@ async function updateBarGraph() {
 
     let labelPositions = [];
 
-    // Populate year selector with current year + previous 5 years
     const populateYearSelector = () => {
         const currentYear = new Date().getFullYear();
         const years = [];
-        
-        // Add current year and previous 5 years (6 total)
         for (let i = 0; i < 6; i++) {
             years.push(currentYear - i);
         }
-
         yearSelector.innerHTML = years.map(year => 
             `<option value="${year}">${year}</option>`
         ).join('');
-        
         yearSelector.value = currentYear.toString();
     };
 
-    // Fetch data from tb_harvest and aggregate by month for selected year
     const fetchHarvestData = async (selectedYear) => {
         try {
-            const harvestCollection = collection(db, 'tb_harvest');
-            const harvestSnapshot = await getDocs(harvestCollection);
+            const currentUser = await getAuthenticatedUser();
+            const harvestCollection = collection(db, 'tb_validatedharvest');
+            const harvestQuery = query(
+                harvestCollection,
+                where("project_creator", "==", currentUser.user_type)
+            );
+            const harvestSnapshot = await getDocs(harvestQuery);
             
             const monthlyTotals = Array(12).fill(0);
 
@@ -347,12 +333,11 @@ async function updateBarGraph() {
 
             return monthlyTotals;
         } catch (error) {
-            console.error('Error fetching harvest data:', error);
+            console.error('Error fetching validated harvest data:', error);
             return Array(12).fill(0);
         }
     };
 
-    // Set bar heights based on fetched data
     const setBarHeights = async (selectedYear) => {
         const monthlyTotals = await fetchHarvestData(selectedYear);
         const maxDataValue = Math.max(...monthlyTotals);
@@ -670,8 +655,7 @@ async function updateBarGraph() {
         highlightHighestBar();
     };
 
-    // Initial setup
-    populateYearSelector(); // Now independent of chart update
+    populateYearSelector();
     updateChart(yearSelector.value);
 
     yearSelector.addEventListener('change', async (e) => {

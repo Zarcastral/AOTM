@@ -315,28 +315,21 @@ th {
   font-weight: 600;
 }
 
-th:nth-child(5),
-td:nth-child(5) {
-  width: 150px; /* Adjusted width for the barangay column */
-  min-width: 150px; /* Minimum width to ensure usability */
+th:nth-child(1),
+td:nth-child(1) {
+  width: 100px; /* Adjusted width for the barangay column */
+  min-width: 100px; /* Minimum width to ensure usability */
 }
 
-th:nth-child(6),
-td:nth-child(6) {
-  width: 150px; /* Adjusted width for the Area Planted column */
-  min-width: 150px; /* Minimum width to ensure usability */
+th:nth-child(2),
+td:nth-child(2) {
+  width: 100px; /* Adjusted width for the Area Planted column */
+  min-width: 100px; /* Minimum width to ensure usability */
 }
-
-th:nth-child(7),
-td:nth-child(7) {
-  width: 150px; /* Adjusted width for the To Date column */
-  min-width: 150px; /* Minimum width to ensure usability */
-}
-
-th:last-child,
-td:last-child {
-  width: 70px; /* Fixed width for the To Date column after Production */
-  min-width: 70px; /* Minimum width to ensure usability */
+th:nth-child(3),
+td:nth-child(3) {
+  width: 50px; /* Adjusted width for the Area Planted column */
+  min-width: 50px; /* Minimum width to ensure usability */
 }
 
 tbody tr:hover {

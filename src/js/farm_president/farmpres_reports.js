@@ -61,21 +61,51 @@ async function getAuthenticatedUser() {
   });
 }
 
-// Fetch harvest data from tb_harvest filtered by farmer_id
+// Fetch harvest data from tb_harvest and tb_harvest_history filtered by farmer_id
 async function fetchHarvest() {
   try {
     const user = await getAuthenticatedUser();
+    
+    // Reference to both collections
     const harvestCollection = collection(db, "tb_harvest");
-    const harvestQuery = query(harvestCollection, where("farm_pres_id", "==", user.farmer_id));
+    const harvestHistoryCollection = collection(db, "tb_harvest_history");
 
-    onSnapshot(harvestQuery, (harvestSnapshot) => {
-      const harvestData = harvestSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      harvestList = consolidateHarvestByCropType(harvestData);
-      originalHarvestList = harvestList;
-      filterHarvest();
+    // Queries for both collections filtering by farm_pres_id
+    const harvestQuery = query(harvestCollection, where("farm_pres_id", "==", user.farmer_id));
+    const harvestHistoryQuery = query(harvestHistoryCollection, where("farm_pres_id", "==", user.farmer_id));
+
+    // Combine data from both collections
+    harvestList = [];
+    
+    // Listen to tb_harvest
+    const unsubscribeHarvest = onSnapshot(harvestQuery, (harvestSnapshot) => {
+      const harvestData = harvestSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: "tb_harvest" }));
+      updateHarvestList(harvestData, "tb_harvest");
     }, (error) => {
-      console.error("Error listening to Harvest:", error);
+      console.error("Error listening to tb_harvest:", error);
     });
+
+    // Listen to tb_harvest_history
+    const unsubscribeHistory = onSnapshot(harvestHistoryQuery, (historySnapshot) => {
+      const historyData = historySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: "tb_harvest_history" }));
+      updateHarvestList(historyData, "tb_harvest_history");
+    }, (error) => {
+      console.error("Error listening to tb_harvest_history:", error);
+    });
+
+    // Function to update harvestList and trigger display
+    function updateHarvestList(newData, source) {
+      // Filter out existing records from the same source
+      harvestList = harvestList.filter(item => item.source !== source);
+      // Add new data
+      harvestList = [...harvestList, ...newData];
+      originalHarvestList = harvestList;
+      const consolidatedData = consolidateHarvestByCropType(harvestList);
+      harvestList = consolidatedData;
+      originalHarvestList = consolidatedData;
+      filterHarvest();
+    }
+
   } catch (error) {
     console.error("Error fetching Harvest:", error);
   }

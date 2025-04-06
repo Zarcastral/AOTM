@@ -109,35 +109,27 @@ async function updateTotalFarmerCount() {
       return;
     }
 
-    const projectsQuery = query(
-      collection(db, "tb_projects"),
+    // Query tb_teams where lead_farmer_id matches the authenticated user's farmer_id
+    const teamsQuery = query(
+      collection(db, "tb_teams"),
       where("lead_farmer_id", "==", farmerId)
     );
-    const projectsSnapshot = await getDocs(projectsQuery);
+    const teamsSnapshot = await getDocs(teamsQuery);
 
     let totalFarmerCount = 0;
 
-    for (const projectDoc of projectsSnapshot.docs) {
-      const projectData = projectDoc.data();
-      const teamId = projectData.team_id;
+    // Iterate through each team document
+    teamsSnapshot.forEach((teamDoc) => {
+      const teamData = teamDoc.data();
+      const farmerNameArray = teamData.farmer_name;
 
-      if (teamId) {
-        const teamsQuery = query(
-          collection(db, "tb_teams"),
-          where("team_id", "==", teamId)
-        );
-        const teamsSnapshot = await getDocs(teamsQuery);
-
-        teamsSnapshot.forEach((teamDoc) => {
-          const teamData = teamDoc.data();
-          const farmerNameArray = teamData.farmer_name;
-          if (Array.isArray(farmerNameArray)) {
-            totalFarmerCount += farmerNameArray.length;
-          }
-        });
+      // Check if farmer_name is an array and count its length
+      if (Array.isArray(farmerNameArray)) {
+        totalFarmerCount += farmerNameArray.length;
       }
-    }
+    });
 
+    // Update the DOM with the animated count
     const farmerElementCount = document.querySelector("#total-farmers");
     if (farmerElementCount) {
       animateCount(farmerElementCount, totalFarmerCount);
@@ -149,13 +141,17 @@ async function updateTotalFarmerCount() {
   }
 }
 
-// Function to update the bar graph (unchanged)
+// Function to update the bar graph
 async function updateBarGraph() {
   const bars = document.querySelectorAll(".bar");
   const yAxis = document.querySelector(".y-axis");
   const barChart = document.querySelector(".bar-chart");
   const analyticsSection = document.querySelector(".analytics-section");
   const yearSelector = document.querySelector("#year-selector");
+
+  // Get the authenticated user's farmerId
+  const currentUser = await getAuthenticatedUser();
+  const farmerId = currentUser.farmer_id;
 
   const gridCanvas = document.createElement("canvas");
   const gridCtx = gridCanvas.getContext("2d");
@@ -205,14 +201,14 @@ async function updateBarGraph() {
     yearSelector.value = currentYear.toString();
   };
 
-  const fetchHarvestData = async (selectedYear) => {
+  const fetchHarvestData = async (selectedYear, farmerId) => {
     try {
-      const harvestDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data");
-      const subCollectionRef = collection(
-        harvestDocRef,
-        "tb_headfarmer_harvest"
+      // Query tb_validatedharvest where lead_farmer_id matches the authenticated user's farmer_id
+      const harvestQuery = query(
+        collection(db, "tb_validatedharvest"),
+        where("lead_farmer_id", "==", farmerId)
       );
-      const harvestSnapshot = await getDocs(subCollectionRef);
+      const harvestSnapshot = await getDocs(harvestQuery);
 
       const monthlyTotals = Array(12).fill(0);
 
@@ -245,7 +241,7 @@ async function updateBarGraph() {
   };
 
   const setBarHeights = async (selectedYear) => {
-    const monthlyTotals = await fetchHarvestData(selectedYear);
+    const monthlyTotals = await fetchHarvestData(selectedYear, farmerId);
     const maxDataValue = Math.max(...monthlyTotals);
 
     bars.forEach((bar, index) => {

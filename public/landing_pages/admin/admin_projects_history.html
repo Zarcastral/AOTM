@@ -3,33 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="../../../src/js/admin/admin_projects_list.js"></script>
+    <script type="module" src="../../../src/js/admin/admin_projects_history.js"></script>
     <title>PROJECTS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/src/style/admin/admin_projects_list.css">
+    <link rel="stylesheet" href="/src/style/admin/admin_projects_history.css">
 </head>
 <body>
-   <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
-  <div class="main-content">
-      <div class="project-selector">
-          <span class="project-list"><a href="../admin/admin_projects_list.html">Project List</a></span> <div class="rando-line">|</div>
-          <span class="project-history"><a href="../admin/admin_projects_history.html">Project History</a></span>
+    <div class="main-content">
+        <div class="project-selector">
+            <span class="project-list"><a href="../admin/admin_projects_list.html">Project List</a></span> <div class="rando-line">|</div>
+            <span class="project-history"><a href="../admin/admin_projects_history.html">Project History</a></span>
         </div>
-      <!-- Button for New Project -->
-      <div class="btn-container">
-          <a href="projects.html" class="add-project-btn">+ New Project</a>
-        </div>
-
-        <section id="title">CURRENT PROJECTS</section>
+        <section id="title">COMPLETED PROJECTS</section>
 
         <div class="panel">
     <div class="table-wrapper">
         <div class="search-container">
-           <input type="text" id="search-bar" placeholder="Search" /> 
-            <select id="status_select">
-                <option value="">Status</option>
+            <input type="text" id="search-bar" placeholder="Search" /> 
+            <select id="barangay-select">
+                <option value="">Select Barangay</option>
                 <!-- record will be dynamically added here -->
             </select>
         </div>
@@ -38,12 +33,12 @@
                         <tr>
                             <th>PROJECT NAME</th>
                             <th>FARM PRESIDENT</th>
+                            <th>LEAD FARMER</th>
                             <th>START DATE</th>
                             <th>END DATE</th>
+                            <th>CROP TYPE</th>
                             <th>CROP</th>
-                            <th>PROGRESS</th>
                             <th>STATUS</th>
-                            <th>ACTION</th>  
                         </tr>
                     </thead>
                     <tbody id="table_body">
@@ -73,10 +68,9 @@
     </div>
     <!-- Import the reusable script from src/auth -->
   <script type="module" src="../../../src/auth/header.js"></script>
-  
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const reportLinks = document.querySelectorAll(".project-list a");
+        const reportLinks = document.querySelectorAll(".project-history a");
   
         // Debugging: Log all links and their hrefs
   
