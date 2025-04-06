@@ -548,7 +548,7 @@ cursor: not-allowed;
   background-color: white;
   color: #41A186;
   padding: 10px 20px;
-  font-size: 23px;
+  font-size: 20px;
   font-weight: 400;
   text-align: center;
   border-radius: 20px;
@@ -632,18 +632,20 @@ margin-top: 20px;
 .submit-harvest-btn {
   background-color: #41A186;
   color: white;
-  padding: 20px 30px;
-  font-weight: 700;
-  font-size: 18px;
+  padding: 15px 30px;
+  font-weight: 600;
+  font-size: 15px;
   border: none;
   border-radius: 40px;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-top: -20px;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
   }
   
   .submit-harvest-icon {
-  width: 25px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
   vertical-align: middle;
   margin-top: -4px; /* Nudges the icon closer to the text */
