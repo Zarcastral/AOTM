@@ -87,11 +87,10 @@ async function fetchEquipments() {
   try {
     await getAuthenticatedFarmer();
 
-    // Fetch Ongoing projects where farmer_id AND lead_farmer_id match current user
+    // Fetch Ongoing projects where lead_farmer_id matches current user's farmer_id
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
-      where("farmer_id", "==", currentFarmerId),
       where("lead_farmer_id", "==", currentFarmerId),
       where("status", "==", "Ongoing")
     );
@@ -172,7 +171,7 @@ function displayEquipments(equipmentsList) {
   if (paginatedEquipments.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center; ">You are not the Farm Leader for any Ongoing Projects</td>
+        <td colspan="6" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
       </tr>
     `;
     return;
@@ -252,7 +251,6 @@ function populateEquipmentDropdown(equipmentNames) {
 async function fetchProjectNames() {
   const projectsQuery = query(
     collection(db, "tb_projects"),
-    where("farmer_id", "==", currentFarmerId),
     where("lead_farmer_id", "==", currentFarmerId),
     where("status", "==", "Ongoing")
   );
