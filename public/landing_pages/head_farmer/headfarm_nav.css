@@ -21,7 +21,6 @@ html, body {
   z-index: 50;
   transition: transform 0.3s ease-in-out;
 }
-
 .logo-container {
   display: flex;
   align-items: center;

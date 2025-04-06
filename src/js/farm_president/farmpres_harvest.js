@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let isSaving = false;
 
   saveHarvestBtn.addEventListener("click", async () => {
-    if (isSaving) return;
+    if (isSaving) return; // Prevent multiple clicks
     isSaving = true;
     saveHarvestBtn.disabled = true;
     closeHarvestBtn.disabled = true;
@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   updateHarvestBtn.addEventListener("click", async () => {
-    if (isSaving) return;
+    if (isSaving) return; // Prevent multiple clicks
     isSaving = true;
     updateHarvestBtn.disabled = true;
     closeHarvestBtn.disabled = true;
@@ -216,9 +216,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   submitHarvestModalBtn.addEventListener("click", async () => {
-    await submitHarvestToTbHarvest();
-    await fetchProjectsAndTeams();
-    await fetchHarvestDocsForSubmit();
+    if (isSaving) return; // Prevent multiple clicks
+    isSaving = true;
+    submitHarvestModalBtn.disabled = true;
+    closeHarvestBtn.disabled = true; // Disable cancel button during submission
+    closeBtn.disabled = true;
+
+    try {
+      await submitHarvestToTbHarvest();
+      await fetchProjectsAndTeams();
+      await fetchHarvestDocsForSubmit();
+    } catch (error) {
+      console.error("Submit failed:", error);
+    } finally {
+      isSaving = false;
+      submitHarvestModalBtn.disabled = false;
+      closeHarvestBtn.disabled = false; // Re-enable cancel button after completion
+      closeBtn.disabled = false;
+    }
   });
 
   function applyFilters() {
