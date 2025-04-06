@@ -122,7 +122,7 @@ async function getAuthenticatedUser() {
 
         // Crop type filter
         const matchesCropType = selectedCropType
-            ? harvest.crop_type?.toLowerCase() === selectedCropType
+            ? harvest.crop_type_name?.toLowerCase() === selectedCropType
             : true;
 
         // Barangay filter
@@ -294,7 +294,7 @@ function displayHarvest(harvestList) {
     const assignedTo = harvest.farm_president || "N/A";
     const barangayName = harvest.barangay_name || "N/A";
     const cropName = harvest.crop_name || "N/A";
-    const cropType = harvest.crop_type || "N/A";
+    const cropType = harvest.crop_type_name || "N/A";
     const totalHarvest = harvest.total_harvested_crops || "N/A";
     const unit = harvest.unit || "N/A";
     row.innerHTML = `
@@ -345,7 +345,7 @@ async function openHarvestReportModal(harvestId) {
     document.getElementById("modal-unit").value = harvestData.unit || "kg";
     document.getElementById("modal-farm-president").value = harvestData.farm_president || "N/A";
     document.getElementById("modal-barangay").value = harvestData.barangay_name || "N/A";
-    document.getElementById("modal-crop-type").value = harvestData.crop_type || "N/A";
+    document.getElementById("modal-crop-type").value = harvestData.crop_type_name || "N/A";
     document.getElementById("modal-crop").value = harvestData.crop_name || "N/A";
 
     // Fetch the farmer_list array from the harvest document
