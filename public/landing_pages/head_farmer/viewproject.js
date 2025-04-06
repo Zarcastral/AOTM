@@ -236,7 +236,7 @@ if (noFeedbackMessage) {
 
 async function displayFeedbacks(projectId) {
     const feedbackListContainer = document.getElementById("feedbackList");
-    feedbackListContainer.innerHTML = "<p>Loading feedbacks...</p>";
+    feedbackListContainer.innerHTML = '<p class="feedback-list-empty">Loading feedbacks...</p>';
 
     try {
         const feedbackRef = collection(db, "tb_feedbacks");
