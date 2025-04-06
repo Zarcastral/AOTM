@@ -1077,7 +1077,23 @@ window.saveProject = async function () {
     await processFertilizerStockAfterUse(projectID);
     await processEquipmentStockAfterUse(projectID);
 
-    // Notification logic after saving to tb_projects and updating stock
+    // Add notification for successful project creation
+    const notificationData = {
+      description: `Project ${projectID} is created for you to manage, Please assign a team lead for this project`,
+      project_id: projectID,
+      read: false,
+      recipient: farmerId,
+      timestamp: Timestamp.now(),
+      title: "NEW PROJECT",
+      type: "", // Empty string as specified
+    };
+
+    await addDoc(collection(db, "tb_notifications"), notificationData);
+    console.log(
+      `✅ Notification added for project ${projectID} to farmer ${farmerId}`
+    );
+
+    // Existing notification logic for low stock
     const projectDetails = await fetchProjectDetails(projectID);
     if (projectDetails) {
       const { crop_type_name, project_created_by, crop_name } = projectDetails;
@@ -1100,7 +1116,6 @@ window.saveProject = async function () {
           const threshold = 100;
           const notificationsRef = collection(db, "tb_notifications");
 
-          // Check for existing notifications with notify: "no"
           const qNo = query(
             notificationsRef,
             where("type", "==", "low_stock"),
@@ -1115,7 +1130,6 @@ window.saveProject = async function () {
               `Notification for ${crop_type_name} already exists with notify: "no", skipping.`
             );
           } else {
-            // Check for existing notifications with notify: "yes"
             const qYes = query(
               notificationsRef,
               where("type", "==", "low_stock"),
@@ -1126,7 +1140,6 @@ window.saveProject = async function () {
             const existingYesSnapshot = await getDocs(qYes);
 
             if (!existingYesSnapshot.empty) {
-              // Save new notification with notify: "no"
               await debouncedAddLowStockNotification(
                 crop_type_name,
                 newStock,
@@ -1135,7 +1148,6 @@ window.saveProject = async function () {
                 project_created_by
               );
 
-              // Update existing notifications to notify: "no"
               const updateNotifyPromises = existingYesSnapshot.docs.map(
                 (notifyDoc) => updateDoc(notifyDoc.ref, { notify: "no" })
               );
@@ -1144,7 +1156,6 @@ window.saveProject = async function () {
                 `Updated existing notifications for ${crop_type_name} to notify: "no".`
               );
             } else {
-              // No existing notification, save one with notify: "no"
               await debouncedAddLowStockNotification(
                 crop_type_name,
                 newStock,
