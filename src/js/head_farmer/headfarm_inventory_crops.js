@@ -87,11 +87,10 @@ async function fetchCrops() {
   try {
     await getAuthenticatedFarmer();
 
-    // Fetch Ongoing projects where farmer_id AND lead_farmer_id match current user
+    // Fetch Ongoing projects where lead_farmer_id matches current user's farmer_id
     const projectsCollection = collection(db, "tb_projects");
     const ongoingQuery = query(
       projectsCollection,
-      where("farmer_id", "==", currentFarmerId),
       where("lead_farmer_id", "==", currentFarmerId),
       where("status", "==", "Ongoing")
     );
@@ -164,7 +163,7 @@ function displayCrops(cropsList) {
   if (paginatedCrops.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center; ">You are not the Farm Leader for any Ongoing Projects</td>
+        <td colspan="6" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
       </tr>
     `;
     return;
@@ -190,7 +189,6 @@ function displayCrops(cropsList) {
   updatePagination();
 }
 
-// Pagination and dropdown functions remain the same
 document.addEventListener("DOMContentLoaded", () => {
   fetchCropNames();
   fetchProjectNames();
@@ -245,7 +243,6 @@ function populateCropDropdown(cropNames) {
 async function fetchProjectNames() {
   const projectsQuery = query(
     collection(db, "tb_projects"),
-    where("farmer_id", "==", currentFarmerId),
     where("lead_farmer_id", "==", currentFarmerId),
     where("status", "==", "Ongoing")
   );

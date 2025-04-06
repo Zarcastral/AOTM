@@ -86,7 +86,7 @@ function showAlert(message) {
   alertModal.style.display = "flex";
 
   closeAlertBtn.onclick = () => {
-    alertModal.style.display = "none"; // Fixed to hide the modal
+    alertModal.style.display = "none";
   };
 }
 
@@ -148,18 +148,19 @@ function checkSaveButtonState() {
     JSON.stringify(formattedInitialSubtasks);
 
   saveSubtasksBtn.disabled = noChangesMade || newSubtaskText !== "";
-  saveTasksBtn.disabled = newTaskText === "" && !taskListNotEmpty;
+  saveTasksBtn.disabled = newTaskText !== "" || !taskListNotEmpty;
   addSubtaskBtn.disabled = newSubtaskText === "";
+  addTaskBtn.disabled = newTaskText === "";
 }
 
 closeAddTaskModalBtn.addEventListener("click", closeAddTaskPopup);
 closeEditTaskModalBtn.addEventListener("click", closeEditTaskPopup);
-closeDuplicateSubtaskModal.addEventListener(
-  "click",
-  () => (duplicateSubtaskModal.style.display = "none")
-);
+closeDuplicateSubtaskModal.addEventListener("click", () => {
+  duplicateSubtaskModal.style.display = "none";
+});
 
 newSubtaskInput.addEventListener("input", checkSaveButtonState);
+newTaskInput.addEventListener("input", checkSaveButtonState);
 
 addTaskBtn.addEventListener("click", async () => {
   let taskName = newTaskInput.value.trim();
@@ -193,16 +194,14 @@ addTaskBtn.addEventListener("click", async () => {
   newTaskList.appendChild(li);
 
   newTaskInput.value = "";
-  checkTaskInput();
   checkSaveButtonState();
 });
 
-// Updated event listener for deleting tasks in the "Add Task" modal
 newTaskList.addEventListener("click", (e) => {
   const deleteBtn = e.target.closest(".delete-task-popup-btn");
   if (deleteBtn) {
     const li = deleteBtn.parentElement;
-    const taskName = li.textContent.trim().split(" ")[0]; // Get only the task name
+    const taskName = li.textContent.trim().split(" ")[0];
     li.remove();
     tasks = tasks.filter((task) => task !== taskName);
     checkSaveButtonState();
@@ -223,7 +222,6 @@ saveTasksBtn.addEventListener("click", async () => {
   }
 
   closeAddTaskPopup();
-  addTaskBtn.disabled = true;
   fetchTasks();
 });
 
@@ -258,9 +256,9 @@ saveSubtasksBtn.addEventListener("click", async () => {
 
 async function fetchTasks(searchQuery = "") {
   const taskList = document.getElementById("task-list");
-  taskList.style.opacity = "0"; // Fade out before updating
+  taskList.style.opacity = "0";
   taskList.innerHTML = "";
-  
+
   const querySnapshot = await getDocs(collection(db, "tb_pretask"));
 
   allTasks = [];
@@ -271,7 +269,6 @@ async function fetchTasks(searchQuery = "") {
     });
   });
 
-  // Filter tasks based on search query
   let filteredTasks = allTasks;
   if (searchQuery) {
     filteredTasks = allTasks.filter((task) =>
@@ -300,7 +297,6 @@ async function fetchTasks(searchQuery = "") {
     taskList.appendChild(row);
   }
 
-  // Fade in after updating
   setTimeout(() => {
     taskList.style.opacity = "1";
   }, 100);
@@ -367,15 +363,6 @@ cancelDeleteBtn.addEventListener("click", () => {
   taskToDeleteId = null;
   deleteConfirmationModal.style.display = "none";
 });
-
-function checkTaskInput() {
-  const taskName = newTaskInput.value.trim();
-  addTaskBtn.disabled = taskName === "";
-}
-
-newTaskInput.addEventListener("input", checkTaskInput);
-
-document.addEventListener("DOMContentLoaded", checkTaskInput);
 
 addSubtaskBtn.addEventListener("click", () => {
   let subtaskName = newSubtaskInput.value.trim();
@@ -584,7 +571,6 @@ assignTasksBtn.addEventListener("click", async () => {
         fetchAssignedTasks();
       }
 
-      // Show success modal and close assign task modal when "Okay" is clicked
       const successModal = document.getElementById("success-modal");
       const successMessage = document.getElementById("success-message");
       const closeSuccessBtn = document.getElementById("close-success-modal");
@@ -594,7 +580,7 @@ assignTasksBtn.addEventListener("click", async () => {
 
       closeSuccessBtn.onclick = () => {
         successModal.style.display = "none";
-        assignTaskModal.style.display = "none"; // Close the assign task modal
+        assignTaskModal.style.display = "none";
       };
     }
   } catch (error) {
@@ -605,18 +591,16 @@ assignTasksBtn.addEventListener("click", async () => {
   }
 });
 
-// Debounced version of fetchTasks for search
 const debouncedFetchTasks = debounce(fetchTasks, 300);
 
-// Search bar event listener with debounce
 searchBar.addEventListener("input", (e) => {
-  currentPage = 1; // Reset to first page on search
+  currentPage = 1;
   const searchQuery = e.target.value.trim();
   debouncedFetchTasks(searchQuery);
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  fetchTasks(); // Initial load without search query
+  fetchTasks();
   document
     .getElementById("open-add-task-modal")
     .addEventListener("click", function () {

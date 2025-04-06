@@ -19,15 +19,15 @@ let currentFirstName = "";
 let currentMiddleName = "";
 let currentLastName = "";
 
-let equipmentsList = [];
-let filteredEquipments = [];
+let fertilizersList = [];
+let filteredFertilizers = [];
 let currentPage = 1;
 const rowsPerPage = 5;
 
-function sortEquipmentsByDate() {
-  filteredEquipments.sort((a, b) => {
-    const dateA = parseDate(a.stock_date || a.equipmentDate);
-    const dateB = parseDate(b.stock_date || b.equipmentDate);
+function sortFertilizersByDate() {
+  filteredFertilizers.sort((a, b) => {
+    const dateA = parseDate(a.stock_date || a.fertilizerDate);
+    const dateB = parseDate(b.stock_date || b.fertilizerDate);
     return dateB - dateA; // Sort latest to oldest
   });
 }
@@ -83,35 +83,34 @@ async function getAuthenticatedFarmer() {
   });
 }
 
-async function fetchEquipments() {
+async function fetchFertilizers() {
   try {
     await getAuthenticatedFarmer();
 
-    // Fetch Ongoing projects where farmer_id AND lead_farmer_id match current user
+    // Fetch Ongoing projects where lead_farmer_id matches current user's farmer_id
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
-      where("farmer_id", "==", currentFarmerId),
       where("lead_farmer_id", "==", currentFarmerId),
       where("status", "==", "Ongoing")
     );
 
     onSnapshot(projectsQuery, async (snapshot) => {
-      const stockCollection = collection(db, "tb_equipment_stocks");
+      const stockCollection = collection(db, "tb_fertilizer_stocks");
 
-      const equipmentsData = await Promise.all(
+      const fertilizersData = await Promise.all(
         snapshot.docs.map(async (doc) => {
           const project = doc.data();
-          const equipmentArray = project.equipment || [];
-
-          // Process each equipment in the project
-          const equipmentPromises = equipmentArray.map(async (equip) => {
+          const fertilizerArray = project.fertilizer || [];
+          
+          // Process each fertilizer in the project
+          const fertilizerPromises = fertilizerArray.map(async (fert) => {
             let stockData = {};
 
-            // Fetch stock data from tb_equipment_stocks based on equipment_name
+            // Fetch stock data from tb_fertilizer_stocks based on fertilizer_name
             const stockQuery = query(
               stockCollection,
-              where("equipment_name", "==", equip.equipment_name)
+              where("fertilizer_name", "==", fert.fertilizer_name)
             );
             const stockSnapshot = await getDocs(stockQuery);
 
@@ -132,66 +131,66 @@ async function fetchEquipments() {
             return {
               project_id: project.project_id,
               project_name: project.project_name,
-              equipment_type: equip.equipment_type,
-              equipment_name: equip.equipment_name,
-              equipmentDate: project.equipment_date || null,
+              fertilizer_type: fert.fertilizer_type,
+              fertilizer_name: fert.fertilizer_name,
+              fertilizerDate: project.fertilizer_date || null,
               ...stockData,
               owned_by: currentUserType
             };
           });
 
-          return Promise.all(equipmentPromises);
+          return Promise.all(fertilizerPromises);
         })
       );
 
       // Flatten the array of arrays into a single array
-      equipmentsList = equipmentsData.flat();
-      filteredEquipments = [...equipmentsList];
-      sortEquipmentsByDate();
-      displayEquipments(filteredEquipments);
+      fertilizersList = fertilizersData.flat();
+      filteredFertilizers = [...fertilizersList];
+      sortFertilizersByDate();
+      displayFertilizers(filteredFertilizers);
     }, (error) => {
       console.error("Error listening to projects:", error);
     });
   } catch (error) {
-    console.error("Error fetching equipments:", error);
+    console.error("Error fetching fertilizers:", error);
   }
 }
 
-function displayEquipments(equipmentsList) {
-  const tableBody = document.querySelector(".equipment_table table tbody");
+function displayFertilizers(fertilizersList) {
+  const tableBody = document.querySelector(".fertilizer_table table tbody");
   if (!tableBody) {
-    console.error("Table body not found inside .equipment_table");
+    console.error("Table body not found inside .fertilizer_table");
     return;
   }
 
   tableBody.innerHTML = "";
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedEquipments = equipmentsList.slice(startIndex, endIndex);
+  const paginatedFertilizers = fertilizersList.slice(startIndex, endIndex);
 
-  if (paginatedEquipments.length === 0) {
+  if (paginatedFertilizers.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center; ">You are not the Farm Leader for any Ongoing Projects</td>
+        <td colspan="6" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
       </tr>
     `;
     return;
   }
 
-  paginatedEquipments.forEach((equipment) => {
+  paginatedFertilizers.forEach((fertilizer) => {
     const row = document.createElement("tr");
-    const date = equipment.stock_date || equipment.equipmentDate;
+    const date = fertilizer.stock_date || fertilizer.fertilizerDate;
     const dateAdded = date
       ? (date.toDate ? date.toDate().toLocaleDateString() : new Date(date).toLocaleDateString())
       : "Not recorded";
 
     row.innerHTML = `
-      <td>${equipment.project_id}</td>
-      <td>${equipment.project_name}</td>
-      <td>${equipment.equipment_name}</td>
-      <td>${equipment.equipment_type}</td>
+      <td>${fertilizer.project_id}</td>
+      <td>${fertilizer.project_name}</td>
+      <td>${fertilizer.fertilizer_name}</td>
+      <td>${fertilizer.fertilizer_type}</td>
       <td>${dateAdded}</td>
-      <td>${equipment.current_stock || "0"} ${equipment.unit || "Units"}</td>
+      <td>${fertilizer.current_stock || "0"} ${fertilizer.unit || "units"}</td>
     `;
     tableBody.appendChild(row);
   });
@@ -199,60 +198,59 @@ function displayEquipments(equipmentsList) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  fetchEquipmentNames();
+  fetchFertilizerNames();
   fetchProjectNames();
-  fetchEquipments();
+  fetchFertilizers();
 });
 
 function updatePagination() {
-  const totalPages = Math.ceil(filteredEquipments.length / rowsPerPage) || 1;
-  document.getElementById("equipment-page-number").textContent = `${currentPage} of ${totalPages}`;
+  const totalPages = Math.ceil(filteredFertilizers.length / rowsPerPage) || 1;
+  document.getElementById("fertilizer-page-number").textContent = `${currentPage} of ${totalPages}`;
   updatePaginationButtons();
 }
 
 function updatePaginationButtons() {
-  document.getElementById("equipment-prev-page").disabled = currentPage === 1;
-  document.getElementById("equipment-next-page").disabled = currentPage >= Math.ceil(filteredEquipments.length / rowsPerPage);
+  document.getElementById("fertilizer-prev-page").disabled = currentPage === 1;
+  document.getElementById("fertilizer-next-page").disabled = currentPage >= Math.ceil(filteredFertilizers.length / rowsPerPage);
 }
 
-document.getElementById("equipment-prev-page").addEventListener("click", () => {
+document.getElementById("fertilizer-prev-page").addEventListener("click", () => {
   if (currentPage > 1) {
     currentPage--;
-    displayEquipments(filteredEquipments);
+    displayFertilizers(filteredFertilizers);
   }
 });
 
-document.getElementById("equipment-next-page").addEventListener("click", () => {
-  if ((currentPage * rowsPerPage) < filteredEquipments.length) {
+document.getElementById("fertilizer-next-page").addEventListener("click", () => {
+  if ((currentPage * rowsPerPage) < filteredFertilizers.length) {
     currentPage++;
-    displayEquipments(filteredEquipments);
+    displayFertilizers(filteredFertilizers);
   }
 });
 
-async function fetchEquipmentNames() {
-  const equipmentsCollection = collection(db, "tb_equipment_types");
-  const equipmentsSnapshot = await getDocs(equipmentsCollection);
-  const equipmentNames = equipmentsSnapshot.docs.map(doc => doc.data().equipment_type_name);
-  populateEquipmentDropdown(equipmentNames);
+async function fetchFertilizerNames() {
+  const fertilizersCollection = collection(db, "tb_fertilizer_types");
+  const fertilizersSnapshot = await getDocs(fertilizersCollection);
+  const fertilizerNames = fertilizersSnapshot.docs.map(doc => doc.data().fertilizer_type_name);
+  populateFertilizerDropdown(fertilizerNames);
 }
 
-function populateEquipmentDropdown(equipmentNames) {
-  const equipmentSelect = document.querySelector(".equipment_select");
-  if (!equipmentSelect) return;
-  const firstOption = equipmentSelect.querySelector("option")?.outerHTML || "";
-  equipmentSelect.innerHTML = firstOption;
+function populateFertilizerDropdown(fertilizerNames) {
+  const fertilizerSelect = document.querySelector(".fertilizer_select");
+  if (!fertilizerSelect) return;
+  const firstOption = fertilizerSelect.querySelector("option")?.outerHTML || "";
+  fertilizerSelect.innerHTML = firstOption;
 
-  equipmentNames.forEach(equipmentName => {
+  fertilizerNames.forEach(fertilizerName => {
     const option = document.createElement("option");
-    option.textContent = equipmentName;
-    equipmentSelect.appendChild(option);
+    option.textContent = fertilizerName;
+    fertilizerSelect.appendChild(option);
   });
 }
 
 async function fetchProjectNames() {
   const projectsQuery = query(
     collection(db, "tb_projects"),
-    where("farmer_id", "==", currentFarmerId),
     where("lead_farmer_id", "==", currentFarmerId),
     where("status", "==", "Ongoing")
   );
@@ -262,7 +260,7 @@ async function fetchProjectNames() {
 }
 
 function populateProjectDropdown(projectNames) {
-  const projectSelect = document.querySelector(".equip_project_select");
+  const projectSelect = document.querySelector(".fert_project_select");
   if (!projectSelect) return;
   const firstOption = projectSelect.querySelector("option")?.outerHTML || "";
   projectSelect.innerHTML = firstOption;
@@ -275,51 +273,51 @@ function populateProjectDropdown(projectNames) {
   });
 }
 
-document.querySelector(".equipment_select").addEventListener("change", function () {
-  const selectedEquipment = this.value.toLowerCase();
-  const selectedProject = document.querySelector(".equip_project_select").value.toLowerCase();
+document.querySelector(".fertilizer_select").addEventListener("change", function () {
+  const selectedFertilizer = this.value.toLowerCase();
+  const selectedProject = document.querySelector(".fert_project_select").value.toLowerCase();
   
-  filteredEquipments = equipmentsList.filter(equipment => {
-    const matchesEquipment = selectedEquipment ? equipment.equipment_type?.toLowerCase() === selectedEquipment : true;
-    const matchesProject = selectedProject ? equipment.project_name?.toLowerCase() === selectedProject : true;
-    return matchesEquipment && matchesProject;
+  filteredFertilizers = fertilizersList.filter(fertilizer => {
+    const matchesFertilizer = selectedFertilizer ? fertilizer.fertilizer_type?.toLowerCase() === selectedFertilizer : true;
+    const matchesProject = selectedProject ? fertilizer.project_name?.toLowerCase() === selectedProject : true;
+    return matchesFertilizer && matchesProject;
   });
   
   currentPage = 1;
-  sortEquipmentsByDate();
-  displayEquipments(filteredEquipments);
+  sortFertilizersByDate();
+  displayFertilizers(filteredFertilizers);
 });
 
-document.querySelector(".equip_project_select").addEventListener("change", function () {
+document.querySelector(".fert_project_select").addEventListener("change", function () {
   const selectedProject = this.value.toLowerCase();
-  const selectedEquipment = document.querySelector(".equipment_select").value.toLowerCase();
+  const selectedFertilizer = document.querySelector(".fertilizer_select").value.toLowerCase();
   
-  filteredEquipments = equipmentsList.filter(equipment => {
-    const matchesProject = selectedProject ? equipment.project_name?.toLowerCase() === selectedProject : true;
-    const matchesEquipment = selectedEquipment ? equipment.equipment_type?.toLowerCase() === selectedEquipment : true;
-    return matchesEquipment && matchesProject;
+  filteredFertilizers = fertilizersList.filter(fertilizer => {
+    const matchesProject = selectedProject ? fertilizer.project_name?.toLowerCase() === selectedProject : true;
+    const matchesFertilizer = selectedFertilizer ? fertilizer.fertilizer_type?.toLowerCase() === selectedFertilizer : true;
+    return matchesProject && matchesFertilizer;
   });
   
   currentPage = 1;
-  sortEquipmentsByDate();
-  displayEquipments(filteredEquipments);
+  sortFertilizersByDate();
+  displayFertilizers(filteredFertilizers);
 });
 
-document.getElementById("equip-search-bar").addEventListener("input", function () {
+document.getElementById("fert-search-bar").addEventListener("input", function () {
   const searchQuery = this.value.toLowerCase().trim();
   
-  filteredEquipments = equipmentsList.filter(equipment => {
+  filteredFertilizers = fertilizersList.filter(fertilizer => {
     return (
-      (equipment.project_id?.toString().toLowerCase().includes(searchQuery)) ||
-      (equipment.project_name?.toLowerCase().includes(searchQuery)) ||
-      (equipment.equipment_name?.toLowerCase().includes(searchQuery)) ||
-      (equipment.equipment_type?.toLowerCase().includes(searchQuery))
+      (fertilizer.project_id?.toString().toLowerCase().includes(searchQuery)) ||
+      (fertilizer.project_name?.toLowerCase().includes(searchQuery)) ||
+      (fertilizer.fertilizer_name?.toLowerCase().includes(searchQuery)) ||
+      (fertilizer.fertilizer_type?.toLowerCase().includes(searchQuery))
     );
   });
   
   currentPage = 1;
-  sortEquipmentsByDate();
-  displayEquipments(filteredEquipments);
+  sortFertilizersByDate();
+  displayFertilizers(filteredFertilizers);
 });
 
 function getFarmerFullName() {
