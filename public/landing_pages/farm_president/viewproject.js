@@ -263,10 +263,10 @@ function addFeedbackToUI(feedback) {
     `;
 
     // If there are no feedbacks yet, remove the "No feedbacks available" message
-    let noFeedbackMessage = document.querySelector("#feedbackList p");
-    if (noFeedbackMessage && noFeedbackMessage.innerText.includes("No feedbacks available")) {
-        noFeedbackMessage.remove();
-    }
+    let noFeedbackMessage = document.querySelector("#feedbackList .feedback-list-empty");
+if (noFeedbackMessage) {
+    noFeedbackMessage.remove();
+}
 
     // Insert the new feedback at the top of the list
     feedbackListContainer.prepend(feedbackItem);
@@ -294,7 +294,7 @@ async function displayFeedbacks() {
     }
 
     const feedbackListContainer = document.getElementById("feedbackList");
-    feedbackListContainer.innerHTML = "<p>Loading feedbacks...</p>";
+    feedbackListContainer.innerHTML = '<p class="feedback-list-empty">Loading feedbacks...</p>';
 
     try {
         const feedbackRef = collection(db, "tb_feedbacks");
@@ -304,7 +304,7 @@ async function displayFeedbacks() {
         feedbackListContainer.innerHTML = ""; // Clear loading message
 
         if (querySnapshot.empty) {
-            feedbackListContainer.innerHTML = "<p>No feedbacks available for this project.</p>";
+            feedbackListContainer.innerHTML = '<p class="feedback-list-empty">No feedbacks available for this project.</p>';
             return;
         }
 

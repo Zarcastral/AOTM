@@ -141,7 +141,14 @@ td {
     padding-left: 0;  /* Remove left padding */
     padding-right: 0;  /* Remove right padding */
 }
-
+.feedback-list-empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    color: #777;
+    text-align: center;
+}
 .feedback-avatar {
     width: 70px;
     height: 70px;
