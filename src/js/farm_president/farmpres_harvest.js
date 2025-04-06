@@ -261,7 +261,7 @@ async function fetchProjectsAndTeams() {
     const projectQuery = query(
       collection(db, "tb_projects"), 
       where("farmer_id", "==", farmerId),
-      where("status", "==", "Ongoing")
+      where("status", "in", ["Complete", "Completed"]) // Changed from "Ongoing" to "Complete" or "Completed"
     );
 
     onSnapshot(projectQuery, (projectSnapshot) => {
@@ -358,6 +358,12 @@ async function addHarvest() {
       throw new Error("Selected project not found");
     }
 
+    // Add status validation
+    if (selectedProject.status !== "Complete" && selectedProject.status !== "Completed") {
+      await showSuccessMessage("Only projects with 'Complete' or 'Completed' status can be selected.", false);
+      throw new Error("Invalid project status");
+    }
+
     const teamId = selectedProject.team_id || "";
     const projectId = selectedProject.project_id || selectedProject.id || "N/A";
     const { farmerId } = await getAuthData();
@@ -425,7 +431,8 @@ async function addHarvest() {
       farmland_id: selectedProject.farmland_id || "N/A",
       land_area: landArea,
       start_date: selectedProject.start_date || "N/A",
-      end_date: selectedProject.end_date || "N/A"
+      end_date: selectedProject.end_date || "N/A",
+      project_status: selectedProject.status // Added project status to harvest data
     };
 
     const newHarvestId = await getNextHarvestId();
@@ -476,6 +483,12 @@ async function updateHarvest() {
     if (!selectedProject) {
       await showSuccessMessage("Selected project not found.", false);
       throw new Error("Selected project not found");
+    }
+
+    // Add status validation for editing
+    if (selectedProject.status !== "Complete" && selectedProject.status !== "Completed") {
+      await showSuccessMessage("Only projects with 'Complete' or 'Completed' status can be selected.", false);
+      throw new Error("Invalid project status");
     }
 
     const teamId = selectedProject.team_id || "";
@@ -563,7 +576,8 @@ async function updateHarvest() {
       farmland_id: selectedProject.farmland_id || "N/A",
       land_area: landArea,
       start_date: selectedProject.start_date || "N/A",
-      end_date: selectedProject.end_date || "N/A"
+      end_date: selectedProject.end_date || "N/A",
+      project_status: selectedProject.status // Added project status to harvest data
     };
 
     await setDoc(doc(harvestCollection, currentHarvestDocId), harvestData, { merge: true });
@@ -609,40 +623,18 @@ async function submitHarvestToTbHarvest() {
     ];
 
     for (const coll of collectionsToCheck) {
-      const farmPresQuery = query(
-        coll,
-        where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A")
-      );
-      const farmPresSnapshot = await getDocs(farmPresQuery);
-      if (farmPresSnapshot.empty) continue;
-
-      const projectQuery = query(
-        coll,
-        where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A"),
-        where("project_id", "==", harvestData.project_id || "N/A")
-      );
-      const projectSnapshot = await getDocs(projectQuery);
-      if (projectSnapshot.empty) continue;
-
-      const leadFarmerQuery = query(
-        coll,
-        where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A"),
-        where("project_id", "==", harvestData.project_id || "N/A"),
-        where("lead_farmer_id", "==", harvestData.lead_farmer_id || "N/A")
-      );
-      const leadFarmerSnapshot = await getDocs(leadFarmerQuery);
-      if (leadFarmerSnapshot.empty) continue;
-
-      const teamQuery = query(
+      // Check for duplicates with same farm_pres_id, project_id, lead_farmer_id, and team_id
+      const duplicateQuery = query(
         coll,
         where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A"),
         where("project_id", "==", harvestData.project_id || "N/A"),
         where("lead_farmer_id", "==", harvestData.lead_farmer_id || "N/A"),
         where("team_id", "==", harvestData.team_id || "N/A")
       );
-      const teamSnapshot = await getDocs(teamQuery);
-      if (!teamSnapshot.empty) {
-        const isSameDoc = teamSnapshot.docs.some(doc => doc.id === currentHarvestDocId);
+      const duplicateSnapshot = await getDocs(duplicateQuery);
+
+      if (!duplicateSnapshot.empty) {
+        const isSameDoc = duplicateSnapshot.docs.some(doc => doc.id === currentHarvestDocId);
         if (!isSameDoc) {
           showConfirmationPopup(harvestData);
           return;
@@ -650,12 +642,14 @@ async function submitHarvestToTbHarvest() {
       }
     }
 
+    // If no duplicates are found, proceed with submission
     const validatedHarvestCollection = collection(db, "tb_validatedharvest");
     const validatedHarvestData = {
       project_id: harvestData.project_id || "N/A",
-      project_name: harvestData.project_name || "N/A", // Added project_name here
+      project_name: harvestData.project_name || "N/A",
       farm_pres_id: harvestData.farm_pres_id || "N/A",
       lead_farmer_id: harvestData.lead_farmer_id || "N/A",
+      team_id: harvestData.team_id || "N/A", // Include team_id in validated data
       total_harvested_crops: harvestData.total_harvested_crops || 0,
       harvest_date: harvestData.harvest_date || new Date(),
       crop_type_name: harvestData.crop_type_name || "N/A",
@@ -730,10 +724,16 @@ function showConfirmationPopup(harvestData) {
     try {
       const originalDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest", currentHarvestDocId);
       await deleteDoc(originalDocRef);
-      await showSuccessMessage("Duplicate harvest record deleted successfully!");
+
+      // Close both the confirmation panel and the modal
       confirmationPanel.style.display = "none";
       const modal = document.getElementById("harvest-report-modal");
       modal.classList.remove("active");
+
+      // Show success message
+      await showSuccessMessage("Duplicate Harvest successfully deleted!");
+      
+      // Refresh the harvest list
       await fetchHarvest();
     } catch (error) {
       console.error("Error deleting duplicate harvest:", error);
@@ -872,6 +872,7 @@ async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = fa
 
   let previousProject = "";
 
+  // Set up the modal content first
   if (isViewOrEdit && harvestId) {
     await populateHarvestData(harvestId);
     previousProject = document.getElementById("modal-project-name").value;
@@ -1000,7 +1001,20 @@ async function openModal(isViewOrEdit = false, harvestId = null, isViewOnly = fa
     });
   }
 
+  // Show the modal first
   modal.classList.add("active");
+
+  // Reset scroll position after the modal is visible and content is loaded
+  const modalBody = document.querySelector("#harvest-report-modal .modal-body");
+  if (modalBody) {
+    // Use setTimeout to ensure the DOM is fully updated
+    setTimeout(() => {
+      modalBody.scrollTop = 0;
+      console.log("Scroll reset to top for modal-body"); // Debugging
+    }, 0);
+  } else {
+    console.warn("Modal body not found; scroll reset skipped.");
+  }
 }
 
 async function populateHarvestData(harvestId) {

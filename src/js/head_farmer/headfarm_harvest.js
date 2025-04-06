@@ -130,9 +130,8 @@ function restrictHarvestInput() {
     }
   });
 
-  // These attributes are already set in HTML, but we'll ensure they're applied
   totalHarvestInput.setAttribute("min", "0");
-  totalHarvestInput.setAttribute("step", "0.001"); // Override HTML step="0.01" to match JS logic
+  totalHarvestInput.setAttribute("step", "0.001");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -153,7 +152,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   await fetchProjectsAndTeams();
-  restrictHarvestInput(); // Initialize input restrictions
+  restrictHarvestInput();
 
   closeBtn.addEventListener("click", () => {
     modal.classList.remove("active");
@@ -221,9 +220,19 @@ async function fetchProjectsAndTeams() {
   try {
     const { farmerId } = authenticatedUser;
 
-    const projectQuery = query(collection(db, "tb_projects"), where("lead_farmer_id", "==", farmerId));
+    // Modified project query to only fetch projects with status "Complete" or "Completed"
+    const projectQuery = query(
+      collection(db, "tb_projects"),
+      where("lead_farmer_id", "==", farmerId),
+      where("status", "in", ["Complete", "Completed"])
+    );
     const projectSnapshot = await getDocs(projectQuery);
     projects = projectSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    if (projects.length === 0) {
+      console.log("No completed projects found for farmer:", farmerId);
+      showSuccessMessage("No completed projects available to add a harvest", false);
+    }
 
     const teamCollection = collection(db, "tb_teams");
     onSnapshot(teamCollection, (teamSnapshot) => {
@@ -241,7 +250,7 @@ async function fetchProjectsAndTeams() {
     projects.forEach(project => {
       const option = document.createElement("option");
       option.value = project.project_name;
-      option.textContent = project.project_name;
+      option.textContent = `${project.project_name} (${project.status})`; // Optional: Show status in dropdown
       option.dataset.teamId = project.team_id || "";
       option.dataset.leadFarmerId = project.lead_farmer_id || "";
       projectSelect.appendChild(option);
@@ -273,6 +282,7 @@ async function fetchProjectsAndTeams() {
     });
   } catch (error) {
     console.error("Error fetching projects and teams:", error);
+    showSuccessMessage("Error loading completed projects.", false);
   }
 }
 
@@ -401,6 +411,11 @@ async function saveHarvest() {
       await showSuccessMessage("Selected project not found.", false);
       throw new Error("Selected project not found");
     }
+    // Verify project status is Complete or Completed
+    if (!["Complete", "Completed"].includes(selectedProject.status)) {
+      await showSuccessMessage("Only completed projects can have harvest records.", false);
+      throw new Error("Project not completed");
+    }
 
     const currentUserFarmerId = authenticatedUser.farmerId;
     console.log("Current user farmerId:", currentUserFarmerId);
@@ -490,7 +505,8 @@ async function saveHarvest() {
       land_area: landArea,
       start_date: selectedProject.start_date || "N/A",
       end_date: selectedProject.end_date || "N/A",
-      farm_pres_id: selectedProject.farmer_id || "N/A"
+      farm_pres_id: selectedProject.farmer_id || "N/A",
+      status: selectedProject.status // Adding status to harvest data
     };
 
     const headFarmerHarvestRef = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");
@@ -625,6 +641,12 @@ async function openModal(isViewOrEdit = false, harvestId = null) {
       const harvestData = harvestSnapshot.docs[0].data();
       if (harvestData.lead_farmer_id !== currentUserFarmerId) {
         await showSuccessMessage("You are not authorized to edit this Harvest Record", false);
+        return;
+      }
+      // Verify project status for editing
+      const project = projects.find(p => p.project_name === harvestData.project_name);
+      if (!project || !["Complete", "Completed"].includes(project.status)) {
+        await showSuccessMessage("Cannot edit harvest for non-completed project", false);
         return;
       }
     }
