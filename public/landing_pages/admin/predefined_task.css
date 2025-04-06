@@ -178,7 +178,7 @@ body {
 .close-btn {
   position: absolute;
   right: 10px;
-  margin-top: -20px;
+  margin-top: -10px;
   margin-right: 10px;
   font-size: 30px;
   cursor: pointer;
@@ -630,11 +630,11 @@ border-radius: 5px;
   }
 
   #search-bar {
-    width: 200px;
+    width: 100px;
   }
 
   .save-btn {
-    margin-left: 280px;
+    margin-left: 10px;
   }
 
   .add-user-btn {
@@ -642,7 +642,7 @@ border-radius: 5px;
   }
 
   .modal-content {
-      width: 90%;
+      width:90%;
       padding: 30px;
   }
 
