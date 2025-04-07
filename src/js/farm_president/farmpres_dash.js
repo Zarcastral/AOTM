@@ -87,37 +87,38 @@ function animateCount(element, finalCount) {
 
 async function updateTotalFarmerCount() {
     try {
+        // Get the current authenticated user
         const currentUser = await getAuthenticatedUser();
-        const farmerId = currentUser.farmer_id;
+        const userEmail = currentUser.email;
 
-        if (!farmerId) {
-            console.error("Farmer ID not found for the current user.");
+        // Query the current user's farmer record to get their barangay_name
+        const farmerQuery = query(collection(db, "tb_farmers"), where("email", "==", userEmail));
+        const farmerSnapshot = await getDocs(farmerQuery);
+
+        if (farmerSnapshot.empty) {
+            console.error("Current user's farmer record not found.");
             return;
         }
 
-        const projectsCollection = collection(db, "tb_projects");
-        const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+        const currentFarmerData = farmerSnapshot.docs[0].data();
+        const currentBarangayName = currentFarmerData.barangay_name;
 
-        const projectsQuery = query(projectsCollection, where("farmer_id", "==", farmerId));
-        const projectsSnapshot = await getDocs(projectsQuery);
+        if (!currentBarangayName) {
+            console.error("Barangay name not found for the current user.");
+            return;
+        }
 
-        let totalFarmerCount = 0;
+        // Query all farmers with the same barangay_name
+        const allFarmersQuery = query(
+            collection(db, "tb_farmers"),
+            where("barangay_name", "==", currentBarangayName)
+        );
+        const allFarmersSnapshot = await getDocs(allFarmersQuery);
 
-        projectsSnapshot.forEach(doc => {
-            const data = doc.data();
-            const dateCreated = data.date_created instanceof Timestamp 
-                ? data.date_created.toDate() 
-                : new Date(data.date_created);
+        // Count the total number of farmers
+        const totalFarmerCount = allFarmersSnapshot.size; // .size gives the number of documents
 
-            if (dateCreated >= startOfYear && dateCreated <= endOfYear) {
-                if (Array.isArray(data.farmer_name)) {
-                    totalFarmerCount += data.farmer_name.length;
-                }
-            }
-        });
-
+        // Update the DOM with the animated count
         const farmerElementCount = document.querySelector("#total-farmers");
         if (farmerElementCount) {
             animateCount(farmerElementCount, totalFarmerCount);
@@ -149,16 +150,28 @@ async function updateTotalProjectsCount(statusFilter = "ongoing") {
             return;
         }
 
-        const projectsCollection = collection(db, "tb_projects");
         const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        // Query both collections
+        const projectsCollection = collection(db, "tb_projects");
+        const projectHistoryCollection = collection(db, "tb_project_history");
         
         const projectsQuery = query(
             projectsCollection,
             where("farmer_id", "==", farmerId)
         );
-        const projectsSnapshot = await getDocs(projectsQuery);
+        const projectHistoryQuery = query(
+            projectHistoryCollection,
+            where("farmer_id", "==", farmerId)
+        );
+
+        // Get snapshots from both collections
+        const [projectsSnapshot, projectHistorySnapshot] = await Promise.all([
+            getDocs(projectsQuery),
+            getDocs(projectHistoryQuery)
+        ]);
 
         const normalizedFilter = statusFilter.toLowerCase();
         const validStatuses = ["ongoing", "completed"];
@@ -168,13 +181,30 @@ async function updateTotalProjectsCount(statusFilter = "ongoing") {
         }
 
         let projectCount = 0;
+
+        // Process tb_projects
         projectsSnapshot.forEach(doc => {
             const data = doc.data();
             const dateCreated = data.date_created instanceof Timestamp 
                 ? data.date_created.toDate() 
                 : new Date(data.date_created);
 
-            if (dateCreated >= startOfYear && dateCreated <= endOfYear) {
+            if (dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
+                const projectStatus = data.status ? String(data.status).toLowerCase() : "";
+                if (projectStatus === normalizedFilter) {
+                    projectCount++;
+                }
+            }
+        });
+
+        // Process tb_project_history
+        projectHistorySnapshot.forEach(doc => {
+            const data = doc.data();
+            const dateCreated = data.date_created instanceof Timestamp 
+                ? data.date_created.toDate() 
+                : new Date(data.date_created);
+
+            if (dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
                 const projectStatus = data.status ? String(data.status).toLowerCase() : "";
                 if (projectStatus === normalizedFilter) {
                     projectCount++;
@@ -192,7 +222,6 @@ async function updateTotalProjectsCount(statusFilter = "ongoing") {
         console.error("Error fetching project count:", error);
     }
 }
-
 async function updateBarGraph() {
     const bars = document.querySelectorAll('.bar');
     const yAxis = document.querySelector('.y-axis');

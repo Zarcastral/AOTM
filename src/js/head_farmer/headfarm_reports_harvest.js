@@ -43,21 +43,74 @@ async function getAuthenticatedUser() {
   });
 }
 
-// Fetch harvest data from tb_headfarmer_harvest subcollection
+// Fetch harvest data from tb_harvest and tb_harvest_history collections
 async function fetchHarvest() {
   try {
-    await getAuthenticatedUser();
+    const user = await getAuthenticatedUser();
+    
+    // Get the current user's farmer_id from tb_farmers collection
+    const farmersCollection = collection(db, "tb_farmers");
+    const farmerQuery = query(farmersCollection, where("email", "==", user.email));
+    const farmerSnapshot = await getDocs(farmerQuery);
+    
+    if (farmerSnapshot.empty) {
+      console.error("No farmer document found for current user");
+      return;
+    }
+    
+    const farmerData = farmerSnapshot.docs[0].data();
+    const currentFarmerId = farmerData.farmer_id; // Get the farmer_id field from the document
+    if (!currentFarmerId) {
+      console.error("farmer_id field not found in farmer document");
+      return;
+    }
+    console.log("Current Farmer ID:", currentFarmerId); // Debugging
 
-    const harvestDocRef = doc(db, "tb_harvest", "headfarmer_harvest_data");
-    const headFarmerHarvestCollection = collection(harvestDocRef, "tb_headfarmer_harvest");
+    // Reference to both collections
+    const harvestCollection = collection(db, "tb_harvest");
+    const harvestHistoryCollection = collection(db, "tb_harvest_history");
 
-    onSnapshot(headFarmerHarvestCollection, (snapshot) => {
-      harvestList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Queries for both collections filtering by lead_farmer_id
+    const harvestQuery = query(
+      harvestCollection,
+      where("lead_farmer_id", "==", currentFarmerId)
+    );
+    const harvestHistoryQuery = query(
+      harvestHistoryCollection,
+      where("lead_farmer_id", "==", currentFarmerId)
+    );
+
+    // Combine data from both collections
+    harvestList = [];
+    
+    // Listen to tb_harvest
+    const unsubscribeHarvest = onSnapshot(harvestQuery, (snapshot) => {
+      const harvestData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: "tb_harvest" }));
+      console.log("Harvest Data:", harvestData); // Debugging
+      updateHarvestList(harvestData, "tb_harvest");
+    }, (error) => {
+      console.error("Error listening to tb_harvest:", error);
+    });
+
+    // Listen to tb_harvest_history
+    const unsubscribeHistory = onSnapshot(harvestHistoryQuery, (snapshot) => {
+      const historyData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: "tb_harvest_history" }));
+      console.log("Harvest History Data:", historyData); // Debugging
+      updateHarvestList(historyData, "tb_harvest_history");
+    }, (error) => {
+      console.error("Error listening to tb_harvest_history:", error);
+    });
+
+    // Function to update harvestList and trigger display
+    function updateHarvestList(newData, source) {
+      // Filter out existing records from the same source
+      harvestList = harvestList.filter(item => item.source !== source);
+      // Add new data
+      harvestList = [...harvestList, ...newData];
       originalHarvestList = harvestList;
       filterHarvest();
-    }, (error) => {
-      console.error("Error listening to tb_headfarmer_harvest:", error);
-    });
+    }
+
   } catch (error) {
     console.error("Error fetching harvest data:", error);
   }
@@ -89,7 +142,11 @@ function formatDate(date) {
 }
 
 function sortHarvestByCropType() {
-  filteredHarvest.sort((a, b) => a.crop_type_name.localeCompare(b.crop_type_name));
+  filteredHarvest.sort((a, b) => {
+    const cropTypeA = a.crop_type_name || "";
+    const cropTypeB = b.crop_type_name || "";
+    return cropTypeA.localeCompare(cropTypeB);
+  });
 }
 
 function filterHarvest() {
@@ -190,12 +247,13 @@ function displayHarvest(harvestList) {
 
   paginatedHarvest.forEach((harvest) => {
     const row = document.createElement("tr");
-    const commodity = harvest.crop_type_name || "N/A";
-    const cropType = harvest.crop_name || "N/A";
-    const farmersCount = harvest.farmer_name?.length || (harvest.farmer_name ? 1 : 0);
-    const barangay = harvest.barangay_name || "N/A";
+    // Adjust field mappings based on the document structure in the image
+    const commodity = harvest.project_name || "N/A"; // Using project_name as commodity
+    const cropType = harvest.crop_name || "N/A"; // Assuming crop_name exists, adjust if different
+    const farmersCount = harvest.lead_farmer ? 1 : 0; // Since lead_farmer is a single name
+    const barangay = harvest.barangay_name || "N/A"; // Adjust if barangay_name is stored differently
     const areaPlanted = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
-    const startDate = harvest.start_date ? formatDate(parseDate(harvest.start_date)) : "N/A";
+    const startDate = harvest.start_date ? formatDate(new Date(harvest.start_date)) : "N/A";
     const areaHarvested = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
     const endDate = harvest.end_date ? formatDate(parseDate(harvest.end_date)) : "N/A";
     const production = harvest.total_harvested_crops ? `${convertToMetricTons(harvest.total_harvested_crops)} mt` : "N/A";
@@ -318,12 +376,12 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   });
 
   const tableData = filteredHarvest.map((harvest) => {
-    const commodity = harvest.crop_type_name || "N/A";
+    const commodity = harvest.project_name || "N/A";
     const cropType = harvest.crop_name || "N/A";
-    const farmersCount = harvest.farmer_name?.length || (harvest.farmer_name ? 1 : 0);
+    const farmersCount = harvest.lead_farmer ? 1 : 0;
     const barangay = harvest.barangay_name || "N/A";
     const areaPlanted = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
-    const startDate = harvest.start_date ? formatDate(parseDate(harvest.start_date)) : "N/A";
+    const startDate = harvest.start_date ? formatDate(new Date(harvest.start_date)) : "N/A";
     const areaHarvested = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
     const endDate = harvest.end_date ? formatDate(parseDate(harvest.end_date)) : "N/A";
     const production = harvest.total_harvested_crops ? `${convertToMetricTons(harvest.total_harvested_crops)} mt` : "N/A";

@@ -96,51 +96,33 @@ th {
 }
 
 th:first-child {
-    width: 100px; /* Fixed width for the action column; adjust as needed */
+    width: 120px; /* Fixed width for the action column; adjust as needed */
     min-width: 120px; /* Minimum width to ensure usability */
     text-align: left;
 }
-
 th:nth-child(2), td:nth-child(2) {
-    width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 130px; /* Minimum width to ensure usability */
+    width: 120px; /* Fixed width for the action column; adjust as needed */
+    min-width: 120px; /* Minimum width to ensure usability */
     text-align: left;
 }
-
 th:nth-child(3), td:nth-child(3) {
+    width: 120px; /* Fixed width for the action column; adjust as needed */
+    min-width: 120px; /* Minimum width to ensure usability */
+    text-align: left;
+}
+th:nth-child(6), td:nth-child(6) {
     width: 100px; /* Fixed width for the action column; adjust as needed */
     min-width: 100px; /* Minimum width to ensure usability */
     text-align: left;
 }
-
-th:nth-child(4), td:nth-child(4) {
-    width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 90px; /* Minimum width to ensure usability */
-    text-align: left;
-}
-
-th:nth-child(5), td:nth-child(5) {
-    width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 90px; /* Minimum width to ensure usability */
-    text-align: left;
-}
-
-th:nth-child(6), td:nth-child(6) {
-    width: 250px; /* Fixed width for the action column; adjust as needed */
-    min-width: 130px; /* Minimum width to ensure usability */
-    text-align: left;
-}
-
 th:nth-child(7), td:nth-child(7) {
     width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 20px; /* Minimum width to ensure usability */
+    min-width: 100px; /* Minimum width to ensure usability */
     text-align: left;
 }
-
-
 th:last-child, td:last-child {
-    width: 170px; /* Fixed width for the action column; adjust as needed */
-    min-width: 150px; /* Minimum width to ensure usability */
+    width: 100px; /* Fixed width for the action column; adjust as needed */
+    min-width: 100px; /* Minimum width to ensure usability */
     text-align: center;
 }
 
@@ -360,9 +342,9 @@ input[type="checkbox"] {
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Styling for the Status select dropdown */
-#status_select {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+/* Styling for the barangay select dropdown */
+#barangay-select {
+    padding: 10px 30px 1z0px 10px; /* Add space for dropdown arrow */
     font-size: 16px;
     color: #243B53;
     border: 1px solid #ccc;
@@ -379,7 +361,7 @@ input[type="checkbox"] {
 }
 
 /* Optional: Style for the placeholder option */
-#status_select option[value=""] {
+#barangay-select option[value=""] {
     color: #888;
     font-style: italic;
 }

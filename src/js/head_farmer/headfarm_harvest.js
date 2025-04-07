@@ -220,9 +220,9 @@ async function fetchProjectsAndTeams() {
   try {
     const { farmerId } = authenticatedUser;
 
-    // Modified project query to only fetch projects with status "Complete" or "Completed"
+    // Modified to fetch from tb_project_history instead of tb_projects
     const projectQuery = query(
-      collection(db, "tb_projects"),
+      collection(db, "tb_project_history"),
       where("lead_farmer_id", "==", farmerId),
       where("status", "in", ["Complete", "Completed"])
     );
@@ -285,7 +285,6 @@ async function fetchProjectsAndTeams() {
     showSuccessMessage("Error loading completed projects.", false);
   }
 }
-
 function updateTeamDropdown(selectedProjectName) {
   const teamSelect = document.getElementById("modal-team");
   const farmersInput = document.getElementById("modal-farmers");
@@ -487,7 +486,7 @@ async function saveHarvest() {
     const harvestData = {
       project_id: selectedProject.project_id || selectedProject.id || "N/A",
       project_name: projectName,
-      project_creator: selectedProject.project_creator || "N/A",
+      project_creator: selectedProject.project_creator || "N/A", // Explicitly included and verified
       crop_name: selectedProject.crop_name || "N/A",
       crop_type_name: selectedProject.crop_type_name || "N/A",
       barangay_name: selectedProject.barangay_name || "N/A",
@@ -506,7 +505,7 @@ async function saveHarvest() {
       start_date: selectedProject.start_date || "N/A",
       end_date: selectedProject.end_date || "N/A",
       farm_pres_id: selectedProject.farmer_id || "N/A",
-      status: selectedProject.status // Adding status to harvest data
+      status: selectedProject.status
     };
 
     const headFarmerHarvestRef = collection(db, "tb_harvest", "headfarmer_harvest_data", "tb_headfarmer_harvest");

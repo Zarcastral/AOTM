@@ -258,17 +258,18 @@ async function fetchProjectsAndTeams() {
   try {
     const { farmerId } = await getAuthData();
 
+    // Query tb_project_history instead of tb_projects
     const projectQuery = query(
-      collection(db, "tb_projects"), 
+      collection(db, "tb_project_history"),
       where("farmer_id", "==", farmerId),
-      where("status", "in", ["Complete", "Completed"]) // Changed from "Ongoing" to "Complete" or "Completed"
+      where("status", "in", ["Complete", "Completed"])
     );
 
     onSnapshot(projectQuery, (projectSnapshot) => {
       projects = projectSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       updateProjectDropdown();
     }, (error) => {
-      console.error("Error listening to projects:", error);
+      console.error("Error listening to project history:", error);
     });
 
     const teamCollection = collection(db, "tb_teams");
@@ -358,7 +359,6 @@ async function addHarvest() {
       throw new Error("Selected project not found");
     }
 
-    // Add status validation
     if (selectedProject.status !== "Complete" && selectedProject.status !== "Completed") {
       await showSuccessMessage("Only projects with 'Complete' or 'Completed' status can be selected.", false);
       throw new Error("Invalid project status");
@@ -413,7 +413,7 @@ async function addHarvest() {
     const harvestData = {
       project_id: projectId,
       project_name: projectName,
-      project_creator: selectedProject.project_creator || "N/A",
+      project_creator: selectedProject.project_creator || "N/A", // Already present, ensuring it's included
       crop_name: selectedProject.crop_name || "N/A",
       crop_type_name: selectedProject.crop_type_name || "N/A",
       barangay_name: selectedProject.barangay_name || "N/A",
@@ -432,7 +432,7 @@ async function addHarvest() {
       land_area: landArea,
       start_date: selectedProject.start_date || "N/A",
       end_date: selectedProject.end_date || "N/A",
-      project_status: selectedProject.status // Added project status to harvest data
+      project_status: selectedProject.status
     };
 
     const newHarvestId = await getNextHarvestId();
@@ -623,7 +623,6 @@ async function submitHarvestToTbHarvest() {
     ];
 
     for (const coll of collectionsToCheck) {
-      // Check for duplicates with same farm_pres_id, project_id, lead_farmer_id, and team_id
       const duplicateQuery = query(
         coll,
         where("farm_pres_id", "==", harvestData.farm_pres_id || "N/A"),
@@ -642,14 +641,14 @@ async function submitHarvestToTbHarvest() {
       }
     }
 
-    // If no duplicates are found, proceed with submission
     const validatedHarvestCollection = collection(db, "tb_validatedharvest");
     const validatedHarvestData = {
       project_id: harvestData.project_id || "N/A",
       project_name: harvestData.project_name || "N/A",
+      project_creator: harvestData.project_creator || "N/A", // Added project_creator here
       farm_pres_id: harvestData.farm_pres_id || "N/A",
       lead_farmer_id: harvestData.lead_farmer_id || "N/A",
-      team_id: harvestData.team_id || "N/A", // Include team_id in validated data
+      team_id: harvestData.team_id || "N/A",
       total_harvested_crops: harvestData.total_harvested_crops || 0,
       harvest_date: harvestData.harvest_date || new Date(),
       crop_type_name: harvestData.crop_type_name || "N/A",

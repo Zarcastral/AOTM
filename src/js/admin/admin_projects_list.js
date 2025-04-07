@@ -4,10 +4,12 @@ import {
     doc,
     deleteDoc,
     updateDoc,
+    setDoc,
     getDoc,
     query,
     where,
-    getFirestore
+    getFirestore,
+    onSnapshot // Added for real-time listening
 } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
@@ -138,9 +140,6 @@ function formatStatus(status) {
     return `${formattedStatus}`.trim();
 }
 
-
-
-
 // <------------------ FUNCTION TO LOG PROJECT DETAILS TO CONSOLE ------------------------>
 function logProjectDetails() {
     console.log("----- PROJECT DETAILS -----");
@@ -159,10 +158,6 @@ function logProjectDetails() {
 }
 
 logProjectDetails();
-
-
-
-
 
 //  <------------- TABLE DISPLAY AND UPDATE ------------->
 function updateTable() {
@@ -287,7 +282,6 @@ function viewUserAccount(projectId) {
     window.location.href = "viewproject.html"; // Redirect to viewproject.html
 }
 
-
 // <------------- DELETE PROJECT FUNCTION ------------->
 // <------------- ENHANCED DELETE FUNCTION WITH ALERT ------------->
 async function deleteProject(projectId) {
@@ -341,14 +335,6 @@ tableBody.addEventListener("click", async (event) => {
         }
     }
 });
-
-
-
-
-
-
-
-
 
 // <------------- DELETE BUTTON EVENT LISTENER ------------->
 async function deleteProjects(project_id) {
@@ -461,7 +447,7 @@ confirmDeleteButton.addEventListener("click", async () => {
                     const fertilizerStockSnap = await getDocs(fertilizerStockQuery);
                     
                     if (!fertilizerStockSnap.empty) {
-                        const fertilizerStockDoc = fertilizerStockSnap.docs[0]; // Get first matching document
+                        const fertilizerStockDocA = fertilizerStockSnap.docs[0]; // Get first matching document
                         const fertilizerStockRef = doc(db, "tb_fertilizer_stock", fertilizerStockDoc.id);
                         const fertilizerStockData = fertilizerStockDoc.data();
                         let stockArray = fertilizerStockData.stocks || [];
@@ -580,6 +566,38 @@ function showDeleteMessage(message, success) {
     }, 4000); 
 }
 
+// NEW CODE: Real-time listener for moving completed projects
+function setupProjectHistoryListener() {
+    const projectsCollection = collection(db, "tb_projects");
+    const historyCollection = collection(db, "tb_project_history");
+
+    onSnapshot(projectsCollection, async (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+            const projectData = change.doc.data();
+            const projectId = change.doc.id;
+
+            // Check if status is "Completed" (case insensitive)
+            if (projectData.status && projectData.status.toLowerCase() === "completed") {
+                try {
+                    // Add to tb_project_history (will create collection if it doesn't exist)
+                    await setDoc(doc(historyCollection, projectId), {
+                        ...projectData,
+                        moved_to_history_timestamp: new Date().toISOString()
+                    });
+
+                    // Remove from tb_projects
+                    await deleteDoc(doc(db, "tb_projects", projectId));
+                    
+                    console.log(`Project ${projectData.project_id} moved to tb_project_history`);
+                    fetch_projects(); // Refresh the table
+                } catch (error) {
+                    console.error("Error moving completed project to history:", error);
+                }
+            }
+        });
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const successMessage = localStorage.getItem("successMessage");
 
@@ -587,6 +605,9 @@ document.addEventListener("DOMContentLoaded", () => {
         showDeleteMessage(successMessage, true);
         localStorage.removeItem("successMessage"); // Clear after showing
     }
+    
+    // Start the real-time listener
+    setupProjectHistoryListener();
 });
 
 fetch_projects();
