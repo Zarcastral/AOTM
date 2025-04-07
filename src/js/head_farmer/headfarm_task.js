@@ -34,13 +34,11 @@ function showSuccessPanel(message) {
 
   document.body.appendChild(successMessage);
 
-  // Fade in
   successMessage.style.display = "block";
   setTimeout(() => {
     successMessage.style.opacity = "1";
   }, 5);
 
-  // Fade out after 4 seconds
   setTimeout(() => {
     successMessage.style.opacity = "0";
     setTimeout(() => {
@@ -58,13 +56,11 @@ function showErrorPanel(message) {
 
   document.body.appendChild(errorMessage);
 
-  // Fade in
   errorMessage.style.display = "block";
   setTimeout(() => {
     errorMessage.style.opacity = "1";
   }, 5);
 
-  // Fade out after 4 seconds
   setTimeout(() => {
     errorMessage.style.opacity = "0";
     setTimeout(() => {
@@ -74,12 +70,11 @@ function showErrorPanel(message) {
 }
 
 export async function fetchProjectsForFarmer() {
-  const userType = sessionStorage.getItem("user_type"); // Get user_type
+  const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
 
-  // For Admin, Supervisor, or Farm President: Fetch via project_id
   if (["Admin", "Supervisor", "Farm President"].includes(userType)) {
-    const projectId = sessionStorage.getItem("selected_project_id"); // From fetchAndStoreProjectDetails()
+    const projectId = sessionStorage.getItem("selected_project_id");
 
     if (!projectId) {
       console.log("No project ID found for this user.");
@@ -88,7 +83,10 @@ export async function fetchProjectsForFarmer() {
 
     try {
       const projectsRef = collection(db, "tb_projects");
-      const q = query(projectsRef, where("project_id", "==", parseInt(projectId, 10)));
+      const q = query(
+        projectsRef,
+        where("project_id", "==", parseInt(projectId, 10))
+      );
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
@@ -106,14 +104,12 @@ export async function fetchProjectsForFarmer() {
           fetchProjectTasks(project.crop_type_name, project.project_id);
         }
       });
-
     } catch (error) {
       console.error("Error fetching project:", error);
     }
     return;
   }
 
-  // Original logic for Head Farmer
   if (!farmerId) {
     console.log("No farmer ID found in session.");
     return;
@@ -132,7 +128,10 @@ export async function fetchProjectsForFarmer() {
     querySnapshot.forEach((doc) => {
       const project = doc.data();
       if (project.status === "Ongoing") {
-        sessionStorage.setItem("selected_project_id", String(project.project_id));
+        sessionStorage.setItem(
+          "selected_project_id",
+          String(project.project_id)
+        );
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         sessionStorage.setItem("selected_project_end_date", project.end_date);
@@ -159,7 +158,7 @@ async function fetchProjectTasks(cropTypeName, projectId) {
       console.log(`No tasks found for project ID ${projectId}.`);
       allTasks = [];
       filteredTasks = [];
-      renderTasks(); // You might want to pass a flag here if needed
+      renderTasks();
       return;
     }
 
@@ -175,13 +174,8 @@ async function fetchProjectTasks(cropTypeName, projectId) {
     filteredTasks = [...allTasks];
     updatePagination();
 
-    // Retrieve the user type from sessionStorage
     const userType = sessionStorage.getItem("user_type");
-    // Determine if edit and delete options should be shown:
-    // Only show if userType is "Head Farmer"
-    const allowEditDelete = (userType === "Head Farmer");
-
-    // Pass the flag to renderTasks so it can conditionally display the edit and delete buttons
+    const allowEditDelete = userType === "Head Farmer";
     renderTasks(allowEditDelete);
 
     attachGlobalEventListeners();
@@ -189,7 +183,6 @@ async function fetchProjectTasks(cropTypeName, projectId) {
     console.error("❌ Error fetching project tasks:", error);
   }
 }
-
 
 function updatePagination() {
   totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
@@ -201,10 +194,9 @@ function updatePagination() {
 }
 
 function renderTasks(allowEditDelete) {
-  // If allowEditDelete is not provided, determine it based on sessionStorage
   if (allowEditDelete === undefined) {
     const userType = sessionStorage.getItem("user_type");
-    allowEditDelete = (userType === "Head Farmer");
+    allowEditDelete = userType === "Head Farmer";
   }
 
   const taskTableBody = document.getElementById("taskTableBody");
@@ -228,7 +220,6 @@ function renderTasks(allowEditDelete) {
       const task = taskObj.data;
       const taskId = taskObj.id;
 
-      // Build action icons based on allowEditDelete flag
       const actionIcons = allowEditDelete
         ? `
             <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
@@ -273,8 +264,6 @@ function renderTasks(allowEditDelete) {
   attachRowEventListeners();
 }
 
-
-
 let globalListenersAttached = false;
 
 function attachGlobalEventListeners() {
@@ -295,16 +284,14 @@ function attachGlobalEventListeners() {
     }
   });
 
-  const addTaskButton = document.getElementById("addTaskButton");  
-const userType = sessionStorage.getItem("user_type");
+  const addTaskButton = document.getElementById("addTaskButton");
+  const userType = sessionStorage.getItem("user_type");
 
-// Disable button + style it if user is not Head Farmer
-if (userType !== "Head Farmer") {
-  addTaskButton.disabled = true;
-  addTaskButton.style.opacity = "0.5";
-  addTaskButton.style.cursor = "not-allowed";
-}
-
+  if (userType !== "Head Farmer") {
+    addTaskButton.disabled = true;
+    addTaskButton.style.opacity = "0.5";
+    addTaskButton.style.cursor = "not-allowed";
+  }
 
   addTaskButton.addEventListener("click", () => {
     const endDate = sessionStorage.getItem("selected_project_end_date");
@@ -316,7 +303,6 @@ if (userType !== "Head Farmer") {
     }
     addTaskModal.classList.remove("hidden");
   });
-
 
   cancelTaskBtn.addEventListener("click", () => {
     taskNameInput.value = "";
@@ -795,6 +781,87 @@ async function deleteTaskHandler() {
   taskToDelete = null;
 }
 
+// Back button logic
+async function configureBackButton() {
+  const backLink = document.querySelector(".back-link");
+  if (!backLink) {
+    console.warn("Back link not found in the DOM.");
+    return;
+  }
+
+  const userType = sessionStorage.getItem("user_type");
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const projectId = sessionStorage.getItem("selected_project_id");
+
+  // Log values for debugging
+  console.log("userType:", userType);
+  console.log("farmerId:", farmerId);
+  console.log("projectId:", projectId);
+
+  // Back button is hidden by default via CSS; only show it when conditions are met
+
+  if (!projectId) {
+    console.error("No project_id found in sessionStorage.");
+    return; // Keep hidden
+  }
+
+  try {
+    const projectsRef = collection(db, "tb_projects");
+    const q = query(
+      projectsRef,
+      where("project_id", "==", parseInt(projectId, 10))
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      console.log("Project not found in tb_projects.");
+      return; // Keep hidden
+    }
+
+    const projectData = querySnapshot.docs[0].data();
+    const leadFarmerId = projectData.lead_farmer_id;
+
+    // Log for debugging
+    console.log("leadFarmerId:", leadFarmerId);
+
+    const restrictedUserTypes = ["Head Farmer", "Farmer", "Farm President"];
+    const isRestrictedUser = restrictedUserTypes.includes(userType);
+    const isLeadFarmer = farmerId && leadFarmerId === farmerId;
+
+    console.log("isRestrictedUser:", isRestrictedUser);
+    console.log("isLeadFarmer:", isLeadFarmer);
+
+    // Hide back button if user_type is Head Farmer, Farmer, or Farm President AND farmer_id matches lead_farmer_id
+    if (isRestrictedUser && isLeadFarmer) {
+      backLink.style.display = "none";
+      console.log("Back button hidden: Restricted user and lead farmer match.");
+    } else {
+      // Show back button if the condition is false
+      backLink.style.display = "block";
+      console.log("Back button visible: Condition is false.");
+
+      // Enable custom navigation if NOT (Head Farmer, Farmer, or Farm President) AND farmer_id != lead_farmer_id
+      if (!isRestrictedUser && (!farmerId || leadFarmerId !== farmerId)) {
+        backLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          sessionStorage.setItem("selectedProjectId", projectId);
+          window.location.href =
+            "../../../../public/landing_pages/admin/viewproject.html";
+          console.log("Navigating to admin viewproject.html");
+        });
+      } else {
+        console.log(
+          "Back button uses default href for restricted user with non-matching lead_farmer_id."
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching project data for back button:", error);
+    // Keep hidden on error
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   fetchProjectsForFarmer();
+  configureBackButton();
 });
