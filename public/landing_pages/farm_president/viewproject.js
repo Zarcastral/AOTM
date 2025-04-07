@@ -1,6 +1,53 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs,orderBy, addDoc, serverTimestamp, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+
+// Function to show success panel
+function showSuccessPanel(message) {
+    const successMessage = document.createElement("div");
+    successMessage.className = "success-message";
+    successMessage.textContent = message;
+  
+    document.body.appendChild(successMessage);
+  
+    // Fade in
+    successMessage.style.display = "block";
+    setTimeout(() => {
+      successMessage.style.opacity = "1";
+    }, 5);
+  
+    // Fade out after 4 seconds
+    setTimeout(() => {
+      successMessage.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(successMessage);
+      }, 400);
+    }, 4000);
+  }
+  
+  // Function to show error panel
+  function showErrorPanel(message) {
+    const errorMessage = document.createElement("div");
+    errorMessage.className = "error-message";
+    errorMessage.textContent = message;
+  
+    document.body.appendChild(errorMessage);
+  
+    // Fade in
+    errorMessage.style.display = "block";
+    setTimeout(() => {
+      errorMessage.style.opacity = "1";
+    }, 5);
+  
+    // Fade out after 4 seconds
+    setTimeout(() => {
+      errorMessage.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(errorMessage);
+      }, 400);
+    }, 4000);
+  }
+
 // Firebase Configuration
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -164,7 +211,7 @@ async function getNextFeedbackId() {
         }
     } catch (error) {
         console.error("Error fetching feedback ID counter:", error);
-        alert("Error generating feedback ID.");
+        showErrorPanel("Error generating feedback ID.");
         return null;
     }
 }
@@ -176,7 +223,7 @@ window.submitFeedback = async function () {
     let feedback = document.getElementById("feedbackMessage").value.trim();
 
     if (!feedback) {
-        alert("Please enter a feedback message.");
+        showErrorPanel("Please enter a feedback message.");
         return;
     }
 
@@ -212,7 +259,7 @@ window.submitFeedback = async function () {
         // Save feedback to Firestore
         let docRef = await addDoc(collection(db, "tb_feedbacks"), feedbackData);
 
-        alert("Feedback submitted successfully!");
+        showSuccessPanel("Feedback submitted successfully!");
         closeFeedbackPopup(); // Close the popup
 
         // Clear textarea after submitting
@@ -226,7 +273,7 @@ window.submitFeedback = async function () {
 
     } catch (error) {
         console.error("Error saving feedback:", error);
-        alert("Failed to submit feedback. Please try again.");
+        showErrorPanel("Failed to submit feedback. Please try again.");
     }
 };
 
