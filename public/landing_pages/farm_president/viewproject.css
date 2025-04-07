@@ -69,6 +69,11 @@ td {
     color: #4b5563;
 }
 
+.view-btn{
+    background-color: transparent;
+    border: none;
+}
+
 /* Action Button */
 .view-btn img {
     width: 24px;
