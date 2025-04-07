@@ -189,6 +189,10 @@ body {
   opacity: 0.8;
 }
 
+.popup-content h2 {
+margin-left: -200px;
+}
+
 .modal-content h2 {
   font-size: 20px;
   font-weight: 600;

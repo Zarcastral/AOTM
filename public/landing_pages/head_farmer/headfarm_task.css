@@ -36,17 +36,68 @@ body {
   cursor: pointer;
 }
 
+.back {
+  margin-top: 50px;
+  margin-left: 50px;
+  margin-bottom: -40px;
+
+}
+
+.search-container {
+  display: flex;
+  gap: 1rem;
+  margin-top: -10px;
+}
+
+#search-bar {
+  padding: 8px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: 5px;
+  outline: none;
+  margin-bottom: 20px;
+}
+
+#search-bar {
+  width: 500px;
+}
+
+#search-bar:focus{
+  border-color: #aaa;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+}
+.search-container input,
+.search-container select {
+padding: 0.5rem;
+border: 1px solid #dcdcdc;
+border-radius: 5px;
+}
+
 .main-content {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
 }
 
+#addTaskButton{
+  color: #41a186;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size:17px;
+  font-weight: 500;
+  margin-top: -10px;
+}
+#addTaskButton:hover {
+  color: #3b8f7a;
+}
 .task-panel {
   background-color: #ffffff;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 1.25rem;
+  padding: 30px;
+  margin: 30px;
 }
 
 .task-header {
@@ -57,9 +108,10 @@ body {
 }
 
 .task-header h2 {
-  font-size: 1.25rem;
+  font-size: 30px;
   font-weight: 700;
-  color: #0d9488;
+  color: #41a186;
+  ;
 }
 
 .task-header button {
@@ -86,21 +138,22 @@ body {
 
 table {
   width: 100%;
-  font-size: 0.875rem;
+  font-size: 15px;
   text-align: left;
-  color: #6b7280;
+  color: #1f2937;
   border-collapse: collapse;
 }
 
 thead {
-  font-size: 0.75rem;
+  font-size: 15px;
   text-transform: uppercase;
   color: #374151;
-  background-color: #f3f4f6;
+  background-color: none;
 }
 
 thead th {
   padding: 0.5rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 tbody tr {
@@ -134,8 +187,8 @@ td:last-child {
 }
 
 .view-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
   color: #6b7280;
 }
@@ -145,8 +198,8 @@ td:last-child {
 }
 
 .edit-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
   color: #6b7280;
 }
@@ -156,10 +209,10 @@ td:last-child {
 }
 
 .delete-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
-  color: #ef4444;
+  color: #AC415B;
 }
 
 .delete-icon:hover {
@@ -259,15 +312,15 @@ td:last-child {
 }
 
 .modal-content h2 {
-  font-size: 1.125rem;
+  font-size: 15pxm;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 30px;
 }
 
 .modal-content label {
   display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  margin-bottom: 3px;
+  font-size: 15px;
   font-weight: 500;
   color: #374151;
 }
@@ -281,7 +334,7 @@ td:last-child {
 }
 
 .modal-content input:focus {
-  border-color: #3b82f6;
+  border-color: #aaa;
 }
 
 .modal-buttons {
@@ -314,7 +367,7 @@ td:last-child {
 }
 
 #confirmDeleteBtn {
-  background-color: #dc2626;
+  background-color: #AC415B;
   color: #ffffff;
 }
 .success-message {

@@ -1,7 +1,40 @@
+/* General Styles */
 body {
-  font-family: "Poppins";
-  background-color: #f4f4f4;
-  padding: 20px;
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Poppins', sans-serif;
+}
+
+.header {
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
 }
 .container {
   max-width: 600px;
@@ -12,7 +45,7 @@ body {
 .back {
   margin-left: -50px;
   margin-bottom: 5px;
-
+  margin-top: 20px;
 }
 
 .panel {
@@ -240,6 +273,7 @@ body {
   padding: 10px 60px;
   border-radius: 12px;
   cursor: pointer;
+  margin-bottom: 50px;
 }
 
 
@@ -251,6 +285,7 @@ body {
   padding: 12px 60px;
   border-radius: 12px;
   cursor: pointer;
+  margin-bottom: 50px;
 }
 
 /* Equipment Form Styling */
@@ -502,4 +537,55 @@ body {
   z-index: 1001;
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .back {
+    margin-left: 10px;
+    margin-bottom: 5px;
+    margin-top: 50px;
+  }
+  
+  
+  .panel {
+    padding: 30px;
+    margin: 10px;
+  }
+
+  .panel2 {
+    padding: 30px;
+    margin: 10px;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-left: 540px;
+    
+  }
+}
+
+@media (max-width: 480px) {
+  .back {
+    margin-left: 10px;
+    margin-bottom: 5px;
+    margin-top: 50px;
+  }
+
+  .panel {
+    padding: 30px;
+    margin: 10px;
+  }
+
+  .panel2 {
+    padding: 30px;
+    margin: 10px;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-left: 540px;
+    
+  }
 }

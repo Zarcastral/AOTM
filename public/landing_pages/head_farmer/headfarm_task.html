@@ -12,6 +12,12 @@
 <body>
     <div id="header-container"></div>
 
+    <div class="back">
+        <a href="viewproject.html" class="back-link">
+            <img src="../../images/arrow-left.png" alt="Back" width="30" height="30">
+        </a>
+    </div>
+
     <div class="main-content">
         <div class="task-panel">
             <div class="task-header">
@@ -19,7 +25,7 @@
                 <button id="addTaskButton">+ Add Task</button>
             </div>
             <div class="search-container">
-                <input type="text" placeholder="Search tasks...">
+                <input type="text" id="search-bar" placeholder="Search" />
             </div>
             <div class="table-container">
                 <table>
@@ -48,9 +54,9 @@
 
     <div id="addTaskModal" class="modal hidden">
         <div class="modal-content">
-            <h2>Add New Task</h2>
+            <h2>New Task</h2>
             <label>Task Name:</label>
-            <input type="text" id="taskNameInput" placeholder="Enter task name">
+            <input type="text" id="taskNameInput" placeholder="" required>
             <div class="modal-buttons">
                 <button id="cancelTaskBtn">Cancel</button>
                 <button id="saveTaskBtn">Save</button>
