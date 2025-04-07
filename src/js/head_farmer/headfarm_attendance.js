@@ -126,13 +126,13 @@ function renderTable(filteredFarmers, selectedDate) {
           <option value="" ${!remarkValue ? "selected" : ""}>Select remark</option>
           <option value="productive" ${
             capitalizedRemark === "Productive" ? "selected" : ""
-          } style="color: #28a745;">Productive</option>
+          } style="color: #41a186;">Productive</option>
           <option value="average" ${
             capitalizedRemark === "Average" ? "selected" : ""
-          }>Average</option>
+          }style="color: #9854cb;">Average</option>
           <option value="needs-improvement" ${
             capitalizedRemark === "Needs-improvement" ? "selected" : ""
-          } style="color: #dc3545;">Needs improvement</option>
+          } style="color: #ac415b;">Needs improvement</option>
         </select>`
         : `<span>${capitalizedRemark || "—"}</span>`;
 

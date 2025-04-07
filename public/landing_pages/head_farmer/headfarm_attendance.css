@@ -14,24 +14,32 @@ body {
 }
 
 .back-arrow {
-  position: absolute;
-  left: -50px;
+  background: none;
+  border: none;
   cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
+  left: 10px;
+  margin-top: 30px;
+  left: 180px;
 }
 
 .back-arrow img {
-  width: 40px; /* Adjust size as needed */
-  height: 40px; /* Adjust size as needed */
-  display: block; /* Removes any extra spacing */
+  width: 30px; /* Adjust size as needed */
+  height: 30px; /* Adjust size as needed */
 }
 
 .panel {
   background-color: #ffffff;
-  padding: 20px;
+  padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%; /* Takes the max-width of the container */
   box-sizing: border-box; /* Ensures padding doesn't increase the width */
+  margin-top: -30px;
+  margin-left: 50px; /* Space between the back button and the panel */
 }
 
 .panel-header {
@@ -79,24 +87,99 @@ td {
   border-bottom: 1px solid #e0e0e0; /* Bottom line for table rows */
 }
 
-input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  accent-color: #28a745;
+th:first-child, td:first-child {
+  width: 150px; /* Adjusted width for the action column */
+  min-width: 100px; /* Minimum width to ensure usability */
+  text-align: center; /* Centered text for action column */
+  
 }
 
-select {
-  padding: 5px;
-  border: 1px solid #d3d3d3;
-  border-radius: 5px;
-  background-color: #fff;
-  color: #666;
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #D1D5DB; /* Thin border */
+  border-radius: 4px; /* Optional: Slightly rounded corners */
+  outline: none;
+  background-color: white;
+  cursor: pointer;
+  -webkit-appearance: none; /* Removes default browser styling */
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Style when checkbox is checked */
+input[type="checkbox"]:checked {
+  background-color: #41A186; /* Green color */
+  border-color: #41A186;
+  position: relative;
+}
+
+/* Create the checkmark */
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 3px;
+  height: 7px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Style the container (assuming it wraps the search bar) */
+.search-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  margin-top: 30px;
+}
+
+/* Style the search bar input */
+.search-bar {
+  width: 400px;
+  padding: 8px; /* Specific padding from your .search-bar */
+  font-size: 16px;
+  border: 1px solid lightgray; /* More specific than the general rule */
+  border-radius: 10px;
+  outline: none;
+}
+
+/* Focus state for search bar  */
+.search-bar:focus {
+  border-color: #aaa;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* General styling for inputs and selects in the container */
+.search-container input,
+.search-container select {
+  padding: 10px; /* This will apply to all inputs/selects unless overridden */
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
 }
 
 .button-container {
   max-width: 1000px; /* Matches the container's max-width */
   margin: 0 auto; /* Centers the button container */
   text-align: right; /* Aligns the button to the right within this container */
+}
+
+.remarks-select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
 }
 
 .save-btn {
@@ -181,13 +264,15 @@ select {
 .modal-content h2 {
   font-size: 20px;
   color: #333;
-  margin: 0 0 15px 0;
+  padding: 10px;
 }
 
 .modal-content p {
   margin: 15px 0;
   color: #666;
   font-size: 14px;
+  padding: 10px;
+  margin-top: -30px;
 }
 
 .confirm-buttons {
@@ -198,8 +283,8 @@ select {
 }
 
 .cancel-btn {
-  background-color: #e0e0e0;
-  color: #333;
+  background-color: #cacaca; /* Light gray color */
+  color: white;
   border: none;
   padding: 8px 16px;
   border-radius: 5px;
@@ -208,7 +293,7 @@ select {
 }
 
 .cancel-btn:hover {
-  background-color: #d0d0d0;
+  opacity: 0.8;
 }
 
 .confirm-btn {
@@ -222,7 +307,7 @@ select {
 }
 
 .confirm-btn:hover {
-  background-color: #359171; /* Slightly darker shade for hover */
+  opacity: 0.8;
 }
 .success-message {
   position: fixed;

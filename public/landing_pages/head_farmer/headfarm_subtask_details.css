@@ -3,6 +3,7 @@
             background-color: #f5f9ff;
             margin: 0;
             padding-top: 1px;
+            cursor: default;
         }
 
         .panel-container {
@@ -23,7 +24,7 @@
             position: absolute;
             top: 0;
             /* Align with the top of the panel */
-            left: -50px;
+            left: 50px;
             /* Position to the left of the panel */
         }
 
@@ -63,10 +64,11 @@
             font-size: 14px;
             text-decoration: none;
             cursor: pointer;
+
         }
 
         .add-subtask:hover {
-            text-decoration: underline;
+            text-decoration: none;
         }
 
         .subtask-table {
@@ -239,7 +241,7 @@
         .modal-content p {
             margin: 15px 0;
             color: #666;
-        }
+        }   
 
         .add-day-btn {
             color: #41A186;
