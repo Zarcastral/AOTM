@@ -570,7 +570,7 @@ async function updateBarGraph() {
             }
             if (bar.classList.contains('highlighted')) {
                 const totalCrops = bar.dataset.value || 0;
-                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.textContent = `Total Harvest: ${totalCrops} Kg`;
                 tooltip.style.display = 'block';
                 const barRect = bar.getBoundingClientRect();
                 const chartRect = barChart.getBoundingClientRect();
@@ -616,7 +616,7 @@ async function updateBarGraph() {
                 cancelAnimation = animateDashedLine(bar);
                 
                 const totalCrops = bar.dataset.value || 0;
-                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.textContent = `Total Harvest: ${totalCrops} Kg`;
                 tooltip.style.display = 'block';
                 const barRect = bar.getBoundingClientRect();
                 const chartRect = barChart.getBoundingClientRect();

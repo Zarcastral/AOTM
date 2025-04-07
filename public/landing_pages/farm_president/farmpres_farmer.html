@@ -13,6 +13,10 @@
   <!-- Placeholder for Header -->
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
   <div class="main-content">
+    <div class="teams-selector">
+      <span class="teams-form"><a href="farmpres_farmer.html">Teams</a></span> <div class="rando-line">|</div>
+      <span class="farmers-form"><a href="farmpres_farmer_list.html">Farmers</a></span>
+    </div>
     <div class="team-panel" id="team-panel">
       <div class="panel-header">
         <h2>Team List</h2>
@@ -58,7 +62,85 @@
     </div>
   </div>
 
-<script type="module" src="farmpres_farmer.js">
+<script type="module" src="farmpres_farmer.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const reportLinks = document.querySelectorAll(".teams-form a");
+
+      // Debugging: Log all links and their hrefs
+
+      // Clear any active link state when the page is loaded
+      reportLinks.forEach(link => link.classList.remove("active"));
+
+      // Retrieve stored active link from localStorage
+      const activeLink = localStorage.getItem("activeReportLink");
+
+      // Normalize URLs for comparison (remove trailing slashes, etc.)
+      const normalizeUrl = (url) => {
+          try {
+              return new URL(url, window.location.origin).href;
+          } catch (e) {
+              return url;
+          }
+      };
+
+      // Get the current page URL
+      const currentPageUrl = normalizeUrl(window.location.href);
+
+      // Find the link that matches the current page
+      let currentPageLink = null;
+      reportLinks.forEach(link => {
+          const normalizedLinkHref = normalizeUrl(link.href);
+          if (normalizedLinkHref === currentPageUrl) {
+              currentPageLink = link;
+          }
+      });
+
+      // If the current page matches a link, set it as active and update localStorage
+      if (currentPageLink) {
+          currentPageLink.classList.add("active");
+          localStorage.setItem("activeReportLink", currentPageLink.href);
+      } else {
+          // If no match for the current page, fall back to the stored active link
+          let isMatchFound = false;
+          if (activeLink) {
+              reportLinks.forEach(link => {
+                  const normalizedLinkHref = normalizeUrl(link.href);
+                  const normalizedActiveLink = normalizeUrl(activeLink);
+                  if (normalizedLinkHref === normalizedActiveLink) {
+                      link.classList.add("active");
+                      isMatchFound = true;
+                  }
+              });
+          }
+
+          // If no match for the stored active link, reset to Harvest
+          if (!isMatchFound) {
+              const harvestLink = Array.from(reportLinks).find(link =>
+                  normalizeUrl(link.href).includes("farmpres_farmer.html")
+              );
+              if (harvestLink) {
+                  harvestLink.classList.add("active");
+                  localStorage.setItem("activeReportLink", harvestLink.href);
+              } else {
+              }
+          }
+      }
+
+      // Add click event listeners to update the active link
+      reportLinks.forEach(link => {
+          link.addEventListener("click", function () {
+              // Remove active class from all links
+              reportLinks.forEach(link => link.classList.remove("active"));
+
+              // Add active class to clicked link
+              this.classList.add("active");
+
+              // Store the active link in localStorage
+              localStorage.setItem("activeReportLink", this.href);
+          });
+      });
+  });
 </script>
 <!-- Import the reusable script from src/auth -->
 <script type="module" src="../../../src/auth/header.js"></script>
