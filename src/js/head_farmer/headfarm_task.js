@@ -384,12 +384,12 @@ function attachRowEventListeners() {
           }
         } else {
           console.log(`Task ${taskId} not found in Firestore.`);
-          alert("Task not found.");
+          showErrorPanel("Task not found.");
           return;
         }
       } catch (error) {
         console.error("❌ Error checking task status:", error);
-        alert("Error checking task status. Try again.");
+        showErrorPanel("Error checking task status. Try again.");
         return;
       }
       openDeleteModal(taskId);
@@ -505,7 +505,7 @@ async function saveEditHandler() {
 
   const newTaskNameRaw = editTaskNameInput.value.trim();
   if (!newTaskNameRaw) {
-    alert("Please enter a task name.");
+    showErrorPanel("Please enter a task name.");
     return;
   }
 
@@ -521,7 +521,7 @@ async function saveEditHandler() {
   try {
     const projectId = sessionStorage.getItem("selected_project_id");
     if (!projectId) {
-      alert("No project selected.");
+      showErrorPanel("No project selected.");
       return;
     }
 
@@ -532,7 +532,7 @@ async function saveEditHandler() {
       )
     );
     if (taskSnap.empty) {
-      alert("Task not found.");
+      showErrorPanel("Task not found.");
       return;
     }
     const projectTaskId = taskSnap.docs[0].data().project_task_id;
@@ -601,7 +601,7 @@ async function saveEditHandler() {
     renderTasks();
   } catch (error) {
     console.error("❌ Error updating task and related records:", error);
-    alert("Failed to update task. Try again.");
+    showErrorPanel("Failed to update task. Try again.");
   }
 }
 
@@ -624,7 +624,7 @@ async function saveTaskHandler() {
   const taskName = taskNameInput.value.trim();
 
   if (!taskName) {
-    alert("Please enter a task name.");
+    showErrorPanel("Please enter a task name.");
     return;
   }
 
@@ -634,7 +634,7 @@ async function saveTaskHandler() {
     const cropName = sessionStorage.getItem("selected_crop_name");
 
     if (!projectId || !cropTypeName || !cropName) {
-      alert("Missing project or crop details.");
+      showErrorPanel("Missing project or crop details.");
       return;
     }
 
@@ -705,7 +705,7 @@ async function saveTaskHandler() {
     renderTasks();
   } catch (error) {
     console.error("❌ Error adding task:", error);
-    alert("Failed to add task. Try again.");
+    showErrorPanel("Failed to add task. Try again.");
   }
 }
 
@@ -730,7 +730,7 @@ async function deleteTaskHandler() {
     );
     if (taskSnap.empty) {
       console.log(`Task ${taskToDelete} not found in Firestore.`);
-      alert("Task not found.");
+      showErrorPanel("Task not found.");
       deleteTaskModal.classList.add("hidden");
       return;
     }
@@ -788,7 +788,7 @@ async function deleteTaskHandler() {
     renderTasks();
   } catch (error) {
     console.error("❌ Error deleting task and related records:", error);
-    alert("Failed to delete task. Try again.");
+    showErrorPanel("Failed to delete task. Try again.");
   }
 
   deleteTaskModal.classList.add("hidden");
