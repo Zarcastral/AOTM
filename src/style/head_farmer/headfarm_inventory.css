@@ -5,6 +5,7 @@ body {
     font-family: 'Poppins';
     display: flex;
     flex-direction: column;
+    cursor: default;
   }
 
 

@@ -6,6 +6,7 @@ body {
   font-family: 'Poppins';
   display: flex;
   flex-direction: column;
+  cursor: default;
 }
 
 
@@ -71,7 +72,7 @@ body {
   margin-bottom: 20px;
   padding: 15px;
   border-radius: 10px;
-  min-height: 60px; /* Your specified minimum height */
+  min-height: 650px; /* Your specified minimum height */
   display: flex;
   flex-direction: column; /* Stack children vertically */
 }
@@ -135,6 +136,7 @@ input[type="checkbox"] {
   -webkit-appearance: none; /* Removes default browser styling */
   -moz-appearance: none;
   appearance: none;
+  margin-top: 10px;
 }
 
 /* Style when checkbox is checked */

@@ -184,6 +184,16 @@ body {
   margin-top: 20px;
   border-radius: 10px;
 }
+/*
+  background-color: white;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  min-height: 650px;
+  display: flex;
+  flex-direction: column; 
+  */
 .crop-search-bar, .fert-search-bar
 .equip-search-bar {
   justify-content: space-between;
@@ -519,8 +529,8 @@ transition: color 0.3s ease;
   background: white;
   padding-left: 40px;
   padding-right: 40px;
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding-top: 30px;
+  padding-bottom: 30px;
   border-radius: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   display: none;
@@ -634,11 +644,11 @@ transition: color 0.3s ease;
 .equip-btn  {
   padding: 10px 40px;
   border: none;
-  border-radius: 15px;
+  border-radius: 25px;
   font-weight: bold;
   margin-top: 30px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 18px;
 }
 
 
@@ -678,7 +688,8 @@ transition: color 0.3s ease;
 .crop-cancel:hover,
 .fert-cancel:hover,
 .equip-cancel:hover{
-  opacity: 0.8;
+  background: #a1a1a1;
+  transition: background-color 0.3s ease;
 }
 
 .crop-stock-message,
