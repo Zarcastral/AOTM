@@ -85,7 +85,7 @@ function showErrorPanel(message) {
       document.body.removeChild(errorMessage);
     }, 400);
   }, 4000);
-} 
+}
 
 // Password Validation UI
 const passwordChecks = {
@@ -586,6 +586,9 @@ if (!form.dataset.listenerAdded) {
         console.log("Profile picture uploaded:", profilePictureUrl);
       }
 
+      const now = new Date();
+      const createdAtString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
       const userData = {
         uid, // Added UID field
         user_picture: profilePictureUrl,
@@ -605,6 +608,7 @@ if (!form.dataset.listenerAdded) {
         await setDoc(doc(db, "tb_users", uid), userData); // Store in tb_users with UID
       } else {
         userData.farmer_id = farmerId;
+        userData.created_at = createdAtString; // Save as "YYYY-MM-DD" string
         await setDoc(doc(db, "tb_farmers", uid), userData); // Store in tb_farmers with UID
       }
 
