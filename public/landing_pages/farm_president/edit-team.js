@@ -74,60 +74,28 @@ const urlParams = new URLSearchParams(window.location.search);
             }
     
             const currentBarangay = teamData.barangay_name;
-            const currentTeamFarmerIds = new Set(
-                (teamData.farmer_name || []).map(farmer => String(farmer.farmer_id))
-            );
     
-            // Step 1: Include the lead farmer from teamData
-            let leadFarmerContact = teamData.lead_farmer_contact || '';
-            if (!leadFarmerContact && teamData.lead_farmer_id) {
-                const leadFarmerQuery = query(
-                    collection(db, "tb_farmers"),
-                    where("farmer_id", "==", teamData.lead_farmer_id)
-                );
-                const leadFarmerSnap = await getDocs(leadFarmerQuery);
-                if (!leadFarmerSnap.empty) {
-                    leadFarmerContact = leadFarmerSnap.docs[0].data().contact || '';
-                }
-            }
-    
-            const leadFarmer = {
-                id: teamData.lead_farmer_id || 'lead_' + teamData.team_id,
-                farmer_id: teamData.lead_farmer_id || '',
-                farmer_name: teamData.lead_farmer || 'No Lead Farmer',
-                contact: leadFarmerContact,
-                barangay_name: currentBarangay,
-                user_type: "Head Farmer"
-            };
-    
-            // Step 2: Include farmers from the current team's farmer_name array
-            const currentTeamFarmers = (teamData.farmer_name || []).map(farmer => ({
-                id: farmer.farmer_id,
-                farmer_id: farmer.farmer_id,
-                farmer_name: farmer.farmer_name,
-                contact: farmer.contact || '',
-                barangay_name: currentBarangay,
-                user_type: "Farmer"
-            }));
-    
-            // Step 3: Fetch all teams to determine excluded farmer_ids (excluding current team)
+            // Step 1: Fetch all teams to collect all assigned farmer names
             const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
-            const excludedFarmerIds = new Set();
+            const assignedFarmerNames = new Set();
     
             teamsSnapshot.forEach((teamDoc) => {
                 const docTeamData = teamDoc.data();
-                const urlParams = new URLSearchParams(window.location.search);
-                const teamId = parseInt(urlParams.get('teamId'));
-                if (docTeamData.team_id !== teamId && docTeamData.farmer_name && Array.isArray(docTeamData.farmer_name)) {
+                // Add lead farmer name if present
+                if (docTeamData.lead_farmer) {
+                    assignedFarmerNames.add(docTeamData.lead_farmer.trim().toLowerCase());
+                }
+                // Add all farmer names from farmer_name array
+                if (docTeamData.farmer_name && Array.isArray(docTeamData.farmer_name)) {
                     docTeamData.farmer_name.forEach(farmerObj => {
-                        if (farmerObj.farmer_id) {
-                            excludedFarmerIds.add(String(farmerObj.farmer_id));
+                        if (farmerObj.farmer_name) {
+                            assignedFarmerNames.add(farmerObj.farmer_name.trim().toLowerCase());
                         }
                     });
                 }
             });
     
-            // Step 4: Fetch ALL farmers from tb_farmers in the barangay, not just unassigned
+            // Step 2: Fetch all farmers from tb_farmers in the current barangay
             const q = query(
                 collection(db, "tb_farmers"),
                 where("barangay_name", "==", currentBarangay),
@@ -149,15 +117,12 @@ const urlParams = new URLSearchParams(window.location.search);
                     };
                 });
     
-            // Step 5: Combine lead farmer, current team farmers, and all farmers (excluding those already in farmerBox)
-            const farmerBoxNames = new Set(
-                Array.from(document.getElementById('farmerBox').getElementsByClassName('farmer-item'))
-                    .map(item => item.firstChild.textContent.trim())
+            // Step 3: Filter out farmers already assigned to any team
+            farmersList = allFarmers.filter(farmer => 
+                !assignedFarmerNames.has(farmer.farmer_name.trim().toLowerCase())
             );
-            farmersList = [leadFarmer, ...currentTeamFarmers, ...allFarmers]
-                .filter(farmer => !farmerBoxNames.has(farmer.farmer_name) && farmer.farmer_id !== leadFarmer.farmer_id);
     
-            console.log("Fetched farmers with lead farmer and contacts:", farmersList);
+            console.log("Fetched available farmers:", farmersList);
         } catch (error) {
             console.error("Error fetching farmers:", error);
             farmersList = [];
@@ -222,7 +187,7 @@ function addRemoveEventListeners() {
     });
 }
 
-/*async function fetchFarmerByName(farmerName) {
+async function fetchFarmerByName(farmerName) {
     try {
         const [lastName, firstAndMiddle] = farmerName.split(', ');
         const firstName = firstAndMiddle ? firstAndMiddle.split(' ')[0] : '';
@@ -231,7 +196,8 @@ function addRemoveEventListeners() {
         const q = query(
             collection(db, "tb_farmers"),
             where("last_name", "==", lastName),
-            where("first_name", "==", firstName)
+            where("first_name", "==", firstName),
+            where("barangay_name", "==", teamData.barangay_name)
         );
         const querySnapshot = await getDocs(q);
         
@@ -248,7 +214,7 @@ function addRemoveEventListeners() {
         console.error(`Error fetching farmer by name ${farmerName}:`, error);
         return null;
     }
-}*/
+}
 
 
 async function updateTeamInFirestore() {
@@ -290,13 +256,21 @@ function renderFarmerResults(searchValue = '') {
         div.addEventListener('click', () => {
             addFarmerToBox(farmer);
             resultsContainer.innerHTML = '';
+            resultsContainer.style.display = 'none'; // Hide after selection
         });
         resultsContainer.appendChild(div);
     });
 }
 
+
 function addFarmerToBox(farmer) {
     const farmerBox = document.getElementById('farmerBox');
+    // Verify farmer is still in farmersList to prevent stale data
+    if (!farmersList.some(f => f.farmer_name === farmer.farmer_name)) {
+        console.warn(`Farmer ${farmer.farmer_name} is no longer available; skipping addition.`);
+        return;
+    }
+
     const farmerDiv = document.createElement('div');
     farmerDiv.classList.add('farmer-item');
     farmerDiv.textContent = farmer.farmer_name;
@@ -345,44 +319,59 @@ document.getElementById('closePopup').addEventListener('click', () => {
     document.getElementById('searchResults').innerHTML = '';
 });
 
-document.getElementById('farmerSearch').addEventListener('input', (e) => {
+const farmerSearch = document.getElementById('farmerSearch');
+const searchResults = document.getElementById('searchResults');
+
+// Show all farmers when the search bar is focused
+farmerSearch.addEventListener('focus', () => {
+    renderFarmerResults(''); // Empty string shows all farmers
+    searchResults.style.display = 'block'; // Ensure results are visible
+});
+
+// Filter farmers as the user types
+farmerSearch.addEventListener('input', (e) => {
     renderFarmerResults(e.target.value);
+    searchResults.style.display = 'block'; // Keep results visible while typing
+});
+
+// Hide results when clicking outside
+document.addEventListener('click', (e) => {
+    if (!farmerSearch.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none'; // Hide results when clicking outside
+    }
 });
 
 document.getElementById('saveFarmerBtn').addEventListener('click', async () => {
     const farmerBox = document.getElementById('farmerBox');
-    const newFarmers = Array.from(farmerBox.getElementsByClassName('farmer-item'))
-        .map(item => {
-            const farmerName = item.firstChild.textContent.trim();
-            // Try to find the farmer in farmersList or teamData.farmer_name
-            let farmer = farmersList.find(f => f.farmer_name.trim().toLowerCase() === farmerName.trim().toLowerCase()) || 
-                         teamData.farmer_name.find(f => f.farmer_name.trim().toLowerCase() === farmerName.trim().toLowerCase());
-            
-            if (!farmer) {
-                console.warn(`Farmer not found for name: ${farmerName}`);
-                // Attempt to fetch from tb_farmers as a fallback
-                return fetchFarmerByName(farmerName).then(fetchedFarmer => {
+    const newFarmers = await Promise.all(
+        Array.from(farmerBox.getElementsByClassName('farmer-item'))
+            .map(async (item) => {
+                const farmerName = item.firstChild.textContent.trim();
+                let farmer = farmersList.find(f => f.farmer_name.trim().toLowerCase() === farmerName.trim().toLowerCase()) || 
+                             teamData.farmer_name.find(f => f.farmer_name.trim().toLowerCase() === farmerName.trim().toLowerCase());
+                
+                if (!farmer) {
+                    console.warn(`Farmer not found in initial lists for name: ${farmerName}`);
+                    // Fallback: Fetch from tb_farmers
+                    const fetchedFarmer = await fetchFarmerByName(farmerName);
                     if (fetchedFarmer) {
-                        return fetchedFarmer;
+                        farmer = fetchedFarmer;
+                    } else {
+                        console.error(`Farmer ${farmerName} not found in tb_farmers; skipping.`);
+                        return null; // Skip this farmer
                     }
-                    return {
-                        farmer_id: '', // Will be filtered out
-                        farmer_name: farmerName,
-                        contact: ''
-                    };
-                });
-            }
-            return Promise.resolve({
-                farmer_id: farmer.farmer_id || '',
-                farmer_name: farmer.farmer_name,
-                contact: farmer.contact || ''
-            });
-        });
+                }
+                
+                return {
+                    farmer_id: farmer.farmer_id || '',
+                    farmer_name: farmer.farmer_name,
+                    contact: farmer.contact || ''
+                };
+            })
+    );
 
-    // Wait for all promises to resolve
-    const resolvedFarmers = await Promise.all(newFarmers);
-    const validFarmers = resolvedFarmers.filter(farmer => farmer.farmer_id !== '');
-
+    const validFarmers = newFarmers.filter(farmer => farmer !== null && farmer.farmer_id !== '');
+    
     if (validFarmers.length === 0) {
         alert('No valid farmers selected to add.');
         return;
@@ -390,6 +379,10 @@ document.getElementById('saveFarmerBtn').addEventListener('click', async () => {
 
     currentFarmers = [...currentFarmers, ...validFarmers];
     await updateTeamInFirestore();
+    
+    // Add alert for successful addition
+    alert(`Successfully added ${validFarmers.length} new member${validFarmers.length > 1 ? 's' : ''} to the team!`);
+    
     renderTable();
     document.getElementById('addFarmerPopup').style.display = 'none';
     document.getElementById('farmerBox').innerHTML = '';
