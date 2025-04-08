@@ -26,6 +26,7 @@
             where,
             doc,
             updateDoc,
+            orderBy, // Added import for orderBy
         } from "firebase/firestore";
         import app from "../../../src/config/firebase_config.js";
 
@@ -103,7 +104,8 @@
 
                 const q = query(
                     collection(db, "tb_notifications"),
-                    where("recipient", "==", recipientValue)
+                    where("recipient", "==", recipientValue),
+                    orderBy("timestamp", "desc") // Added to sort latest at top
                 );
 
                 const querySnapshot = await getDocs(q);
