@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organic Baras Productivity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="headfarm_farmer.css">
+</head>
+
+<body>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <div class="main-content">
+    <div class="team-panel" id="team-panel">
+      <div class="panel-header">
+        <h2>Team A</h2>
+      </div>
+      <table class="team-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>TEAM NAME</th>
+            <th>LEAD FARMER</th>
+            <th>CONTACT</th>
+            <th>BARANGY</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>TEAM A</td>
+            <td>Joe Hatter</td>
+            <td>123446546</td>
+            <td>conception</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>TEAM B</td>
+            <td>Quin Tomas</td>
+            <td>123444</td>
+            <td>conception</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="account-panel" class="account-panel">
+    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
+  </div>
+
+  <script>
+    const accountIcon = document.getElementById("account-icon");
+    const accountPanel = document.getElementById("account-panel");
+    const accountFrame = document.getElementById("account-frame");
+
+    accountIcon.addEventListener("click", () => {
+      accountPanel.classList.toggle("active");
+      if (accountPanel.classList.contains("active")) {
+        accountFrame.src = "logout.html";
+      } else {
+        accountFrame.src = "";
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
+        accountPanel.classList.remove("active");
+        accountFrame.src = "";
+      }
+    });
+  </script>
+   <!-- Import the reusable script from src/auth -->
+   <script type="module" src="../../../src/auth/header.js"></script>
+</body>
+
+</html>
