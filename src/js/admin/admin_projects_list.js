@@ -9,7 +9,7 @@ import {
     query,
     where,
     getFirestore,
-    onSnapshot // Added for real-time listening
+    onSnapshot
 } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
@@ -27,6 +27,12 @@ editFormContainer.id = "edit-form-container";
 editFormContainer.style.display = "none";
 document.body.appendChild(editFormContainer);
 
+const confirmationPanel = document.getElementById("confirmation-panel");
+const confirmDeleteButton = document.getElementById("confirm-delete");
+const cancelDeleteButton = document.getElementById("cancel-delete");
+const deleteMessage = document.getElementById("delete-message");
+let selectedRowId = null;
+
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
@@ -38,18 +44,14 @@ async function getAuthenticatedUser() {
 
                     if (!userSnapshot.empty) {
                         const userData = userSnapshot.docs[0].data();
-                        console.log("Authenticated user data:", userData); // Debugging line
-                        resolve(userData.user_type); // Return ONLY user_type
+                        resolve(userData.user_type);
                     } else {
-                        console.error("User record not found in tb_users collection.");
                         reject("User record not found.");
                     }
                 } catch (error) {
-                    console.error("Error fetching user_name:", error);
                     reject(error);
                 }
             } else {
-                console.error("User not authenticated. Please log in.");
                 reject("User not authenticated.");
             }
         });
@@ -64,21 +66,21 @@ async function fetch_projects(filter = {}) {
     try {
         const querySnapshot = await getDocs(collection(db, "tb_projects"));
         projectList = [];
-        let projectIdList = []; // Store project IDs separately
+        let projectIdList = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const projectId = String(data.project_id || ""); // Convert to string
-            projectIdList.push(projectId); // Push to projectIdList
+            const projectId = String(data.project_id || "");
+            projectIdList.push(projectId);
 
             const searchTerm = filter.search?.toLowerCase();
             const matchesSearch = searchTerm
                 ? `${data.project_name || ""}`.toLowerCase().includes(searchTerm) ||
-                `${data.farm_president || ""}`.toLowerCase().includes(searchTerm) ||
-                (data.start_date || "").includes(searchTerm) ||
-                (data.end_date || "").includes(searchTerm) ||
-                (data.crop_type_name || "").toLowerCase().includes(searchTerm) ||
-                (data.status || "").toLowerCase().includes(searchTerm)
+                  `${data.farm_president || ""}`.toLowerCase().includes(searchTerm) ||
+                  (data.start_date || "").includes(searchTerm) ||
+                  (data.end_date || "").includes(searchTerm) ||
+                  (data.crop_type_name || "").toLowerCase().includes(searchTerm) ||
+                  (data.status || "").toLowerCase().includes(searchTerm)
                 : true;
 
             const matchesStatus = filter.status
@@ -90,29 +92,23 @@ async function fetch_projects(filter = {}) {
             }
         });
 
-        // Sort by start_date in descending order, then by end_date in descending order if start_date is the same
         projectList.sort((a, b) => {
             const startA = a.start_date ? new Date(a.start_date) : new Date(0);
             const startB = b.start_date ? new Date(b.start_date) : new Date(0);
             const endA = a.end_date ? new Date(a.end_date) : new Date(0);
             const endB = b.end_date ? new Date(b.end_date) : new Date(0);
 
-            // First, sort by start_date in descending order
-            if (startB - startA !== 0) {  // Reversed subtraction for descending order
-                return startB - startA;    // Latest start_date first
+            if (startB - startA !== 0) {
+                return startB - startA;
             }
-
-            // If start_date is the same, sort by end_date in descending order
-            return endB - endA;            // Latest end_date first
+            return endB - endA;
         });
-
-        console.log("Project IDs:", projectIdList); // Debugging: Log all project IDs
 
         currentPage = 1;
         updateTable();
         updatePagination();
     } catch (error) {
-        console.error("Error Fetching User Accounts:", error);
+        console.error("Error Fetching Projects:", error);
     }
 }
 
@@ -123,21 +119,20 @@ function capitalizeWords(str) {
         .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function formatProjectName(project_name){
-    const formattedProjectName = project_name ? capitalizeWords(project_name): "";
-    return `${formattedProjectName}`.trim();
+function formatProjectName(project_name) {
+    return project_name ? capitalizeWords(project_name) : "";
 }
-function formatFarmPresident(farm_president){
-    const formattedFarmPresident = farm_president ? capitalizeWords(farm_president): "";
-    return `${formattedFarmPresident}`.trim();
+
+function formatFarmPresident(farm_president) {
+    return farm_president ? capitalizeWords(farm_president) : "";
 }
-function formatCrop(crop_type_name){
-    const formattedCrop = crop_type_name ? capitalizeWords(crop_type_name): "";
-    return `${formattedCrop}`.trim();
+
+function formatCrop(crop_type_name) {
+    return crop_type_name ? capitalizeWords(crop_type_name) : "";
 }
+
 function formatStatus(status) {
-    const formattedStatus = status ? capitalizeWords(status): "";
-    return `${formattedStatus}`.trim();
+    return status ? capitalizeWords(status) : "";
 }
 
 // <------------------ FUNCTION TO LOG PROJECT DETAILS TO CONSOLE ------------------------>
@@ -151,7 +146,7 @@ function logProjectDetails() {
             Dates: `${project.start_date} - ${project.end_date}`,
             Crop: project.crop_type_name,
             Status: project.status,
-            Progress: "KUNWARI MAY PROGRESS BAR" // Replace with actual progress data if available
+            Progress: ""
         });
     });
     console.log("---------------------------");
@@ -159,7 +154,7 @@ function logProjectDetails() {
 
 logProjectDetails();
 
-//  <------------- TABLE DISPLAY AND UPDATE ------------->
+// <------------- TABLE DISPLAY AND UPDATE ------------->
 function updateTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const end = currentPage * rowsPerPage;
@@ -177,14 +172,13 @@ function updateTable() {
         const formattedFarmPresident = formatFarmPresident(data.farm_president);
         const formattedCrop = formatCrop(data.crop_type_name);
         const formattedStatus = formatStatus(data.status);
-        //yung projectid papalitan ng progress bar
         row.innerHTML = `
             <td>${formattedProjectName || "Project Name not recorded"}</td>
             <td>${formattedFarmPresident || "Farm President not recorded"}</td>
             <td>${data.start_date || "Start Date not recorded"}</td>
             <td>${data.end_date || "End Date not recorded"}</td>
             <td>${formattedCrop || "Crop not recorded"}</td>
-            <td>KUNWARI MAY PROGRESS BAR</td>
+            <td></td>
             <td>${formattedStatus || "Status not recorded"}</td>
             <td>
                 <button class="action-btn view-btn" data-id="${data.project_id}" title="View">
@@ -193,8 +187,8 @@ function updateTable() {
                 <button class="action-btn edit-btn" data-id="${data.project_id}" title="Edit">
                     <img src="../../images/edit.png" alt="Edit">
                 </button>
-                <button class="action-btn delete-btn" data-id="${data.project_id}" title="View">
-                    <img src="../../images/delete.png" alt="View">
+                <button class="action-btn delete-btn" data-id="${data.project_id}" title="Delete">
+                    <img src="../../images/delete.png" alt="Delete">
                 </button>
             </td>
         `;
@@ -237,7 +231,6 @@ tableBody.addEventListener("click", (event) => {
     if (!target) return;
 
     const project_id = target.getAttribute("data-id");
-    console.log("Clicked Button - Project ID:", project_id); // Debugging
 
     if (target.classList.contains("edit-btn")) {
         editUserAccount(project_id);
@@ -257,19 +250,15 @@ async function editUserAccount(project_id) {
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
                 const projectData = doc.data();
-
-                // Convert status to lowercase and check if it is "ongoing"
-                if (projectData.status && projectData.status.toLowerCase() === "ongoing") {
+                if (projectData.status?.toLowerCase() === "ongoing") {
                     showDeleteMessage("Editing is not allowed for ongoing projects.", false);
                     return;
                 }
-
-                // Allow editing if not "ongoing"
                 localStorage.setItem("projectData", JSON.stringify(projectData));
                 window.location.href = "admin_projects_edit.html";
             });
         } else {
-            showDeleteMessage("No matching record found, unable to proceed with the requested action.", false);
+            showDeleteMessage("No matching record found.", false);
         }
     } catch (error) {
         console.error("Error fetching user data for edit:", error);
@@ -278,219 +267,180 @@ async function editUserAccount(project_id) {
 
 // <------------- VIEW BUTTON CODE ------------->
 function viewUserAccount(projectId) {
-    sessionStorage.setItem("selectedProjectId", parseInt(projectId, 10)); // Convert to integer
-    window.location.href = "viewproject.html"; // Redirect to viewproject.html
+    sessionStorage.setItem("selectedProjectId", parseInt(projectId, 10));
+    window.location.href = "viewproject.html";
 }
 
-// <------------- DELETE PROJECT FUNCTION ------------->
-// <------------- ENHANCED DELETE FUNCTION WITH ALERT ------------->
-async function deleteProject(projectId) {
-    try {
-        const targetId = Number(projectId);
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", targetId));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            const docSnapshot = querySnapshot.docs[0];
-            const projectData = docSnapshot.data();
-            const status = projectData.status?.toLowerCase() || '';
-
-            // Block deletion for ongoing projects with alert
-            if (status === 'ongoing') {
-                alert("⛔ Cannot delete project\nThis project is currently ongoing and cannot be deleted.");
-                return false;
-            }
-
-            // Block other non-pending statuses
-            if (status !== 'pending') {
-                throw new Error(`Project status "${formatStatus(projectData.status)}" does not allow deletion`);
-            }
-
-            // Proceed with deletion for pending projects
-            await deleteDoc(docSnapshot.ref);
-            await fetch_projects();
-            return true;
-        }
-        
-        throw new Error('Project not found in database');
-    } catch (error) {
-        console.error("Delete error:", error.message);
-        showDeleteMessage(error.message, false);
-        return false;
-    }
-}
-
-// <------------- UPDATED EVENT HANDLER ------------->
-tableBody.addEventListener("click", async (event) => {
-    const deleteBtn = event.target.closest(".delete-btn");
-    if (!deleteBtn) return;
-
-    const projectId = deleteBtn.dataset.id;
-    const confirmation = confirm("Are you sure you want to delete this project?");
-
-    if (confirmation) {
-        const success = await deleteProject(projectId);
-        if (success) {
-            showDeleteMessage("Pending project deleted successfully", true);
-        }
-    }
-});
-
-// <------------- DELETE BUTTON EVENT LISTENER ------------->
+// <------------- DELETE PROJECTS FUNCTION ------------->
 async function deleteProjects(project_id) {
     try {
         const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            // Retrieve the first matching document
             const docSnapshot = querySnapshot.docs[0];
             const docRef = docSnapshot.ref;
             const projectData = docSnapshot.data();
+            const status = projectData.status?.toLowerCase() || "";
 
-            // Convert status to lowercase for case-insensitive comparison
-            const status = projectData.status ? projectData.status.toLowerCase() : "";
-
-            // Check the status field
-            if (status === "Ongoing") {
+            if (status === "ongoing") {
                 showDeleteMessage("Project cannot be deleted because it is already ongoing.", false);
                 return;
-            } else if (status === "Pending") {
-                selectedRowId = docRef.id; // Store the document ID for deletion
+            } else if (status === "pending") {
+                selectedRowId = docRef.id;
                 confirmationPanel.style.display = "flex";
                 editFormContainer.style.pointerEvents = "none";
             } else {
-                console.error("Invalid project status. Deletion not allowed.");
+                showDeleteMessage("Deletion not allowed for this project status.", false);
             }
         } else {
-            showDeleteMessage("No project_id found, unable to proceed with deleting the record", false);
+            showDeleteMessage("No project found.", false);
         }
     } catch (error) {
         console.error("Error finding project:", error);
+        showDeleteMessage("Error finding project.", false);
     }
 }
 
-// <------------- DELETE ROW AND TABLE REFRESH CODE ------------->
-const confirmationPanel = document.getElementById("confirmation-panel");
-const confirmDeleteButton = document.getElementById("confirm-delete");
-const cancelDeleteButton = document.getElementById("cancel-delete");
-let selectedRowId = null;
-const deleteMessage = document.getElementById("delete-message");
-
+// <------------- DELETE CONFIRMATION HANDLER ------------->
 confirmDeleteButton.addEventListener("click", async () => {
-    if (selectedRowId) {
-        try {
-            // Get authenticated user's user_type
-            const user_type = await getAuthenticatedUser();
-            console.log("Extracted user_type:", user_type);
-            
-            if (!user_type) {
-                console.error("Error: user_type is undefined or null.");
-                return;
-            }
-            
-            const projectDocRef = doc(db, "tb_projects", selectedRowId);
-            const projectSnapshot = await getDoc(projectDocRef);
+    if (!selectedRowId) return;
 
-            if (projectSnapshot.exists()) {
-                const projectData = projectSnapshot.data();
-                const { status, crop_type_name, fertilizer_type, quantity_crop_type, quantity_fertilizer_type } = projectData;
-                
-                console.log("Project Data:", projectData);
+    try {
+        const projectDocRef = doc(db, "tb_projects", selectedRowId);
+        const projectSnapshot = await getDoc(projectDocRef);
 
-                // 🔴 Check if status is "pending" (case insensitive)
-                if (!status || status.toLowerCase() !== "pending") {
-                    showDeleteMessage("Project cannot be deleted because it is not in 'Pending' status.", false);
-                    return;
-                }
-
-                let cropUpdated = false;
-                let fertilizerUpdated = false;
-
-                // 🔹 Update crop stock (tb_crop_stock)
-                if (crop_type_name) {
-                    const cropStockQuery = query(collection(db, "tb_crop_stock"), where("crop_type_name", "==", crop_type_name));
-                    const cropStockSnapshot = await getDocs(cropStockQuery);
-
-                    if (!cropStockSnapshot.empty) {
-                        const cropStockDoc = cropStockSnapshot.docs[0]; // Get first matching document
-                        const cropStockRef = doc(db, "tb_crop_stock", cropStockDoc.id);
-                        let cropStockData = cropStockDoc.data();
-                        let stockArray = cropStockData.stocks || [];
-
-                        // Find stock entry by owned_by
-                        const userStockIndex = stockArray.findIndex(stock => stock.owned_by === user_type);
-
-                        if (userStockIndex !== -1) {
-                            // Update current_stock
-                            stockArray[userStockIndex].current_stock += quantity_crop_type;
-                        } else {
-                            console.warn(`No crop stock entry found for owned_by: ${user_type}. Creating new entry.`);
-                            stockArray.push({ owned_by: user_type, current_stock: quantity_crop_type });
-                        }
-
-                        await updateDoc(cropStockRef, { stocks: stockArray });
-                        cropUpdated = true;
-                    } else {
-                        console.error(`Crop stock document with crop_type_name '${crop_type_name}' not found.`);
-                    }
-                } else {
-                    console.error("Error: crop_type_name is undefined.");
-                }
-
-                // 🔹 Update fertilizer stock (tb_fertilizer_stock)
-                if (fertilizer_type) {
-                    const fertilizerStockQuery = query(
-                        collection(db, "tb_fertilizer_stock"),
-                        where("fertilizer_name", "==", fertilizer_type) // Match fertilizer_name in tb_fertilizer_stock
-                    );
-                    const fertilizerStockSnap = await getDocs(fertilizerStockQuery);
-                    
-                    if (!fertilizerStockSnap.empty) {
-                        const fertilizerStockDocA = fertilizerStockSnap.docs[0]; // Get first matching document
-                        const fertilizerStockRef = doc(db, "tb_fertilizer_stock", fertilizerStockDoc.id);
-                        const fertilizerStockData = fertilizerStockDoc.data();
-                        let stockArray = fertilizerStockData.stocks || [];
-                    
-                        // Find stock entry by owned_by
-                        const userStockIndex = stockArray.findIndex(stock => stock.owned_by === user_type);
-                    
-                        if (userStockIndex !== -1) {
-                            // Update current_stock
-                            stockArray[userStockIndex].current_stock += quantity_fertilizer_type;
-                        } else {
-                            console.warn(`No fertilizer stock entry found for owned_by: ${user_type}. Creating new entry.`);
-                            stockArray.push({ owned_by: user_type, current_stock: quantity_fertilizer_type });
-                        }
-                    
-                        await updateDoc(fertilizerStockRef, { stocks: stockArray });
-                        fertilizerUpdated = true;
-                    } else {
-                        console.error(`Fertilizer stock document with fertilizer_name '${fertilizer_type}' not found.`);
-                    }
-                } else {
-                    console.error("Error: fertilizer_type is undefined.");
-                }
-
-                // Proceed with deletion only if both stock updates were successful
-                if (cropUpdated && fertilizerUpdated) {
-                    await deleteDoc(projectDocRef);
-                    showDeleteMessage("Record deleted successfully! Stock updated.", true);
-                    fetch_projects(); // Refresh table
-                } else {
-                    showDeleteMessage("Stock update failed. Project not deleted.", false);
-                }
-            } else {
-                console.error("Project not found.");
-            }
-        } catch (error) {
-            console.error("Error deleting record:", error);
+        if (!projectSnapshot.exists()) {
+            showDeleteMessage("Project not found.", false);
+            return;
         }
+
+        const projectData = projectSnapshot.data();
+        const projectCreator = projectData.project_creator?.toLowerCase(); // Normalize to lowercase
+
+        if (projectData.status?.toLowerCase() !== "pending") {
+            showDeleteMessage("Project cannot be deleted because it is not in 'Pending' status.", false);
+            return;
+        }
+
+        let cropUpdated = false;
+        let allFertilizersUpdated = true;
+        let allEquipmentUpdated = true;
+
+        // Update Crop Stock
+        if (projectData.crop_type_name && projectData.crop_type_quantity) {
+            const cropStockQuery = query(
+                collection(db, "tb_crop_stock"),
+                where("crop_type_name", "==", projectData.crop_type_name)
+            );
+            const cropStockSnapshot = await getDocs(cropStockQuery);
+
+            if (!cropStockSnapshot.empty) {
+                const cropStockDoc = cropStockSnapshot.docs[0];
+                const cropStockRef = doc(db, "tb_crop_stock", cropStockDoc.id);
+                let stockArray = cropStockDoc.data().stocks || [];
+                const userStockIndex = stockArray.findIndex(stock => 
+                    stock.owned_by?.toLowerCase() === projectCreator
+                ); // Case-insensitive match
+
+                if (userStockIndex !== -1) {
+                    stockArray[userStockIndex].current_stock += projectData.crop_type_quantity;
+                } else {
+                    stockArray.push({ owned_by: projectCreator, current_stock: projectData.crop_type_quantity });
+                }
+                await updateDoc(cropStockRef, { stocks: stockArray });
+                cropUpdated = true;
+            } else {
+                throw new Error(`Crop stock for ${projectData.crop_type_name} not found`);
+            }
+        } else {
+            cropUpdated = true; // No crop to update
+        }
+
+        // Update Fertilizer Stock (multiple items possible)
+        if (projectData.fertilizer && Array.isArray(projectData.fertilizer) && projectData.fertilizer.length > 0) {
+            for (const fertilizer of projectData.fertilizer) {
+                if (!fertilizer.fertilizer_name || !fertilizer.fertilizer_quantity) continue;
+
+                const fertilizerStockQuery = query(
+                    collection(db, "tb_fertilizer_stock"),
+                    where("fertilizer_name", "==", fertilizer.fertilizer_name)
+                );
+                const fertilizerStockSnapshot = await getDocs(fertilizerStockQuery);
+
+                if (!fertilizerStockSnapshot.empty) {
+                    const fertilizerStockDoc = fertilizerStockSnapshot.docs[0];
+                    const fertilizerStockRef = doc(db, "tb_fertilizer_stock", fertilizerStockDoc.id);
+                    let stockArray = fertilizerStockDoc.data().stocks || [];
+                    const userStockIndex = stockArray.findIndex(stock => 
+                        stock.owned_by?.toLowerCase() === projectCreator
+                    ); // Case-insensitive match
+
+                    if (userStockIndex !== -1) {
+                        stockArray[userStockIndex].current_stock += fertilizer.fertilizer_quantity;
+                    } else {
+                        stockArray.push({ owned_by: projectCreator, current_stock: fertilizer.fertilizer_quantity });
+                    }
+                    await updateDoc(fertilizerStockRef, { stocks: stockArray });
+                } else {
+                    allFertilizersUpdated = false;
+                    throw new Error(`Fertilizer stock for ${fertilizer.fertilizer_name} not found`);
+                }
+            }
+        } else {
+            allFertilizersUpdated = true; // No fertilizers to update
+        }
+
+        // Update Equipment Stock (multiple items possible)
+        if (projectData.equipment && Array.isArray(projectData.equipment) && projectData.equipment.length > 0) {
+            for (const equipment of projectData.equipment) {
+                if (!equipment.equipment_name || !equipment.equipment_quantity) continue;
+
+                const equipmentStockQuery = query(
+                    collection(db, "tb_equipment_stock"),
+                    where("equipment_name", "==", equipment.equipment_name)
+                );
+                const equipmentStockSnapshot = await getDocs(equipmentStockQuery);
+
+                if (!equipmentStockSnapshot.empty) {
+                    const equipmentStockDoc = equipmentStockSnapshot.docs[0];
+                    const equipmentStockRef = doc(db, "tb_equipment_stock", equipmentStockDoc.id);
+                    let stockArray = equipmentStockDoc.data().stocks || [];
+                    const userStockIndex = stockArray.findIndex(stock => 
+                        stock.owned_by?.toLowerCase() === projectCreator
+                    ); // Case-insensitive match
+
+                    if (userStockIndex !== -1) {
+                        stockArray[userStockIndex].current_stock += equipment.equipment_quantity;
+                    } else {
+                        stockArray.push({ owned_by: projectCreator, current_stock: equipment.equipment_quantity });
+                    }
+                    await updateDoc(equipmentStockRef, { stocks: stockArray });
+                } else {
+                    allEquipmentUpdated = false;
+                    throw new Error(`Equipment stock for ${equipment.equipment_name} not found`);
+                }
+            }
+        } else {
+            allEquipmentUpdated = true; // No equipment to update
+        }
+
+        // Proceed with deletion if all updates succeed
+        if (cropUpdated && allFertilizersUpdated && allEquipmentUpdated) {
+            await deleteDoc(projectDocRef);
+            showDeleteMessage("Project Record has been successfully deleted and stock has been restored!", true);
+            fetch_projects();
+        } else {
+            showDeleteMessage("Stock update failed. Project not deleted.", false);
+        }
+    } catch (error) {
+        console.error("Error deleting record:", error);
+        showDeleteMessage(`Error: ${error.message}`, false);
     }
 
     confirmationPanel.style.display = "none";
     editFormContainer.style.pointerEvents = "auto";
-    selectedRowId = null; // Reset selection after deletion
+    selectedRowId = null;
 });
 
 cancelDeleteButton.addEventListener("click", () => {
@@ -514,32 +464,20 @@ statusSelect.addEventListener("change", () => {
     });
 });
 
-prevPageBtn.addEventListener("click", () => changePage('prev'));
-nextPageBtn.addEventListener("click", () => changePage('next'));
-
 // <----------------------- STATUS DROP DOWN CODE ----------------------->
 async function fetch_status() {
     try {
         const querySnapshot = await getDocs(collection(db, "tb_projects"));
-
         let addedStatus = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             let statusName = data.status || "";
-            
-            // Skip if status is null, undefined, or empty string
-            if (!statusName || statusName.trim() === "") {
-                return;
-            }
+            if (!statusName || statusName.trim() === "") return;
 
-            // Capitalize only the first letter
             statusName = statusName.charAt(0).toUpperCase() + statusName.slice(1).toLowerCase();
-
-            // Case-insensitive check by converting all stored values to a consistent format
             if (!addedStatus.includes(statusName)) {
                 addedStatus.push(statusName);
-
                 const option = document.createElement("option");
                 option.value = statusName;
                 option.textContent = statusName;
@@ -551,19 +489,19 @@ async function fetch_status() {
     }
 }
 
-// <------------------ FUNCTION TO DISPLAY BULK DELETE MESSAGE and ERROR MESSAGES ------------------------>
+// <------------------ FUNCTION TO DISPLAY DELETE MESSAGE ------------------------>
 function showDeleteMessage(message, success) {
-    deleteMessage.textContent = message;
-    deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-    deleteMessage.style.opacity = '1';
-    deleteMessage.style.display = 'block';
+    deleteMessage.querySelector("p").textContent = message;
+    deleteMessage.style.backgroundColor = success ? "#41A186" : "#f44336";
+    deleteMessage.style.opacity = "1";
+    deleteMessage.style.display = "block";
 
     setTimeout(() => {
-        deleteMessage.style.opacity = '0';
+        deleteMessage.style.opacity = "0";
         setTimeout(() => {
-            deleteMessage.style.display = 'none'; 
+            deleteMessage.style.display = "none";
         }, 400);
-    }, 4000); 
+    }, 4000);
 }
 
 // NEW CODE: Real-time listener for moving completed projects
@@ -576,20 +514,14 @@ function setupProjectHistoryListener() {
             const projectData = change.doc.data();
             const projectId = change.doc.id;
 
-            // Check if status is "Completed" (case insensitive)
-            if (projectData.status && projectData.status.toLowerCase() === "completed") {
+            if (projectData.status?.toLowerCase() === "completed") {
                 try {
-                    // Add to tb_project_history (will create collection if it doesn't exist)
                     await setDoc(doc(historyCollection, projectId), {
                         ...projectData,
                         moved_to_history_timestamp: new Date().toISOString()
                     });
-
-                    // Remove from tb_projects
                     await deleteDoc(doc(db, "tb_projects", projectId));
-                    
-                    console.log(`Project ${projectData.project_id} moved to tb_project_history`);
-                    fetch_projects(); // Refresh the table
+                    fetch_projects();
                 } catch (error) {
                     console.error("Error moving completed project to history:", error);
                 }
@@ -600,13 +532,10 @@ function setupProjectHistoryListener() {
 
 document.addEventListener("DOMContentLoaded", () => {
     const successMessage = localStorage.getItem("successMessage");
-
     if (successMessage) {
         showDeleteMessage(successMessage, true);
-        localStorage.removeItem("successMessage"); // Clear after showing
+        localStorage.removeItem("successMessage");
     }
-    
-    // Start the real-time listener
     setupProjectHistoryListener();
 });
 

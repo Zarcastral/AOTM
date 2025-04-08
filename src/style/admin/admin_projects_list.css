@@ -288,8 +288,9 @@ input[type="checkbox"] {
 }
 .confirmation-message {
     background-color: white;
-    padding: 20px;
-    border-radius: 12px;
+    padding: 25px 30px;
+    border-radius: 20px;
+    font-weight: 400;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
@@ -304,24 +305,24 @@ input[type="checkbox"] {
 }
 
 .confirm-btn {
-    background-color: #4CAF50;
+    background-color: #41A186;
     color: white;
     border: none;
 }
 
 .confirm-btn:hover {
-    background-color: #38853c;
+    background-color: #2f7561;
     transition: background-color 0.3s ease;
 }
 
 .cancel-btn {
-    background-color: slategrey;
+    background-color: #c4c4c4;
     color: white;
     border: none;
 }
 
 .cancel-btn:hover {
-    background-color:rgb(90, 101, 112);
+    background-color:#9c9c9c;
     transition: background-color 0.3s ease, opacity 0.3s ease; 
 }
 
@@ -550,6 +551,10 @@ input[type="checkbox"] {
   .project-selector a.active {
     color: #41A186;
     font-weight: 500;
+  }
+
+  .project-selector:hover a {
+    color: #41A186;
   }
   
   .rando-line {
