@@ -160,19 +160,23 @@ async function loadHeadFarmers() {
     querySnapshot.forEach((doc) => {
       const data = doc.data();
       if (!data.barangay_name || data.barangay_name.toLowerCase() !== loggedBarangay) return;
+
       const fullName = `${data.last_name}, ${data.first_name} ${data.middle_name || ""}`.trim();
       const lowerFullName = fullName.toLowerCase();
 
       if ((data.user_type === "Head Farmer" || data.user_type === "Farm President") && !existingLeadFarmers.has(lowerFullName)) {
-        optionsHTML += `<option value="${fullName}">${fullName}</option>`;
+        const contact = data.contact || "";
+        optionsHTML += `<option value="${fullName}" data-contact="${contact}">${fullName}</option>`;
       }
     });
 
     leadFarmerSelect.innerHTML = optionsHTML;
+
   } catch (error) {
     console.error("Error loading head farmers:", error);
   }
 }
+
 
 let farmersList = [];
 
@@ -211,11 +215,19 @@ async function fetchFarmers() {
 
     const querySnapshot = await getDocs(q);
     farmersList = querySnapshot.docs
-      .map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      .filter(farmer => !excludedFarmerIds.has(String(farmer.farmer_id))); // Exclude farmers already in a team
+  .map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      farmer_id: data.farmer_id,
+      first_name: data.first_name,
+      middle_name: data.middle_name,
+      last_name: data.last_name,
+      contact: data.contact // Make sure this exists in tb_farmers!
+    };
+  })
+  .filter(farmer => farmer.farmer_id && !excludedFarmerIds.has(String(farmer.farmer_id)));
+
 
     console.log("Filtered Farmers Loaded:", farmersList);
   } catch (error) {
@@ -362,77 +374,79 @@ async function getNextTeamId() {
     const teamName = document.getElementById("teamName").value.trim();
     const leadFarmer = document.getElementById("leadFarmer").value.trim();
     const farmerBox = document.getElementById("farmerBox");
-
+  
     // Extract all farmer names from the farmerBox
     const farmerNames = Array.from(farmerBox.getElementsByClassName("farmer-item"))
-        .map(item => item.firstChild.textContent.trim());
-
+      .map(item => item.firstChild.textContent.trim());
+  
     if (!teamName || !leadFarmer || farmerNames.length === 0) {
-        alert("Please fill in all fields and select at least one farmer.");
-        return;
+      alert("Please fill in all fields and select at least one farmer.");
+      return;
     }
-
+  
     const teamId = await getNextTeamId();
     if (teamId === null) {
-        alert("Error generating team ID. Please try again.");
-        return;
+      alert("Error generating team ID. Please try again.");
+      return;
     }
-
+  
     try {
-        const farmersRef = collection(db, "tb_farmers");
-        const querySnapshot = await getDocs(farmersRef);
-
-        let leadFarmerId = null;
-        let farmersData = [];
-
-        querySnapshot.forEach((doc) => {
-            const farmerData = doc.data();
-            const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
-
-            // Check for Lead Farmer ID
-            if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
-                leadFarmerId = String(farmerData.farmer_id);
-            }
-
-            // Check for Selected Farmers
-            if (farmerNames.includes(reconstructedFullName)) {
-                farmersData.push({
-                    farmer_id: String(farmerData.farmer_id),
-                    farmer_name: reconstructedFullName
-                });
-            }
-        });
-
-        if (!leadFarmerId) {
-            alert(`Lead farmer '${leadFarmer}' not found or has an invalid farmer_id.`);
-            return;
+      const farmersRef = collection(db, "tb_farmers");
+      const querySnapshot = await getDocs(farmersRef);
+  
+      let leadFarmerId = null;
+      let farmersData = [];
+  
+      querySnapshot.forEach((doc) => {
+        const farmerData = doc.data();
+        const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
+  
+        // Check for Lead Farmer ID
+        if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
+          leadFarmerId = String(farmerData.farmer_id);
         }
-
-        console.log("Lead Farmer ID:", leadFarmerId);
-        console.log("Farmers Data:", farmersData);
-
-        const teamData = {
-            team_id: teamId,
-            team_name: teamName,
-            lead_farmer: leadFarmer,
-            lead_farmer_id: leadFarmerId,
-            farmer_name: farmersData, // Updated to store farmer_id and farmer_name
-            barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
-        };
-
-        await addDoc(collection(db, "tb_teams"), teamData);
-        alert("Team successfully created!");
-        clearTeamInputs();
-        popup.style.display = "none";
-        loadTeamList(); // Refresh team list dynamically
-        await fetchFarmers();
-renderFarmerResults(); // optional to immediately show updated results
-
+  
+        // Check for Selected Farmers
+        if (farmerNames.includes(reconstructedFullName)) {
+          farmersData.push({
+            farmer_id: String(farmerData.farmer_id),
+            farmer_name: reconstructedFullName,
+            contact: farmerData.contact || "" // Include contact if available
+          });
+        }
+      });
+  
+      if (!leadFarmerId) {
+        alert(`Lead farmer '${leadFarmer}' not found or has an invalid farmer_id.`);
+        return;
+      }
+  
+      console.log("Lead Farmer ID:", leadFarmerId);
+      console.log("Farmers Data:", farmersData);
+  
+      const teamData = {
+        team_id: teamId,
+        team_name: teamName,
+        lead_farmer: leadFarmer,
+        lead_farmer_id: leadFarmerId,
+        farmer_name: farmersData, // Now includes contact info
+        barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
+      };
+  
+      await addDoc(collection(db, "tb_teams"), teamData);
+      alert("Team successfully created!");
+      clearTeamInputs();
+      popup.style.display = "none";
+      loadTeamList();
+      await fetchFarmers();
+      renderFarmerResults();
+  
     } catch (error) {
-        console.error("Error saving team:", error);
-        alert("Failed to save team. Please try again.");
+      console.error("Error saving team:", error);
+      alert("Failed to save team. Please try again.");
     }
-}
+  }
+  
 
 
 // ✨ Function to clear all inputs
