@@ -36,17 +36,18 @@ body {
   cursor: pointer;
 }
 
-.back {
-  margin-top: 20px;
-  margin-left: 20px;
-  margin-bottom: 10px;
-  position: relative;
-  z-index: 10;
-  display: none !important; /* Hidden by default */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  position: relative; /* For absolute positioning of .back */
 }
 
-.back.visible {
-  display: block !important; /* Fallback to ensure visibility */
+.back {
+  position: absolute;
+  top: 20px;
+  left: 50px;
+  z-index: 10;
 }
 
 .back-link {
@@ -75,9 +76,6 @@ body {
   border-radius: 5px;
   outline: none;
   margin-bottom: 20px;
-}
-
-#search-bar {
   width: 500px;
 }
 
@@ -85,17 +83,12 @@ body {
   border-color: #aaa;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
+
 .search-container input,
 .search-container select {
   padding: 0.5rem;
   border: 1px solid #dcdcdc;
   border-radius: 5px;
-}
-
-.main-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
 }
 
 #addTaskButton {
@@ -108,15 +101,18 @@ body {
   font-weight: 500;
   margin-top: -10px;
 }
+
 #addTaskButton:hover {
   color: #3b8f7a;
 }
+
 .task-panel {
   background-color: #ffffff;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 30px;
   margin: 30px;
+  margin-top: 40px;
 }
 
 .task-header {
@@ -132,7 +128,7 @@ body {
   color: #41a186;
 }
 
-.task-header button {
+.task治党-header button {
   color: #0d9488;
   font-weight: 600;
   background: none;
@@ -198,7 +194,6 @@ td:last-child {
   text-align: center;
 }
 
-/* Updated action icons styling */
 .action-icons {
   display: flex;
   gap: 8px;
@@ -330,7 +325,7 @@ td:last-child {
 }
 
 .modal-content h2 {
-  font-size: 15pxm;
+  font-size: 15px;
   font-weight: 600;
   margin-bottom: 30px;
 }
@@ -379,6 +374,7 @@ td:last-child {
   background-color: #41a186;
   color: #ffffff;
 }
+
 #saveEditBtn {
   background-color: #41a186;
   color: #ffffff;
@@ -388,12 +384,13 @@ td:last-child {
   background-color: #ac415b;
   color: #ffffff;
 }
+
 .success-message {
   position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #41a186; /* Green background like a success message */
+  background-color: #41a186;
   color: white;
   padding: 10px 20px;
   border-radius: 20px;
@@ -407,19 +404,19 @@ td:last-child {
 
 @media screen and (max-width: 768px) {
   .header {
-    padding: 0 10px;
+      padding: 0 10px;
   }
 
   .header-title {
-    font-size: 1.25rem;
+      font-size: 1.25rem;
   }
 
   .header-icons img {
-    width: 20px;
-    height: 20px;
+      width: 20px;
+      height: 20px;
   }
 
   .main-content {
-    padding: 10px;
+      padding: 10px;
   }
 }
