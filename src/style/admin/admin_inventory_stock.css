@@ -5,6 +5,7 @@ body {
   font-family: 'Poppins';
   display: flex;
   flex-direction: column;
+  cursor: default;
 }
 
 .header {
@@ -313,9 +314,10 @@ th:nth-child(5), td:nth-child(5) {
   text-align: Left; /* Center the content in the column for better appearance */
 }
 
-th:last-child, td:last-child {
-  width: 200px; /* Fixed width for the action column; adjust as needed */
+.panel th:last-child, .panel td:last-child {
+  width: 190px; /* Fixed width for the action column; adjust as needed */
   min-width: 100px; /* Minimum width to ensure usability */
+  text-align: center; /* Center the content in the column for better appearance */
 }
 
 tbody tr:hover {
@@ -432,18 +434,14 @@ transition: color 0.3s ease;
 .equip-action-btn {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Adjust spacing between buttons */
 }
 
 .add-crop-stock-btn, .add-fert-stock-btn,
 .add-equip-stock-btn {
-  background-color:#41A186;
-  color: white;
-  padding: 10px 10px;
-  font-size: 16px;
-  font-weight: bold;
+  color: #41A186;
+  font-size: 18px;
+  font-weight: 500;
   text-align: center;
-  border-radius: 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   border: none;
@@ -453,38 +451,35 @@ transition: color 0.3s ease;
 
 .add-crop-stock-btn:hover, .add-fert-stock-btn:hover
 , .add-equip-stock-btn:hover {
-  background-color: #318a71; 
+  color: #318a71; 
   text-decoration: none;
   transition: background-color 0.3s ease;
 }
 
 .action-icon-add {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  vertical-align: middle;
-  margin-right: 2px; /* Nudges the icon closer to the text */
-  margin-top: -3px; /* Nudges the icon closer to the text */
-}
-
-.action-icon-remove {
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
   vertical-align: middle;
   margin-right: -2px; /* Nudges the icon closer to the text */
-  margin-top: -3px; /* Nudges the icon closer to the text */
+  margin-top: -2.5px; /* Nudges the icon closer to the text */
+}
+
+.action-icon-remove {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: -2px; /* Nudges the icon closer to the text */
+  margin-top: -2px; /* Nudges the icon closer to the text */
 }
 
 .delete-crop-stock-btn, .delete-fert-stock-btn,
 .delete-equip-stock-btn {
-  background-color:  #AC415B;
-  color: white;
-  padding: 10px 10px;
-  font-size: 16px;
-  font-weight: bold;
+  color:  #AC415B;
+  font-size: 18px;
+  font-weight: 500;
   text-align: center;
-  border-radius: 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   border: none;
@@ -493,9 +488,8 @@ transition: color 0.3s ease;
 
 .delete-crop-stock-btn:hover, .delete-fert-stock-btn:hover,
 .delete-equip-stock-btn:hover {
-  background: #853045;
+  color: #9c3b53;
   transition: background-color 0.3s ease;
-  color: white;
 }
 
 /* Background overlay */

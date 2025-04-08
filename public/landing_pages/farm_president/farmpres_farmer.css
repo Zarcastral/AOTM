@@ -229,7 +229,29 @@ select {
 }
 
 
+.teams-selector {
+  display: flex;
+  gap: 30px;
+  font-size: 20px;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+}
 
+.teams-selector a {
+  color: slategray;
+  transition: color 0.3s ease;
+}
+
+.teams-selector a.active {
+  color: #41A186;
+  font-weight: 500;
+}
+
+.rando-line {
+color: slategray;
+transition: color 0.3s ease;
+}
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {

@@ -29,21 +29,18 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function loadTeamList() {
   const teamPanel = document.getElementById("team-panel").querySelector("tbody");
+  teamPanel.innerHTML = ""; // Clear previous list
 
-  // Get the barangay name from sessionStorage
   const barangayName = sessionStorage.getItem("barangay_name");
 
   try {
-    // Fetch teams from Firestore
     const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
-    teamsSnapshot.forEach((doc, index) => {
+    teamsSnapshot.forEach((doc) => {
       const teamData = doc.data();
 
-      // Filter teams based on barangay_name matching the sessionStorage value
       if (teamData.barangay_name === barangayName) {
-        // Create a new row for each team
         const row = document.createElement("tr");
 
         const teamNameCell = document.createElement("td");
@@ -54,7 +51,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         leadFarmerCell.textContent = teamData.lead_farmer || "N/A";
         row.appendChild(leadFarmerCell);
 
-        // Fetch the team members (assuming members are stored as an array of farmer names)
         const membersCount = teamData.farmer_name ? teamData.farmer_name.length : 0;
         const membersCell = document.createElement("td");
         membersCell.textContent = membersCount;
@@ -71,14 +67,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         actionCell.appendChild(editLink);
         row.appendChild(actionCell);
 
-        // Append the row to the table
         teamPanel.appendChild(row);
       }
     });
   } catch (error) {
-    console.error("Error fetching team data: ", error);
+    console.error("Error loading team list:", error);
   }
+}
+
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await fetchFarmers(); // still needed
+  loadTeamList();       // call our new function instead
 });
+
 
 // Retrieve barangay name from session storage
 const loggedBarangay = (sessionStorage.getItem("barangay_name") || "").toLowerCase();
@@ -202,26 +208,22 @@ async function fetchFarmers() {
 
 
 // Function to search farmers and display suggestions below search bar
-document.getElementById("farmerSearch").addEventListener("input", function () {
-  const searchValue = this.value.toLowerCase().trim();
+// Function to render farmers in search result box
+function renderFarmerResults(searchValue = "") {
   let resultsContainer = document.getElementById("searchResults");
+  const searchInput = document.getElementById("farmerSearch");
 
   if (!resultsContainer) {
     resultsContainer = document.createElement("div");
     resultsContainer.id = "searchResults";
     resultsContainer.classList.add("search-results");
-    this.parentNode.appendChild(resultsContainer); // Attach to the same container as input
+    searchInput.parentNode.appendChild(resultsContainer); // Attach to same container as input
   }
 
-  // Clear previous results
-  resultsContainer.innerHTML = "";
-
-  if (searchValue === "") {
-    return; // Stop if the search is empty
-  }
+  resultsContainer.innerHTML = ""; // Clear previous results
 
   const filteredFarmers = farmersList.filter(farmer =>
-    (`${farmer.last_name}, ${farmer.first_name} ${farmer.middle_name || ""}`).toLowerCase().includes(searchValue)
+    (`${farmer.last_name}, ${farmer.first_name} ${farmer.middle_name || ""}`).toLowerCase().includes(searchValue.toLowerCase())
   );
 
   if (filteredFarmers.length === 0) {
@@ -243,12 +245,18 @@ document.getElementById("farmerSearch").addEventListener("input", function () {
     resultsContainer.appendChild(div);
   });
 
-  // Ensure results are positioned properly
+  // Positioning
   resultsContainer.style.position = "absolute";
-  resultsContainer.style.width = this.offsetWidth + "px"; // Match width of input box
-  resultsContainer.style.top = this.offsetTop + this.offsetHeight + "px"; // Place below input
-  resultsContainer.style.left = this.offsetLeft + "px";
+  resultsContainer.style.width = searchInput.offsetWidth + "px";
+  resultsContainer.style.top = searchInput.offsetTop + searchInput.offsetHeight + "px";
+  resultsContainer.style.left = searchInput.offsetLeft + "px";
+}
+
+// Listen to input for live filtering
+document.getElementById("farmerSearch").addEventListener("input", function () {
+  renderFarmerResults(this.value.trim());
 });
+
 
 // Function to add a selected farmer to the farmerBox
 function addFarmerToBox(farmer) {
@@ -282,9 +290,33 @@ document.addEventListener("click", function (event) {
   }
 });
 
+
+
+
+document.addEventListener("click", function (e) {
+  const resultsContainer = document.getElementById("searchResults");
+  const searchBox = document.getElementById("farmerSearch");
+  if (resultsContainer && !resultsContainer.contains(e.target) && e.target !== searchBox) {
+    resultsContainer.innerHTML = "";
+  }
+});
+
+
 // Load farmers on page load
 document.addEventListener("DOMContentLoaded", async () => {
-  await fetchFarmers(); // Ensure farmers are loaded before searching
+  await fetchFarmers();
+  const searchInput = document.getElementById("farmerSearch");
+
+searchInput.addEventListener("input", function () {
+  renderFarmerResults(this.value.trim());
+});
+
+// Show full list on click (even if empty)
+searchInput.addEventListener("click", function () {
+  renderFarmerResults(); // shows all by default
+});
+
+  renderFarmerResults(); // Ensure farmers are loaded before searching
 });
 
 // Function to get the next auto-incrementing team_id
@@ -373,7 +405,12 @@ async function getNextTeamId() {
 
         await addDoc(collection(db, "tb_teams"), teamData);
         alert("Team successfully created!");
+        clearTeamInputs();
         popup.style.display = "none";
+        loadTeamList(); // Refresh team list dynamically
+        await fetchFarmers();
+renderFarmerResults(); // optional to immediately show updated results
+
     } catch (error) {
         console.error("Error saving team:", error);
         alert("Failed to save team. Please try again.");
@@ -381,7 +418,14 @@ async function getNextTeamId() {
 }
 
 
-
+// ✨ Function to clear all inputs
+function clearTeamInputs() {
+  document.getElementById("teamName").value = "";
+  document.getElementById("leadFarmer").value = "";
+  document.getElementById("farmerSearch").value = "";
+  document.getElementById("farmerBox").innerHTML = ""; // clear selected farmers
+  document.getElementById("searchResults").innerHTML = ""; // clear suggestion list if visible
+}
 
   
   // Attach event listener to Save button

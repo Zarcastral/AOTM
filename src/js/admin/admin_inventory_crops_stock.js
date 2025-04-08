@@ -491,7 +491,7 @@ function displayCrops(cropsList) {
   if (paginatedCrops.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="7" style="text-align: center; color: red;">No records found</td>
+        <td colspan="7" style="text-align: center;">No records found</td>
       </tr>`;
     return;
   }
@@ -516,14 +516,14 @@ function displayCrops(cropsList) {
         <td>${currentStock} ${unit}</td>
         <td>${owned_by}</td>
         <td class="crop-action-btn">
-          <button class="add-crop-stock-btn" data-id="${crop.crop_type_id}">
-            <img src="../../../public/images/Plus.png" alt="Action Icon" class="action-icon-add">
+          <span class="add-crop-stock-btn" data-id="${crop.crop_type_id}">
+            <img src="../../../public/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
             <span>Add Stock</span>
-          </button>
-          <button class="delete-crop-stock-btn" data-id="${crop.crop_type_id}">
-            <img src="../../../public/images/Ekis.png" alt="Action Icon" class="action-icon-remove">
+          </span>
+          <span class="delete-crop-stock-btn" data-id="${crop.crop_type_id}">
+            <img src="../../../public/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
             <span>Remove Stock</span>
-          </button>
+          </span>
         </td>
       `;
       tableBody.appendChild(row);

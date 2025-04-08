@@ -515,18 +515,18 @@ function displayEquipments(equipmentsList) {
         <td>${currentStock} ${unit}</td>
         <td>${owned_by}</td>
         <td class="equip-action-btn">
-          <button class="add-equip-stock-btn" data-id="${
+          <span class="add-equip-stock-btn" data-id="${
             equipment.equipment_id
           }">
-            <img src="../../../public/images/Plus.png" alt="Action Icon" class="action-icon-add">
+            <img src="../../../public/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
             <span>Add Stock</span>
-          </button>
-          <button class="delete-equip-stock-btn" data-id="${
+          </span>
+          <span class="delete-equip-stock-btn" data-id="${
             equipment.equipment_id
           }">
-            <img src="../../../public/images/Ekis.png" alt="Action Icon" class="action-icon-remove">
+            <img src="../../../public/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
             <span>Delete Stock</span>
-          </button>
+          </span>
         </td>
       `;
       tableBody.appendChild(row);
