@@ -58,7 +58,8 @@ async function loadTeamList() {
 
         const actionCell = document.createElement("td");
         const editLink = document.createElement("a");
-        editLink.href = "#";
+        // Modified to point to a new page with team ID as parameter
+        editLink.href = `edit-team.html?teamId=${doc.id}`;
         const editImg = document.createElement("img");
         editImg.src = "../../images/image 27.png";
         editImg.alt = "Edit";
@@ -66,7 +67,6 @@ async function loadTeamList() {
         editLink.appendChild(editImg);
         actionCell.appendChild(editLink);
         row.appendChild(actionCell);
-
         teamPanel.appendChild(row);
       }
     });
@@ -76,6 +76,23 @@ async function loadTeamList() {
 }
 
 
+document.addEventListener("DOMContentLoaded", function () {
+  const teamData = JSON.parse(sessionStorage.getItem("teamData"));
+  if (teamData) {
+    document.getElementById("editTeamName").value = teamData.team_name || "";
+    document.getElementById("editLeadFarmer").value = teamData.lead_farmer || "";
+    
+    // Populate farmers if needed (assuming you have the farmer data in teamData)
+    const farmerBox = document.getElementById("editFarmerBox");
+    if (teamData.farmer_name) {
+      teamData.farmer_name.forEach(farmer => {
+        const farmerDiv = document.createElement("div");
+        farmerDiv.textContent = farmer || "N/A";
+        farmerBox.appendChild(farmerDiv);
+      });
+    }
+  }
+});
 
 
 
