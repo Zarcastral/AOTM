@@ -465,7 +465,27 @@ body {
 .account-panel ul li:last-child {
   border-bottom: none;
 }
+.number-wrapper.total-farmers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  position: relative;
+}
 
+.number-wrapper.total-farmers .change-indicators {
+  position: absolute;
+  top: -10px; /* Above the base number */
+  left: -2px; /* Aligned with the left edge of the base number */
+  font-size: 16px;
+}
+
+.number-wrapper.total-farmers .new-farmers {
+  color: #888; /* Default gray color for +0 */
+}
+
+.number-wrapper.total-farmers .new-farmers.active {
+  color: #41A186; /* Green when there are new farmers */
+}
 /* Responsive Design */
 @media screen and (max-width: 1024px) {
   .top-section {
