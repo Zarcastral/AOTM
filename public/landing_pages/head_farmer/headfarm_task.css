@@ -37,22 +37,29 @@ body {
 }
 
 .back {
-  margin-top: 20px; /* Reduced for better spacing */
-  margin-left: 20px; /* Adjusted for consistency */
-  margin-bottom: 10px; /* Positive margin to avoid overlap */
-  position: relative; /* Ensure it’s in the flow */
-  z-index: 10; /* Bring it above other elements */
+  margin-top: 20px;
+  margin-left: 20px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 10;
+  display: none !important; /* Hidden by default */
+}
+
+.back.visible {
+  display: block !important; /* Fallback to ensure visibility */
 }
 
 .back-link {
-  display: inline-block; /* Ensure it’s a clickable block */
-  cursor: pointer; /* Visual feedback */
+  cursor: pointer;
+  pointer-events: auto;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .back-link img {
   width: 30px;
   height: 30px;
-  vertical-align: middle; /* Align image properly */
+  vertical-align: middle;
 }
 
 .search-container {

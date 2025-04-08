@@ -783,9 +783,10 @@ async function deleteTaskHandler() {
 
 // Back button logic
 async function configureBackButton() {
-  const backLink = document.querySelector(".back-link");
-  if (!backLink) {
-    console.warn("Back link not found in the DOM.");
+  const backContainer = document.querySelector(".back"); // Target the parent container
+  const backLink = document.querySelector(".back-link"); // For event listener
+  if (!backContainer || !backLink) {
+    console.warn("Back container or link not found in the DOM.");
     return;
   }
 
@@ -793,12 +794,9 @@ async function configureBackButton() {
   const farmerId = sessionStorage.getItem("farmer_id");
   const projectId = sessionStorage.getItem("selected_project_id");
 
-  // Log values for debugging
   console.log("userType:", userType);
   console.log("farmerId:", farmerId);
   console.log("projectId:", projectId);
-
-  // Back button is hidden by default via CSS; only show it when conditions are met
 
   if (!projectId) {
     console.error("No project_id found in sessionStorage.");
@@ -821,27 +819,29 @@ async function configureBackButton() {
     const projectData = querySnapshot.docs[0].data();
     const leadFarmerId = projectData.lead_farmer_id;
 
-    // Log for debugging
     console.log("leadFarmerId:", leadFarmerId);
+
+    const isLeadFarmer = farmerId && String(leadFarmerId) === String(farmerId);
+    console.log("isLeadFarmer:", isLeadFarmer);
 
     const restrictedUserTypes = ["Head Farmer", "Farmer", "Farm President"];
     const isRestrictedUser = restrictedUserTypes.includes(userType);
-    const isLeadFarmer = farmerId && leadFarmerId === farmerId;
-
     console.log("isRestrictedUser:", isRestrictedUser);
-    console.log("isLeadFarmer:", isLeadFarmer);
 
-    // Hide back button if user_type is Head Farmer, Farmer, or Farm President AND farmer_id matches lead_farmer_id
-    if (isRestrictedUser && isLeadFarmer) {
-      backLink.style.display = "none";
-      console.log("Back button hidden: Restricted user and lead farmer match.");
+    if (isLeadFarmer) {
+      backContainer.style.display = "none";
+      backContainer.classList.remove("visible");
+      console.log("Back button hidden: farmer_id matches lead_farmer_id.");
+      console.log("Hidden style applied:", backContainer.style.display);
     } else {
-      // Show back button if the condition is false
-      backLink.style.display = "block";
-      console.log("Back button visible: Condition is false.");
+      backContainer.style.display = "block !important";
+      backContainer.classList.add("visible");
+      console.log(
+        "Back button visible: farmer_id does not match lead_farmer_id or is absent."
+      );
+      console.log("Visible style applied:", backContainer.style.display);
 
-      // Enable custom navigation if NOT (Head Farmer, Farmer, or Farm President) AND farmer_id != lead_farmer_id
-      if (!isRestrictedUser && (!farmerId || leadFarmerId !== farmerId)) {
+      if (!isRestrictedUser) {
         backLink.addEventListener("click", (event) => {
           event.preventDefault();
           sessionStorage.setItem("selectedProjectId", projectId);
@@ -850,14 +850,14 @@ async function configureBackButton() {
           console.log("Navigating to admin viewproject.html");
         });
       } else {
-        console.log(
-          "Back button uses default href for restricted user with non-matching lead_farmer_id."
-        );
+        console.log("Back button uses default href for restricted user.");
       }
     }
   } catch (error) {
     console.error("Error fetching project data for back button:", error);
-    // Keep hidden on error
+    backContainer.style.display = "none";
+    backContainer.classList.remove("visible");
+    console.log("Error style applied:", backContainer.style.display);
   }
 }
 
