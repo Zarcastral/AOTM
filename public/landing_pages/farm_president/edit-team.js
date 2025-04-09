@@ -301,43 +301,85 @@ async function handleRemoveClick(e) {
 
 async function fetchFarmerByName(farmerName) {
     try {
-        const [lastName, firstAndMiddle] = farmerName.split(', ');
-        const nameParts = firstAndMiddle ? firstAndMiddle.trim().split(' ') : [];
-        const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : firstAndMiddle.trim(); // "Mary Loi"
-        const middleName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Yves"
+        // Split on the first comma, regardless of space after it
+        const nameParts = farmerName.split(',');
+        if (nameParts.length < 2) {
+            console.error(`Invalid farmer name format: ${farmerName}. Expected format: "last_name, first_name middle_name"`);
+            return null;
+        }
+
+        // Handle last_name with spaces (e.g., "De Dios")
+        const lastName = nameParts[0].trim(); // e.g., "De Dios"
+        const firstAndMiddle = nameParts.slice(1).join(',').trim(); // e.g., "Justin Du Guzman"
+
+        const firstAndMiddleParts = firstAndMiddle ? firstAndMiddle.split(/\s+/) : [];
+
+        // Approach 1: first_name is the first word, rest is middle_name
+        let firstName = firstAndMiddleParts[0] || '';
+        let middleName = firstAndMiddleParts.length > 1 ? firstAndMiddleParts.slice(1).join(' ') : '';
 
         console.log(`Searching tb_farmers for: last_name="${lastName}", first_name="${firstName}", barangay_name="${teamData.barangay_name}"`);
 
-        const q = query(
+        let q = query(
             collection(db, "tb_farmers"),
-            where("last_name", "==", lastName.trim()),
-            where("first_name", "==", firstName.trim()),
+            where("last_name", "==", lastName),
             where("barangay_name", "==", teamData.barangay_name)
         );
-        const querySnapshot = await getDocs(q);
+        let querySnapshot = await getDocs(q);
 
+        let matches = [];
         if (!querySnapshot.empty) {
-            const matches = querySnapshot.docs.filter(doc => {
+            matches = querySnapshot.docs.filter(doc => {
                 const data = doc.data();
-                const fullName = `${data.last_name}, ${data.first_name}${data.middle_name ? ' ' + data.middle_name : ''}`.trim();
-                return fullName.toLowerCase() === farmerName.toLowerCase();
+                const dbFirstName = data.first_name || '';
+                const dbMiddleName = data.middle_name || '';
+                const dbFullName = `${data.last_name}, ${dbFirstName}${dbMiddleName ? ' ' + dbMiddleName : ''}`.trim();
+                const firstNameMatch = dbFirstName.toLowerCase() === firstName.toLowerCase();
+                const fullNameMatch = dbFullName.toLowerCase() === farmerName.toLowerCase();
+                const partialNameMatch = `${data.last_name}, ${dbFirstName}`.trim().toLowerCase() === farmerName.toLowerCase();
+                return firstNameMatch && (fullNameMatch || partialNameMatch);
             });
+        }
 
-            if (matches.length > 0) {
-                const farmerData = matches[0].data();
-                console.log(`Found match for ${farmerName}:`, farmerData);
-                return {
-                    farmer_id: farmerData.farmer_id || '',
-                    farmer_name: `${farmerData.last_name}, ${farmerData.first_name}${farmerData.middle_name ? ' ' + farmerData.middle_name : ''}`.trim(),
-                    contact: farmerData.contact || ''
-                };
-            } else {
-                console.log(`Found ${querySnapshot.docs.length} farmers with last_name="${lastName}" and first_name="${firstName}", but none matched full name "${farmerName}"`);
-                console.log("Possible matches:", querySnapshot.docs.map(doc => doc.data()));
-                return null;
+        // Approach 2: If no matches, try first_name as all but the last word
+        if (matches.length === 0 && firstAndMiddleParts.length > 1) {
+            firstName = firstAndMiddleParts.slice(0, -1).join(' '); // e.g., "Mary Loi"
+            middleName = firstAndMiddleParts[firstAndMiddleParts.length - 1]; // e.g., "Yves"
+
+            console.log(`Retrying with: last_name="${lastName}", first_name="${firstName}", barangay_name="${teamData.barangay_name}"`);
+
+            q = query(
+                collection(db, "tb_farmers"),
+                where("last_name", "==", lastName),
+                where("barangay_name", "==", teamData.barangay_name)
+            );
+            querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                matches = querySnapshot.docs.filter(doc => {
+                    const data = doc.data();
+                    const dbFirstName = data.first_name || '';
+                    const dbMiddleName = data.middle_name || '';
+                    const dbFullName = `${data.last_name}, ${dbFirstName}${dbMiddleName ? ' ' + dbMiddleName : ''}`.trim();
+                    const firstNameMatch = dbFirstName.toLowerCase() === firstName.toLowerCase();
+                    const fullNameMatch = dbFullName.toLowerCase() === farmerName.toLowerCase();
+                    const partialNameMatch = `${data.last_name}, ${dbFirstName}`.trim().toLowerCase() === farmerName.toLowerCase();
+                    return firstNameMatch && (fullNameMatch || partialNameMatch);
+                });
             }
+        }
+
+        if (matches.length > 0) {
+            const farmerData = matches[0].data();
+            console.log(`Found match for ${farmerName}:`, farmerData);
+            return {
+                farmer_id: farmerData.farmer_id || '',
+                farmer_name: `${farmerData.last_name}, ${farmerData.first_name}${farmerData.middle_name ? ' ' + farmerData.middle_name : ''}`.trim(),
+                contact: farmerData.contact || ''
+            };
         } else {
-            console.log(`No farmers found in tb_farmers for ${farmerName} with last_name="${lastName}" and first_name="${firstName}"`);
+            console.log(`No farmers found in tb_farmers for ${farmerName} with last_name="${lastName}"`);
+            console.log("Possible matches:", querySnapshot.docs.map(doc => doc.data()));
             return null;
         }
     } catch (error) {
