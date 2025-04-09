@@ -2,6 +2,7 @@ body {
   background-color: #f9fbfd; /* Background color to match the image */
   margin: 0;
   font-family: 'Poppins', sans-serif;
+  cursor: default;
 }
 
 .container {
@@ -341,4 +342,56 @@ input[type="checkbox"]:checked::after {
   z-index: 1001;
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+@media screen and (max-width: 768px) {
+  .header {
+      padding: 0 10px;
+  }
+
+  .remarks-select {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 10px;
+    color: #243B53;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    width: 100px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+  }
+
+  .back-arrow{
+      left: 35px; /* Adjusted for smaller screens */
+      margin-top: 20px; /* Adjusted for smaller screens */
+      margin-bottom: 50px;
+  }
+
+  .container {
+      flex-direction: column;
+      align-items: center;
+      margin: 10px;
+  }
+
+  .panel {
+      padding: 20px;
+  }
+
+  .header-title {
+      font-size: 1.25rem;
+  }
+
+  .header-icons img {
+      width: 20px;
+      height: 20px;
+  }
+
+  .main-content {
+      padding: 10px;
+  }
 }

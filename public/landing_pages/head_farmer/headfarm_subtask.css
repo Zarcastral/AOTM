@@ -283,3 +283,27 @@ body {
     opacity: 0;
     transition: opacity 0.3s ease;
 }
+
+@media screen and (max-width: 768px) {
+    .header {
+        padding: 0 10px;
+    }
+
+    .panel-container {
+        margin-top: 50px;
+        padding: 20px;
+    }
+  
+    .header-title {
+        font-size: 1.25rem;
+    }
+  
+    .header-icons img {
+        width: 20px;
+        height: 20px;
+    }
+  
+    .main-content {
+        padding: 10px;
+    }
+  }
