@@ -20,12 +20,12 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 const db = getFirestore(app);
 const auth = getAuth();
 
-// Run the initialization when the script loads
+// Start the dashboard when the page loads
 document.addEventListener("DOMContentLoaded", () => {
     initializeDashboard();
 });
 
-// Authentication function
+// Check who's logged in and get their details
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
         onAuthStateChanged(auth, async (user) => {
@@ -38,61 +38,57 @@ async function getAuthenticatedUser() {
                         const userData = userSnapshot.docs[0].data();
                         resolve({ ...user, user_type: userData.user_type });
                     } else {
-                        console.error("User record not found in tb_users collection.");
-                        reject("User record not found.");
+                        console.error("Couldn't find user info in tb_users.");
+                        reject("User info not found.");
                     }
                 } catch (error) {
-                    console.error("Error fetching user_type:", error);
+                    console.error("Problem getting user type:", error);
                     reject(error);
                 }
             } else {
-                console.error("User not authenticated. Please log in.");
-                reject("User not authenticated.");
+                console.error("Please log in first.");
+                reject("No user logged in.");
             }
         });
     });
 }
 
+// Set up the dashboard
 function initializeDashboard() {
-    let unsubscribeFarmers; // Store the unsubscribe function for farmers
-    let unsubscribeProjects; // Store the unsubscribe function for projects
+    let unsubscribeFarmers; // Keep track of farmer updates
+    let unsubscribeProjects; // Keep track of project updates
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // Clean up previous listeners if they exist
-            if (unsubscribeFarmers) {
-                unsubscribeFarmers();
-            }
-            if (unsubscribeProjects) {
-                unsubscribeProjects();
-            }
+            // Clean up old listeners if they exist
+            if (unsubscribeFarmers) unsubscribeFarmers();
+            if (unsubscribeProjects) unsubscribeProjects();
 
-            // Ensure DOM is ready before setting up the listeners
+            // Make sure the page is ready before showing data
             if (document.querySelector("#total-farmers") && document.querySelector("#new-farmers") && document.querySelector("#total-projects")) {
                 unsubscribeFarmers = updateTotalFarmerCount();
                 unsubscribeProjects = updateTotalProjectsCount();
             } else {
-                console.error("DOM elements for counts not found. Retrying...");
+                console.error("Page elements not ready yet. Trying again...");
                 setTimeout(() => {
                     unsubscribeFarmers = updateTotalFarmerCount();
                     unsubscribeProjects = updateTotalProjectsCount();
-                }, 1000); // Retry after 1 second
+                }, 1000); // Try again after 1 second
             }
 
             updateProjectStatus();
             updateBarGraph();
         } else {
-            console.log("No user is signed in");
+            console.log("No one is logged in");
         }
     });
 }
 
-
-// Function to animate the counting effect
-function animateCount(element, finalCount) {
+// Make numbers count up with a smooth animation
+function animateCount(element, finalCount, addPlus = false) {
     let currentCount = 0;
-    const duration = 1000;
-    const stepTime = 16;
+    const duration = 1000; // Animation lasts 1 second
+    const stepTime = 16; // Update every 16ms
     const steps = Math.ceil(duration / stepTime);
     const increment = finalCount / steps;
 
@@ -100,109 +96,99 @@ function animateCount(element, finalCount) {
         currentCount += increment;
         if (currentCount >= finalCount) {
             currentCount = finalCount;
+            element.textContent = addPlus ? `+${Math.round(currentCount).toLocaleString()}` : Math.round(currentCount).toLocaleString();
         } else {
+            element.textContent = Math.round(currentCount).toLocaleString();
             requestAnimationFrame(updateCount);
         }
-        
-        element.textContent = Math.round(currentCount).toLocaleString();
     }
 
     element.textContent = "0";
     requestAnimationFrame(updateCount);
 }
 
-// Function to fetch and update the farmer count
+// Show total farmers and new farmer accounts for this year
 function updateTotalFarmerCount() {
     try {
         const farmersCollection = collection(db, "tb_farmers");
-        let lastKnownYear = new Date().getFullYear(); // Track the last known year
+        const currentYear = new Date().getFullYear();
 
-        // Use onSnapshot for real-time updates
+        // Listen for real-time updates to farmer data
         const unsubscribe = onSnapshot(farmersCollection, (snapshot) => {
-            const currentYear = new Date().getFullYear();
-
-            // Reset newFarmersCount if the year has changed
-            let totalActiveFarmers = 0;
-            let newFarmersCount = 0;
-
-            if (currentYear !== lastKnownYear) {
-                console.log(`Year changed from ${lastKnownYear} to ${currentYear}. Resetting new farmers count.`);
-                lastKnownYear = currentYear;
-            }
+            let totalFarmers = 0; // Count all farmers ever
+            let newFarmerAccounts = 0; // Count farmers added this year
 
             snapshot.forEach(doc => {
                 const data = doc.data();
                 let createdDate;
 
-                // Handle different formats of created_at
+                // Figure out when this farmer was added
                 if (data.created_at instanceof Timestamp) {
                     createdDate = data.created_at.toDate();
                 } else if (typeof data.created_at === 'string') {
                     createdDate = new Date(data.created_at);
                 } else {
-                    console.warn(`Invalid or missing created_at for farmer ${doc.id}. Using current date as fallback.`);
-                    createdDate = new Date(); // Fallback to current date if created_at is invalid
+                    console.warn(`Missing creation date for farmer ${doc.id}. Using today.`);
+                    createdDate = new Date();
                 }
 
-                // Ensure createdDate is valid
+                // Make sure the date is valid
                 if (isNaN(createdDate.getTime())) {
-                    console.warn(`Invalid created_at date for farmer ${doc.id}. Using current date as fallback.`);
+                    console.warn(`Bad date for farmer ${doc.id}. Using today.`);
                     createdDate = new Date();
                 }
 
                 const createdYear = createdDate.getFullYear();
-                
-                // Log the created_at and createdYear for debugging
-                console.log(`Farmer ID: ${doc.id}, created_at: ${data.created_at}, Created Year: ${createdYear}`);
 
-                // Check if farmer is deleted
+                // Check if this farmer is still active
                 const isDeleted = data.deleted_at !== undefined && data.deleted_at !== null;
 
-                // Count active farmers
+                // Count this farmer if they're not deleted
                 if (!isDeleted) {
-                    totalActiveFarmers++;
-                    // Count new farmers for the current year
+                    totalFarmers++;
+                    // Count as new if they joined this year
                     if (createdYear === currentYear) {
-                        newFarmersCount++;
-                        console.log(`New farmer detected in ${currentYear}: ${doc.id}`);
+                        newFarmerAccounts++;
+                        console.log(`New farmer this year: ${doc.id}`);
                     }
                 }
             });
 
-            console.log(`Total Active Farmers: ${totalActiveFarmers}, New Farmers in ${currentYear}: ${newFarmersCount}`);
+            console.log(`Total Farmers: ${totalFarmers}, New This Year: ${newFarmerAccounts}`);
 
-            const farmerElementCount = document.querySelector("#total-farmers");
+            const totalFarmersElement = document.querySelector("#total-farmers");
             const newFarmersElement = document.querySelector("#new-farmers");
 
-            if (farmerElementCount) {
-                animateCount(farmerElementCount, totalActiveFarmers);
+            if (totalFarmersElement) {
+                animateCount(totalFarmersElement, totalFarmers);
             } else {
-                console.error("Farmer number element not found in the DOM");
+                console.error("Couldn't find total farmers display element");
             }
 
             if (newFarmersElement) {
-                newFarmersElement.textContent = `+${newFarmersCount}`; // Always show +Value
-                // Apply the 'active' class if there are new farmers
-                if (newFarmersCount > 0) {
+                animateCount(newFarmersElement, newFarmerAccounts, true); // Add "+" sign when animation ends
+                // Show green highlight if there are new farmers
+                if (newFarmerAccounts > 0) {
                     newFarmersElement.classList.add('active');
-                    console.log("Applied 'active' class to new-farmers element");
+                    console.log("Showing green highlight for new farmers");
                 } else {
                     newFarmersElement.classList.remove('active');
-                    console.log("Removed 'active' class from new-farmers element");
+                    console.log("No new farmers, removing highlight");
                 }
             } else {
-                console.error("New farmers element not found in the DOM");
+                console.error("Couldn't find new farmers display element");
             }
         }, (error) => {
-            console.error("Error listening to farmer count updates:", error);
+            console.error("Problem getting farmer updates:", error);
         });
 
         return unsubscribe;
     } catch (error) {
-        console.error("Error setting up farmer count listener:", error);
+        console.error("Error setting up farmer display:", error);
     }
 }
-// Function to fetch and update projects count for current month
+
+// Count projects created this month
 function updateTotalProjectsCount() {
     try {
         const projectsCollection = collection(db, "tb_projects");
@@ -211,7 +197,7 @@ function updateTotalProjectsCount() {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-        // Use onSnapshot for real-time updates
+        // Listen for real-time project updates
         const unsubscribe = onSnapshot(projectsCollection, (snapshot) => {
             let projectCount = 0;
 
@@ -221,36 +207,36 @@ function updateTotalProjectsCount() {
                     ? data.date_created.toDate() 
                     : new Date(data.date_created);
                 
-                // Check if the project was created in the current month
+                // Count projects from this month
                 if (dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
                     projectCount++;
-                    console.log(`Project ID: ${doc.id}, date_created: ${dateCreated}, counted in current month`);
+                    console.log(`Project this month: ${doc.id}`);
                 }
             });
 
-            console.log(`Total Projects in Current Month: ${projectCount}`);
+            console.log(`Projects This Month: ${projectCount}`);
 
             const projectElementCount = document.querySelector("#total-projects");
             if (projectElementCount) {
                 animateCount(projectElementCount, projectCount);
             } else {
-                console.error("Project number element not found in the DOM");
+                console.error("Couldn't find projects display element");
             }
         }, (error) => {
-            console.error("Error listening to project count updates:", error);
+            console.error("Problem getting project updates:", error);
         });
 
         return unsubscribe;
     } catch (error) {
-        console.error("Error setting up project count listener:", error);
+        console.error("Error setting up project display:", error);
     }
 }
 
-// Function to animate the conic gradient
+// Make circular progress bars animate
 function animateGradient(element, finalPercentage, color) {
     let currentPercentage = 0;
-    const duration = 500;
-    const stepTime = 16;
+    const duration = 500; // Animation lasts half a second
+    const stepTime = 16; // Update every 16ms
     const steps = Math.ceil(duration / stepTime);
     const increment = finalPercentage / steps;
 
@@ -268,12 +254,11 @@ function animateGradient(element, finalPercentage, color) {
     requestAnimationFrame(updateGradient);
 }
 
-// Function to fetch and update project status counts
+// Show how many projects are-www completed, ongoing, or pending
 async function updateProjectStatus() {
     try {
         const currentUser = await getAuthenticatedUser();
         
-        // Fetch all projects and filter client-side instead of using compound query
         const projectsCollection = collection(db, "tb_projects");
         const projectsSnapshot = await getDocs(projectsCollection);
 
@@ -288,7 +273,7 @@ async function updateProjectStatus() {
         let ongoingCount = 0;
         let pendingCount = 0;
 
-        // Filter tb_projects client-side
+        // Count projects based on their status
         projectsSnapshot.forEach(doc => {
             const data = doc.data();
             const status = data.status?.toLowerCase();
@@ -296,12 +281,12 @@ async function updateProjectStatus() {
             const creatorMatch = data.project_creator === currentUser.user_type;
 
             if (hasProjectId && creatorMatch) {
-                if (status === "ongoing") ongoingCount++;
+                if (status === "ongoing'") ongoingCount++;
                 else if (status === "pending") pendingCount++;
             }
         });
 
-        // Count from tb_project_history
+        // Count completed projects from history
         historySnapshot.forEach(doc => {
             const status = doc.data().status?.toLowerCase();
             if (status === "completed" || status === "complete") completedCount++;
@@ -322,7 +307,7 @@ async function updateProjectStatus() {
             completedElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #41A186 100% 100%)`;
             animateGradient(completedElement, completedPercentage, "#41A186");
         } else {
-            console.error("Completed projects span not found");
+            console.error("Couldn't find completed projects circle");
         }
 
         if (inProgressElement) {
@@ -330,7 +315,7 @@ async function updateProjectStatus() {
             inProgressElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #6277B3 100% 100%)`;
             animateGradient(inProgressElement, inProgressPercentage, "#6277B3");
         } else {
-            console.error("In Progress projects span not found");
+            console.error("Couldn't find in-progress projects circle");
         }
 
         if (notStartedElement) {
@@ -338,13 +323,14 @@ async function updateProjectStatus() {
             notStartedElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #F28F8F 100% 100%)`;
             animateGradient(notStartedElement, notStartedPercentage, "#F28F8F");
         } else {
-            console.error("Not Started projects span not found");
+            console.error("Couldn't find not-started projects circle");
         }
     } catch (error) {
-        console.error("Error fetching project status counts:", error);
+        console.error("Problem showing project status:", error);
     }
 }
 
+// Create the bar graph for harvest data
 async function updateBarGraph() {
     const bars = document.querySelectorAll('.bar');
     const yAxis = document.querySelector('.y-axis');
@@ -419,7 +405,7 @@ async function updateBarGraph() {
                 } else if (typeof harvestDate === 'string') {
                     date = new Date(harvestDate);
                 } else {
-                    console.warn('Invalid harvest_date format:', harvestDate);
+                    console.warn('Bad harvest date:', harvestDate);
                     return;
                 }
 
@@ -432,7 +418,7 @@ async function updateBarGraph() {
 
             return monthlyTotals;
         } catch (error) {
-            console.error('Error fetching validated harvest data:', error);
+            console.error('Problem getting harvest data:', error);
             return Array(12).fill(0);
         }
     };
