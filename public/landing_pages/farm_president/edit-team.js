@@ -25,46 +25,87 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const urlParams = new URLSearchParams(window.location.search);
-    const docId = urlParams.get('docId');    // Firestore document ID
-    const teamId = urlParams.get('teamId');  // Custom team_id
-    let teamData = null;
-    let farmersList = [];
-    let currentFarmers = [];
-    let currentPage = 1;
-    const itemsPerPage = 5;
+const teamId = urlParams.get('teamId');
+let teamData = null;
+let farmersList = [];
+let currentFarmers = [];
+let currentPage = 1;
+const itemsPerPage = 5;
+let isTeamAssigned = false; // New flag to track team assignment
 
-    async function loadTeamData() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const teamId = urlParams.get('teamId');
-    
-        if (!teamId) {
-            alert('No team ID provided');
+async function loadTeamData() {
+    if (!teamId) {
+        alert('No team ID provided');
+        window.location.href = 'team-list.html';
+        return;
+    }
+
+    try {
+        const q = query(collection(db, "tb_teams"), where("team_id", "==", parseInt(teamId)));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const teamDoc = querySnapshot.docs[0];
+            teamData = teamDoc.data();
+            document.getElementById('teamNameHeader').textContent = `${teamData.team_name || 'Team Name'} (ID: ${teamId})`;
+            currentFarmers = Array.isArray(teamData.farmer_name) ? teamData.farmer_name : [];
+            await fetchFarmers();
+            isTeamAssigned = await isTeamAssignedToProject(teamId); // Check assignment status
+            renderTable();
+            updateButtonStates(); // Update button states after loading
+        } else {
+            alert('Team not found');
             window.location.href = 'team-list.html';
-            return;
         }
-    
-        try {
-            // Query tb_teams where team_id matches the provided teamId
-            const q = query(collection(db, "tb_teams"), where("team_id", "==", parseInt(teamId)));
-            const querySnapshot = await getDocs(q);
-    
-            if (!querySnapshot.empty) {
-                // Assuming team_id is unique, take the first matching document
-                const teamDoc = querySnapshot.docs[0];
-                teamData = teamDoc.data();
-                document.getElementById('teamNameHeader').textContent = `${teamData.team_name || 'Team Name'} (ID: ${teamId})`;
-                currentFarmers = Array.isArray(teamData.farmer_name) ? teamData.farmer_name : [];
-                await fetchFarmers();
-                renderTable();
-            } else {
-                alert('Team not found');
-                window.location.href = 'team-list.html';
-            }
-        } catch (error) {
-            console.error('Error loading team data:', error);
-            alert('Error loading team data. Please try again.');
+    } catch (error) {
+        console.error('Error loading team data:', error);
+        alert('Error loading team data. Please try again.');
+    }
+}
+
+// New function to check if team is assigned to a project
+async function isTeamAssignedToProject(teamId) {
+    try {
+        const projectsQuery = query(collection(db, "tb_projects"), where("team_id", "==", parseInt(teamId)));
+        const projectsSnapshot = await getDocs(projectsQuery);
+        return !projectsSnapshot.empty; // True if assigned, false if not
+    } catch (error) {
+        console.error(`Error checking project assignment for team ${teamId}:`, error);
+        return false; // Assume not assigned if there's an error
+    }
+}
+
+// New function to update button states
+function updateButtonStates() {
+    const addFarmerBtn = document.getElementById('addFarmerBtn');
+    const deleteTeamBtn = document.getElementById('deleteTeamBtn');
+
+    if (isTeamAssigned) {
+        addFarmerBtn.disabled = true;
+        addFarmerBtn.style.opacity = '0.5';
+        addFarmerBtn.style.cursor = 'not-allowed';
+        addFarmerBtn.title = 'Cannot add farmers while team is assigned to a project';
+
+        if (deleteTeamBtn) {
+            deleteTeamBtn.disabled = true;
+            deleteTeamBtn.style.opacity = '0.5';
+            deleteTeamBtn.style.cursor = 'not-allowed';
+            deleteTeamBtn.title = 'Cannot delete team while assigned to a project';
+        }
+    } else {
+        addFarmerBtn.disabled = false;
+        addFarmerBtn.style.opacity = '1';
+        addFarmerBtn.style.cursor = 'pointer';
+        addFarmerBtn.title = '';
+
+        if (deleteTeamBtn) {
+            deleteTeamBtn.disabled = false;
+            deleteTeamBtn.style.opacity = '1';
+            deleteTeamBtn.style.cursor = 'pointer';
+            deleteTeamBtn.title = '';
         }
     }
+}
 
     async function fetchFarmers() {
         try {
@@ -159,7 +200,8 @@ const urlParams = new URLSearchParams(window.location.search);
                 <td>${userRole}</td>
                 <td>${contact}</td>
                 <td>
-                    ${userRole === 'Head Farmer' ? '' : `<button class="action-btn" data-farmer-id="${farmer.farmer_id}">Remove</button>`}
+                    ${userRole === 'Head Farmer' ? '' : 
+                      `<button class="action-btn" data-farmer-id="${farmer.farmer_id}" ${isTeamAssigned ? 'disabled' : ''} style="${isTeamAssigned ? 'opacity: 0.5; cursor: not-allowed;' : ''}">Remove</button>`}
                 </td>
             `;
             tbody.appendChild(row);
@@ -185,6 +227,7 @@ const urlParams = new URLSearchParams(window.location.search);
         }
     
         attachDeleteTeamListener();
+        updateButtonStates(); // Ensure button states are updated after rendering
     }
 
     function updatePagination(totalItems) {
@@ -231,8 +274,12 @@ function attachDeleteTeamListener() {
 
 function addRemoveEventListeners() {
     document.querySelectorAll('.action-btn').forEach(button => {
+        // Remove any existing listeners to prevent duplicates
         button.removeEventListener('click', handleRemoveClick);
-        button.addEventListener('click', handleRemoveClick);
+        // Only add listener if team is not assigned and button is not disabled
+        if (!isTeamAssigned && !button.disabled) {
+            button.addEventListener('click', handleRemoveClick);
+        }
     });
 }
 
@@ -399,6 +446,9 @@ document.getElementById('nextPage').addEventListener('click', () => {
 
 document.getElementById('addFarmerBtn').addEventListener('click', (e) => {
     e.preventDefault();
+    if (e.target.disabled) {
+        return; // Do nothing if the button is disabled
+    }
     document.getElementById('addFarmerPopup').style.display = 'flex';
 });
 

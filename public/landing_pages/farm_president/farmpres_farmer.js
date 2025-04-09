@@ -37,7 +37,7 @@ async function loadTeamList() {
 
   try {
     const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
-    teamsSnapshot.forEach((doc) => {
+    for (const doc of teamsSnapshot.docs) {
       const teamData = doc.data();
 
       if (teamData.barangay_name === barangayName) {
@@ -56,9 +56,14 @@ async function loadTeamList() {
         membersCell.textContent = membersCount;
         row.appendChild(membersCell);
 
+        // New Status Cell
+        const statusCell = document.createElement("td");
+        const status = await getTeamStatus(teamData.team_id);
+        statusCell.textContent = status;
+        row.appendChild(statusCell);
+
         const actionCell = document.createElement("td");
         const editLink = document.createElement("a");
-        // Use teamData.team_id instead of doc.id
         editLink.href = `edit-team.html?teamId=${teamData.team_id}`;
         const editImg = document.createElement("img");
         editImg.src = "../../images/image 27.png";
@@ -67,11 +72,33 @@ async function loadTeamList() {
         editLink.appendChild(editImg);
         actionCell.appendChild(editLink);
         row.appendChild(actionCell);
+
         teamPanel.appendChild(row);
       }
-    });
+    }
   } catch (error) {
     console.error("Error loading team list:", error);
+  }
+}
+
+// New function to determine team status
+async function getTeamStatus(teamId) {
+  try {
+    const projectsQuery = query(collection(db, "tb_projects"), where("team_id", "==", teamId));
+    const projectsSnapshot = await getDocs(projectsQuery);
+
+    if (!projectsSnapshot.empty) {
+      // Assuming each team is assigned to only one project; take the first match
+      const projectDoc = projectsSnapshot.docs[0];
+      const projectData = projectDoc.data();
+      const projectName = projectData.project_name || "Unnamed Project";
+      return `Assigned (${projectName})`;
+    } else {
+      return "Available";
+    }
+  } catch (error) {
+    console.error(`Error checking status for team ${teamId}:`, error);
+    return "Unknown"; // Fallback in case of error
   }
 }
 
