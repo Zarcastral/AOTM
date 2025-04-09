@@ -7,6 +7,7 @@ import {
     collection,
     getDocs,
     query,
+    deleteDoc,
     where
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
@@ -158,7 +159,7 @@ const urlParams = new URLSearchParams(window.location.search);
                 <td>${userRole}</td>
                 <td>${contact}</td>
                 <td>
-                    <button class="action-btn" data-farmer-id="${farmer.farmer_id}">Remove</button>
+                    ${userRole === 'Head Farmer' ? '' : `<button class="action-btn" data-farmer-id="${farmer.farmer_id}">Remove</button>`}
                 </td>
             `;
             tbody.appendChild(row);
@@ -166,6 +167,24 @@ const urlParams = new URLSearchParams(window.location.search);
     
         updatePagination(filteredFarmers.length);
         addRemoveEventListeners();
+    
+        // Add Delete Team button below the table
+        const tableContainer = document.getElementById('teamTableBody').parentElement.parentElement;
+        let deleteButton = document.getElementById('deleteTeamBtn');
+        if (!deleteButton) {
+            deleteButton = document.createElement('button');
+            deleteButton.id = 'deleteTeamBtn';
+            deleteButton.textContent = 'Delete Team';
+            deleteButton.style.marginTop = '10px';
+            deleteButton.style.backgroundColor = '#ff4444';
+            deleteButton.style.color = 'white';
+            deleteButton.style.border = 'none';
+            deleteButton.style.padding = '8px 16px';
+            deleteButton.style.cursor = 'pointer';
+            tableContainer.insertAdjacentElement('afterend', deleteButton);
+        }
+    
+        attachDeleteTeamListener(); // Attach the event listener
     }
 
 function updatePagination(totalItems) {
@@ -176,40 +195,104 @@ function updatePagination(totalItems) {
     document.getElementById('nextPage').disabled = currentPage === totalPages;
 }
 
+
+async function deleteTeam() {
+    // Show confirmation prompt
+    const confirmDelete = confirm(`Are you sure you want to delete the team "${teamData.team_name}" (ID: ${teamId})? This action cannot be undone.`);
+    if (!confirmDelete) {
+        return; // User canceled the deletion
+    }
+
+    try {
+        const q = query(collection(db, "tb_teams"), where("team_id", "==", parseInt(teamId)));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const teamDocRef = doc(db, "tb_teams", querySnapshot.docs[0].id);
+            await deleteDoc(teamDocRef); // Delete the team document
+            alert(`Team "${teamData.team_name}" (ID: ${teamId}) has been successfully deleted!`);
+            window.location.href = 'farmpres_farmer.html'; // Redirect to farmpres_farmer.html
+        } else {
+            throw new Error('Team not found');
+        }
+    } catch (error) {
+        console.error('Error deleting team:', error);
+        alert('Error deleting team. Please try again.');
+    }
+}
+
+function attachDeleteTeamListener() {
+    const deleteButton = document.getElementById('deleteTeamBtn');
+    if (deleteButton) {
+        deleteButton.removeEventListener('click', deleteTeam); // Prevent duplicate listeners
+        deleteButton.addEventListener('click', deleteTeam);
+    }
+}
+
+
 function addRemoveEventListeners() {
     document.querySelectorAll('.action-btn').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            const farmerId = e.target.dataset.farmerId;
-            currentFarmers = currentFarmers.filter(farmer => farmer.farmer_id !== farmerId);
-            await updateTeamInFirestore();
-            renderTable(document.getElementById('searchInput').value);
-        });
+        button.removeEventListener('click', handleRemoveClick);
+        button.addEventListener('click', handleRemoveClick);
     });
 }
+
+async function handleRemoveClick(e) {
+    const farmerId = e.target.dataset.farmerId;
+    const farmer = currentFarmers.find(f => f.farmer_id === farmerId);
+    if (!farmer) {
+        console.error(`Farmer with ID ${farmerId} not found in currentFarmers`);
+        return;
+    }
+    currentFarmers = currentFarmers.filter(f => f.farmer_id !== farmerId);
+    await updateTeamInFirestore();
+    alert(`Successfully removed ${farmer.farmer_name} from the team!`);
+    await fetchFarmers(); // Refresh farmersList to include the removed farmer
+    renderTable(document.getElementById('searchInput').value);
+}
+
+
 
 async function fetchFarmerByName(farmerName) {
     try {
         const [lastName, firstAndMiddle] = farmerName.split(', ');
-        const firstName = firstAndMiddle ? firstAndMiddle.split(' ')[0] : '';
-        const middleName = firstAndMiddle ? firstAndMiddle.split(' ')[1] || '' : '';
-        
+        const nameParts = firstAndMiddle ? firstAndMiddle.trim().split(' ') : [];
+        const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : firstAndMiddle.trim(); // "Mary Loi"
+        const middleName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Yves"
+
+        console.log(`Searching tb_farmers for: last_name="${lastName}", first_name="${firstName}", barangay_name="${teamData.barangay_name}"`);
+
         const q = query(
             collection(db, "tb_farmers"),
-            where("last_name", "==", lastName),
-            where("first_name", "==", firstName),
+            where("last_name", "==", lastName.trim()),
+            where("first_name", "==", firstName.trim()),
             where("barangay_name", "==", teamData.barangay_name)
         );
         const querySnapshot = await getDocs(q);
-        
+
         if (!querySnapshot.empty) {
-            const farmerData = querySnapshot.docs[0].data();
-            return {
-                farmer_id: farmerData.farmer_id || '',
-                farmer_name: `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name || ''}`.trim(),
-                contact: farmerData.contact || ''
-            };
+            const matches = querySnapshot.docs.filter(doc => {
+                const data = doc.data();
+                const fullName = `${data.last_name}, ${data.first_name}${data.middle_name ? ' ' + data.middle_name : ''}`.trim();
+                return fullName.toLowerCase() === farmerName.toLowerCase();
+            });
+
+            if (matches.length > 0) {
+                const farmerData = matches[0].data();
+                console.log(`Found match for ${farmerName}:`, farmerData);
+                return {
+                    farmer_id: farmerData.farmer_id || '',
+                    farmer_name: `${farmerData.last_name}, ${farmerData.first_name}${farmerData.middle_name ? ' ' + farmerData.middle_name : ''}`.trim(),
+                    contact: farmerData.contact || ''
+                };
+            } else {
+                console.log(`Found ${querySnapshot.docs.length} farmers with last_name="${lastName}" and first_name="${firstName}", but none matched full name "${farmerName}"`);
+                console.log("Possible matches:", querySnapshot.docs.map(doc => doc.data()));
+                return null;
+            }
+        } else {
+            console.log(`No farmers found in tb_farmers for ${farmerName} with last_name="${lastName}" and first_name="${firstName}"`);
+            return null;
         }
-        return null;
     } catch (error) {
         console.error(`Error fetching farmer by name ${farmerName}:`, error);
         return null;
