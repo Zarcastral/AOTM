@@ -7,6 +7,7 @@ import {
     collection,
     getDocs,
     query,
+    deleteDoc,
     where
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
@@ -166,6 +167,24 @@ const urlParams = new URLSearchParams(window.location.search);
     
         updatePagination(filteredFarmers.length);
         addRemoveEventListeners();
+    
+        // Add Delete Team button below the table
+        const tableContainer = document.getElementById('teamTableBody').parentElement.parentElement;
+        let deleteButton = document.getElementById('deleteTeamBtn');
+        if (!deleteButton) {
+            deleteButton = document.createElement('button');
+            deleteButton.id = 'deleteTeamBtn';
+            deleteButton.textContent = 'Delete Team';
+            deleteButton.style.marginTop = '10px';
+            deleteButton.style.backgroundColor = '#ff4444';
+            deleteButton.style.color = 'white';
+            deleteButton.style.border = 'none';
+            deleteButton.style.padding = '8px 16px';
+            deleteButton.style.cursor = 'pointer';
+            tableContainer.insertAdjacentElement('afterend', deleteButton);
+        }
+    
+        attachDeleteTeamListener(); // Attach the event listener
     }
 
 function updatePagination(totalItems) {
@@ -175,6 +194,40 @@ function updatePagination(totalItems) {
     document.getElementById('prevPage').disabled = currentPage === 1;
     document.getElementById('nextPage').disabled = currentPage === totalPages;
 }
+
+
+async function deleteTeam() {
+    // Show confirmation prompt
+    const confirmDelete = confirm(`Are you sure you want to delete the team "${teamData.team_name}" (ID: ${teamId})? This action cannot be undone.`);
+    if (!confirmDelete) {
+        return; // User canceled the deletion
+    }
+
+    try {
+        const q = query(collection(db, "tb_teams"), where("team_id", "==", parseInt(teamId)));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const teamDocRef = doc(db, "tb_teams", querySnapshot.docs[0].id);
+            await deleteDoc(teamDocRef); // Delete the team document
+            alert(`Team "${teamData.team_name}" (ID: ${teamId}) has been successfully deleted!`);
+            window.location.href = 'farmpres_farmer.html'; // Redirect to farmpres_farmer.html
+        } else {
+            throw new Error('Team not found');
+        }
+    } catch (error) {
+        console.error('Error deleting team:', error);
+        alert('Error deleting team. Please try again.');
+    }
+}
+
+function attachDeleteTeamListener() {
+    const deleteButton = document.getElementById('deleteTeamBtn');
+    if (deleteButton) {
+        deleteButton.removeEventListener('click', deleteTeam); // Prevent duplicate listeners
+        deleteButton.addEventListener('click', deleteTeam);
+    }
+}
+
 
 function addRemoveEventListeners() {
     document.querySelectorAll('.action-btn').forEach(button => {
