@@ -18,7 +18,8 @@ import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth();
-// <-----------------------ACTIVITY LOG CODE----------------------------->
+
+// <-------------= ACTIVITY LOGGING START =---------------->
 /*
       ACTIVITY LOG RECORD FORMAT
       await saveActivityLog("Update", );
@@ -99,9 +100,9 @@ async function saveActivityLog(action, description) {
     }
   });
 }
+// <-------------= ACTIVITY LOGGING END =---------------->
 
-
-// <---------------------------------> GLOBAL VARIABLES <--------------------------------->
+// <-------------= GLOBAL VARIABLES START =---------------->
 let projectsList = []; // Full list of projects
 let filteredProjects = []; // Filtered list of projects
 let currentPage = 1;
@@ -110,8 +111,9 @@ let selectedProjects = [];
 let originalProjectsList = [];
 let selectedMonth = null;
 let selectedYear = new Date().getFullYear(); // Default to current year
+// <-------------= GLOBAL VARIABLES END =---------------->
 
-// <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
+// <-------------= FETCH AUTHENTICATED USER START =---------------->
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, async (user) => {
@@ -138,8 +140,9 @@ async function getAuthenticatedUser() {
     });
   });
 }
+// <-------------= FETCH AUTHENTICATED USER END =---------------->
 
-// Fetch projects
+// <-------------= FETCH PROJECTS START =---------------->
 async function fetchProjects() {
   try {
     const user = await getAuthenticatedUser();
@@ -199,6 +202,23 @@ async function fetchProjects() {
         console.log("No farmland_ids found in projects.");
       }
 
+      // Step 2.5: Fetch task counts from tb_project_task
+      const taskCollection = collection(db, "tb_project_task");
+      const taskSnapshot = await getDocs(taskCollection);
+      const taskCountMap = new Map();
+      
+      // Count tasks per project_id (project_id in tb_project_task is a string)
+      taskSnapshot.docs.forEach(taskDoc => {
+        const taskData = taskDoc.data();
+        const projectId = taskData.project_id; // String in tb_project_task
+        if (projectId !== undefined && projectId !== null) {
+          const currentCount = taskCountMap.get(projectId) || 0;
+          taskCountMap.set(projectId, currentCount + 1);
+        }
+      });
+
+      console.log("Task counts per project:", Object.fromEntries(taskCountMap));
+
       // Step 3: Process projects
       projectsList = snapshot.docs.map((docSnapshot) => {
         const project = docSnapshot.data();
@@ -218,12 +238,17 @@ async function fetchProjects() {
           console.log(`No farmland_id for Project ID: ${project.project_id}`);
         }
 
+        // Add task count to project (convert project_id to string for lookup)
+        const projectId = String(project.project_id); // Convert number to string to match tb_project_task
+        project.task_count = taskCountMap.get(projectId) || 0;
+        console.log(`Project ID: ${projectId}, Task Count: ${project.task_count}`);
+
         // Extract equipment names from the equipment array
         if (project.equipment && Array.isArray(project.equipment) && project.equipment.length > 0) {
           const equipmentNames = project.equipment
             .map((equip) => equip.equipment_name || "Unknown")
             .filter((name) => name !== "Unknown" || project.equipment.every(e => !e.equipment_name));
-          project.equipment = equipmentNames.length > 0 ? equipmentNames.join(", ") : "N/A";
+          project.equipment = equipmentNames.length > 0 ? equipmentNames.join("<br>") : "N/A";
         } else {
           project.equipment = "N/A";
         }
@@ -233,7 +258,7 @@ async function fetchProjects() {
           const fertilizerNames = project.fertilizer
             .map((fert) => fert.fertilizer_name || "Unknown")
             .filter((name) => name !== "Unknown" || project.fertilizer.every(f => !f.fertilizer_name));
-          project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join(", ") : "N/A";
+          project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join("<br>") : "N/A";
         } else {
           project.fertilizer = "N/A";
         }
@@ -243,7 +268,7 @@ async function fetchProjects() {
           const farmerNames = project.farmer_name
             .map((farmer) => farmer.farmer_name || "Unknown")
             .filter((name) => name !== "Unknown" || project.farmer_name.every(f => !f.farmer_name));
-          project.farmer_name = farmerNames.length > 0 ? farmerNames.join(", ") : "N/A";
+          project.farmer_name = farmerNames.length > 0 ? farmerNames.join("<br>") : "N/A";
         } else {
           project.farmer_name = "N/A";
         }
@@ -260,8 +285,9 @@ async function fetchProjects() {
     console.error("Error fetching Projects:", error);
   }
 }
+// <-------------= FETCH PROJECTS END =---------------->
 
-// Fetch Barangay names from tb_barangay collection
+// <-------------= FETCH BARANGAY NAMES START =---------------->
 async function fetchBarangayNames() {
   const barangaysCollection = collection(db, "tb_barangay");
   const barangaysSnapshot = await getDocs(barangaysCollection);
@@ -269,8 +295,9 @@ async function fetchBarangayNames() {
 
   populateBarangayDropdown(barangayNames);
 }
+// <-------------= FETCH BARANGAY NAMES END =---------------->
 
-// Populate the barangay dropdown with barangay names
+// <-------------= POPULATE BARANGAY DROPDOWN START =---------------->
 function populateBarangayDropdown(barangayNames) {
   const barangaySelect = document.querySelector(".barangay_select");
   if (!barangaySelect) {
@@ -288,8 +315,9 @@ function populateBarangayDropdown(barangayNames) {
     barangaySelect.appendChild(option);
   });
 }
+// <-------------= POPULATE BARANGAY DROPDOWN END =---------------->
 
-// Fetch Crop Type names from tb_crop_types collection
+// <-------------= FETCH CROP TYPE NAMES START =---------------->
 async function fetchCropTypeNames() {
   const cropTypesCollection = collection(db, "tb_crop_types");
   const cropTypesSnapshot = await getDocs(cropTypesCollection);
@@ -297,8 +325,9 @@ async function fetchCropTypeNames() {
 
   populateCropTypeDropdown(cropTypeNames);
 }
+// <-------------= FETCH CROP TYPE NAMES END =---------------->
 
-// Populate the crop type dropdown with crop type names
+// <-------------= POPULATE CROP TYPE DROPDOWN START =---------------->
 function populateCropTypeDropdown(cropTypeNames) {
   const cropSelect = document.querySelector(".crop_select");
   if (!cropSelect) {
@@ -316,8 +345,9 @@ function populateCropTypeDropdown(cropTypeNames) {
     cropSelect.appendChild(option);
   });
 }
+// <-------------= POPULATE CROP TYPE DROPDOWN END =---------------->
 
-// Function to parse dates
+// <-------------= PARSE DATES START =---------------->
 function parseDate(dateValue) {
   if (!dateValue) return null;
 
@@ -327,10 +357,30 @@ function parseDate(dateValue) {
 
   return new Date(dateValue);
 }
+// <-------------= PARSE DATES END =---------------->
 
-// Function to sort projects by date (latest to oldest)
+// <-------------= SORT PROJECTS BY STATUS AND DATE START =---------------->
 function sortProjectsById() {
   filteredProjects.sort((a, b) => {
+    // Define status priority (lower number = higher priority)
+    const statusPriority = {
+      "Completed": 0,
+      "Ongoing": 1,
+      "Pending": 2
+    };
+
+    // Get status values, defaulting to a low-priority value if not found
+    const statusA = a.status || "Pending"; // Default to Pending if status is missing
+    const statusB = b.status || "Pending";
+    const priorityA = statusPriority[statusA] !== undefined ? statusPriority[statusA] : 3; // Default to 3 if status not in map
+    const priorityB = statusPriority[statusB] !== undefined ? statusPriority[statusB] : 3;
+
+    // Compare statuses first
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB; // Sort by status priority
+    }
+
+    // If statuses are the same, sort by date
     const startDateA = a.start_date ? parseDate(a.start_date) : null;
     const endDateA = a.end_date ? parseDate(a.end_date) : null;
     const startDateB = b.start_date ? parseDate(b.start_date) : null;
@@ -340,16 +390,17 @@ function sortProjectsById() {
     const latestDateB = endDateB || startDateB;
 
     if (latestDateA && latestDateB) {
-      return latestDateB - latestDateA;
+      return latestDateB - latestDateA; // Latest date first
     } else if (!latestDateA && !latestDateB) {
-      return a.project_id - b.project_id;
+      return a.project_id - b.project_id; // Fallback to project_id if no dates
     } else {
-      return latestDateB ? 1 : -1;
+      return latestDateB ? 1 : -1; // Handle cases where one date is missing
     }
   });
 }
+// <-------------= SORT PROJECTS BY STATUS AND DATE END =---------------->
 
-// Unified function to filter projects based on all criteria
+// <-------------= FILTER PROJECTS START =---------------->
 function filterProjects() {
   const searchQuery = document.getElementById("projects-search-bar").value.toLowerCase().trim();
   const selectedBarangay = document.querySelector(".barangay_select").value.toLowerCase();
@@ -402,13 +453,15 @@ function filterProjects() {
   sortProjectsById();
   displayProjects(filteredProjects);
 }
+// <-------------= FILTER PROJECTS END =---------------->
 
-// Function to filter projects by month (now calls filterProjects)
+// <-------------= FILTER PROJECTS BY MONTH START =---------------->
 function filterProjectsByMonth() {
   filterProjects();
 }
+// <-------------= FILTER PROJECTS BY MONTH END =---------------->
 
-// Function to clear the month filter
+// <-------------= CLEAR MONTH FILTER START =---------------->
 function clearMonthFilter() {
   selectedMonth = null;
   selectedYear = new Date().getFullYear();
@@ -423,8 +476,9 @@ function clearMonthFilter() {
   }
   filterProjects();
 }
+// <-------------= CLEAR MONTH FILTER END =---------------->
 
-// Function to show the month picker
+// <-------------= SHOW MONTH PICKER START =---------------->
 function showMonthPicker() {
   const calendarIcon = document.querySelector('.calendar-btn-icon');
   const monthPicker = document.getElementById('month-picker');
@@ -441,8 +495,9 @@ function showMonthPicker() {
 
   monthPicker.style.display = monthPicker.style.display === 'none' ? 'block' : 'none';
 }
+// <-------------= SHOW MONTH PICKER END =---------------->
 
-// Display projects in the table
+// <-------------= DISPLAY PROJECTS IN TABLE START =---------------->
 function displayProjects(projectsList) {
   const tableBody = document.querySelector(".projects_table table tbody");
   if (!tableBody) {
@@ -482,16 +537,17 @@ function displayProjects(projectsList) {
     const projectEquipment = project.equipment || "N/A";
     const projectStart = project.start_date || "N/A";
     const projectEnd = project.end_date || "N/A";
-    const equipmentList = project.equipment || "N/A";
-    const fertilizerList = project.fertilizer || "N/A";
-    const farmersName = project.farmer_name || "N/A";
+    const equipmentList = Array.isArray(project.equipment) ? project.equipment.join("<br>") : (project.equipment || "N/A");
+    const fertilizerList = Array.isArray(project.fertilizer) ? project.fertilizer.join("<br>") : (project.fertilizer || "N/A");
+    const farmersName = Array.isArray(project.farmer_name) ? project.farmer_name.join("<br>") : (project.farmer_name || "N/A");
     const leadFarmer = project.lead_farmer || "N/A";
     const landArea = project.land_area || "N/A";
+    const taskCount = project.task_count !== undefined ? project.task_count : "N/A";
 
     row.innerHTML = `
       <td>${projectId}</td>
       <td>${projectName}</td>
-      <td>N/A</td>
+      <td>${taskCount}</td>
       <td>${projectStatus}</td>
       <td>${projectFarmPres}</td>
       <td>${leadFarmer}</td>
@@ -508,21 +564,24 @@ function displayProjects(projectsList) {
   });
   updatePagination();
 }
+// <-------------= DISPLAY PROJECTS IN TABLE END =---------------->
 
-// Update pagination display
+// <-------------= UPDATE PAGINATION DISPLAY START =---------------->
 function updatePagination() {
   const totalPages = Math.ceil(filteredProjects.length / rowsPerPage) || 1;
   document.getElementById("projects-page-number").textContent = `${currentPage} of ${totalPages}`;
   updatePaginationButtons();
 }
+// <-------------= UPDATE PAGINATION DISPLAY END =---------------->
 
-// Enable or disable pagination buttons
+// <-------------= UPDATE PAGINATION BUTTONS START =---------------->
 function updatePaginationButtons() {
   document.getElementById("projects-prev-page").disabled = currentPage === 1;
   document.getElementById("projects-next-page").disabled = currentPage >= Math.ceil(filteredProjects.length / rowsPerPage);
 }
+// <-------------= UPDATE PAGINATION BUTTONS END =---------------->
 
-// Event listeners
+// <-------------= EVENT LISTENERS START =---------------->
 document.addEventListener('DOMContentLoaded', () => {
   fetchBarangayNames();
   fetchCropTypeNames();
@@ -632,26 +691,30 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     const projectCategory = project.crop_name || "N/A";
     const projectCropType = project.crop_type_name || "N/A";
     const projectEquipment = project.equipment || "N/A";
-    const projectStart = project.start_date ? parseDate(project.start_date).toLocaleDateString() : "N/A";
-    const projectEnd = project.end_date ? parseDate(project.end_date).toLocaleDateString() : "N/A";
-    const farmersName = project.farmer_name || "N/A";
+    const projectStart = project.start_date || "N/A";
+    const projectEnd = project.end_date || "N/A";
+    const equipmentList = Array.isArray(project.equipment) ? project.equipment.join("<br>") : (project.equipment || "N/A");
+    const fertilizerList = Array.isArray(project.fertilizer) ? project.fertilizer.join("<br>") : (project.fertilizer || "N/A");
+    const farmersName = Array.isArray(project.farmer_name) ? project.farmer_name.join("<br>") : (project.farmer_name || "N/A");
     const leadFarmer = project.lead_farmer || "N/A";
+    const landArea = project.land_area || "N/A";
+    const taskCount = project.task_count !== undefined ? project.task_count : "N/A";
 
     return [
-      (index + 1).toString(), // No.
+      projectId, // No.
       projectName,
-      "N/A", // No. of Task
+      taskCount.toString(), // No. of Task (converted to string for PDF)
       projectStatus,
       projectFarmPres,
       leadFarmer, // Lead Farmer/s
       farmersName, // Farmers
       projectBarangay,
-      "N/A", // Land Area
+      landArea, // Land Area
       projectCategory,
       projectCropType,
-      "N/A", // Fertilizer
-      projectEquipment,
-      `${projectStart} \n ${projectEnd}`, // Duration
+      fertilizerList, // Fertilizer
+      equipmentList,
+      `${projectStart}\n${projectEnd}`, // Duration
     ];
   });
 
@@ -805,3 +868,4 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       URL.revokeObjectURL(pdfUrl);
     };
 });
+// <-------------= EVENT LISTENERS END =---------------->

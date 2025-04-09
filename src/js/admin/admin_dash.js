@@ -53,12 +53,32 @@ async function getAuthenticatedUser() {
     });
 }
 
-// Function to check authentication state and update dashboard
 function initializeDashboard() {
+    let unsubscribeFarmers; // Store the unsubscribe function for farmers
+    let unsubscribeProjects; // Store the unsubscribe function for projects
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            updateTotalFarmerCount();
-            updateTotalProjectsCount();
+            // Clean up previous listeners if they exist
+            if (unsubscribeFarmers) {
+                unsubscribeFarmers();
+            }
+            if (unsubscribeProjects) {
+                unsubscribeProjects();
+            }
+
+            // Ensure DOM is ready before setting up the listeners
+            if (document.querySelector("#total-farmers") && document.querySelector("#new-farmers") && document.querySelector("#total-projects")) {
+                unsubscribeFarmers = updateTotalFarmerCount();
+                unsubscribeProjects = updateTotalProjectsCount();
+            } else {
+                console.error("DOM elements for counts not found. Retrying...");
+                setTimeout(() => {
+                    unsubscribeFarmers = updateTotalFarmerCount();
+                    unsubscribeProjects = updateTotalProjectsCount();
+                }, 1000); // Retry after 1 second
+            }
+
             updateProjectStatus();
             updateBarGraph();
         } else {
@@ -66,6 +86,7 @@ function initializeDashboard() {
         }
     });
 }
+
 
 // Function to animate the counting effect
 function animateCount(element, finalCount) {
@@ -91,59 +112,137 @@ function animateCount(element, finalCount) {
 }
 
 // Function to fetch and update the farmer count
-async function updateTotalFarmerCount() {
+function updateTotalFarmerCount() {
     try {
         const farmersCollection = collection(db, "tb_farmers");
-        const farmersSnapshot = await getDocs(farmersCollection);
-        const farmerCount = farmersSnapshot.size;
-        
-        const farmerElementCount = document.querySelector("#total-farmers");
-        if (farmerElementCount) {
-            animateCount(farmerElementCount, farmerCount);
-        } else {
-            console.error("Farmer number element not found in the DOM");
-        }
+        let lastKnownYear = new Date().getFullYear(); // Track the last known year
+
+        // Use onSnapshot for real-time updates
+        const unsubscribe = onSnapshot(farmersCollection, (snapshot) => {
+            const currentYear = new Date().getFullYear();
+
+            // Reset newFarmersCount if the year has changed
+            let totalActiveFarmers = 0;
+            let newFarmersCount = 0;
+
+            if (currentYear !== lastKnownYear) {
+                console.log(`Year changed from ${lastKnownYear} to ${currentYear}. Resetting new farmers count.`);
+                lastKnownYear = currentYear;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                let createdDate;
+
+                // Handle different formats of created_at
+                if (data.created_at instanceof Timestamp) {
+                    createdDate = data.created_at.toDate();
+                } else if (typeof data.created_at === 'string') {
+                    createdDate = new Date(data.created_at);
+                } else {
+                    console.warn(`Invalid or missing created_at for farmer ${doc.id}. Using current date as fallback.`);
+                    createdDate = new Date(); // Fallback to current date if created_at is invalid
+                }
+
+                // Ensure createdDate is valid
+                if (isNaN(createdDate.getTime())) {
+                    console.warn(`Invalid created_at date for farmer ${doc.id}. Using current date as fallback.`);
+                    createdDate = new Date();
+                }
+
+                const createdYear = createdDate.getFullYear();
+                
+                // Log the created_at and createdYear for debugging
+                console.log(`Farmer ID: ${doc.id}, created_at: ${data.created_at}, Created Year: ${createdYear}`);
+
+                // Check if farmer is deleted
+                const isDeleted = data.deleted_at !== undefined && data.deleted_at !== null;
+
+                // Count active farmers
+                if (!isDeleted) {
+                    totalActiveFarmers++;
+                    // Count new farmers for the current year
+                    if (createdYear === currentYear) {
+                        newFarmersCount++;
+                        console.log(`New farmer detected in ${currentYear}: ${doc.id}`);
+                    }
+                }
+            });
+
+            console.log(`Total Active Farmers: ${totalActiveFarmers}, New Farmers in ${currentYear}: ${newFarmersCount}`);
+
+            const farmerElementCount = document.querySelector("#total-farmers");
+            const newFarmersElement = document.querySelector("#new-farmers");
+
+            if (farmerElementCount) {
+                animateCount(farmerElementCount, totalActiveFarmers);
+            } else {
+                console.error("Farmer number element not found in the DOM");
+            }
+
+            if (newFarmersElement) {
+                newFarmersElement.textContent = `+${newFarmersCount}`; // Always show +Value
+                // Apply the 'active' class if there are new farmers
+                if (newFarmersCount > 0) {
+                    newFarmersElement.classList.add('active');
+                    console.log("Applied 'active' class to new-farmers element");
+                } else {
+                    newFarmersElement.classList.remove('active');
+                    console.log("Removed 'active' class from new-farmers element");
+                }
+            } else {
+                console.error("New farmers element not found in the DOM");
+            }
+        }, (error) => {
+            console.error("Error listening to farmer count updates:", error);
+        });
+
+        return unsubscribe;
     } catch (error) {
-        console.error("Error fetching farmer count:", error);
+        console.error("Error setting up farmer count listener:", error);
     }
 }
-
 // Function to fetch and update projects count for current month
-async function updateTotalProjectsCount() {
+function updateTotalProjectsCount() {
     try {
-        const currentUser = await getAuthenticatedUser();
         const projectsCollection = collection(db, "tb_projects");
         
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-        const baseQuery = query(projectsCollection);
-        const projectsSnapshot = await getDocs(baseQuery);
+        // Use onSnapshot for real-time updates
+        const unsubscribe = onSnapshot(projectsCollection, (snapshot) => {
+            let projectCount = 0;
 
-        let projectCount = 0;
-        projectsSnapshot.forEach(doc => {
-            const data = doc.data();
-            const creatorMatch = (data.project_created_by === currentUser.user_type) || 
-                              (data.project_creator === currentUser.user_type);
-            
-            const dateCreated = data.date_created instanceof Timestamp 
-                ? data.date_created.toDate() 
-                : new Date(data.date_created);
-            
-            if (creatorMatch && dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
-                projectCount++;
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const dateCreated = data.date_created instanceof Timestamp 
+                    ? data.date_created.toDate() 
+                    : new Date(data.date_created);
+                
+                // Check if the project was created in the current month
+                if (dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
+                    projectCount++;
+                    console.log(`Project ID: ${doc.id}, date_created: ${dateCreated}, counted in current month`);
+                }
+            });
+
+            console.log(`Total Projects in Current Month: ${projectCount}`);
+
+            const projectElementCount = document.querySelector("#total-projects");
+            if (projectElementCount) {
+                animateCount(projectElementCount, projectCount);
+            } else {
+                console.error("Project number element not found in the DOM");
             }
+        }, (error) => {
+            console.error("Error listening to project count updates:", error);
         });
 
-        const projectElementCount = document.querySelector("#total-projects");
-        if (projectElementCount) {
-            animateCount(projectElementCount, projectCount);
-        } else {
-            console.error("Project number element not found in the DOM");
-        }
+        return unsubscribe;
     } catch (error) {
-        console.error("Error fetching project count:", error);
+        console.error("Error setting up project count listener:", error);
     }
 }
 
@@ -570,7 +669,7 @@ async function updateBarGraph() {
             }
             if (bar.classList.contains('highlighted')) {
                 const totalCrops = bar.dataset.value || 0;
-                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.textContent = `Total Harvest: ${totalCrops} Kg`;
                 tooltip.style.display = 'block';
                 const barRect = bar.getBoundingClientRect();
                 const chartRect = barChart.getBoundingClientRect();
@@ -616,7 +715,7 @@ async function updateBarGraph() {
                 cancelAnimation = animateDashedLine(bar);
                 
                 const totalCrops = bar.dataset.value || 0;
-                tooltip.textContent = `Total Harvest: ${totalCrops}`;
+                tooltip.textContent = `Total Harvest: ${totalCrops} Kg`;
                 tooltip.style.display = 'block';
                 const barRect = bar.getBoundingClientRect();
                 const chartRect = barChart.getBoundingClientRect();

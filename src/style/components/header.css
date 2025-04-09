@@ -82,7 +82,7 @@
 .unread-count {
   position: absolute;
   top: -8px;
-  right: -8px;
+  right: 0; /* Added for consistent positioning */
   background-color: #ff4500; /* Red background */
   color: white;
   font-size: 10px;
@@ -92,8 +92,9 @@
   padding: 0 4px;
   border-radius: 8px;
   display: none; /* Initially hidden */
-  align-items: center;
-  justify-content: center;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  text-align: center; /* Fallback for text centering */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
@@ -123,13 +124,16 @@
 
   .unread-count {
     top: -6px;
-    right: -6px;
+    right: 0;
     min-width: 14px;
     height: 14px;
     padding: 0 3px;
     font-size: 9px;
     border-radius: 7px;
     display: none; /* Initially hidden */
+    justify-content: center; /* Ensure centering */
+    align-items: center; /* Ensure centering */
+    text-align: center; /* Fallback */
   }
 }
 
@@ -151,12 +155,15 @@
 
   .unread-count {
     top: -5px;
-    right: -5px;
+    right: 0;
     min-width: 12px;
     height: 12px;
     padding: 0 2px;
     font-size: 8px;
     border-radius: 6px;
     display: none; /* Initially hidden */
+    justify-content: center; /* Ensure centering */
+    align-items: center; /* Ensure centering */
+    text-align: center; /* Fallback */
   }
 }

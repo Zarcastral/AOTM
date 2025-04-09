@@ -5,6 +5,7 @@ body {
   font-family: 'Poppins';
   display: flex;
   flex-direction: column;
+  cursor: default;
 }
 .table-wrapper {
   width: 100%;
@@ -241,6 +242,11 @@ th:nth-child(6), td:nth-child(6) {
   text-align: left; /* Center the content in the column for better appearance */
 }
 
+.panel table th:nth-child(7), .panel table td:nth-child(7) {
+  width: 110px; /* Adjusted width for the action column */
+  min-width: 110px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
+}
 .panel table th:nth-child(8), .panel table td:nth-child(8) {
   width: 120px; /* Adjusted width for the action column */
   min-width: 120px; /* Minimum width to ensure usability */

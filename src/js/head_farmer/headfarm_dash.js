@@ -185,6 +185,7 @@ async function updateBarGraph() {
   barChart.appendChild(tooltip);
 
   let labelPositions = [];
+  let animationFrameId = null; // To cancel any ongoing dashed line animation
 
   const populateYearSelector = () => {
     const currentYear = new Date().getFullYear();
@@ -203,7 +204,6 @@ async function updateBarGraph() {
 
   const fetchHarvestData = async (selectedYear, farmerId) => {
     try {
-      // Query tb_validatedharvest where lead_farmer_id matches the authenticated user's farmer_id
       const harvestQuery = query(
         collection(db, "tb_validatedharvest"),
         where("lead_farmer_id", "==", farmerId)
@@ -310,7 +310,6 @@ async function updateBarGraph() {
 
     gridCtx.beginPath();
     gridCtx.setLineDash([0, 0]);
-
     gridCtx.strokeStyle = "#d0d0d0";
     gridCtx.lineWidth = 1.2;
 
@@ -366,8 +365,11 @@ async function updateBarGraph() {
           bar.style.height = `${finalHeight * progress}px`;
         });
 
-        if (progress < 1) requestAnimationFrame(animate);
-        else resolve();
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          resolve();
+        }
       };
 
       requestAnimationFrame(animate);
@@ -375,67 +377,64 @@ async function updateBarGraph() {
   };
 
   const animateDashedLine = (bar) => {
-    let animationId = null;
-
-    if (!bar.classList.contains("highlighted")) {
-      dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
-      drawGridLines(labelPositions);
-      return () => {};
-    }
-
-    const barRect = bar.getBoundingClientRect();
-    const chartRect = barChart.getBoundingClientRect();
-    const yAxisRect = yAxis.getBoundingClientRect();
-
-    const barLeft = barRect.left - chartRect.left;
-    const barWidth = barRect.width;
-    const barX = barLeft + barWidth / 2;
-    const barTop = barRect.top - chartRect.top;
-    const yEnd = yAxisRect.right - chartRect.left;
-
-    let progress = 0;
-    const duration = 500;
-    let start = null;
-
-    const animate = (timestamp) => {
-      if (!start) start = timestamp;
-      const elapsed = timestamp - start;
-      progress = Math.min(elapsed / duration, 1);
-
+    return new Promise((resolve) => {
       if (!bar.classList.contains("highlighted")) {
         dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+        drawGridLines(labelPositions);
+        resolve();
         return;
       }
 
-      dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
-
-      dashCtx.beginPath();
-      dashCtx.setLineDash([5, 5]);
-      dashCtx.strokeStyle = "#41A186";
-      dashCtx.lineWidth = 2 + Math.sin(progress * Math.PI) * 2;
-      const lineLength = (yEnd - barX) * progress;
-      dashCtx.moveTo(barX, barTop);
-      dashCtx.lineTo(barX + lineLength, barTop);
-      dashCtx.stroke();
-      dashCtx.setLineDash([]);
-
-      if (progress < 1) {
-        animationId = requestAnimationFrame(animate);
+      // Cancel any existing animation
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
-    };
 
-    animationId = requestAnimationFrame(animate);
+      const barRect = bar.getBoundingClientRect();
+      const chartRect = barChart.getBoundingClientRect();
+      const yAxisRect = yAxis.getBoundingClientRect();
 
-    return () => {
-      if (animationId) {
-        cancelAnimationFrame(animationId);
+      const barLeft = barRect.left - chartRect.left;
+      const barWidth = barRect.width;
+      const barX = barLeft + barWidth / 2;
+      const barTop = barRect.top - chartRect.top;
+      const yEnd = yAxisRect.right - chartRect.left;
+
+      let progress = 0;
+      const duration = 500;
+      let start = null;
+
+      const animate = (timestamp) => {
+        if (!start) start = timestamp;
+        const elapsed = timestamp - start;
+        progress = Math.min(elapsed / duration, 1);
+
         dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
         drawGridLines(labelPositions);
-      }
-    };
+
+        dashCtx.beginPath();
+        dashCtx.setLineDash([5, 5]);
+        dashCtx.strokeStyle = "#41A186";
+        dashCtx.lineWidth = 2 + Math.sin(progress * Math.PI) * 2;
+        const lineLength = (yEnd - barX) * progress;
+        dashCtx.moveTo(barX, barTop);
+        dashCtx.lineTo(barX + lineLength, barTop);
+        dashCtx.stroke();
+        dashCtx.setLineDash([]);
+
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        } else {
+          animationFrameId = null;
+          resolve();
+        }
+      };
+
+      animationFrameId = requestAnimationFrame(animate);
+    });
   };
 
-  const highlightHighestBar = () => {
+  const highlightHighestBar = async () => {
     let maxHeight = 0;
     let highestBar = null;
 
@@ -455,7 +454,7 @@ async function updateBarGraph() {
       });
       highestBar.classList.add("highlighted");
       highestBar.style.backgroundColor = "#41A186";
-      animateDashedLine(highestBar);
+      await animateDashedLine(highestBar);
     } else {
       dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
       drawGridLines(labelPositions);
@@ -463,8 +462,6 @@ async function updateBarGraph() {
   };
 
   bars.forEach((bar) => {
-    let cancelAnimation = null;
-
     bar.addEventListener("mouseenter", () => {
       if (!bar.classList.contains("highlighted")) {
         bar.style.transition = "background-color 0.2s ease";
@@ -496,15 +493,12 @@ async function updateBarGraph() {
       tooltip.style.display = "none";
     });
 
-    bar.addEventListener("click", (e) => {
+    bar.addEventListener("click", async (e) => {
       e.stopPropagation();
       if (bar.classList.contains("highlighted")) {
         bar.classList.remove("highlighted");
         bar.style.backgroundColor = "#d3e8e1";
         bar.style.transform = "scale(1)";
-        if (cancelAnimation) {
-          cancelAnimation();
-        }
         dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
         drawGridLines(labelPositions);
         tooltip.style.display = "none";
@@ -522,7 +516,7 @@ async function updateBarGraph() {
           bar.style.transition = "transform 0.1s ease-in";
           bar.style.transform = "scale(1)";
         }, 100);
-        cancelAnimation = animateDashedLine(bar);
+        await animateDashedLine(bar);
 
         const totalCrops = bar.dataset.value || 0;
         tooltip.textContent = `Total Harvest: ${totalCrops}`;
@@ -568,24 +562,46 @@ async function updateBarGraph() {
   });
 
   const updateChart = async (selectedYear) => {
+    // Reset all states before starting new animation
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+    dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+    drawGridLines(labelPositions);
+    tooltip.style.display = "none";
+    bars.forEach((bar) => {
+      bar.classList.remove("highlighted");
+      bar.style.backgroundColor = "#d3e8e1";
+      bar.style.height = "0px";
+    });
+
+    // Update data and sizes
     const { monthlyTotals, maxDataValue } = await setBarHeights(selectedYear);
     const { maxValue, pixelsPerUnit, interval } = await updateSizes();
     updateYAxis(maxValue, pixelsPerUnit, interval);
+
+    // Animate bars first, then highlight
     await animateBarGrowth();
-    highlightHighestBar();
+    await highlightHighestBar();
   };
 
   populateYearSelector();
   updateChart(yearSelector.value);
 
   yearSelector.addEventListener("change", async (e) => {
-    dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
-    drawGridLines(labelPositions);
-    tooltip.style.display = "none";
     await updateChart(e.target.value);
   });
 
   window.addEventListener("resize", async () => {
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+    dashCtx.clearRect(0, 0, dashCanvas.width, dashCanvas.height);
+    drawGridLines(labelPositions);
+    tooltip.style.display = "none";
+
     const {
       maxValue: newMax,
       pixelsPerUnit: newPixelsPerUnit,
@@ -593,7 +609,6 @@ async function updateBarGraph() {
     } = await updateSizes();
     updateYAxis(newMax, newPixelsPerUnit, newInterval);
     await animateBarGrowth();
-    highlightHighestBar();
-    tooltip.style.display = "none";
+    await highlightHighestBar();
   });
 }

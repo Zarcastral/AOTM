@@ -29,21 +29,18 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function loadTeamList() {
   const teamPanel = document.getElementById("team-panel").querySelector("tbody");
+  teamPanel.innerHTML = ""; // Clear previous list
 
-  // Get the barangay name from sessionStorage
   const barangayName = sessionStorage.getItem("barangay_name");
 
   try {
-    // Fetch teams from Firestore
     const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
-    teamsSnapshot.forEach((doc, index) => {
+    teamsSnapshot.forEach((doc) => {
       const teamData = doc.data();
 
-      // Filter teams based on barangay_name matching the sessionStorage value
       if (teamData.barangay_name === barangayName) {
-        // Create a new row for each team
         const row = document.createElement("tr");
 
         const teamNameCell = document.createElement("td");
@@ -54,7 +51,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         leadFarmerCell.textContent = teamData.lead_farmer || "N/A";
         row.appendChild(leadFarmerCell);
 
-        // Fetch the team members (assuming members are stored as an array of farmer names)
         const membersCount = teamData.farmer_name ? teamData.farmer_name.length : 0;
         const membersCell = document.createElement("td");
         membersCell.textContent = membersCount;
@@ -62,7 +58,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const actionCell = document.createElement("td");
         const editLink = document.createElement("a");
-        editLink.href = "#";
+        // Use teamData.team_id instead of doc.id
+        editLink.href = `edit-team.html?teamId=${teamData.team_id}`;
         const editImg = document.createElement("img");
         editImg.src = "../../images/image 27.png";
         editImg.alt = "Edit";
@@ -70,15 +67,41 @@ document.addEventListener("DOMContentLoaded", async () => {
         editLink.appendChild(editImg);
         actionCell.appendChild(editLink);
         row.appendChild(actionCell);
-
-        // Append the row to the table
         teamPanel.appendChild(row);
       }
     });
   } catch (error) {
-    console.error("Error fetching team data: ", error);
+    console.error("Error loading team list:", error);
+  }
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const teamData = JSON.parse(sessionStorage.getItem("teamData"));
+  if (teamData) {
+    document.getElementById("editTeamName").value = teamData.team_name || "";
+    document.getElementById("editLeadFarmer").value = teamData.lead_farmer || "";
+    
+    // Populate farmers if needed (assuming you have the farmer data in teamData)
+    const farmerBox = document.getElementById("editFarmerBox");
+    if (teamData.farmer_name) {
+      teamData.farmer_name.forEach(farmer => {
+        const farmerDiv = document.createElement("div");
+        farmerDiv.textContent = farmer || "N/A";
+        farmerBox.appendChild(farmerDiv);
+      });
+    }
   }
 });
+
+
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await fetchFarmers(); // still needed
+  loadTeamList();       // call our new function instead
+});
+
 
 // Retrieve barangay name from session storage
 const loggedBarangay = (sessionStorage.getItem("barangay_name") || "").toLowerCase();
@@ -137,19 +160,23 @@ async function loadHeadFarmers() {
     querySnapshot.forEach((doc) => {
       const data = doc.data();
       if (!data.barangay_name || data.barangay_name.toLowerCase() !== loggedBarangay) return;
+
       const fullName = `${data.last_name}, ${data.first_name} ${data.middle_name || ""}`.trim();
       const lowerFullName = fullName.toLowerCase();
 
       if ((data.user_type === "Head Farmer" || data.user_type === "Farm President") && !existingLeadFarmers.has(lowerFullName)) {
-        optionsHTML += `<option value="${fullName}">${fullName}</option>`;
+        const contact = data.contact || "";
+        optionsHTML += `<option value="${fullName}" data-contact="${contact}">${fullName}</option>`;
       }
     });
 
     leadFarmerSelect.innerHTML = optionsHTML;
+
   } catch (error) {
     console.error("Error loading head farmers:", error);
   }
 }
+
 
 let farmersList = [];
 
@@ -188,11 +215,19 @@ async function fetchFarmers() {
 
     const querySnapshot = await getDocs(q);
     farmersList = querySnapshot.docs
-      .map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      .filter(farmer => !excludedFarmerIds.has(String(farmer.farmer_id))); // Exclude farmers already in a team
+  .map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      farmer_id: data.farmer_id,
+      first_name: data.first_name,
+      middle_name: data.middle_name,
+      last_name: data.last_name,
+      contact: data.contact // Make sure this exists in tb_farmers!
+    };
+  })
+  .filter(farmer => farmer.farmer_id && !excludedFarmerIds.has(String(farmer.farmer_id)));
+
 
     console.log("Filtered Farmers Loaded:", farmersList);
   } catch (error) {
@@ -202,26 +237,22 @@ async function fetchFarmers() {
 
 
 // Function to search farmers and display suggestions below search bar
-document.getElementById("farmerSearch").addEventListener("input", function () {
-  const searchValue = this.value.toLowerCase().trim();
+// Function to render farmers in search result box
+function renderFarmerResults(searchValue = "") {
   let resultsContainer = document.getElementById("searchResults");
+  const searchInput = document.getElementById("farmerSearch");
 
   if (!resultsContainer) {
     resultsContainer = document.createElement("div");
     resultsContainer.id = "searchResults";
     resultsContainer.classList.add("search-results");
-    this.parentNode.appendChild(resultsContainer); // Attach to the same container as input
+    searchInput.parentNode.appendChild(resultsContainer); // Attach to same container as input
   }
 
-  // Clear previous results
-  resultsContainer.innerHTML = "";
-
-  if (searchValue === "") {
-    return; // Stop if the search is empty
-  }
+  resultsContainer.innerHTML = ""; // Clear previous results
 
   const filteredFarmers = farmersList.filter(farmer =>
-    (`${farmer.last_name}, ${farmer.first_name} ${farmer.middle_name || ""}`).toLowerCase().includes(searchValue)
+    (`${farmer.last_name}, ${farmer.first_name} ${farmer.middle_name || ""}`).toLowerCase().includes(searchValue.toLowerCase())
   );
 
   if (filteredFarmers.length === 0) {
@@ -243,12 +274,18 @@ document.getElementById("farmerSearch").addEventListener("input", function () {
     resultsContainer.appendChild(div);
   });
 
-  // Ensure results are positioned properly
+  // Positioning
   resultsContainer.style.position = "absolute";
-  resultsContainer.style.width = this.offsetWidth + "px"; // Match width of input box
-  resultsContainer.style.top = this.offsetTop + this.offsetHeight + "px"; // Place below input
-  resultsContainer.style.left = this.offsetLeft + "px";
+  resultsContainer.style.width = searchInput.offsetWidth + "px";
+  resultsContainer.style.top = searchInput.offsetTop + searchInput.offsetHeight + "px";
+  resultsContainer.style.left = searchInput.offsetLeft + "px";
+}
+
+// Listen to input for live filtering
+document.getElementById("farmerSearch").addEventListener("input", function () {
+  renderFarmerResults(this.value.trim());
 });
+
 
 // Function to add a selected farmer to the farmerBox
 function addFarmerToBox(farmer) {
@@ -282,9 +319,33 @@ document.addEventListener("click", function (event) {
   }
 });
 
+
+
+
+document.addEventListener("click", function (e) {
+  const resultsContainer = document.getElementById("searchResults");
+  const searchBox = document.getElementById("farmerSearch");
+  if (resultsContainer && !resultsContainer.contains(e.target) && e.target !== searchBox) {
+    resultsContainer.innerHTML = "";
+  }
+});
+
+
 // Load farmers on page load
 document.addEventListener("DOMContentLoaded", async () => {
-  await fetchFarmers(); // Ensure farmers are loaded before searching
+  await fetchFarmers();
+  const searchInput = document.getElementById("farmerSearch");
+
+searchInput.addEventListener("input", function () {
+  renderFarmerResults(this.value.trim());
+});
+
+// Show full list on click (even if empty)
+searchInput.addEventListener("click", function () {
+  renderFarmerResults(); // shows all by default
+});
+
+  renderFarmerResults(); // Ensure farmers are loaded before searching
 });
 
 // Function to get the next auto-incrementing team_id
@@ -334,22 +395,25 @@ async function getNextTeamId() {
         const querySnapshot = await getDocs(farmersRef);
 
         let leadFarmerId = null;
+        let leadFarmerContact = ''; // New variable to store lead farmer's contact
         let farmersData = [];
 
         querySnapshot.forEach((doc) => {
             const farmerData = doc.data();
             const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
 
-            // Check for Lead Farmer ID
+            // Check for Lead Farmer ID and Contact
             if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
                 leadFarmerId = String(farmerData.farmer_id);
+                leadFarmerContact = farmerData.contact || ''; // Capture the contact here
             }
 
             // Check for Selected Farmers
             if (farmerNames.includes(reconstructedFullName)) {
                 farmersData.push({
                     farmer_id: String(farmerData.farmer_id),
-                    farmer_name: reconstructedFullName
+                    farmer_name: reconstructedFullName,
+                    contact: farmerData.contact || ""
                 });
             }
         });
@@ -360,6 +424,7 @@ async function getNextTeamId() {
         }
 
         console.log("Lead Farmer ID:", leadFarmerId);
+        console.log("Lead Farmer Contact:", leadFarmerContact);
         console.log("Farmers Data:", farmersData);
 
         const teamData = {
@@ -367,21 +432,35 @@ async function getNextTeamId() {
             team_name: teamName,
             lead_farmer: leadFarmer,
             lead_farmer_id: leadFarmerId,
-            farmer_name: farmersData, // Updated to store farmer_id and farmer_name
+            lead_farmer_contact: leadFarmerContact, // Add lead farmer's contact
+            farmer_name: farmersData,
             barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
         };
 
         await addDoc(collection(db, "tb_teams"), teamData);
         alert("Team successfully created!");
+        clearTeamInputs();
         popup.style.display = "none";
+        loadTeamList();
+        await fetchFarmers();
+        renderFarmerResults();
+
     } catch (error) {
         console.error("Error saving team:", error);
         alert("Failed to save team. Please try again.");
     }
 }
+  
 
 
-
+// ✨ Function to clear all inputs
+function clearTeamInputs() {
+  document.getElementById("teamName").value = "";
+  document.getElementById("leadFarmer").value = "";
+  document.getElementById("farmerSearch").value = "";
+  document.getElementById("farmerBox").innerHTML = ""; // clear selected farmers
+  document.getElementById("searchResults").innerHTML = ""; // clear suggestion list if visible
+}
 
   
   // Attach event listener to Save button

@@ -355,6 +355,39 @@ textarea {
 .popup-content button:hover {
     background: #36886d;
 }
+.success-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #41a186;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: none;
+    font-size: 18px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.error-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #AC415B;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: none;
+    font-size: 18px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {

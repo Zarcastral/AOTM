@@ -2,9 +2,9 @@ body {
   margin: 0;
   font-family: 'Poppins';
   background-color: #F5F6FA;
-  cursor: default;
   height: 100vh;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
+  cursor: default;
 }
  
 

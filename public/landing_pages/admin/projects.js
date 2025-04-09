@@ -548,12 +548,51 @@ window.loadCropTypes = async function (selectedCrop) {
   }
 };
 
+// Function to check if a fertilizer with the same type and name already exists
+function isFertilizerDuplicate(container, type, name, currentDropdown) {
+  const existingGroups = container.querySelectorAll(".fertilizer__group");
+  for (const group of existingGroups) {
+    const existingType = group.querySelector(".fertilizer__type")?.value;
+    const existingName = group.querySelector(".fertilizer__name")?.value;
+    const existingDropdown = group.querySelector(".fertilizer__name");
+    // Skip the current dropdown being checked
+    if (
+      existingType === type &&
+      existingName === name &&
+      existingDropdown !== currentDropdown
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Function to check if an equipment with the same type and name already exists
+function isEquipmentDuplicate(container, type, name, currentDropdown) {
+  const existingGroups = container.querySelectorAll(".equipment__group");
+  for (const group of existingGroups) {
+    const existingType = group.querySelector(".equipment__type")?.value;
+    const existingName = group.querySelector(".equipment__name")?.value;
+    const existingDropdown = group.querySelector(".equipment__name");
+    // Skip the current dropdown being checked
+    if (
+      existingType === type &&
+      existingName === name &&
+      existingDropdown !== currentDropdown
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function addEquipmentForm() {
   const container = document.getElementById("equipment-container");
   if (!container) {
     console.error("equipment-container not found");
     return;
   }
+
   const div = document.createElement("div");
   div.classList.add("equipment__group");
 
@@ -595,6 +634,29 @@ async function addEquipmentForm() {
         equipmentNameDropdown,
         quantityInput
       );
+    });
+
+    // Add validation on name selection
+    equipmentNameDropdown.addEventListener("change", function () {
+      const selectedType = equipmentTypeDropdown.value;
+      const selectedName = equipmentNameDropdown.value;
+      if (selectedType && selectedName) {
+        if (
+          isEquipmentDuplicate(
+            container,
+            selectedType,
+            selectedName,
+            equipmentNameDropdown
+          )
+        ) {
+          showErrorPanel(
+            `Equipment with type '${selectedType}' and name '${selectedName}' is already selected. Please choose a different combination.`
+          );
+          equipmentNameDropdown.value = ""; // Reset the selection
+          quantityInput.placeholder = "Available Stock: -";
+          quantityInput.value = "";
+        }
+      }
     });
   } catch (error) {
     console.error("Error adding equipment form:", error);
@@ -704,6 +766,7 @@ async function addFertilizerForm() {
     console.error("fertilizer-container not found");
     return;
   }
+
   const div = document.createElement("div");
   div.classList.add("fertilizer__group");
 
@@ -746,6 +809,29 @@ async function addFertilizerForm() {
         quantityInput
       );
     });
+
+    // Add validation on name selection
+    fertilizerNameDropdown.addEventListener("change", function () {
+      const selectedType = fertilizerTypeDropdown.value;
+      const selectedName = fertilizerNameDropdown.value;
+      if (selectedType && selectedName) {
+        if (
+          isFertilizerDuplicate(
+            container,
+            selectedType,
+            selectedName,
+            fertilizerNameDropdown
+          )
+        ) {
+          showErrorPanel(
+            `Fertilizer with type '${selectedType}' and name '${selectedName}' is already selected. Please choose a different combination.`
+          );
+          fertilizerNameDropdown.value = ""; // Reset the selection
+          quantityInput.placeholder = "Available Stock: -";
+          quantityInput.value = "";
+        }
+      }
+    });
   } catch (error) {
     console.error("Error adding fertilizer form:", error);
   }
@@ -776,7 +862,7 @@ async function getFertilizerTypes() {
 
     return Array.from(uniqueTypes);
   } catch (error) {
-    console.error("Error getting fertilizer types:", error);
+    console.error("Error getting fertilizer(types:", error);
     return [];
   }
 }

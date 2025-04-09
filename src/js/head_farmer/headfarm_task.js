@@ -34,13 +34,11 @@ function showSuccessPanel(message) {
 
   document.body.appendChild(successMessage);
 
-  // Fade in
   successMessage.style.display = "block";
   setTimeout(() => {
     successMessage.style.opacity = "1";
   }, 5);
 
-  // Fade out after 4 seconds
   setTimeout(() => {
     successMessage.style.opacity = "0";
     setTimeout(() => {
@@ -58,13 +56,11 @@ function showErrorPanel(message) {
 
   document.body.appendChild(errorMessage);
 
-  // Fade in
   errorMessage.style.display = "block";
   setTimeout(() => {
     errorMessage.style.opacity = "1";
   }, 5);
 
-  // Fade out after 4 seconds
   setTimeout(() => {
     errorMessage.style.opacity = "0";
     setTimeout(() => {
@@ -74,12 +70,11 @@ function showErrorPanel(message) {
 }
 
 export async function fetchProjectsForFarmer() {
-  const userType = sessionStorage.getItem("user_type"); // Get user_type
+  const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
 
-  // For Admin, Supervisor, or Farm President: Fetch via project_id
   if (["Admin", "Supervisor", "Farm President"].includes(userType)) {
-    const projectId = sessionStorage.getItem("selected_project_id"); // From fetchAndStoreProjectDetails()
+    const projectId = sessionStorage.getItem("selected_project_id");
 
     if (!projectId) {
       console.log("No project ID found for this user.");
@@ -88,7 +83,10 @@ export async function fetchProjectsForFarmer() {
 
     try {
       const projectsRef = collection(db, "tb_projects");
-      const q = query(projectsRef, where("project_id", "==", parseInt(projectId, 10)));
+      const q = query(
+        projectsRef,
+        where("project_id", "==", parseInt(projectId, 10))
+      );
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
@@ -106,14 +104,12 @@ export async function fetchProjectsForFarmer() {
           fetchProjectTasks(project.crop_type_name, project.project_id);
         }
       });
-
     } catch (error) {
       console.error("Error fetching project:", error);
     }
     return;
   }
 
-  // Original logic for Head Farmer
   if (!farmerId) {
     console.log("No farmer ID found in session.");
     return;
@@ -132,7 +128,10 @@ export async function fetchProjectsForFarmer() {
     querySnapshot.forEach((doc) => {
       const project = doc.data();
       if (project.status === "Ongoing") {
-        sessionStorage.setItem("selected_project_id", String(project.project_id));
+        sessionStorage.setItem(
+          "selected_project_id",
+          String(project.project_id)
+        );
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         sessionStorage.setItem("selected_project_end_date", project.end_date);
@@ -159,7 +158,7 @@ async function fetchProjectTasks(cropTypeName, projectId) {
       console.log(`No tasks found for project ID ${projectId}.`);
       allTasks = [];
       filteredTasks = [];
-      renderTasks(); // You might want to pass a flag here if needed
+      renderTasks();
       return;
     }
 
@@ -175,13 +174,8 @@ async function fetchProjectTasks(cropTypeName, projectId) {
     filteredTasks = [...allTasks];
     updatePagination();
 
-    // Retrieve the user type from sessionStorage
     const userType = sessionStorage.getItem("user_type");
-    // Determine if edit and delete options should be shown:
-    // Only show if userType is "Head Farmer"
-    const allowEditDelete = (userType === "Head Farmer");
-
-    // Pass the flag to renderTasks so it can conditionally display the edit and delete buttons
+    const allowEditDelete = userType === "Head Farmer";
     renderTasks(allowEditDelete);
 
     attachGlobalEventListeners();
@@ -189,7 +183,6 @@ async function fetchProjectTasks(cropTypeName, projectId) {
     console.error("❌ Error fetching project tasks:", error);
   }
 }
-
 
 function updatePagination() {
   totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
@@ -201,10 +194,9 @@ function updatePagination() {
 }
 
 function renderTasks(allowEditDelete) {
-  // If allowEditDelete is not provided, determine it based on sessionStorage
   if (allowEditDelete === undefined) {
     const userType = sessionStorage.getItem("user_type");
-    allowEditDelete = (userType === "Head Farmer");
+    allowEditDelete = userType === "Head Farmer";
   }
 
   const taskTableBody = document.getElementById("taskTableBody");
@@ -228,7 +220,6 @@ function renderTasks(allowEditDelete) {
       const task = taskObj.data;
       const taskId = taskObj.id;
 
-      // Build action icons based on allowEditDelete flag
       const actionIcons = allowEditDelete
         ? `
             <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
@@ -273,8 +264,6 @@ function renderTasks(allowEditDelete) {
   attachRowEventListeners();
 }
 
-
-
 let globalListenersAttached = false;
 
 function attachGlobalEventListeners() {
@@ -295,16 +284,14 @@ function attachGlobalEventListeners() {
     }
   });
 
-  const addTaskButton = document.getElementById("addTaskButton");  
-const userType = sessionStorage.getItem("user_type");
+  const addTaskButton = document.getElementById("addTaskButton");
+  const userType = sessionStorage.getItem("user_type");
 
-// Disable button + style it if user is not Head Farmer
-if (userType !== "Head Farmer") {
-  addTaskButton.disabled = true;
-  addTaskButton.style.opacity = "0.5";
-  addTaskButton.style.cursor = "not-allowed";
-}
-
+  if (userType !== "Head Farmer") {
+    addTaskButton.disabled = true;
+    addTaskButton.style.opacity = "0.5";
+    addTaskButton.style.cursor = "not-allowed";
+  }
 
   addTaskButton.addEventListener("click", () => {
     const endDate = sessionStorage.getItem("selected_project_end_date");
@@ -316,7 +303,6 @@ if (userType !== "Head Farmer") {
     }
     addTaskModal.classList.remove("hidden");
   });
-
 
   cancelTaskBtn.addEventListener("click", () => {
     taskNameInput.value = "";
@@ -384,12 +370,12 @@ function attachRowEventListeners() {
           }
         } else {
           console.log(`Task ${taskId} not found in Firestore.`);
-          alert("Task not found.");
+          showErrorPanel("Task not found.");
           return;
         }
       } catch (error) {
         console.error("❌ Error checking task status:", error);
-        alert("Error checking task status. Try again.");
+        showErrorPanel("Error checking task status. Try again.");
         return;
       }
       openDeleteModal(taskId);
@@ -505,7 +491,7 @@ async function saveEditHandler() {
 
   const newTaskNameRaw = editTaskNameInput.value.trim();
   if (!newTaskNameRaw) {
-    alert("Please enter a task name.");
+    showErrorPanel("Please enter a task name.");
     return;
   }
 
@@ -521,7 +507,7 @@ async function saveEditHandler() {
   try {
     const projectId = sessionStorage.getItem("selected_project_id");
     if (!projectId) {
-      alert("No project selected.");
+      showErrorPanel("No project selected.");
       return;
     }
 
@@ -532,7 +518,7 @@ async function saveEditHandler() {
       )
     );
     if (taskSnap.empty) {
-      alert("Task not found.");
+      showErrorPanel("Task not found.");
       return;
     }
     const projectTaskId = taskSnap.docs[0].data().project_task_id;
@@ -601,7 +587,7 @@ async function saveEditHandler() {
     renderTasks();
   } catch (error) {
     console.error("❌ Error updating task and related records:", error);
-    alert("Failed to update task. Try again.");
+    showErrorPanel("Failed to update task. Try again.");
   }
 }
 
@@ -624,7 +610,7 @@ async function saveTaskHandler() {
   const taskName = taskNameInput.value.trim();
 
   if (!taskName) {
-    alert("Please enter a task name.");
+    showErrorPanel("Please enter a task name.");
     return;
   }
 
@@ -634,7 +620,7 @@ async function saveTaskHandler() {
     const cropName = sessionStorage.getItem("selected_crop_name");
 
     if (!projectId || !cropTypeName || !cropName) {
-      alert("Missing project or crop details.");
+      showErrorPanel("Missing project or crop details.");
       return;
     }
 
@@ -705,7 +691,7 @@ async function saveTaskHandler() {
     renderTasks();
   } catch (error) {
     console.error("❌ Error adding task:", error);
-    alert("Failed to add task. Try again.");
+    showErrorPanel("Failed to add task. Try again.");
   }
 }
 
@@ -730,7 +716,7 @@ async function deleteTaskHandler() {
     );
     if (taskSnap.empty) {
       console.log(`Task ${taskToDelete} not found in Firestore.`);
-      alert("Task not found.");
+      showErrorPanel("Task not found.");
       deleteTaskModal.classList.add("hidden");
       return;
     }
@@ -788,13 +774,94 @@ async function deleteTaskHandler() {
     renderTasks();
   } catch (error) {
     console.error("❌ Error deleting task and related records:", error);
-    alert("Failed to delete task. Try again.");
+    showErrorPanel("Failed to delete task. Try again.");
   }
 
   deleteTaskModal.classList.add("hidden");
   taskToDelete = null;
 }
 
+// Back button logic
+async function configureBackButton() {
+  const backContainer = document.querySelector(".back"); // Target the parent container
+  const backLink = document.querySelector(".back-link"); // For event listener
+  if (!backContainer || !backLink) {
+    console.warn("Back container or link not found in the DOM.");
+    return;
+  }
+
+  const userType = sessionStorage.getItem("user_type");
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const projectId = sessionStorage.getItem("selected_project_id");
+
+  console.log("userType:", userType);
+  console.log("farmerId:", farmerId);
+  console.log("projectId:", projectId);
+
+  if (!projectId) {
+    console.error("No project_id found in sessionStorage.");
+    return; // Keep hidden
+  }
+
+  try {
+    const projectsRef = collection(db, "tb_projects");
+    const q = query(
+      projectsRef,
+      where("project_id", "==", parseInt(projectId, 10))
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      console.log("Project not found in tb_projects.");
+      return; // Keep hidden
+    }
+
+    const projectData = querySnapshot.docs[0].data();
+    const leadFarmerId = projectData.lead_farmer_id;
+
+    console.log("leadFarmerId:", leadFarmerId);
+
+    const isLeadFarmer = farmerId && String(leadFarmerId) === String(farmerId);
+    console.log("isLeadFarmer:", isLeadFarmer);
+
+    const restrictedUserTypes = ["Head Farmer", "Farmer", "Farm President"];
+    const isRestrictedUser = restrictedUserTypes.includes(userType);
+    console.log("isRestrictedUser:", isRestrictedUser);
+
+    if (isLeadFarmer) {
+      backContainer.style.display = "none";
+      backContainer.classList.remove("visible");
+      console.log("Back button hidden: farmer_id matches lead_farmer_id.");
+      console.log("Hidden style applied:", backContainer.style.display);
+    } else {
+      backContainer.style.display = "block !important";
+      backContainer.classList.add("visible");
+      console.log(
+        "Back button visible: farmer_id does not match lead_farmer_id or is absent."
+      );
+      console.log("Visible style applied:", backContainer.style.display);
+
+      if (!isRestrictedUser) {
+        backLink.addEventListener("click", (event) => {
+          event.preventDefault();
+          sessionStorage.setItem("selectedProjectId", projectId);
+          window.location.href =
+            "../../../../public/landing_pages/admin/viewproject.html";
+          console.log("Navigating to admin viewproject.html");
+        });
+      } else {
+        console.log("Back button uses default href for restricted user.");
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching project data for back button:", error);
+    backContainer.style.display = "none";
+    backContainer.classList.remove("visible");
+    console.log("Error style applied:", backContainer.style.display);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   fetchProjectsForFarmer();
+  configureBackButton();
 });

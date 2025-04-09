@@ -38,7 +38,7 @@ body {
 }
 
 .crop_select{
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
@@ -46,17 +46,17 @@ body {
   outline: none;
   width: 150px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
 
 
 .barangay_select{
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
@@ -64,10 +64,10 @@ body {
   outline: none;
   width: 200px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
@@ -78,18 +78,18 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px; /* Padding around the panels */
-  overflow-y: auto; /* Enable vertical scrolling */
-  max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
 }
 
-/* Account Panel Styles */
+
 .account-panel {
   position: absolute;
   top: 60px;
   right: 20px;
   width: 300px;
-  height: 400px; /* Set a fixed height here */
+  height: 400px;
   background: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
@@ -138,7 +138,7 @@ body {
   margin-top: 20px;
 }
 
-/* Ensure the parent container has proper positioning */
+
 .harvest-search-bar {
   display: flex;
   justify-content: space-between;
@@ -181,8 +181,8 @@ border-radius: 5px;
 }
 
 .image-header img {
-  display: block; /* Makes the image block-level for better alignment */
-  margin: 0 auto; /* Centers the image horizontally */
+  display: block;
+  margin: 0 auto;
 }
 
 .harvest-search-bar input {
@@ -199,15 +199,15 @@ border-radius: 5px;
 }
 
 .calendar-btn-icon {
-  width: 55px; /* Adjust size to match the height of the input and dropdowns */
+  width: 55px;
   height: 40px;
-  margin-left: 200px;
-  cursor: pointer; /* Make it clickable */
+  margin-left: 100px;
+  cursor: pointer;
 }
 
 .calendar-icon {
-  position: relative; /* Makes the container the positioning context for the month picker */
-  display: inline-block; /* Ensures the container wraps its content */
+  position: relative;
+  display: inline-block;
 }
 
 .calendar-btn-icon:hover {
@@ -224,7 +224,7 @@ border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   color: white;
   display: none;
-  width: 200px; /* Adjust based on your design */
+  width: 200px;
 }
 
 .year-nav {
@@ -284,12 +284,12 @@ border-radius: 5px;
 }
 
 .panel table th {
-  text-align: center; /* This centers the text */
+  text-align: center;
   vertical-align: middle;
 }
 
 .panel table td {
-  text-align: center; /* This centers the text */
+  text-align: center;
   vertical-align: text-top;
 }
 
@@ -317,19 +317,19 @@ th {
 
 th:nth-child(1),
 td:nth-child(1) {
-  width: 100px; /* Adjusted width for the barangay column */
-  min-width: 100px; /* Minimum width to ensure usability */
+  width: 100px;
+  min-width: 100px;
 }
 
 th:nth-child(2),
 td:nth-child(2) {
-  width: 100px; /* Adjusted width for the Area Planted column */
-  min-width: 100px; /* Minimum width to ensure usability */
+  width: 100px;
+  min-width: 100px;
 }
 th:nth-child(3),
 td:nth-child(3) {
-  width: 50px; /* Adjusted width for the Area Planted column */
-  min-width: 50px; /* Minimum width to ensure usability */
+  width: 50px;
+  min-width: 50px;
 }
 
 tbody tr:hover {
@@ -387,14 +387,14 @@ tbody tr:hover {
   font-weight: bold;
 }
 
-/* Pagination styles */
+
 .harvest-pagination {
   display: flex;
   justify-content: flex-end;
-  align-items: center; /* Aligns vertically */
+  align-items: center;
   margin-top: 20px;
   width: 100%;
-  gap: 10px; /* Adds spacing between elements */
+  gap: 10px;
 }
 
 #harvest-page-number {
@@ -444,7 +444,7 @@ tbody tr:hover {
   height: 22px;
   object-fit: contain;
   vertical-align: middle;
-  margin-top: -5px; /* Nudges the icon closer to the text */
+  margin-top: -5px;
 }
 
 .download-btn:hover {
@@ -476,43 +476,43 @@ tbody tr:hover {
   transition: color 0.3s ease;
 }
 
-/* PDF Preview Panel */
+
 .pdf-preview-panel {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh; /* Full viewport height */
+  height: 100vh;
   background-color: white;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  border-radius: 0; /* Remove border radius for full-screen effect */
+  border-radius: 0;
   z-index: 1000;
   display: none;
   flex-direction: column;
   overflow: hidden;
-  padding: 0; /* Remove padding to maximize content area */
+  padding: 0;
 }
 
 #pdf-preview-container {
   flex: 1;
   overflow-y: auto;
-  border: none; /* Remove border for full-screen effect */
-  padding: 20px; /* Add padding inside the container for content */
+  border: none;
+  padding: 20px;
 }
 
 #pdf-preview-container iframe {
   width: 100%;
-  height: 100%; /* Ensures the iframe fills the container */
-  border: none; /* Removes default iframe border */
+  height: 100%;
+  border: none;
 }
 
 .preview-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 15px 20px; /* Add padding to the button area */
-  background-color: #f5f6fa; /* Match the background color of the main content */
-  border-top: 1px solid #D1D5DB; /* Add a separator line above the buttons */
+  padding: 15px 20px;
+  background-color: #f5f6fa;
+  border-top: 1px solid #D1D5DB;
 }
 
 .preview-btn {
@@ -542,7 +542,7 @@ tbody tr:hover {
   background-color: #318a71;
 }
 
-/* Overlay to dim the background when preview is open */
+
 body.preview-active::before {
   content: '';
   position: fixed;
