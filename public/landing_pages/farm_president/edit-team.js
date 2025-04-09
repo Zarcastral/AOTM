@@ -158,7 +158,7 @@ const urlParams = new URLSearchParams(window.location.search);
                 <td>${userRole}</td>
                 <td>${contact}</td>
                 <td>
-                    <button class="action-btn" data-farmer-id="${farmer.farmer_id}">Remove</button>
+                    ${userRole === 'Head Farmer' ? '' : `<button class="action-btn" data-farmer-id="${farmer.farmer_id}">Remove</button>`}
                 </td>
             `;
             tbody.appendChild(row);
@@ -178,14 +178,26 @@ function updatePagination(totalItems) {
 
 function addRemoveEventListeners() {
     document.querySelectorAll('.action-btn').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            const farmerId = e.target.dataset.farmerId;
-            currentFarmers = currentFarmers.filter(farmer => farmer.farmer_id !== farmerId);
-            await updateTeamInFirestore();
-            renderTable(document.getElementById('searchInput').value);
-        });
+        button.removeEventListener('click', handleRemoveClick);
+        button.addEventListener('click', handleRemoveClick);
     });
 }
+
+async function handleRemoveClick(e) {
+    const farmerId = e.target.dataset.farmerId;
+    const farmer = currentFarmers.find(f => f.farmer_id === farmerId);
+    if (!farmer) {
+        console.error(`Farmer with ID ${farmerId} not found in currentFarmers`);
+        return;
+    }
+    currentFarmers = currentFarmers.filter(f => f.farmer_id !== farmerId);
+    await updateTeamInFirestore();
+    alert(`Successfully removed ${farmer.farmer_name} from the team!`);
+    await fetchFarmers(); // Refresh farmersList to include the removed farmer
+    renderTable(document.getElementById('searchInput').value);
+}
+
+
 
 async function fetchFarmerByName(farmerName) {
     try {
