@@ -14,34 +14,31 @@
             position: relative;
         }
 
-        .back-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            position: absolute;
-            top: 0;
-            /* Align with the top of the panel */
-            left: 50px;
-            /* Position to the left of the panel */
-        }
 
-        .back-btn img {
-            width: 40px;
-            height: 40px;
-            opacity: 0.5;
-        }
+.back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    left: 10px;
+    margin-bottom: 20px;
+    margin-top: -50px;
+    margin-left: -10px;
+}
 
-        .back-btn:hover img {
-            opacity: 1;
-        }
+.back-btn img {
+    width: 30px;
+    height: 30px;
+    
+}
 
         .panel {
             background-color: #fff;
             border-radius: 10px;
-            padding: 20px;
+            padding: 40px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             border: 1px solid #e0e0e0;
         }
@@ -52,23 +49,27 @@
             align-items: center;
             margin-bottom: 20px;
         }
-
+        
         .panel-top h1 {
             font-size: 24px;
             color: #333;
             margin: 0;
         }
-
-        .add-subtask {
-            color: #41A186;
+        
+        .add-day-btn {
+            color: #41A186; /* Green color */
             font-size: 14px;
-            text-decoration: none;
+            background: none; /* Remove default button background */
+            border: none; /* Remove default button border */
+            padding: 0; /* Reset padding if needed */
             cursor: pointer;
-
+            margin-top: -10px;
         }
-
-        .add-subtask:hover {
-            text-decoration: none;
+        
+        /* Hover state */
+        .add-day-btn:hover {
+            opacity: 0.8; /* Fade effect on hover */
+            text-decoration: none !important;
         }
 
         .subtask-table {
@@ -120,10 +121,11 @@
             cursor: pointer;
             font-size: 14px;
             text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .completed-btn:hover {
-            background-color: #359171;
+            opacity: 0.8;
         }
 
         /* MODAL DESIGN */
