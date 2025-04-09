@@ -184,16 +184,16 @@ const urlParams = new URLSearchParams(window.location.search);
             tableContainer.insertAdjacentElement('afterend', deleteButton);
         }
     
-        attachDeleteTeamListener(); // Attach the event listener
+        attachDeleteTeamListener();
     }
 
-function updatePagination(totalItems) {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    currentPage = Math.min(currentPage, totalPages || 1);
-    document.getElementById('pageInfo').textContent = `${currentPage} of ${totalPages || 1}`;
-    document.getElementById('prevPage').disabled = currentPage === 1;
-    document.getElementById('nextPage').disabled = currentPage === totalPages;
-}
+    function updatePagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        currentPage = Math.min(currentPage, totalPages || 1);
+        document.getElementById('pageInfo').textContent = `${currentPage} of ${totalPages || 1}`;
+        document.getElementById('prevPage').disabled = currentPage === 1;
+        document.getElementById('nextPage').disabled = currentPage === totalPages;
+    }
 
 
 async function deleteTeam() {
@@ -383,7 +383,14 @@ document.getElementById('prevPage').addEventListener('click', () => {
 });
 
 document.getElementById('nextPage').addEventListener('click', () => {
-    const totalPages = Math.ceil(currentFarmers.length / itemsPerPage);
+    const allFarmers = [
+        { farmer_id: teamData.lead_farmer_id || 'lead_' + teamData.team_id, farmer_name: teamData.lead_farmer || 'No Lead Farmer' },
+        ...currentFarmers
+    ];
+    const filteredFarmers = allFarmers.filter(farmer => 
+        farmer.farmer_name.toLowerCase().includes(document.getElementById('searchInput').value.toLowerCase())
+    );
+    const totalPages = Math.ceil(filteredFarmers.length / itemsPerPage);
     if (currentPage < totalPages) {
         currentPage++;
         renderTable(document.getElementById('searchInput').value);
