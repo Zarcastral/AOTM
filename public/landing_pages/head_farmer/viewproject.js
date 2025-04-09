@@ -148,7 +148,7 @@ async function fetchTeams() {
 }
 
 // Popup Functions
-window.openPopup = function (teamName, leadFarmer, farmers) {
+/*window.openPopup = function (teamName, leadFarmer, farmers) {
     const popup = document.getElementById("viewTeamPopup");
     document.getElementById("popupTeamName").textContent = teamName;
     document.getElementById("popupLeadFarmer").textContent = leadFarmer;
@@ -176,7 +176,7 @@ document.getElementById("closePopup").addEventListener("click", closePopup);
 window.addEventListener("click", (event) => {
     const popup = document.getElementById("viewTeamPopup");
     if (event.target === popup) closePopup();
-})
+})*/
 
 // Feedback Popup
 window.openFeedbackPopup = function () {
