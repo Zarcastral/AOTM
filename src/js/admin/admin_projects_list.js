@@ -271,6 +271,69 @@ tableBody.addEventListener("click", (event) => {
 
 // New function to show the extend date panel
 // Modified handleExtendDate function to add extend_date instead of updating end_date
+// Modified showExtendDatePanel to check if extension already exists
+async function showExtendDatePanel(project_id) {
+    try {
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const projectData = querySnapshot.docs[0].data();
+            selectedExtendProjectId = project_id;
+
+            // Check if extend_date already exists
+            if (projectData.extend_date) {
+                extendDatePanel.innerHTML = `
+                    <h3>Extend Project Date</h3>
+                    <p>Start Date: ${projectData.start_date || "Not set"}</p>
+                    <p>Current End Date: ${projectData.end_date || "Not set"}</p>
+                    <p>Extended Date: ${projectData.extend_date}</p>
+                    <p style="color: red;">This project has already been extended once. No further extensions allowed.</p>
+                    <div style="margin-top: 20px;">
+                        <button id="close-extend">Close</button>
+                    </div>
+                `;
+                extendDatePanel.style.display = "block";
+                document.body.style.overflow = "hidden";
+
+                document.getElementById("close-extend").addEventListener("click", () => {
+                    extendDatePanel.style.display = "none";
+                    document.body.style.overflow = "auto";
+                    selectedExtendProjectId = null;
+                });
+            } else {
+                // Show extension form if no previous extension
+                extendDatePanel.innerHTML = `
+                    <h3>Extend Project Date</h3>
+                    <p>Start Date: ${projectData.start_date || "Not set"}</p>
+                    <p>Current End Date: ${projectData.end_date || "Not set"}</p>
+                    <label for="extend-date-input">New Extension Date:</label>
+                    <input type="date" id="extend-date-input">
+                    <div id="extend-error" style="color: red; display: none;"></div>
+                    <div style="margin-top: 20px;">
+                        <button id="confirm-extend">Confirm</button>
+                        <button id="cancel-extend">Cancel</button>
+                    </div>
+                `;
+
+                extendDatePanel.style.display = "block";
+                document.body.style.overflow = "hidden";
+
+                document.getElementById("confirm-extend").addEventListener("click", () => handleExtendDate(projectData));
+                document.getElementById("cancel-extend").addEventListener("click", () => {
+                    extendDatePanel.style.display = "none";
+                    document.body.style.overflow = "auto";
+                    selectedExtendProjectId = null;
+                });
+            }
+        }
+    } catch (error) {
+        console.error("Error showing extend date panel:", error);
+        showDeleteMessage("Error loading project data.", false);
+    }
+}
+
+// Modified handleExtendDate to double-check extension limit
 async function handleExtendDate(projectData) {
     const extendDateInput = document.getElementById("extend-date-input").value;
     const errorDiv = document.getElementById("extend-error");
@@ -296,8 +359,19 @@ async function handleExtendDate(projectData) {
 
         if (!querySnapshot.empty) {
             const docRef = querySnapshot.docs[0].ref;
+            const latestData = querySnapshot.docs[0].data();
+
+            // Double-check if extend_date exists (race condition prevention)
+            if (latestData.extend_date) {
+                showDeleteMessage("This project has already been extended once.", false);
+                extendDatePanel.style.display = "none";
+                document.body.style.overflow = "auto";
+                selectedExtendProjectId = null;
+                return;
+            }
+
             await updateDoc(docRef, {
-                extend_date: extendDateInput  // New field instead of updating end_date
+                extend_date: extendDateInput
             });
             
             extendDatePanel.style.display = "none";
@@ -309,46 +383,6 @@ async function handleExtendDate(projectData) {
     } catch (error) {
         console.error("Error adding extension date:", error);
         showDeleteMessage("Error updating project extension date.", false);
-    }
-}
-
-// Optional: Update the panel display to show extend_date if it exists
-async function showExtendDatePanel(project_id) {
-    try {
-        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            const projectData = querySnapshot.docs[0].data();
-            selectedExtendProjectId = project_id;
-
-            extendDatePanel.innerHTML = `
-                <h3>Extend Project Date</h3>
-                <p>Start Date: ${projectData.start_date || "Not set"}</p>
-                <p>Current End Date: ${projectData.end_date || "Not set"}</p>
-                ${projectData.extend_date ? `<p>Extended Date: ${projectData.extend_date}</p>` : ""}
-                <label for="extend-date-input">New Extension Date:</label>
-                <input type="date" id="extend-date-input">
-                <div id="extend-error" style="color: red; display: none;"></div>
-                <div style="margin-top: 20px;">
-                    <button id="confirm-extend">Confirm</button>
-                    <button id="cancel-extend">Cancel</button>
-                </div>
-            `;
-
-            extendDatePanel.style.display = "block";
-            document.body.style.overflow = "hidden";
-
-            document.getElementById("confirm-extend").addEventListener("click", () => handleExtendDate(projectData));
-            document.getElementById("cancel-extend").addEventListener("click", () => {
-                extendDatePanel.style.display = "none";
-                document.body.style.overflow = "auto";
-                selectedExtendProjectId = null;
-            });
-        }
-    } catch (error) {
-        console.error("Error showing extend date panel:", error);
-        showDeleteMessage("Error loading project data.", false);
     }
 }
 
