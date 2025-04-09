@@ -4,15 +4,19 @@ import {
     doc,
     getDoc,
     updateDoc,
+    addDoc,
     deleteDoc,
     setDoc,
     where,
+    Timestamp,
     query,
     onSnapshot,
     getFirestore
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+const auth = getAuth();
 
 const tableBody = document.querySelector("tbody");
 const userSelect = document.getElementById("user-select");
@@ -35,6 +39,77 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchDocumentType();
     restoreButtonListeners();
 });
+
+// <-----------------------ACTIVITY LOG CODE----------------------------->
+async function saveActivityLog(action, description) {
+    const allowedActions = ["Create", "Update", "Delete"];
+    if (!allowedActions.includes(action)) {
+      console.error(
+        "Invalid action. Allowed actions are: create, update, delete."
+      );
+      return;
+    }
+    if (!description || typeof description !== "string") {
+      console.error("Activity description is required and must be a string.");
+      return;
+    }
+  
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Use user.email instead of user.uid to query tb_users
+        const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+        const userQuerySnapshot = await getDocs(userQuery);
+        
+        if (userQuerySnapshot.empty) {
+          console.error("User data not found in tb_users for email:", user.email);
+          return;
+        }
+  
+        const userDocSnap = userQuerySnapshot.docs[0]; // Get the first matching document
+        const userData = userDocSnap.data();
+        const userName = userData.user_name || "Unknown User";
+        const userType = userData.user_type || "Unknown Type";
+  
+        const currentTimestamp = Timestamp.now().toDate();
+        const date = currentTimestamp.toLocaleDateString("en-US");
+        const time = currentTimestamp.toLocaleTimeString("en-US");
+  
+        const activityLogCollection = collection(db, "tb_activity_log");
+        try {
+          const counterDocRef = doc(
+            db,
+            "tb_id_counters",
+            "activity_log_id_counter"
+          );
+          const counterDocSnap = await getDoc(counterDocRef);
+          if (!counterDocSnap.exists()) {
+            console.error("Counter document not found.");
+            return;
+          }
+  
+          let currentCounter = counterDocSnap.data().value || 0;
+          let newCounter = currentCounter + 1;
+          await updateDoc(counterDocRef, { value: newCounter });
+  
+          await addDoc(activityLogCollection, {
+            activity_log_id: newCounter,
+            username: userName,
+            user_type: userType,
+            activity: action,
+            activity_desc: description,
+            date: date,
+            time: time,
+          });
+          console.log("Activity log saved successfully with ID:", newCounter);
+        } catch (error) {
+          console.error("Error saving activity log:", error);
+        }
+      } else {
+        console.error("No authenticated user found.");
+      }
+    });
+  }
+
 function capitalizeWords(str) {
     return str.replace(/\b\w/g, char => char.toUpperCase());
 }
@@ -216,9 +291,6 @@ function displayArchiveRecords() {
     pageData.forEach((archive) => {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td class="checkbox">
-                <input type="checkbox" class="checkbox" data-id="${archive.archive_id}">
-            </td>
             <td>${archive.archive_id}</td>
             <td>${archive.archive_date || "N/A"}</td>
             <td>${archive.archive_time || "N/A"}</td>
@@ -236,7 +308,6 @@ function displayArchiveRecords() {
         tableBody.appendChild(row);
     });
     restoreButtonListeners();
-    toggleBulkDeleteButton();
     updatePagination();
 }
 
@@ -281,33 +352,6 @@ function restoreButtonListeners() {
     });
 }
 
-function toggleBulkDeleteButton() {
-    const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
-    const bulkDeleteBtn = document.getElementById("bulk-delete");
-    if (selectedCheckboxes.length > 0) {
-        bulkDeleteBtn.disabled = false;
-    } else {
-        bulkDeleteBtn.disabled = true;
-    }
-}
-let selectedUserTypeLogId = null;
-// <------------- Checkbox Change Event Listener -------------> 
-tableBody.addEventListener("change", (event) => {
-    if (event.target.classList.contains("checkbox")) {
-        const archiveId = event.target.getAttribute("data-id");
-        toggleBulkDeleteButton();
-        if (event.target.checked) {
-            selectedUserTypeLogId = archiveId;
-            console.log("Selected archiveId: ", archiveId);
-        } else {
-            selectedUserTypeLogId = null;
-            console.log("Selected archiveId: ", "archiveId Unselected");
-
-        }
-    }
-});
-
-
 function updatePagination() {
     const totalPages = Math.ceil(archiveRecords.length / rowsPerPage) || 1;
     pageNumberSpan.textContent = `${currentPage} of ${totalPages}`;
@@ -333,95 +377,6 @@ function changePage(direction) {
 // Attach event listeners to pagination buttons
 prevPageBtn.addEventListener("click", () => changePage("prev"));
 nextPageBtn.addEventListener("click", () => changePage("next"));
-
-// <---------------------------- BULK DELETE CODE ---------------------------->
-const deleteSelectedBtn = document.getElementById("bulk-delete");
-const bulkDeletePanel = document.getElementById("bulk-delete-panel");
-const confirmDeleteBtn = document.getElementById("confirm-bulk-delete");
-const cancelDeleteBtn = document.getElementById("cancel-bulk-delete");
-const deleteMessage = document.getElementById("delete-message");
-let idsToDelete = [];
-
-deleteSelectedBtn.addEventListener("click", async () => {
-    const selectedCheckboxes = tableBody.querySelectorAll("input[type='checkbox']:checked");
-
-    idsToDelete = [];
-    let hasInvalidId = false;
-
-    for (const checkbox of selectedCheckboxes) {
-        const archiveId = checkbox.getAttribute("data-id");
-
-        // Validate archiveId (null, undefined, or empty string)
-        if (!archiveId || archiveId.trim() === "") {
-            hasInvalidId = true;
-            break;
-        }
-
-        try {
-            const q = query(collection(db, "tb_archive"), where("archive_id", "==", Number(archiveId)));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                hasInvalidId = true;
-                break;
-            }
-
-            idsToDelete.push(archiveId);
-        } catch (error) {
-            console.error("Error fetching archive log records:", error);
-            hasInvalidId = true;
-            break;
-        }
-    }
-
-    if (hasInvalidId) {
-        showDeleteMessage("ERROR: archiveId of one or more selected records are invalid", false);
-    } else {
-        bulkDeletePanel.classList.add("show");
-    }
-});
-
-confirmDeleteBtn.addEventListener("click", async () => {
-    try {
-        for (const archiveId of idsToDelete) {
-            const q = query(collection(db, "tb_archive"), where("archive_id", "==", Number(archiveId)));
-            const querySnapshot = await getDocs(q);
-
-            for (const docSnapshot of querySnapshot.docs) {
-                const docRef = doc(db, "tb_archive", docSnapshot.id);
-                await deleteDoc(docRef);
-                console.log(`Log with archiveId of ${archiveId} deleted.`);
-            }
-        }
-
-        showDeleteMessage("Selected logs have been deleted.", true);
-        fetchArchive();  // Refresh logs after deletion
-    } catch (error) {
-        console.error("Error deleting logs:", error);
-        showDeleteMessage("Error deleting logs. Please try again.", false);
-    }
-
-    bulkDeletePanel.classList.remove("show");
-});
-
-cancelDeleteBtn.addEventListener("click", () => {
-    bulkDeletePanel.classList.remove("show");
-});
-
-// Function to display messages
-function showDeleteMessage(message, success) {
-    deleteMessage.textContent = message;
-    deleteMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
-    deleteMessage.style.opacity = '1';
-    deleteMessage.style.display = 'block';
-
-    setTimeout(() => {
-        deleteMessage.style.opacity = '0';
-        setTimeout(() => {
-            deleteMessage.style.display = 'none';
-        }, 400);
-    }, 4000);
-}
 
 // <---------------------------- BULK RESTORE CODE ---------------------------->
 const restoreButtons = document.querySelectorAll(".restore-btn");
@@ -464,6 +419,18 @@ restoreButtons.forEach(button => {
 // Replace the existing confirmRestoreBtn event listener with this modified version
 confirmRestoreBtn.addEventListener("click", async () => {
     try {
+        // Ensure an authenticated user exists
+        const user = await new Promise((resolve) => {
+            onAuthStateChanged(auth, (user) => resolve(user));
+        });
+        if (!user) {
+            console.error("Cannot restore: No authenticated user.");
+            showRestoreMessage("Please log in to restore records.", false);
+            return;
+        }
+
+        console.log("Authenticated user:", user.uid); // Debug: Confirm user
+
         for (const archiveId of idsToRestore) {
             const q = query(collection(db, "tb_archive"), where("archive_id", "==", Number(archiveId)));
             const querySnapshot = await getDocs(q);
@@ -472,7 +439,11 @@ confirmRestoreBtn.addEventListener("click", async () => {
                 let docData = docSnapshot.data();
                 const docRef = doc(db, "tb_archive", docSnapshot.id);
 
-                // Remove the specified fields from the document data
+                const documentType = docData.document_type || "Unknown Document";
+                const documentName = docData.document_name || docData.crop_type_id || docData.email || "Unknown ID";
+                const userName = docData.archived_by?.user_name || "Unknown User";
+                const userType = docData.archived_by?.user_type || "Unknown User";
+
                 delete docData.document_name;
                 delete docData.document_type;
                 delete docData.archive_date;
@@ -481,7 +452,6 @@ confirmRestoreBtn.addEventListener("click", async () => {
                 delete docData.archived_by;
 
                 let targetCollection = "";
-                // Determine target collection based on original document type
                 if (docSnapshot.data().document_type === "Inventory") {
                     if (docData.crop_type_id) {
                         targetCollection = "tb_crop_types";
@@ -501,9 +471,25 @@ confirmRestoreBtn.addEventListener("click", async () => {
                 }
 
                 if (targetCollection) {
-                    // Restore the document without the archive-related fields
+                    // Perform the restore
                     await setDoc(doc(db, targetCollection, docSnapshot.id), docData);
                     await deleteDoc(docRef);
+
+                    // Debug: Confirm this point is reached
+                    console.log(`Attempting to save activity log for archiveId ${archiveId}`);
+
+                    // Call saveActivityLog with error handling
+                    try {
+                        await saveActivityLog(
+                            "Update",
+                            `Restored the ${documentName} originally archived by ${userType} ${userName}`
+                        );
+                        console.log(`Activity log saved for archiveId ${archiveId}`);
+                    } catch (logError) {
+                        console.error("Failed to save activity log:", logError);
+                        showRestoreMessage("Restored, but activity log failed to save.", true);
+                    }
+
                     console.log(`Record with archiveId of ${archiveId} restored to ${targetCollection}.`);
                 } else {
                     console.error(`No valid target collection found for document with archiveId of ${archiveId}.`);
@@ -512,7 +498,7 @@ confirmRestoreBtn.addEventListener("click", async () => {
         }
 
         showRestoreMessage("Selected records have been restored.", true);
-        fetchArchive();  // Refresh records after restoration
+        fetchArchive();
     } catch (error) {
         console.error("Error restoring records:", error);
         showRestoreMessage("Error restoring records. Please try again.", false);
