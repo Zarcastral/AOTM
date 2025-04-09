@@ -190,16 +190,39 @@ tbody tr:hover {
 }
 
 /* Checkbox Styles */
-.checkbox {
-  justify-content: center;
-  align-items: center;
-}
-
-.checkbox input {
+input[type="checkbox"] {
   width: 16px;
   height: 16px;
+  border: 1px solid #D1D5DB; /* Thin border */
+  border-radius: 4px; /* Optional: Slightly rounded corners */
+  outline: none;
+  background-color: white;
   cursor: pointer;
+  -webkit-appearance: none; /* Removes default browser styling */
+  -moz-appearance: none;
+  appearance: none;
 }
+
+/* Style when checkbox is checked */
+input[type="checkbox"]:checked {
+  background-color: #41A186; /* Green color */
+  border-color: #41A186;
+  position: relative;
+}
+
+/* Create the checkmark */
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 3px;
+  height: 7px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
 
 .table-selector {
     display: flex;

@@ -33,6 +33,25 @@ const cancelDeleteButton = document.getElementById("cancel-delete");
 const deleteMessage = document.getElementById("delete-message");
 let selectedRowId = null;
 
+const extendDatePanel = document.createElement("div");
+extendDatePanel.id = "extend-date-panel";
+extendDatePanel.style.display = "none";
+extendDatePanel.style.position = "fixed";
+extendDatePanel.style.top = "50%";
+extendDatePanel.style.left = "50%";
+extendDatePanel.style.transform = "translate(-50%, -50%)";
+extendDatePanel.style.backgroundColor = "white";
+extendDatePanel.style.padding = "20px";
+extendDatePanel.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
+extendDatePanel.style.zIndex = "1000";
+document.body.appendChild(extendDatePanel);
+
+let selectedExtendProjectId = null;
+
+
+
+
+
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 async function getAuthenticatedUser() {
     return new Promise((resolve, reject) => {
@@ -172,6 +191,12 @@ function updateTable() {
         const formattedFarmPresident = formatFarmPresident(data.farm_president);
         const formattedCrop = formatCrop(data.crop_type_name);
         const formattedStatus = formatStatus(data.status);
+        
+        // Conditional Extend Date button
+        const extendButton = data.status?.toLowerCase() === "ongoing" 
+            ? `<button class="action-btn extend-btn" data-id="${data.project_id}" title="Extend Date">ED</button>`
+            : "";
+
         row.innerHTML = `
             <td>${formattedProjectName || "Project Name not recorded"}</td>
             <td>${formattedFarmPresident || "Farm President not recorded"}</td>
@@ -190,6 +215,7 @@ function updateTable() {
                 <button class="action-btn delete-btn" data-id="${data.project_id}" title="Delete">
                     <img src="../../images/delete.png" alt="Delete">
                 </button>
+                ${extendButton}
             </td>
         `;
         tableBody.appendChild(row);
@@ -238,8 +264,130 @@ tableBody.addEventListener("click", (event) => {
         viewUserAccount(project_id);
     } else if (target.classList.contains("delete-btn")) {
         deleteProjects(project_id);
+    } else if (target.classList.contains("extend-btn")) {
+        showExtendDatePanel(project_id);
     }
 });
+
+// New function to show the extend date panel
+// Modified handleExtendDate function to add extend_date instead of updating end_date
+// Modified showExtendDatePanel to check if extension already exists
+async function showExtendDatePanel(project_id) {
+    try {
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(project_id)));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const projectData = querySnapshot.docs[0].data();
+            selectedExtendProjectId = project_id;
+
+            // Check if extend_date already exists
+            if (projectData.extend_date) {
+                extendDatePanel.innerHTML = `
+                    <h3>Extend Project Date</h3>
+                    <p>Start Date: ${projectData.start_date || "Not set"}</p>
+                    <p>Current End Date: ${projectData.end_date || "Not set"}</p>
+                    <p>Extended Date: ${projectData.extend_date}</p>
+                    <p style="color: red;">This project has already been extended once. No further extensions allowed.</p>
+                    <div style="margin-top: 20px;">
+                        <button id="close-extend">Close</button>
+                    </div>
+                `;
+                extendDatePanel.style.display = "block";
+                document.body.style.overflow = "hidden";
+
+                document.getElementById("close-extend").addEventListener("click", () => {
+                    extendDatePanel.style.display = "none";
+                    document.body.style.overflow = "auto";
+                    selectedExtendProjectId = null;
+                });
+            } else {
+                // Show extension form if no previous extension
+                extendDatePanel.innerHTML = `
+                    <h3>Extend Project Date</h3>
+                    <p>Start Date: ${projectData.start_date || "Not set"}</p>
+                    <p>Current End Date: ${projectData.end_date || "Not set"}</p>
+                    <label for="extend-date-input">New Extension Date:</label>
+                    <input type="date" id="extend-date-input">
+                    <div id="extend-error" style="color: red; display: none;"></div>
+                    <div style="margin-top: 20px;">
+                        <button id="confirm-extend">Confirm</button>
+                        <button id="cancel-extend">Cancel</button>
+                    </div>
+                `;
+
+                extendDatePanel.style.display = "block";
+                document.body.style.overflow = "hidden";
+
+                document.getElementById("confirm-extend").addEventListener("click", () => handleExtendDate(projectData));
+                document.getElementById("cancel-extend").addEventListener("click", () => {
+                    extendDatePanel.style.display = "none";
+                    document.body.style.overflow = "auto";
+                    selectedExtendProjectId = null;
+                });
+            }
+        }
+    } catch (error) {
+        console.error("Error showing extend date panel:", error);
+        showDeleteMessage("Error loading project data.", false);
+    }
+}
+
+// Modified handleExtendDate to double-check extension limit
+async function handleExtendDate(projectData) {
+    const extendDateInput = document.getElementById("extend-date-input").value;
+    const errorDiv = document.getElementById("extend-error");
+    
+    if (!extendDateInput) {
+        errorDiv.textContent = "Please select a new end date.";
+        errorDiv.style.display = "block";
+        return;
+    }
+
+    const currentEndDate = new Date(projectData.end_date);
+    const newEndDate = new Date(extendDateInput);
+
+    if (newEndDate <= currentEndDate) {
+        errorDiv.textContent = "New end date must be later than the current end date.";
+        errorDiv.style.display = "block";
+        return;
+    }
+
+    try {
+        const q = query(collection(db, "tb_projects"), where("project_id", "==", Number(selectedExtendProjectId)));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const docRef = querySnapshot.docs[0].ref;
+            const latestData = querySnapshot.docs[0].data();
+
+            // Double-check if extend_date exists (race condition prevention)
+            if (latestData.extend_date) {
+                showDeleteMessage("This project has already been extended once.", false);
+                extendDatePanel.style.display = "none";
+                document.body.style.overflow = "auto";
+                selectedExtendProjectId = null;
+                return;
+            }
+
+            await updateDoc(docRef, {
+                extend_date: extendDateInput
+            });
+            
+            extendDatePanel.style.display = "none";
+            document.body.style.overflow = "auto";
+            showDeleteMessage("Project extension date added successfully!", true);
+            fetch_projects();
+            selectedExtendProjectId = null;
+        }
+    } catch (error) {
+        console.error("Error adding extension date:", error);
+        showDeleteMessage("Error updating project extension date.", false);
+    }
+}
+
+
+
 
 // <------------- EDIT BUTTON CODE ------------->
 async function editUserAccount(project_id) {

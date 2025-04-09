@@ -37,7 +37,7 @@ async function loadTeamList() {
 
   try {
     const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
-    teamsSnapshot.forEach((doc) => {
+    for (const doc of teamsSnapshot.docs) {
       const teamData = doc.data();
 
       if (teamData.barangay_name === barangayName) {
@@ -56,10 +56,15 @@ async function loadTeamList() {
         membersCell.textContent = membersCount;
         row.appendChild(membersCell);
 
+        // New Status Cell
+        const statusCell = document.createElement("td");
+        const status = await getTeamStatus(teamData.team_id);
+        statusCell.textContent = status;
+        row.appendChild(statusCell);
+
         const actionCell = document.createElement("td");
         const editLink = document.createElement("a");
-        // Modified to point to a new page with team ID as parameter
-        editLink.href = `edit-team.html?teamId=${doc.id}`;
+        editLink.href = `edit-team.html?teamId=${teamData.team_id}`;
         const editImg = document.createElement("img");
         editImg.src = "../../images/image 27.png";
         editImg.alt = "Edit";
@@ -67,11 +72,33 @@ async function loadTeamList() {
         editLink.appendChild(editImg);
         actionCell.appendChild(editLink);
         row.appendChild(actionCell);
+
         teamPanel.appendChild(row);
       }
-    });
+    }
   } catch (error) {
     console.error("Error loading team list:", error);
+  }
+}
+
+// New function to determine team status
+async function getTeamStatus(teamId) {
+  try {
+    const projectsQuery = query(collection(db, "tb_projects"), where("team_id", "==", teamId));
+    const projectsSnapshot = await getDocs(projectsQuery);
+
+    if (!projectsSnapshot.empty) {
+      // Assuming each team is assigned to only one project; take the first match
+      const projectDoc = projectsSnapshot.docs[0];
+      const projectData = projectDoc.data();
+      const projectName = projectData.project_name || "Unnamed Project";
+      return `Assigned (${projectName})`;
+    } else {
+      return "Available";
+    }
+  } catch (error) {
+    console.error(`Error checking status for team ${teamId}:`, error);
+    return "Unknown"; // Fallback in case of error
   }
 }
 
@@ -374,78 +401,82 @@ async function getNextTeamId() {
     const teamName = document.getElementById("teamName").value.trim();
     const leadFarmer = document.getElementById("leadFarmer").value.trim();
     const farmerBox = document.getElementById("farmerBox");
-  
+
     // Extract all farmer names from the farmerBox
     const farmerNames = Array.from(farmerBox.getElementsByClassName("farmer-item"))
-      .map(item => item.firstChild.textContent.trim());
-  
+        .map(item => item.firstChild.textContent.trim());
+
     if (!teamName || !leadFarmer || farmerNames.length === 0) {
-      alert("Please fill in all fields and select at least one farmer.");
-      return;
+        alert("Please fill in all fields and select at least one farmer.");
+        return;
     }
-  
+
     const teamId = await getNextTeamId();
     if (teamId === null) {
-      alert("Error generating team ID. Please try again.");
-      return;
-    }
-  
-    try {
-      const farmersRef = collection(db, "tb_farmers");
-      const querySnapshot = await getDocs(farmersRef);
-  
-      let leadFarmerId = null;
-      let farmersData = [];
-  
-      querySnapshot.forEach((doc) => {
-        const farmerData = doc.data();
-        const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
-  
-        // Check for Lead Farmer ID
-        if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
-          leadFarmerId = String(farmerData.farmer_id);
-        }
-  
-        // Check for Selected Farmers
-        if (farmerNames.includes(reconstructedFullName)) {
-          farmersData.push({
-            farmer_id: String(farmerData.farmer_id),
-            farmer_name: reconstructedFullName,
-            contact: farmerData.contact || "" // Include contact if available
-          });
-        }
-      });
-  
-      if (!leadFarmerId) {
-        alert(`Lead farmer '${leadFarmer}' not found or has an invalid farmer_id.`);
+        alert("Error generating team ID. Please try again.");
         return;
-      }
-  
-      console.log("Lead Farmer ID:", leadFarmerId);
-      console.log("Farmers Data:", farmersData);
-  
-      const teamData = {
-        team_id: teamId,
-        team_name: teamName,
-        lead_farmer: leadFarmer,
-        lead_farmer_id: leadFarmerId,
-        farmer_name: farmersData, // Now includes contact info
-        barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
-      };
-  
-      await addDoc(collection(db, "tb_teams"), teamData);
-      alert("Team successfully created!");
-      clearTeamInputs();
-      popup.style.display = "none";
-      loadTeamList();
-      await fetchFarmers();
-      renderFarmerResults();
-  
-    } catch (error) {
-      console.error("Error saving team:", error);
-      alert("Failed to save team. Please try again.");
     }
-  }
+
+    try {
+        const farmersRef = collection(db, "tb_farmers");
+        const querySnapshot = await getDocs(farmersRef);
+
+        let leadFarmerId = null;
+        let leadFarmerContact = ''; // New variable to store lead farmer's contact
+        let farmersData = [];
+
+        querySnapshot.forEach((doc) => {
+            const farmerData = doc.data();
+            const reconstructedFullName = `${farmerData.last_name}, ${farmerData.first_name} ${farmerData.middle_name ? farmerData.middle_name : ""}`.trim();
+
+            // Check for Lead Farmer ID and Contact
+            if (reconstructedFullName.toLowerCase() === leadFarmer.toLowerCase()) {
+                leadFarmerId = String(farmerData.farmer_id);
+                leadFarmerContact = farmerData.contact || ''; // Capture the contact here
+            }
+
+            // Check for Selected Farmers
+            if (farmerNames.includes(reconstructedFullName)) {
+                farmersData.push({
+                    farmer_id: String(farmerData.farmer_id),
+                    farmer_name: reconstructedFullName,
+                    contact: farmerData.contact || ""
+                });
+            }
+        });
+
+        if (!leadFarmerId) {
+            alert(`Lead farmer '${leadFarmer}' not found or has an invalid farmer_id.`);
+            return;
+        }
+
+        console.log("Lead Farmer ID:", leadFarmerId);
+        console.log("Lead Farmer Contact:", leadFarmerContact);
+        console.log("Farmers Data:", farmersData);
+
+        const teamData = {
+            team_id: teamId,
+            team_name: teamName,
+            lead_farmer: leadFarmer,
+            lead_farmer_id: leadFarmerId,
+            lead_farmer_contact: leadFarmerContact, // Add lead farmer's contact
+            farmer_name: farmersData,
+            barangay_name: loggedBarangay.charAt(0).toUpperCase() + loggedBarangay.slice(1)
+        };
+
+        await addDoc(collection(db, "tb_teams"), teamData);
+        alert("Team successfully created!");
+        clearTeamInputs();
+        popup.style.display = "none";
+        loadTeamList();
+        await fetchFarmers();
+        renderFarmerResults();
+
+    } catch (error) {
+        console.error("Error saving team:", error);
+        alert("Failed to save team. Please try again.");
+    }
+}
   
 
 

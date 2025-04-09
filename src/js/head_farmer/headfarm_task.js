@@ -20,10 +20,11 @@ let currentPage = 1;
 let totalPages = 0;
 
 // Utility function to check if current date is past end_date
-function isPastEndDate(endDate) {
+function isPastEndDate(endDate, extendDate) {
   const currentDate = new Date();
-  const projectEndDate = new Date(endDate);
-  return currentDate > projectEndDate;
+  // Use extendDate if it exists and is valid, otherwise use endDate
+  const effectiveEndDate = extendDate ? new Date(extendDate) : new Date(endDate);
+  return currentDate > effectiveEndDate;
 }
 
 // Function to show success panel
@@ -100,6 +101,12 @@ export async function fetchProjectsForFarmer() {
           sessionStorage.setItem("selected_crop_type", project.crop_type_name);
           sessionStorage.setItem("selected_crop_name", project.crop_name);
           sessionStorage.setItem("selected_project_end_date", project.end_date);
+// Store extend_date if it exists
+if (project.extend_date) {
+  sessionStorage.setItem("selected_project_extend_date", project.extend_date);
+} else {
+  sessionStorage.removeItem("selected_project_extend_date"); // Clear if no extension
+}
           console.log(`Fetched project ${project.project_id}`);
           fetchProjectTasks(project.crop_type_name, project.project_id);
         }
@@ -295,7 +302,8 @@ function attachGlobalEventListeners() {
 
   addTaskButton.addEventListener("click", () => {
     const endDate = sessionStorage.getItem("selected_project_end_date");
-    if (endDate && isPastEndDate(endDate)) {
+    const extendDate = sessionStorage.getItem("selected_project_extend_date");
+    if (endDate && isPastEndDate(endDate, extendDate)) {
       showErrorPanel(
         "Project is way past the deadline, request extension of project"
       );
@@ -340,7 +348,8 @@ function attachGlobalEventListeners() {
 
 function attachRowEventListeners() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const isPastEnd = endDate ? isPastEndDate(endDate) : false;
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  const isPastEnd = endDate ? isPastEndDate(endDate, extendDate) : false;
 
   document.querySelectorAll(".delete-icon").forEach((icon) => {
     const newIcon = icon.cloneNode(true);
@@ -482,7 +491,8 @@ function checkTaskNameChange() {
 
 async function saveEditHandler() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
     );
@@ -600,7 +610,8 @@ function cancelEditHandler() {
 
 async function saveTaskHandler() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
     );
@@ -697,7 +708,8 @@ async function saveTaskHandler() {
 
 async function deleteTaskHandler() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
     );

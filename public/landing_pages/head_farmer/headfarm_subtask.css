@@ -3,6 +3,7 @@ body {
     background-color: #f5f9ff;
     margin: 0;
     padding-top: 1px;
+    cursor: default;
 }
 
 .panel-container {
@@ -20,25 +21,25 @@ body {
     padding: 0;
     display: flex;
     align-items: center;
-    position: absolute;
-    top: 0;
-    left: -50px;
+    position: relative;
+    left: 10px;
+    margin-bottom: 20px;
+    margin-top: -50px;
+    margin-left: -10px;
 }
 
 .back-btn img {
-    width: 40px;
-    height: 40px;
-    opacity: 0.5;
+    width: 30px;
+    height: 30px;
+    
 }
 
-.back-btn:hover img {
-    opacity: 1;
-}
+
 
 .panel {
     background-color: #fff;
     border-radius: 10px;
-    padding: 20px;
+    padding: 40px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     border: 1px solid #e0e0e0;
 }
@@ -61,10 +62,12 @@ body {
     font-size: 14px;
     text-decoration: none;
     cursor: pointer;
+    margin-top: -10px;
 }
 
 .add-subtask:hover {
-    text-decoration: underline;
+    text-decoration: none;
+    opacity: 0.8;
 }
 
 .subtask-table {
@@ -156,14 +159,14 @@ body {
 .close-modal {
     position: absolute;
     top: 10px;
-    right: 10px;
-    font-size: 24px;
+    right: 15px;
+    font-size: 25px;
     cursor: pointer;
-    color: #666;
+    color: #cacaca;
 }
 
 .close-modal:hover {
-    color: #333;
+    opacity: 0.8;
 }
 
 .form-group {
@@ -280,3 +283,27 @@ body {
     opacity: 0;
     transition: opacity 0.3s ease;
 }
+
+@media screen and (max-width: 768px) {
+    .header {
+        padding: 0 10px;
+    }
+
+    .panel-container {
+        margin-top: 50px;
+        padding: 20px;
+    }
+  
+    .header-title {
+        font-size: 1.25rem;
+    }
+  
+    .header-icons img {
+        width: 20px;
+        height: 20px;
+    }
+  
+    .main-content {
+        padding: 10px;
+    }
+  }

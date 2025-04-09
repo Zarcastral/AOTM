@@ -36,7 +36,7 @@ body {
 .panel {
     background-color: white;
     border-radius: 10px;
-    padding: 30px;
+    padding: 30px 30px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -88,7 +88,7 @@ th, td {
 }
 
 th {
-    font-weight: bold;
+    font-weight: 700;
     color: #1a3c34;
 }
 
@@ -130,6 +130,7 @@ td {
     align-items: center; /* Vertically centers the text and button */
     margin-bottom: 20px; /* Space below the header */
     
+    
 }
 .feedback-panel h2 {
     font-size: 24px;
@@ -150,6 +151,7 @@ td {
     padding: 0; /* Remove padding for natural alignment */
     line-height: 1; /* Matches h2 text alignment */
     margin-right: 30px;
+    margin-top: -10px;
 }
 
 .feedback-item {
@@ -157,12 +159,12 @@ td {
     align-items: flex-start;
     gap: 15px;
     padding: 15px 20px;  /* Keep vertical padding, restore horizontal padding */
-    border-top: 4px solid #EFF1F2;  /* Top border */
-    border-bottom: 3px solid #EFF1F2;  /* Bottom border */
+    border-top: 2px solid #EFF1F2;  /* Top border */
     border-left: none;  /* No left border */
     border-right: none;  /* No right border */
     border-radius: 0;  /* No rounding */
     box-shadow: none;
+    
     
 }
 
@@ -189,9 +191,11 @@ td {
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #ddd;
+    margin-top: 10px;
 }
 
 .feedback-content {
+    margin-top: 10px;
     flex: 1;
 }
 
@@ -269,7 +273,7 @@ label[for="feedbackMessage"] {
 
 .popup-content {
     background: white;
-    padding: 35px;
+    padding: 40px 35px;
     width: 400px;
     border-radius: 8px;
     text-align: center;
@@ -279,9 +283,27 @@ label[for="feedbackMessage"] {
 .popup-content h2 {
     font-size: 28px;
     margin-bottom: 15px;
-    margin-left: -150px;
+    margin-left: -200px;
     margin-top: -10px;
     color: #444;
+}
+
+.popup-content h3 {
+    font-size: 15px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    margin-top: 10px;
+    color: #444;
+    margin-left: -100px;
+}
+
+.popup-content p {
+    font-size: 15px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    margin-top: 10px;
+    color: #444;
+    margin-left: -320px;
 }
 
 .close-btn {

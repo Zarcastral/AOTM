@@ -27,7 +27,7 @@ const auth = getAuth();
 */
 async function saveActivityLog(action, description) {
   // Define allowed actions
-  const allowedActions = ["Create", "Update", "Delete"];
+  const allowedActions = ["Create", "Update", "Delete", "Restore"];
   
   // Validate action
   if (!allowedActions.includes(action)) {

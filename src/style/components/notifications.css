@@ -5,7 +5,9 @@ body {
   display: flex;
   justify-content: center;
   min-height: 100vh; /* Changed from height to min-height */
+  cursor: default; /* Default cursor for the body */
 }
+
 
 .notification-container {
   background-color: #ffffff;
@@ -20,8 +22,8 @@ body {
   position: absolute;
   top: 20px;
   left: 20px;
-  font-size: 20px;
-  color: #444;
+  font-size: 15px;
+  color: #76787F;
   cursor: pointer;
 }
 
@@ -29,8 +31,8 @@ body {
   text-align: center;
   font-size: 20px;
   font-weight: bold;
-  margin-bottom: 20px;
-  color: #222;
+  margin-bottom: 25px;
+  color: #41A186;
 }
 
 .notification-item {
@@ -48,27 +50,39 @@ body {
   font-weight: bold;
   text-transform: uppercase;
   margin-bottom: 5px;
-  color: #333;
+  color: #464F60;
+  cursor: pointer;
+
 }
 
 .notification-item .title.unread::before {
   content: "• ";
   color: #1e90ff;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 25px;
+  margin-left: -15px;
 }
 
 .notification-item .description {
   font-size: 12px;
-  color: #555;
+  color: #76787F;
   margin-bottom: 5px;
+  cursor: pointer;
 }
-
 .notification-item .timestamp {
   font-size: 10px;
-  color: #888;
+  color: #41A186;
   line-height: 1.2;
 }
 
 .title.unread {
   font-weight: bold;
-  color: #ff4500;
+  color: #AC415B;
+  cursor: pointer;
+}
+
+.title.unread:hover {
+  opacity: 0.8;  
+  cursor: pointer;
 }
