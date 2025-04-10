@@ -843,9 +843,15 @@ async function configureBackButton() {
     const isLeadFarmer = farmerId && String(leadFarmerId) === String(farmerId);
     console.log("isLeadFarmer:", isLeadFarmer);
 
-    // Define user types that should see the back button and navigate to viewproject.html
-    const allowedUserTypes = ["Admin", "Supervisor", "Farm President"];
-    const canNavigateBack = allowedUserTypes.includes(userType);
+    // Define user types and their respective redirect paths
+    const navigationPaths = {
+      Admin: "../../../../public/landing_pages/admin/viewproject.html",
+      Supervisor: "../../../../public/landing_pages/admin/viewproject.html",
+      "Farm President":
+        "../../../public/landing_pages/farm_president/viewproject.html",
+    };
+
+    const canNavigateBack = Object.keys(navigationPaths).includes(userType);
     console.log("canNavigateBack:", canNavigateBack);
 
     if (isLeadFarmer && userType === "Head Farmer") {
@@ -861,10 +867,10 @@ async function configureBackButton() {
 
       backLink.addEventListener("click", (event) => {
         event.preventDefault();
-        sessionStorage.setItem("selectedProjectId", projectId); // Match key with viewProject
-        window.location.href =
-          "../../../../public/landing_pages/admin/viewproject.html";
-        console.log("Navigating to admin viewproject.html");
+        sessionStorage.setItem("selectedProjectId", projectId); // Consistent key
+        const redirectPath = navigationPaths[userType];
+        window.location.href = redirectPath;
+        console.log(`Navigating to ${redirectPath}`);
       });
     } else {
       // For other users (e.g., regular Farmers), hide or use default behavior
