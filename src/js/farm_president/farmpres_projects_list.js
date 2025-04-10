@@ -114,8 +114,20 @@ async function fetch_projects(filter = {}) {
 
     console.log("Project IDs:", projectIdList);
     currentPage = 1;
-    updateTable();
+    await updateTable();
     updatePagination();
+
+    // Optional optimization: Pre-calculate progress during fetch
+    /*
+    projectList = [];
+    for (const doc of querySnapshot.docs) {
+      const data = doc.data();
+      const projectId = String(data.project_id || "");
+      if ((data.farmer_id || "").toLowerCase() !== farmerId.toLowerCase()) continue;
+      const progress = await calculateProjectProgress(projectId);
+      projectList.push({ project_id: projectId, progress, ...data });
+    }
+    */
   } catch (error) {
     console.error("Error Fetching Projects:", error);
   }
@@ -148,7 +160,8 @@ function formatStatus(status) {
 }
 
 //  <------------- TABLE DISPLAY AND UPDATE ------------->
-function updateTable() {
+async function updateTable() {
+  console.log("updateTable called, currentPage:", currentPage);
   const start = (currentPage - 1) * rowsPerPage;
   const end = currentPage * rowsPerPage;
   const pageData = projectList.slice(start, end);
@@ -157,40 +170,100 @@ function updateTable() {
 
   if (pageData.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="8">No records found.</td></tr>`;
+    return;
   }
 
-  pageData.forEach((data) => {
+  for (const data of pageData) {
     const row = document.createElement("tr");
     const formattedProjectName = formatProjectName(data.project_name);
     const formattedFarmPresident = formatFarmPresident(data.farm_president);
     const formattedCrop = formatCrop(data.crop_type_name);
     const formattedStatus = formatStatus(data.status);
-    //yung projectid papalitan ng progress bar
+
+    // Calculate progress dynamically based on subtasks
+    const progressPercentage = await calculateProjectProgress(data.project_id);
+
     row.innerHTML = `
-            <td>${formattedProjectName || "Project Name not recorded"}</td>
-            <td>${formattedFarmPresident || "Farm President not recorded"}</td>
-            <td>${data.start_date || "Start Date not recorded"}</td>
-            <td>${data.end_date || "End Date not recorded"}</td>
-            <td>${formattedCrop || "Crop not recorded"}</td>
-            <td>${data.project_id || "Project Progress not recorded"}</td>
-            <td>${formattedStatus || "Status not recorded"}</td>
-            <td>
-                <button class="action-btn edit-btn" data-id="${
-                  data.project_id
-                }" title="Edit">
-                    <img src="../../images/edit.png" alt="Edit">
-                </button>
-                <button class="action-btn view-btn" data-id="${
-                  data.project_id
-                }" title="View">
-                    <img src="../../images/eye.png" alt="View">
-                </button>
-            </td>
-        `;
+      <td>${formattedProjectName || "Project Name not recorded"}</td>
+      <td>${formattedFarmPresident || "Farm President not recorded"}</td>
+      <td>${data.start_date || "Start Date not recorded"}</td>
+      <td>${data.end_date || "End Date not recorded"}</td>
+      <td>${formattedCrop || "Crop not recorded"}</td>
+      <td>
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: ${progressPercentage}%;">${progressPercentage}%</div>
+        </div>
+      </td>
+      <td>${formattedStatus || "Status not recorded"}</td>
+      <td>
+        <button class="action-btn edit-btn" data-id="${
+          data.project_id
+        }" title="Edit">
+          <img src="../../images/edit.png" alt="Edit">
+        </button>
+        <button class="action-btn view-btn" data-id="${
+          data.project_id
+        }" title="View">
+          <img src="../../images/eye.png" alt="View">
+        </button>
+      </td>
+    `;
     tableBody.appendChild(row);
-  });
+  }
 
   updatePagination();
+}
+
+// Function to calculate progress based on subtasks in tb_project_task
+async function calculateProjectProgress(project_id) {
+  try {
+    // Ensure project_id is a string to match tb_project_task
+    const projectIdStr = String(project_id);
+    const q = query(
+      collection(db, "tb_project_task"),
+      where("project_id", "==", projectIdStr)
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      console.warn(`No tasks found for project_id: ${projectIdStr}`);
+      return 0;
+    }
+
+    let totalSubtasks = 0;
+    let completedSubtasks = 0;
+
+    querySnapshot.forEach((doc) => {
+      const taskData = doc.data();
+      const subtasks = taskData.subtasks || [];
+      totalSubtasks += subtasks.length;
+
+      subtasks.forEach((subtask) => {
+        // If subtask or status is missing, treat as "Pending"
+        const status =
+          subtask && subtask.status ? subtask.status.toLowerCase() : "pending";
+        if (status === "completed") {
+          completedSubtasks++;
+        }
+      });
+    });
+
+    const progressPercentage =
+      totalSubtasks > 0
+        ? Math.round((completedSubtasks / totalSubtasks) * 100)
+        : 0;
+
+    console.log(
+      `Project ID: ${projectIdStr} - Total Subtasks: ${totalSubtasks}, Completed: ${completedSubtasks}, Progress: ${progressPercentage}%`
+    );
+    return progressPercentage;
+  } catch (error) {
+    console.error(
+      `Error calculating progress for project_id ${project_id}:`,
+      error
+    );
+    return 0;
+  }
 }
 
 function updatePagination() {
@@ -205,20 +278,40 @@ function updatePaginationButtons() {
   nextPageBtn.disabled = currentPage >= totalPages;
 }
 
-function changePage(direction) {
+async function changePage(direction) {
   const totalPages = Math.ceil(projectList.length / rowsPerPage);
   if (direction === "prev" && currentPage > 1) {
     currentPage--;
   } else if (direction === "next" && currentPage < totalPages) {
     currentPage++;
   }
-  updateTable();
-  updatePagination();
+  await updateTable(); // This already calls updatePagination()
+}
+
+// Debounce function to prevent multiple rapid clicks
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
 }
 
 // Attach event listeners to pagination buttons
-prevPageBtn.addEventListener("click", () => changePage("prev"));
-nextPageBtn.addEventListener("click", () => changePage("next"));
+prevPageBtn.addEventListener(
+  "click",
+  debounce(() => {
+    console.log("Prev button clicked, calling changePage");
+    changePage("prev");
+  }, 300)
+);
+nextPageBtn.addEventListener(
+  "click",
+  debounce(() => {
+    console.log("Next button clicked, calling changePage");
+    changePage("next");
+  }, 300)
+);
 
 // <------------- BUTTON EVENT LISTENER FOR THE ACTION COLUMN ------------->
 tableBody.addEventListener("click", (event) => {
@@ -1026,22 +1119,21 @@ cancelDeleteButton.addEventListener("click", () => {
 });
 
 // EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
-searchBar.addEventListener("input", () => {
-  fetch_projects({
+searchBar.addEventListener("input", async () => {
+  await fetch_projects({
     search: searchBar.value,
     status: statusSelect.value,
   });
 });
 
-statusSelect.addEventListener("change", () => {
-  fetch_projects({
+statusSelect.addEventListener("change", async () => {
+  await fetch_projects({
     search: searchBar.value,
     status: statusSelect.value,
   });
 });
 
-prevPageBtn.addEventListener("click", () => changePage("prev"));
-nextPageBtn.addEventListener("click", () => changePage("next"));
+// Removed redundant event listeners here since they're defined above with debounce
 
 // <----------------------- STATUS DROP DOWN CODE ----------------------->
 async function fetch_status() {
