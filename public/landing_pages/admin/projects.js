@@ -1163,6 +1163,8 @@ window.saveProject = async function () {
     await processFertilizerStockAfterUse(projectID);
     await processEquipmentStockAfterUse(projectID);
 
+    window.location.href = "admin_projects_list.html";
+
     // Add notification for successful project creation
     const notificationData = {
       description: `Project ${projectID} is created for you to manage, Please assign a team lead for this project`,
@@ -1265,7 +1267,7 @@ window.saveProject = async function () {
     // Fetch updated stocks (optional, for logging)
     await fetchFertilizerStock(projectID);
     await fetchEquipmentStock(projectID);
-
+    
     // Reset form and re-enable save button
     resetForm();
   } catch (error) {
@@ -1301,7 +1303,7 @@ window.resetForm = function () {
     equipmentContainer.innerHTML = "";
     const fertilizerContainer = document.getElementById("fertilizer-container");
     fertilizerContainer.innerHTML = "";
-    showSuccessPanel("Form has been reset successfully!");
+    //showSuccessPanel("Form has been reset successfully!");
   } catch (error) {
     console.error("Error resetting form:", error);
   }
