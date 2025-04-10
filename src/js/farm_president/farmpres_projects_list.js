@@ -958,9 +958,8 @@ async function teamAssign(project_id) {
 
 function viewProject(projectId) {
   sessionStorage.setItem("selectedProjectId", parseInt(projectId, 10)); // Convert to integer
-  window.location.href = "viewproject.html"; // Redirect to viewproject.html
+  window.location.href = "../../../public/landing_pages/admin/viewproject.html";
 }
-
 // <------------- DELETE BUTTON EVENT LISTENER ------------->
 async function deleteUserAccount(project_id) {
   try {
