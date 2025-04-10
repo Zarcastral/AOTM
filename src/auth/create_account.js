@@ -82,18 +82,32 @@ function validateForm() {
   const sex = document.getElementById("sex")?.value || "";
   const barangay = barangaySelect.value;
   const profilePicture = profilePictureInput.files[0];
+  const username = usernameInput.value.trim();
+  const farmerId = farmerIdInput.value.trim();
 
   let isValid = true;
 
+  // Check required fields are not empty
   if (!userType || !email || !password || !confirmPassword || !firstName || 
-      !lastName || !contact || !birthday || !sex || !barangay) {
+      !lastName || !contact || !birthday || !sex || !barangay || !profilePicture) {
     isValid = false;
   }
 
-  if (emailError.textContent.includes("❌")) isValid = false;
-  if (usernameError.textContent.includes("❌")) isValid = false;
-  if (farmerIdError.textContent.includes("❌")) isValid = false;
-  if (contactError.textContent.includes("❌")) isValid = false;
+  // Check user type specific fields
+  if (userType === "Admin" || userType === "Supervisor") {
+    if (!username) isValid = false;
+  } else if (userType === "Farmer" || userType === "Farm President" || userType === "Head Farmer") {
+    if (!farmerId) isValid = false;
+  }
+
+  // Check validation messages
+  if (emailError.textContent.includes("❌") || !emailError.textContent.includes("✅")) isValid = false;
+  if ((usernameError.textContent.includes("❌") || !usernameError.textContent.includes("✅")) && username) isValid = false;
+  if ((farmerIdError.textContent.includes("❌") || !farmerIdError.textContent.includes("✅")) && farmerId) isValid = false;
+  if (contactError.textContent.includes("❌") || !contactError.textContent.includes("✅")) isValid = false;
+  
+  // Check password requirements
+  if (!Object.values(passwordChecks).every(regex => regex.test(password))) isValid = false;
   if (password !== confirmPassword) isValid = false;
 
   submitsButton.disabled = !isValid;
@@ -110,6 +124,7 @@ function updateProfilePictureUI() {
     profilePictureError.style.color = "green";
   } else {
     removeFileBtn.style.display = "none";
+    // Only show error if it was previously set by remove button
     profilePictureError.textContent = profilePictureError.textContent.includes("❌") 
       ? "❌ Please upload a profile picture." 
       : "";
@@ -136,6 +151,7 @@ const updatePasswordValidation = () => {
       ? "green"
       : "red";
   });
+  validateForm();
 };
 
 passwordInput.addEventListener("input", updatePasswordValidation);
@@ -152,6 +168,7 @@ const fetchUserRoles = async () => {
   } catch (error) {
     console.error("Error fetching user types:", error);
   }
+  validateForm();
 };
 
 const validateContactNumber = () => {
@@ -161,11 +178,11 @@ const validateContactNumber = () => {
   if (!contactRegex.test(contactValue)) {
     contactError.textContent = "❌ Contact number must be 11 digits starting with '09'.";
     contactError.style.color = "red";
-    return false;
+  } else {
+    contactError.textContent = "✅ Valid contact number.";
+    contactError.style.color = "green";
   }
-  contactError.textContent = "✅ Valid contact number.";
-  contactError.style.color = "green";
-  return true;
+  validateForm();
 };
 
 contactInput.addEventListener("input", validateContactNumber);
@@ -181,6 +198,7 @@ const fetchBarangayList = async () => {
   } catch (error) {
     console.error("Error fetching barangays:", error);
   }
+  validateForm();
 };
 
 export function updateFormFields() {
@@ -431,25 +449,23 @@ if (!form.dataset.listenerAdded) {
       console.error("Error:", error.code, error.message);
       showError(error.message || "Failed to create account");
     } finally {
-      submitsButton.disabled = false;
+      submitsButton.disabled = true;
     }
   });
 }
 
-emailInput.addEventListener("input", validateForm);
-usernameInput.addEventListener("input", validateForm);
-farmerIdInput.addEventListener("input", validateForm);
-passwordInput.addEventListener("input", validateForm);
-confirmPasswordInput.addEventListener("input", validateForm);
-userTypeSelect.addEventListener("change", validateForm);
-barangaySelect.addEventListener("change", validateForm);
-profilePictureInput.addEventListener("change", validateForm);
-contactInput.addEventListener("input", validateForm);
+// Add event listeners for all inputs
+const inputs = form.querySelectorAll("input, select");
+inputs.forEach(input => {
+  input.addEventListener("input", validateForm);
+  input.addEventListener("change", validateForm);
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchUserRoles();
   fetchBarangayList();
   updateProfilePictureUI();
   updateFormFields();
+  submitsButton.disabled = true;
   validateForm();
 });
