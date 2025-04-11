@@ -55,29 +55,34 @@ async function getAuthenticatedUser() {
 
 // Set up the dashboard
 function initializeDashboard() {
-    let unsubscribeFarmers; // Keep track of farmer updates
-    let unsubscribeProjects; // Keep track of project updates
+    let unsubscribeFarmers;
+    let unsubscribeProjects;
+    let unsubscribeProjectStatus;
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // Clean up old listeners if they exist
+            // Clean up old listeners
             if (unsubscribeFarmers) unsubscribeFarmers();
             if (unsubscribeProjects) unsubscribeProjects();
+            if (unsubscribeProjectStatus) unsubscribeProjectStatus();
 
-            // Make sure the page is ready before showing data
-            if (document.querySelector("#total-farmers") && document.querySelector("#new-farmers") && document.querySelector("#total-projects")) {
+            // Make sure DOM is ready
+            if (document.querySelector("#total-farmers") && 
+                document.querySelector("#new-farmers") && 
+                document.querySelector("#total-projects")) {
                 unsubscribeFarmers = updateTotalFarmerCount();
                 unsubscribeProjects = updateTotalProjectsCount();
+                unsubscribeProjectStatus = updateProjectStatus();
+                updateBarGraph();
             } else {
                 console.error("Page elements not ready yet. Trying again...");
                 setTimeout(() => {
                     unsubscribeFarmers = updateTotalFarmerCount();
                     unsubscribeProjects = updateTotalProjectsCount();
-                }, 1000); // Try again after 1 second
+                    unsubscribeProjectStatus = updateProjectStatus();
+                    updateBarGraph();
+                }, 1000);
             }
-
-            updateProjectStatus();
-            updateBarGraph();
         } else {
             console.log("No one is logged in");
         }
@@ -87,8 +92,8 @@ function initializeDashboard() {
 // Make numbers count up with a smooth animation
 function animateCount(element, finalCount, addPlus = false) {
     let currentCount = 0;
-    const duration = 1000; // Animation lasts 1 second
-    const stepTime = 16; // Update every 16ms
+    const duration = 1000;
+    const stepTime = 16;
     const steps = Math.ceil(duration / stepTime);
     const increment = finalCount / steps;
 
@@ -113,16 +118,14 @@ function updateTotalFarmerCount() {
         const farmersCollection = collection(db, "tb_farmers");
         const currentYear = new Date().getFullYear();
 
-        // Listen for real-time updates to farmer data
         const unsubscribe = onSnapshot(farmersCollection, (snapshot) => {
-            let totalFarmers = 0; // Count all farmers ever
-            let newFarmerAccounts = 0; // Count farmers added this year
+            let totalFarmers = 0;
+            let newFarmerAccounts = 0;
 
             snapshot.forEach(doc => {
                 const data = doc.data();
                 let createdDate;
 
-                // Figure out when this farmer was added
                 if (data.created_at instanceof Timestamp) {
                     createdDate = data.created_at.toDate();
                 } else if (typeof data.created_at === 'string') {
@@ -132,21 +135,16 @@ function updateTotalFarmerCount() {
                     createdDate = new Date();
                 }
 
-                // Make sure the date is valid
                 if (isNaN(createdDate.getTime())) {
                     console.warn(`Bad date for farmer ${doc.id}. Using today.`);
                     createdDate = new Date();
                 }
 
                 const createdYear = createdDate.getFullYear();
-
-                // Check if this farmer is still active
                 const isDeleted = data.deleted_at !== undefined && data.deleted_at !== null;
 
-                // Count this farmer if they're not deleted
                 if (!isDeleted) {
                     totalFarmers++;
-                    // Count as new if they joined this year
                     if (createdYear === currentYear) {
                         newFarmerAccounts++;
                         console.log(`New farmer this year: ${doc.id}`);
@@ -161,22 +159,10 @@ function updateTotalFarmerCount() {
 
             if (totalFarmersElement) {
                 animateCount(totalFarmersElement, totalFarmers);
-            } else {
-                console.error("Couldn't find total farmers display element");
             }
-
             if (newFarmersElement) {
-                animateCount(newFarmersElement, newFarmerAccounts, true); // Add "+" sign when animation ends
-                // Show green highlight if there are new farmers
-                if (newFarmerAccounts > 0) {
-                    newFarmersElement.classList.add('active');
-                    console.log("Showing green highlight for new farmers");
-                } else {
-                    newFarmersElement.classList.remove('active');
-                    console.log("No new farmers, removing highlight");
-                }
-            } else {
-                console.error("Couldn't find new farmers display element");
+                animateCount(newFarmersElement, newFarmerAccounts, true);
+                newFarmersElement.classList.toggle('active', newFarmerAccounts > 0);
             }
         }, (error) => {
             console.error("Problem getting farmer updates:", error);
@@ -192,12 +178,10 @@ function updateTotalFarmerCount() {
 function updateTotalProjectsCount() {
     try {
         const projectsCollection = collection(db, "tb_projects");
-        
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-        // Listen for real-time project updates
         const unsubscribe = onSnapshot(projectsCollection, (snapshot) => {
             let projectCount = 0;
 
@@ -207,7 +191,6 @@ function updateTotalProjectsCount() {
                     ? data.date_created.toDate() 
                     : new Date(data.date_created);
                 
-                // Count projects from this month
                 if (dateCreated >= startOfMonth && dateCreated <= endOfMonth) {
                     projectCount++;
                     console.log(`Project this month: ${doc.id}`);
@@ -219,8 +202,6 @@ function updateTotalProjectsCount() {
             const projectElementCount = document.querySelector("#total-projects");
             if (projectElementCount) {
                 animateCount(projectElementCount, projectCount);
-            } else {
-                console.error("Couldn't find projects display element");
             }
         }, (error) => {
             console.error("Problem getting project updates:", error);
@@ -235,8 +216,8 @@ function updateTotalProjectsCount() {
 // Make circular progress bars animate
 function animateGradient(element, finalPercentage, color) {
     let currentPercentage = 0;
-    const duration = 500; // Animation lasts half a second
-    const stepTime = 16; // Update every 16ms
+    const duration = 500;
+    const stepTime = 16;
     const steps = Math.ceil(duration / stepTime);
     const increment = finalPercentage / steps;
 
@@ -254,79 +235,100 @@ function animateGradient(element, finalPercentage, color) {
     requestAnimationFrame(updateGradient);
 }
 
-// Show how many projects are-www completed, ongoing, or pending
-async function updateProjectStatus() {
+// Show project status with real-time updates
+function updateProjectStatus() {
     try {
-        const currentUser = await getAuthenticatedUser();
-        
+        const currentYear = new Date().getFullYear();
         const projectsCollection = collection(db, "tb_projects");
-        const projectsSnapshot = await getDocs(projectsCollection);
-
         const historyCollection = collection(db, "tb_project_history");
-        const historyQuery = query(
-            historyCollection,
-            where("project_creator", "==", currentUser.user_type)
-        );
-        const historySnapshot = await getDocs(historyQuery);
 
-        let completedCount = 0;
-        let ongoingCount = 0;
-        let pendingCount = 0;
+        const unsubscribe = onSnapshot(projectsCollection, async (projectSnapshot) => {
+            try {
+                const currentUser = await getAuthenticatedUser();
+                const historyQuery = query(historyCollection, 
+                    where("project_creator", "==", currentUser.user_type));
+                
+                onSnapshot(historyQuery, (historySnapshot) => {
+                    let completedCount = 0;
+                    let ongoingCount = 0;
+                    let pendingCount = 0;
 
-        // Count projects based on their status
-        projectsSnapshot.forEach(doc => {
-            const data = doc.data();
-            const status = data.status?.toLowerCase();
-            const hasProjectId = data.project_id !== null && data.project_id !== undefined;
-            const creatorMatch = data.project_creator === currentUser.user_type;
+                    historySnapshot.forEach(doc => {
+                        const status = doc.data().status?.toLowerCase();
+                        if (status === "completed" || status === "complete") {
+                            completedCount++;
+                        }
+                    });
 
-            if (hasProjectId && creatorMatch) {
-                if (status === "ongoing'") ongoingCount++;
-                else if (status === "pending") pendingCount++;
+                    projectSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const status = data.status?.toLowerCase();
+                        const hasProjectId = data.project_id !== null && data.project_id !== undefined;
+                        const creatorMatch = data.project_creator === currentUser.user_type;
+
+                        let dateCreated;
+                        if (data.date_created instanceof Timestamp) {
+                            dateCreated = data.date_created.toDate();
+                        } else if (typeof data.date_created === 'string') {
+                            dateCreated = new Date(data.date_created);
+                        }
+
+                        if (!dateCreated || isNaN(dateCreated.getTime())) {
+                            return;
+                        }
+
+                        const projectYear = dateCreated.getFullYear();
+
+                        if (hasProjectId && 
+                            creatorMatch && 
+                            projectYear === currentYear) {
+                            if (status === "ongoing") {
+                                ongoingCount++;
+                            } else if (status === "pending") {
+                                pendingCount++;
+                            }
+                        }
+                    });
+
+                    const totalProjects = completedCount + ongoingCount + pendingCount;
+                    const completedPercentage = totalProjects > 0 ? (completedCount / totalProjects) * 100 : 0;
+                    const inProgressPercentage = totalProjects > 0 ? (ongoingCount / totalProjects) * 100 : 0;
+                    const notStartedPercentage = totalProjects > 0 ? (pendingCount / totalProjects) * 100 : 0;
+
+                    const completedElement = document.getElementById("total-completed-projects");
+                    const inProgressElement = document.getElementById("total-inprogress-projects");
+                    const notStartedElement = document.getElementById("total-notstarted-projects");
+
+                    if (completedElement) {
+                        completedElement.setAttribute("data-count", completedCount.toLocaleString());
+                        completedElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #41A186 100% 100%)`;
+                        animateGradient(completedElement, completedPercentage, "#41A186");
+                    }
+
+                    if (inProgressElement) {
+                        inProgressElement.setAttribute("data-count", ongoingCount.toLocaleString());
+                        inProgressElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #6277B3 100% 100%)`;
+                        animateGradient(inProgressElement, inProgressPercentage, "#6277B3");
+                    }
+
+                    if (notStartedElement) {
+                        notStartedElement.setAttribute("data-count", pendingCount.toLocaleString());
+                        notStartedElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #F28F8F 100% 100%)`;
+                        animateGradient(notStartedElement, notStartedPercentage, "#F28F8F");
+                    }
+                }, (error) => {
+                    console.error("Error in history snapshot:", error);
+                });
+            } catch (error) {
+                console.error("Error getting user or processing projects:", error);
             }
+        }, (error) => {
+            console.error("Error in projects snapshot:", error);
         });
 
-        // Count completed projects from history
-        historySnapshot.forEach(doc => {
-            const status = doc.data().status?.toLowerCase();
-            if (status === "completed" || status === "complete") completedCount++;
-        });
-
-        const totalProjects = completedCount + ongoingCount + pendingCount;
-
-        const completedPercentage = totalProjects > 0 ? (completedCount / totalProjects) * 100 : 0;
-        const inProgressPercentage = totalProjects > 0 ? (ongoingCount / totalProjects) * 100 : 0;
-        const notStartedPercentage = totalProjects > 0 ? (pendingCount / totalProjects) * 100 : 0;
-
-        const completedElement = document.getElementById("total-completed-projects");
-        const inProgressElement = document.getElementById("total-inprogress-projects");
-        const notStartedElement = document.getElementById("total-notstarted-projects");
-
-        if (completedElement) {
-            completedElement.setAttribute("data-count", completedCount.toLocaleString());
-            completedElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #41A186 100% 100%)`;
-            animateGradient(completedElement, completedPercentage, "#41A186");
-        } else {
-            console.error("Couldn't find completed projects circle");
-        }
-
-        if (inProgressElement) {
-            inProgressElement.setAttribute("data-count", ongoingCount.toLocaleString());
-            inProgressElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #6277B3 100% 100%)`;
-            animateGradient(inProgressElement, inProgressPercentage, "#6277B3");
-        } else {
-            console.error("Couldn't find in-progress projects circle");
-        }
-
-        if (notStartedElement) {
-            notStartedElement.setAttribute("data-count", pendingCount.toLocaleString());
-            notStartedElement.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, #F28F8F 100% 100%)`;
-            animateGradient(notStartedElement, notStartedPercentage, "#F28F8F");
-        } else {
-            console.error("Couldn't find not-started projects circle");
-        }
+        return unsubscribe;
     } catch (error) {
-        console.error("Problem showing project status:", error);
+        console.error("Problem setting up project status:", error);
     }
 }
 
@@ -394,6 +396,7 @@ async function updateBarGraph() {
             const harvestSnapshot = await getDocs(harvestQuery);
             
             const monthlyTotals = Array(12).fill(0);
+            let hasData = false;
 
             harvestSnapshot.forEach(doc => {
                 const data = doc.data();
@@ -413,19 +416,20 @@ async function updateBarGraph() {
                     const month = date.getMonth();
                     const totalCrops = Number(data.total_harvested_crops) || 0;
                     monthlyTotals[month] += totalCrops;
+                    hasData = true;
                 }
             });
 
-            return monthlyTotals;
+            return { monthlyTotals, hasData };
         } catch (error) {
             console.error('Problem getting harvest data:', error);
-            return Array(12).fill(0);
+            return { monthlyTotals: Array(12).fill(0), hasData: false };
         }
     };
 
     const setBarHeights = async (selectedYear) => {
-        const monthlyTotals = await fetchHarvestData(selectedYear);
-        const maxDataValue = Math.max(...monthlyTotals);
+        const { monthlyTotals, hasData } = await fetchHarvestData(selectedYear);
+        const maxDataValue = hasData ? Math.max(...monthlyTotals) : 0;
 
         bars.forEach((bar, index) => {
             const totalCrops = monthlyTotals[index];

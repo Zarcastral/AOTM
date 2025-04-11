@@ -413,7 +413,7 @@ async function addHarvest() {
     const harvestData = {
       project_id: projectId,
       project_name: projectName,
-      project_creator: selectedProject.project_creator || "N/A", // Already present, ensuring it's included
+      project_creator: selectedProject.project_creator || "N/A",
       crop_name: selectedProject.crop_name || "N/A",
       crop_type_name: selectedProject.crop_type_name || "N/A",
       barangay_name: selectedProject.barangay_name || "N/A",
@@ -432,7 +432,7 @@ async function addHarvest() {
       land_area: landArea,
       start_date: selectedProject.start_date || "N/A",
       end_date: selectedProject.end_date || "N/A",
-      project_status: selectedProject.status
+      status: selectedProject.status
     };
 
     const newHarvestId = await getNextHarvestId();
@@ -485,7 +485,6 @@ async function updateHarvest() {
       throw new Error("Selected project not found");
     }
 
-    // Add status validation for editing
     if (selectedProject.status !== "Complete" && selectedProject.status !== "Completed") {
       await showSuccessMessage("Only projects with 'Complete' or 'Completed' status can be selected.", false);
       throw new Error("Invalid project status");
@@ -577,7 +576,7 @@ async function updateHarvest() {
       land_area: landArea,
       start_date: selectedProject.start_date || "N/A",
       end_date: selectedProject.end_date || "N/A",
-      project_status: selectedProject.status // Added project status to harvest data
+      status: selectedProject.status
     };
 
     await setDoc(doc(harvestCollection, currentHarvestDocId), harvestData, { merge: true });
@@ -642,20 +641,17 @@ async function submitHarvestToTbHarvest() {
     }
 
     const validatedHarvestCollection = collection(db, "tb_validatedharvest");
+    // Duplicate harvestData excluding id, and add validated_date
+    const { id, ...restOfHarvestData } = harvestData;
     const validatedHarvestData = {
-      project_id: harvestData.project_id || "N/A",
-      project_name: harvestData.project_name || "N/A",
-      project_creator: harvestData.project_creator || "N/A", // Added project_creator here
-      farm_pres_id: harvestData.farm_pres_id || "N/A",
-      lead_farmer_id: harvestData.lead_farmer_id || "N/A",
-      team_id: harvestData.team_id || "N/A",
-      total_harvested_crops: harvestData.total_harvested_crops || 0,
-      harvest_date: harvestData.harvest_date || new Date(),
-      crop_type_name: harvestData.crop_type_name || "N/A",
-      crop_name: harvestData.crop_name || "N/A",
-      harvest_id: harvestData.harvest_id,
+      ...restOfHarvestData,
       validated_date: new Date()
     };
+    // Rename project_status to status if it exists
+    if (validatedHarvestData.project_status) {
+      validatedHarvestData.status = validatedHarvestData.project_status;
+      delete validatedHarvestData.project_status;
+    }
 
     validatedHarvestRef = await addDoc(validatedHarvestCollection, validatedHarvestData);
     const validatedDocSnapshot = await getDoc(validatedHarvestRef);
@@ -666,10 +662,14 @@ async function submitHarvestToTbHarvest() {
 
     const tbHarvestCollection = collection(db, "tb_harvest");
     const newHarvestRef = await addDoc(tbHarvestCollection, {
-      ...harvestData,
-      submitted_date: new Date(),
-      original_doc_id: currentHarvestDocId
+      ...restOfHarvestData,
+      submitted_date: new Date()
     });
+    // Rename project_status to status if it exists
+    if (restOfHarvestData.project_status) {
+      await setDoc(newHarvestRef, { status: restOfHarvestData.project_status }, { merge: true });
+      await setDoc(newHarvestRef, { project_status: null }, { merge: true });
+    }
 
     const newDocSnapshot = await getDoc(newHarvestRef);
     if (!newDocSnapshot.exists()) {
