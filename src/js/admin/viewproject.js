@@ -4,7 +4,51 @@ from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
-
+// Function to show success panel
+function showSuccessPanel(message) {
+    const successMessage = document.createElement("div");
+    successMessage.className = "success-message";
+    successMessage.textContent = message;
+  
+    document.body.appendChild(successMessage);
+  
+    // Fade in
+    successMessage.style.display = "block";
+    setTimeout(() => {
+      successMessage.style.opacity = "1";
+    }, 5);
+  
+    // Fade out after 4 seconds
+    setTimeout(() => {
+      successMessage.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(successMessage);
+      }, 400);
+    }, 4000);
+  }
+  
+  // Function to show error panel
+  function showErrorPanel(message) {
+    const errorMessage = document.createElement("div");
+    errorMessage.className = "error-message";
+    errorMessage.textContent = message;
+  
+    document.body.appendChild(errorMessage);
+  
+    // Fade in
+    errorMessage.style.display = "block";
+    setTimeout(() => {
+      errorMessage.style.opacity = "1";
+    }, 5);
+  
+    // Fade out after 4 seconds
+    setTimeout(() => {
+      errorMessage.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(errorMessage);
+      }, 400);
+    }, 4000);
+  }
 // Function to fetch and display project details
 async function fetchProjectDetails() {
     let projectId = sessionStorage.getItem("selectedProjectId");
@@ -148,7 +192,7 @@ async function getNextFeedbackId() {
         }
     } catch (error) {
         console.error("Error fetching feedback ID counter:", error);
-        alert("Error generating feedback ID.");
+        showErrorPanel("Error generating feedback ID.");
         return null;
     }
 }
@@ -159,7 +203,7 @@ window.submitFeedback = async function () {
     let feedback = document.getElementById("feedbackMessage").value.trim();
 
     if (!feedback) {
-        alert("Please enter a feedback message.");
+        showErrorPanel("Please enter a feedback message.");
         return;
     }
 
@@ -189,7 +233,7 @@ window.submitFeedback = async function () {
     try {
         let docRef = await addDoc(collection(db, "tb_feedbacks"), feedbackData);
 
-        alert("Feedback submitted successfully!");
+        showSuccessPanel("Feedback submitted successfully!");
         closeFeedbackPopup();
 
         document.getElementById("feedbackMessage").value = "";
@@ -375,11 +419,11 @@ window.acknowledgeFeedback = async function (feedbackId) {
             acknowledged_by_user_type: userType,
         });
 
-        alert("Feedback acknowledged successfully!");
+        showSuccessPanel("Feedback acknowledged successfully!");
         displayFeedbacks();
     } catch (error) {
         console.error("🔥 Error updating feedback status:", error);
-        alert("Failed to acknowledge feedback. Please try again.");
+        showErrorPanel("Failed to acknowledge feedback. Please try again.");
     }
 };
 
