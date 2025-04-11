@@ -127,66 +127,6 @@
       </div>
   </div>
 
-  <!-- Account Panel with iframe to load external content -->
-  <div id="account-panel" class="account-panel">
-    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const accountIcon = document.getElementById("account-icon");
-      const accountPanel = document.getElementById("account-panel");
-      const accountFrame = document.getElementById("account-frame");
-
-      accountIcon.addEventListener("click", () => {
-        console.log("Account icon clicked!");
-
-        accountPanel.classList.toggle("active");
-        console.log("Panel active status:", accountPanel.classList.contains("active"));
-
-        if (accountPanel.classList.contains("active")) {
-          accountFrame.src = "logout.html";
-          console.log("Iframe src set to logout.html");
-        } else {
-          accountFrame.src = "";
-          console.log("Iframe cleared");
-        }
-      });
-
-      // Close when clicking outside
-      document.addEventListener("click", (event) => {
-        if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-          closeAccountPanel();
-        }
-      });
-
-      // Handle messages from iframe (logout.html)
-      window.addEventListener("message", (event) => {
-        console.log("Message received from iframe:", event.data);
-
-        if (event.data === "closeAccountPanel") {
-          console.log("Closing account panel from iframe message...");
-          closeAccountPanel();
-        }
-
-        if (event.data === "closeIframe") {
-          console.log("Closing iframe and logging out...");
-          closeAccountPanel(); // Remove the iframe
-
-          // ✅ Redirect to login page after closing iframe
-          setTimeout(() => {
-            window.top.location.href = "../../index.html"; // Ensure full-page redirect
-          }, 500);
-        }
-      });
-
-      // Function to close the account panel
-      function closeAccountPanel() {
-        accountPanel.classList.remove("active");
-        accountFrame.src = "";
-      }
-    });
-  </script>
   <script>
       document.addEventListener("DOMContentLoaded", function () {
           const stockLinks = document.querySelectorAll(".stock-selector a");
