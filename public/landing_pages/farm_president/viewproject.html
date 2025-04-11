@@ -10,6 +10,11 @@
 <body>
     <!-- Placeholder for Header -->
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <div class="back">
+    <a href="farmpres_project.html" class="back-link">
+        <img src="../../images/arrow-left.png" alt="Back" width="30" height="30">
+    </a>
+</div>
     <div class="container">
         <!-- Project Details Panel -->
         <div class="panel project-details">
@@ -20,7 +25,6 @@
                 <p>END DATE<br><span id="endDate">-</span></p>
                 <p>CROP NAME<br><span id="cropName">-</span></p>
                 <p>CROP TYPE<br><span id="cropType">-</span></p>
-                <p>EQUIPMENT<br><span id="equipment">-</span></p>
                 <p>BARANGAY<br><span id="barangayName">-</span></p>
                 <p>FARM PRESIDENT<br><span id="farmPresident">-</span></p>
                 <p>STATUS<br><span id="status">-</span></p>
@@ -73,6 +77,6 @@
     </div>
 <!-- Import the reusable script from src/auth -->
 <script type="module" src="../../../src/auth/header.js"></script>
-    <script type="module" src="viewproject.js"></script>
+    <script type="module" src="../../../src/js/farm_president/viewproject.js"></script>
 </body>
 </html>

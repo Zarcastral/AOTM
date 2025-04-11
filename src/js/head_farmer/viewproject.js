@@ -1,8 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
     getFirestore, collection, query, where, getDocs, orderBy, doc,
     getDoc, setDoc, updateDoc, addDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "firebase/firestore";
 
 // Function to show success panel
 function showSuccessPanel(message) {
@@ -25,10 +24,10 @@ function showSuccessPanel(message) {
         document.body.removeChild(successMessage);
       }, 400);
     }, 4000);
-  }
+}
   
-  // Function to show error panel
-  function showErrorPanel(message) {
+// Function to show error panel
+function showErrorPanel(message) {
     const errorMessage = document.createElement("div");
     errorMessage.className = "error-message";
     errorMessage.textContent = message;
@@ -48,20 +47,10 @@ function showSuccessPanel(message) {
         document.body.removeChild(errorMessage);
       }, 400);
     }, 4000);
-  }
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,    
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
+}
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Firebase Configuration
+import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 
 let globalProjectId = null;
@@ -90,9 +79,12 @@ async function fetchProjectDetails() {
             document.getElementById("extendedDate").textContent = projectData.extended_date || "--";
             document.getElementById("cropName").textContent = projectData.crop_name || "N/A";
             document.getElementById("cropType").textContent = projectData.crop_type_name || "N/A";
-            document.getElementById("equipment").textContent = projectData.equipment || "N/A";
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
+        } else {
+            // Show no feedback message when no project is found
+            const feedbackListContainer = document.getElementById("feedbackList");
+            feedbackListContainer.innerHTML = '<p class="feedback-list-empty">No feedbacks available.</p>';
         }
     } catch (error) {
         console.error("🔥 Error fetching project data:", error);
@@ -272,9 +264,9 @@ function addFeedbackToUI(feedback) {
     `;
 
     let noFeedbackMessage = document.querySelector("#feedbackList .feedback-list-empty");
-if (noFeedbackMessage) {
-    noFeedbackMessage.remove();
-}
+    if (noFeedbackMessage) {
+        noFeedbackMessage.remove();
+    }
 
     feedbackListContainer.prepend(feedbackItem);
 }

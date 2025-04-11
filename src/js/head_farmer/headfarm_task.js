@@ -72,6 +72,16 @@ function showErrorPanel(message) {
   }, 4000);
 }
 
+// New function to display "No tasks available" message
+function displayNoTasksMessage() {
+  const taskTableBody = document.getElementById("taskTableBody");
+  if (!taskTableBody) return;
+
+  if (allTasks.length === 0) {
+    taskTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No tasks available.</td></tr>`;
+  }
+}
+
 export async function fetchProjectsForFarmer() {
   const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
@@ -81,6 +91,7 @@ export async function fetchProjectsForFarmer() {
 
     if (!projectId) {
       console.log("No project ID found for this user.");
+      displayNoTasksMessage(); // Call new function
       return;
     }
 
@@ -94,6 +105,7 @@ export async function fetchProjectsForFarmer() {
 
       if (querySnapshot.empty) {
         console.log("Project not found.");
+        displayNoTasksMessage(); // Call new function
         return;
       }
 
@@ -118,12 +130,14 @@ export async function fetchProjectsForFarmer() {
       });
     } catch (error) {
       console.error("Error fetching project:", error);
+      displayNoTasksMessage(); // Call new function
     }
     return;
   }
 
   if (!farmerId) {
     console.log("No farmer ID found in session.");
+    displayNoTasksMessage(); // Call new function
     return;
   }
 
@@ -134,6 +148,7 @@ export async function fetchProjectsForFarmer() {
 
     if (querySnapshot.empty) {
       console.log("No project found where the farmer is a team lead.");
+      displayNoTasksMessage(); // Call new function
       return;
     }
 
@@ -153,6 +168,7 @@ export async function fetchProjectsForFarmer() {
     });
   } catch (error) {
     console.error("Error fetching projects:", error);
+    displayNoTasksMessage(); // Call new function
   }
 }
 
@@ -170,7 +186,7 @@ async function fetchProjectTasks(cropTypeName, projectId) {
       console.log(`No tasks found for project ID ${projectId}.`);
       allTasks = [];
       filteredTasks = [];
-      renderTasks();
+      displayNoTasksMessage(); // Call new function instead of renderTasks
       return;
     }
 
@@ -193,6 +209,7 @@ async function fetchProjectTasks(cropTypeName, projectId) {
     attachGlobalEventListeners();
   } catch (error) {
     console.error("❌ Error fetching project tasks:", error);
+    displayNoTasksMessage(); // Call new function
   }
 }
 
@@ -788,7 +805,12 @@ async function deleteTaskHandler() {
     if (currentPage > totalPages && totalPages > 0) {
       currentPage = totalPages;
     }
-    renderTasks();
+    // Check if no tasks remain after deletion
+    if (allTasks.length === 0) {
+      displayNoTasksMessage(); // Call new function
+    } else {
+      renderTasks();
+    }
   } catch (error) {
     console.error("❌ Error deleting task and related records:", error);
     showErrorPanel("Failed to delete task. Try again.");

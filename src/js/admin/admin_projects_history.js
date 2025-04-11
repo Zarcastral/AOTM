@@ -68,23 +68,22 @@ async function fetch_projects(filter = {}) {
         projectList = [];
         let projectIdList = [];
 
+        // Check for Pending or Ongoing projects at page load and move them to tb_projects
         for (const document of querySnapshot.docs) {
             const data = document.data();
             const projectId = String(data.project_id || "");
-            
-            // Check if status is Ongoing or Pending (case insensitive)
             const status = (data.status || "").toLowerCase();
-            if (status === "Ongoing" || status === "Pending") {
-                // Move document to tb_projects
+
+            // If status is Pending or Ongoing, move to tb_projects
+            if (status === "pending" || status === "ongoing") {
                 const projectRef = doc(db, "tb_projects", document.id);
-                await setDoc(projectRef, data);
-                
-                // Delete from tb_project_history
-                await deleteDoc(document.ref);
-                console.log(`Moved project ${projectId} with status ${status} back to tb_projects`);
+                await setDoc(projectRef, data); // Move entire document
+                await deleteDoc(document.ref); // Delete from tb_project_history
+                console.log(`Moved project ${projectId} with status ${status} to tb_projects`);
                 continue; // Skip adding to projectList
             }
 
+            // Process remaining projects for display
             const searchTerm = filter.search?.toLowerCase();
             const matchesSearch = searchTerm
                 ? `${data.project_name || ""}`.toLowerCase().includes(searchTerm) ||
