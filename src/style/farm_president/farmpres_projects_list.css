@@ -644,6 +644,7 @@ input[type="checkbox"] {
   justify-content: center;
   width: 100%;
   max-width: 1200px;
+  margin-left: 150px;
 }
 
 .project-selector a {
