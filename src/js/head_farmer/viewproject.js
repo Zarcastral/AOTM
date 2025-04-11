@@ -49,6 +49,29 @@ function showErrorPanel(message) {
     }, 4000);
 }
 
+// New function for "No project assigned yet" with distinct design
+function showNoProjectPanel() {
+    const noProjectMessage = document.createElement("div");
+    noProjectMessage.className = "no-project-message";
+    noProjectMessage.textContent = "No Project Assigned Yet.";
+  
+    document.body.appendChild(noProjectMessage);
+  
+    // Fade in
+    noProjectMessage.style.display = "block";
+    setTimeout(() => {
+      noProjectMessage.style.opacity = "1";
+    }, 5);
+  
+    // Fade out after 5 seconds (longer duration for emphasis)
+    setTimeout(() => {
+      noProjectMessage.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(noProjectMessage);
+      }, 400);
+    }, 5000);
+}
+
 // Firebase Configuration
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
@@ -59,6 +82,7 @@ async function fetchProjectDetails() {
     let farmerId = sessionStorage.getItem("farmer_id");
     if (!farmerId) {
         console.error("❌ No farmer_id found in sessionStorage.");
+        showErrorPanel("No farmer ID found. Please log in again.");
         return;
     }
 
@@ -82,12 +106,15 @@ async function fetchProjectDetails() {
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
         } else {
-            // Show no feedback message when no project is found
+            // Show no project panel instead of error panel
+            showNoProjectPanel();
+            // Clear feedback list and show no feedback message
             const feedbackListContainer = document.getElementById("feedbackList");
             feedbackListContainer.innerHTML = '<p class="feedback-list-empty">No feedbacks available.</p>';
         }
     } catch (error) {
         console.error("🔥 Error fetching project data:", error);
+        showErrorPanel("Failed to fetch project details. Please try again.");
     }
 }
 
