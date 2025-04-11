@@ -284,17 +284,61 @@ async function fetchTasks(searchQuery = "") {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = Math.min(startIndex + rowsPerPage, filteredTasks.length);
 
-  for (let i = startIndex; i < endIndex; i++) {
-    const taskData = filteredTasks[i].data;
+  if (filteredTasks.length === 0) {
     const row = document.createElement("tr");
     row.innerHTML = `
+      <td colspan="2" class="no-tasks-found">No tasks found</td>
+    `;
+    taskList.appendChild(row);
+  } else {
+    for (let i = startIndex; i < endIndex; i++) {
+      const taskData = filteredTasks[i].data;
+      const row = document.createElement("tr");
+      row.innerHTML = `
         <td>${taskData.task_name}</td>
         <td>
           <img src="../../images/image 27.png" alt="Edit" title="Edit Task" class="action-icon edit-task-icon" data-id="${filteredTasks[i].id}">
           <img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon" data-id="${filteredTasks[i].id}">
         </td>
       `;
-    taskList.appendChild(row);
+      taskList.appendChild(row);
+    }
+
+    const deleteIcons = document.querySelectorAll(".delete-task-icon");
+    deleteIcons.forEach((icon) => {
+      icon.addEventListener("click", (e) => {
+        taskToDeleteId = e.target.dataset.id;
+        deleteConfirmationModal.style.display = "flex";
+      });
+    });
+
+    const editIcons = document.querySelectorAll(".edit-task-icon");
+    editIcons.forEach((icon) => {
+      icon.addEventListener("click", async (e) => {
+        editingTaskId = e.target.dataset.id;
+        editTaskModal.style.display = "flex";
+
+        const taskRef = doc(db, "tb_pretask", editingTaskId);
+        const taskSnap = await getDoc(taskRef);
+
+        if (taskSnap.exists()) {
+          const taskData = taskSnap.data();
+          subtaskList.innerHTML = "";
+          initialSubtasks = [...taskData.subtasks];
+
+          taskData.subtasks.forEach((subtask) => {
+            const subtaskName =
+              typeof subtask === "string" ? subtask : subtask.subtask_name;
+            const li = document.createElement("li");
+            li.innerHTML = `${subtaskName} <img src="../../images/Delete.png" alt="Delete" class="delete-subtask-btn">`;
+            subtaskList.appendChild(li);
+          });
+
+          saveSubtasksBtn.disabled = true;
+          checkSaveButtonState();
+        }
+      });
+    });
   }
 
   setTimeout(() => {
@@ -302,42 +346,6 @@ async function fetchTasks(searchQuery = "") {
   }, 100);
 
   updatePaginationControls(totalPages);
-
-  const deleteIcons = document.querySelectorAll(".delete-task-icon");
-  deleteIcons.forEach((icon) => {
-    icon.addEventListener("click", (e) => {
-      taskToDeleteId = e.target.dataset.id;
-      deleteConfirmationModal.style.display = "flex";
-    });
-  });
-
-  const editIcons = document.querySelectorAll(".edit-task-icon");
-  editIcons.forEach((icon) => {
-    icon.addEventListener("click", async (e) => {
-      editingTaskId = e.target.dataset.id;
-      editTaskModal.style.display = "flex";
-
-      const taskRef = doc(db, "tb_pretask", editingTaskId);
-      const taskSnap = await getDoc(taskRef);
-
-      if (taskSnap.exists()) {
-        const taskData = taskSnap.data();
-        subtaskList.innerHTML = "";
-        initialSubtasks = [...taskData.subtasks];
-
-        taskData.subtasks.forEach((subtask) => {
-          const subtaskName =
-            typeof subtask === "string" ? subtask : subtask.subtask_name;
-          const li = document.createElement("li");
-          li.innerHTML = `${subtaskName} <img src="../../images/Delete.png" alt="Delete" class="delete-subtask-btn">`;
-          subtaskList.appendChild(li);
-        });
-
-        saveSubtasksBtn.disabled = true;
-        checkSaveButtonState();
-      }
-    });
-  });
 }
 
 function updatePaginationControls(totalPages) {

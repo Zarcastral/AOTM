@@ -19,8 +19,6 @@ const usernameError = document.getElementById("usernameError");
 const farmerIdError = document.getElementById("farmerIdError");
 const emailInput = document.getElementById("email");
 const emailError = document.getElementById("emailError");
-
-// Form Elements
 const form = document.getElementById("createAccountForm");
 const userTypeSelect = document.getElementById("user_type");
 const barangaySelect = document.getElementById("barangay");
@@ -29,19 +27,42 @@ const confirmPasswordInput = document.getElementById("confirmPassword");
 const profilePictureInput = document.getElementById("profilePicture");
 const removeFileBtn = document.getElementById("remove-file");
 const submitsButton = form.querySelector(".submit-btn");
-
-// Role-based Fields
 const adminFields = document.getElementById("adminFields");
 const farmerFields = document.getElementById("farmerFields");
 const usernameInput = document.getElementById("userName");
 const farmerIdInput = document.getElementById("farmer_id");
-
-// Error Popup Elements
 const errorPopup = document.getElementById("errorPopup");
 const popupMessage = document.getElementById("popupMessage");
 const closePopup = document.getElementById("closePopup");
+const contactInput = document.getElementById("contact");
+const contactError = document.getElementById("contactError");
 
-// Password Validation UI
+function showSuccessPanel(message) {
+  const successMessage = document.createElement("div");
+  successMessage.className = "success-message";
+  successMessage.textContent = message;
+  document.body.appendChild(successMessage);
+  successMessage.style.display = "block";
+  setTimeout(() => (successMessage.style.opacity = "1"), 5);
+  setTimeout(() => {
+    successMessage.style.opacity = "0";
+    setTimeout(() => document.body.removeChild(successMessage), 400);
+  }, 4000);
+}
+
+function showErrorPanel(message) {
+  const errorMessage = document.createElement("div");
+  errorMessage.className = "error-message";
+  errorMessage.textContent = message;
+  document.body.appendChild(errorMessage);
+  errorMessage.style.display = "block";
+  setTimeout(() => (errorMessage.style.opacity = "1"), 5);
+  setTimeout(() => {
+    errorMessage.style.opacity = "0";
+    setTimeout(() => document.body.removeChild(errorMessage), 400);
+  }, 4000);
+}
+
 const passwordChecks = {
   lowercaseCheck: /[a-z]/,
   uppercaseCheck: /[A-Z]/,
@@ -49,74 +70,78 @@ const passwordChecks = {
   lengthCheck: /.{8,}/,
 };
 
-// Function to validate the form and control the submit button
 function validateForm() {
   const userType = userTypeSelect.value;
   const email = emailInput.value.trim();
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
-  const firstName = document.getElementById("firstName").value.trim();
-  const lastName = document.getElementById("lastName").value.trim();
-  const contact = document.getElementById("contact").value.trim();
-  const birthday = document.getElementById("birthday").value.trim();
-  const sex = document.getElementById("sex").value;
+  const firstName = document.getElementById("firstName")?.value.trim() || "";
+  const lastName = document.getElementById("lastName")?.value.trim() || "";
+  const contact = contactInput.value.trim();
+  const birthday = document.getElementById("birthday")?.value || "";
+  const sex = document.getElementById("sex")?.value || "";
   const barangay = barangaySelect.value;
   const profilePicture = profilePictureInput.files[0];
-  const profilePictureError = document.getElementById("profilePictureError");
+  const username = usernameInput.value.trim();
+  const farmerId = farmerIdInput.value.trim();
 
   let isValid = true;
 
-  if (
-    !userType ||
-    !email ||
-    !password ||
-    !confirmPassword ||
-    !firstName ||
-    !lastName ||
-    !contact ||
-    !birthday ||
-    !sex ||
-    !barangay ||
-    !profilePicture
-  ) {
+  // Check required fields are not empty
+  if (!userType || !email || !password || !confirmPassword || !firstName || 
+      !lastName || !contact || !birthday || !sex || !barangay || !profilePicture) {
     isValid = false;
   }
 
-  // Profile picture feedback
-  if (!profilePicture) {
-    profilePictureError.textContent = "❌ Please upload a profile picture.";
-    profilePictureError.style.color = "red";
-  } else {
-    profilePictureError.textContent = "✅ Profile picture uploaded.";
-    profilePictureError.style.color = "green";
+  // Check user type specific fields
+  if (userType === "Admin" || userType === "Supervisor") {
+    if (!username) isValid = false;
+  } else if (userType === "Farmer" || userType === "Farm President" || userType === "Head Farmer") {
+    if (!farmerId) isValid = false;
   }
 
+  // Check validation messages
+  if (emailError.textContent.includes("❌") || !emailError.textContent.includes("✅")) isValid = false;
+  if ((usernameError.textContent.includes("❌") || !usernameError.textContent.includes("✅")) && username) isValid = false;
+  if ((farmerIdError.textContent.includes("❌") || !farmerIdError.textContent.includes("✅")) && farmerId) isValid = false;
+  if (contactError.textContent.includes("❌") || !contactError.textContent.includes("✅")) isValid = false;
+  
+  // Check password requirements
+  if (!Object.values(passwordChecks).every(regex => regex.test(password))) isValid = false;
+  if (password !== confirmPassword) isValid = false;
+
   submitsButton.disabled = !isValid;
+  return isValid;
 }
 
-// Function to update the file input UI (show/hide the "×" button)
 function updateProfilePictureUI() {
   const file = profilePictureInput.files[0];
+  const profilePictureError = document.getElementById("profilePictureError");
+  
   if (file) {
-    removeFileBtn.style.display = "inline-block"; // Show the "×" button
+    removeFileBtn.style.display = "inline-block";
+    profilePictureError.textContent = "✅ Profile picture uploaded.";
+    profilePictureError.style.color = "green";
   } else {
-    removeFileBtn.style.display = "none"; // Hide the "×" button
+    removeFileBtn.style.display = "none";
+    // Only show error if it was previously set by remove button
+    profilePictureError.textContent = profilePictureError.textContent.includes("❌") 
+      ? "❌ Please upload a profile picture." 
+      : "";
   }
   validateForm();
 }
 
-// Event listener for file input change
 profilePictureInput.addEventListener("change", updateProfilePictureUI);
 
-// Event listener for the "×" button
 removeFileBtn.addEventListener("click", (event) => {
-  event.preventDefault(); // Prevent default behavior
-  event.stopPropagation(); // Stop event bubbling
-
-  profilePictureInput.value = ""; // Clear the file input
-  updateProfilePictureUI(); // Update the UI
-
-  // Refocus the file input to prevent focus from shifting
+  event.preventDefault();
+  event.stopPropagation();
+  profilePictureInput.value = "";
+  const profilePictureError = document.getElementById("profilePictureError");
+  profilePictureError.textContent = "❌ Please upload a profile picture.";
+  profilePictureError.style.color = "red";
+  updateProfilePictureUI();
   profilePictureInput.focus();
 });
 
@@ -126,11 +151,11 @@ const updatePasswordValidation = () => {
       ? "green"
       : "red";
   });
+  validateForm();
 };
 
 passwordInput.addEventListener("input", updatePasswordValidation);
 
-// Fetch User Roles
 const fetchUserRoles = async () => {
   userTypeSelect.innerHTML = `<option value="">Loading...</option>`;
   try {
@@ -143,32 +168,25 @@ const fetchUserRoles = async () => {
   } catch (error) {
     console.error("Error fetching user types:", error);
   }
+  validateForm();
 };
 
-const contactInput = document.getElementById("contact");
-const contactError = document.getElementById("contactError");
-
-// Contact Number Validation
 const validateContactNumber = () => {
   const contactValue = contactInput.value.trim();
-  const contactRegex = /^09\d{9}$/; // Regex: Starts with '09' followed by 9 digits (Total: 11 digits)
+  const contactRegex = /^09\d{9}$/;
 
   if (!contactRegex.test(contactValue)) {
-    contactError.textContent =
-      "❌ Contact number must be exactly 11 digits and start with '09'.";
+    contactError.textContent = "❌ Contact number must be 11 digits starting with '09'.";
     contactError.style.color = "red";
-    return false;
+  } else {
+    contactError.textContent = "✅ Valid contact number.";
+    contactError.style.color = "green";
   }
-
-  contactError.textContent = "✅ Valid contact number.";
-  contactError.style.color = "green";
-  return true;
+  validateForm();
 };
 
-// Add event listener for real-time validation
 contactInput.addEventListener("input", validateContactNumber);
 
-// Fetch Barangays
 const fetchBarangayList = async () => {
   try {
     const barangayQuery = await getDocs(collection(db, "tb_barangay"));
@@ -180,12 +198,15 @@ const fetchBarangayList = async () => {
   } catch (error) {
     console.error("Error fetching barangays:", error);
   }
+  validateForm();
 };
 
-// Dynamic Form Update
 export function updateFormFields() {
   const userType = userTypeSelect.value;
-
+  usernameInput.value = "";
+  farmerIdInput.value = "";
+  usernameError.textContent = "";
+  farmerIdError.textContent = "";
   adminFields.classList.add("hidden");
   farmerFields.classList.add("hidden");
 
@@ -193,20 +214,16 @@ export function updateFormFields() {
     adminFields.classList.remove("hidden");
     farmerIdInput.required = false;
     usernameInput.required = true;
-  } else if (
-    userType === "Farmer" ||
-    userType === "Farm President" ||
-    userType === "Head Farmer"
-  ) {
+  } else if (userType === "Farmer" || userType === "Farm President" || userType === "Head Farmer") {
     farmerFields.classList.remove("hidden");
     farmerIdInput.required = true;
     usernameInput.required = false;
   }
+  validateForm();
 }
 
 userTypeSelect.addEventListener("change", updateFormFields);
 
-// Show Error Popup
 const showError = (message) => {
   popupMessage.textContent = message;
   errorPopup.classList.remove("hidden");
@@ -216,7 +233,6 @@ closePopup.addEventListener("click", () => {
   errorPopup.classList.add("hidden");
 });
 
-// Upload Profile Picture to Firebase Storage
 const uploadProfilePicture = async (file, userId) => {
   const storageRef = ref(storage, `profile_pictures/${userId}`);
   await uploadBytes(storageRef, file);
@@ -243,14 +259,12 @@ const validateConfirmPassword = () => {
     passwordMatchMessage.style.display = "block";
     confirmPasswordInput.setCustomValidity("");
   }
-
   validateForm();
 };
 
 passwordInput.addEventListener("input", validateConfirmPassword);
 confirmPasswordInput.addEventListener("input", validateConfirmPassword);
 
-// Debounce function to delay execution
 function debounce(func, delay) {
   let timer;
   return (...args) => {
@@ -262,23 +276,15 @@ function debounce(func, delay) {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateEmailFormat(email) {
-  if (!email || typeof email !== "string") {
+  if (!email || typeof email !== "string" || email.trim() === "") {
     emailError.textContent = "";
     return false;
   }
-
-  if (email.trim() === "") {
-    emailError.textContent = "";
-    return false;
-  }
-
   if (!emailRegex.test(email)) {
     emailError.textContent = "❌ Invalid email format.";
     emailError.style.color = "red";
     return false;
   }
-
-  emailError.textContent = "";
   return true;
 }
 
@@ -287,261 +293,124 @@ async function checkEmailExists(email) {
     emailError.textContent = "";
     return;
   }
+  try {
+    const userQuery = query(collection(db, "tb_users"), where("email", "==", email));
+    const farmerQuery = query(collection(db, "tb_farmers"), where("email", "==", email));
+    const [userSnapshot, farmerSnapshot] = await Promise.all([
+      getDocs(userQuery),
+      getDocs(farmerQuery),
+    ]);
 
-  const maxRetries = 3;
-  let attempt = 0;
-
-  while (attempt < maxRetries) {
-    try {
-      const userQuery = query(
-        collection(db, "tb_users"),
-        where("email", "==", email)
-      );
-      const querySnapshot = await getDocs(userQuery);
-
-      if (!querySnapshot.empty) {
-        emailError.textContent = "❌ Email is already in use.";
-        emailError.style.color = "red";
-      } else {
-        emailError.textContent = "✅ Email is available to use.";
-        emailError.style.color = "green";
-      }
-      return;
-    } catch (error) {
-      console.error(`Attempt ${attempt + 1} - Error checking email:`, error);
-      if (error.name === "BloomFilterError" && attempt < maxRetries - 1) {
-        attempt++;
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        continue;
-      }
-      if (error.name === "BloomFilterError") {
-        emailError.textContent =
-          "❌ Error checking email: Bloom filter issue after retries. Please try again later.";
-      } else {
-        emailError.textContent = "❌ Error checking email.";
-      }
+    if (!userSnapshot.empty || !farmerSnapshot.empty) {
+      emailError.textContent = "❌ Email is already in use.";
       emailError.style.color = "red";
-      return;
+    } else {
+      emailError.textContent = "✅ Email is available to use.";
+      emailError.style.color = "green";
     }
+  } catch (error) {
+    console.error("Error checking email:", error);
+    emailError.textContent = "❌ Error checking email availability.";
+    emailError.style.color = "red";
   }
+  validateForm();
 }
 
-let emailCheckTimeout;
-
-emailInput.addEventListener("input", () => {
-  clearTimeout(emailCheckTimeout);
-
+emailInput.addEventListener("input", debounce(async () => {
   const email = emailInput.value.trim();
-
-  if (email === "") {
-    emailError.textContent = "";
-    validateForm();
-    return;
+  if (email && validateEmailFormat(email)) {
+    await checkEmailExists(email);
   }
-
-  emailCheckTimeout = setTimeout(async () => {
-    if (validateEmailFormat(email)) {
-      await checkEmailExists(email);
-    }
-  }, 500);
-});
+}, 500));
 
 const checkUsernameExists = debounce(async () => {
   const username = usernameInput.value.trim();
-
-  if (!username || username.trim() === "") {
+  if (!username) {
     usernameError.textContent = "";
     validateForm();
     return;
   }
-
-  const maxRetries = 3;
-  let attempt = 0;
-
-  while (attempt < maxRetries) {
-    try {
-      const usernameQuery = query(
-        collection(db, "tb_users"),
-        where("user_name", "==", username)
-      );
-      const querySnapshot = await getDocs(usernameQuery);
-
-      if (!querySnapshot.empty) {
-        usernameError.textContent = "❌ Username is already taken.";
-        usernameError.style.color = "red";
-      } else {
-        usernameError.textContent = "✅ Username is available.";
-        usernameError.style.color = "green";
-      }
-      validateForm();
-      return;
-    } catch (error) {
-      console.error(`Attempt ${attempt + 1} - Error checking username:`, error);
-      if (error.name === "BloomFilterError" && attempt < maxRetries - 1) {
-        attempt++;
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        continue;
-      }
-      if (error.name === "BloomFilterError") {
-        usernameError.textContent =
-          "❌ Error checking username: Bloom filter issue after retries. Please try again later.";
-      } else {
-        usernameError.textContent = "Error checking username.";
-      }
-      usernameError.style.color = "red";
-      validateForm();
-      return;
-    }
+  try {
+    const usernameQuery = query(collection(db, "tb_users"), where("user_name", "==", username));
+    const querySnapshot = await getDocs(usernameQuery);
+    
+    usernameError.textContent = querySnapshot.empty 
+      ? "✅ Username is available." 
+      : "❌ Username is already taken.";
+    usernameError.style.color = querySnapshot.empty ? "green" : "red";
+  } catch (error) {
+    console.error("Error checking username:", error);
+    usernameError.textContent = "❌ Error checking username.";
+    usernameError.style.color = "red";
   }
+  validateForm();
 }, 500);
 
 usernameInput.addEventListener("input", checkUsernameExists);
 
 const checkFarmerIdExists = debounce(async () => {
   const farmerId = farmerIdInput.value.trim();
-
-  if (!farmerId || farmerId.trim() === "") {
+  if (!farmerId) {
     farmerIdError.textContent = "";
     validateForm();
     return;
   }
-
-  const maxRetries = 3;
-  let attempt = 0;
-
-  while (attempt < maxRetries) {
-    try {
-      const farmerQuery = query(
-        collection(db, "tb_farmers"),
-        where("farmer_id", "==", farmerId)
-      );
-      const querySnapshot = await getDocs(farmerQuery);
-
-      if (!querySnapshot.empty) {
-        farmerIdError.textContent = "❌ Farmer ID is already in use.";
-        farmerIdError.style.color = "red";
-      } else {
-        farmerIdError.textContent = "✅ Farmer ID is available.";
-        farmerIdError.style.color = "green";
-      }
-      validateForm();
-      return;
-    } catch (error) {
-      console.error(
-        `Attempt ${attempt + 1} - Error checking Farmer ID:`,
-        error
-      );
-      if (error.name === "BloomFilterError" && attempt < maxRetries - 1) {
-        attempt++;
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        continue;
-      }
-      if (error.name === "BloomFilterError") {
-        farmerIdError.textContent =
-          "❌ Error checking Farmer ID: Bloom filter issue after retries. Please try again later.";
-      } else {
-        farmerIdError.textContent = "Error checking Farmer ID.";
-      }
-      farmerIdError.style.color = "red";
-      validateForm();
-      return;
-    }
+  try {
+    const farmerQuery = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
+    const querySnapshot = await getDocs(farmerQuery);
+    
+    farmerIdError.textContent = querySnapshot.empty 
+      ? "✅ Farmer ID is available." 
+      : "❌ Farmer ID is already in use.";
+    farmerIdError.style.color = querySnapshot.empty ? "green" : "red";
+  } catch (error) {
+    console.error("Error checking Farmer ID:", error);
+    farmerIdError.textContent = "❌ Error checking Farmer ID.";
+    farmerIdError.style.color = "red";
   }
+  validateForm();
 }, 500);
 
 farmerIdInput.addEventListener("input", checkFarmerIdExists);
 
-// Form Submission
 if (!form.dataset.listenerAdded) {
   form.dataset.listenerAdded = "true";
-
+  
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    console.log("Form submission triggered");
+    
+    if (!validateForm()) {
+      showError("Please correct all form errors");
+      return;
+    }
 
     submitsButton.disabled = true;
 
     const userType = userTypeSelect.value;
-    const email = document.getElementById("email").value;
+    const email = emailInput.value.trim();
     const password = passwordInput.value;
-    const confirmPassword = confirmPasswordInput.value;
-    const firstName = document.getElementById("firstName").value;
-    const middleName = document.getElementById("middleName").value;
-    const lastName = document.getElementById("lastName").value;
+    const firstName = document.getElementById("firstName").value.trim();
+    const middleName = document.getElementById("middleName").value.trim();
+    const lastName = document.getElementById("lastName").value.trim();
     const contact = contactInput.value.trim();
-
-    if (!validateContactNumber()) {
-      submitsButton.disabled = false;
-      return showError(
-        "Invalid contact number. It must be exactly 11 digits and start with '09'."
-      );
-    }
-
     const birthday = document.getElementById("birthday").value;
     const sex = document.getElementById("sex").value;
     const barangay_name = barangaySelect.value;
+    const username = usernameInput.value.trim();
+    const farmerId = farmerIdInput.value.trim();
     const profilePicture = profilePictureInput.files[0];
 
-    let username = "";
-    let farmerId = "";
-
-    if (userType === "Admin" || userType === "Supervisor") {
-      username = usernameInput.value.trim();
-      if (!username) {
-        submitsButton.disabled = false;
-        return showError("Username is required for Admins and Supervisors.");
-      }
-      if (usernameError.textContent.includes("❌")) {
-        submitsButton.disabled = false;
-        return showError("Username is already taken. Please choose another.");
-      }
-    } else {
-      farmerId = farmerIdInput.value.trim();
-      if (!farmerId) {
-        submitsButton.disabled = false;
-        return showError(
-          "Farmer ID is required for Farmers, Farm Presidents, and Head Farmers."
-        );
-      }
-    }
-
-    if (password !== confirmPassword) {
-      submitsButton.disabled = false;
-      return showError("Passwords do not match.");
-    }
-
     try {
-      console.log("Checking for existing user...");
-      const userQuery = query(
-        collection(db, "tb_users"),
-        where("email", "==", email)
-      );
-      const querySnapshot = await getDocs(userQuery);
-
-      if (!querySnapshot.empty) {
-        submitsButton.disabled = false;
-        return showError("Email is already registered.");
-      }
-
-      console.log("Creating user in Firebase Auth...");
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const uid = userCredential.user.uid; // Get the UID
-      console.log("User created with UID:", uid);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
 
       let profilePictureUrl = "";
       if (profilePicture) {
-        console.log("Uploading profile picture...");
         profilePictureUrl = await uploadProfilePicture(profilePicture, uid);
-        console.log("Profile picture uploaded:", profilePictureUrl);
       }
 
       const userData = {
-        uid, // Added UID field
+        uid,
         user_picture: profilePictureUrl,
         first_name: firstName,
         middle_name: middleName,
@@ -551,25 +420,21 @@ if (!form.dataset.listenerAdded) {
         birthday,
         sex,
         user_type: userType,
-        barangay_name: barangay_name,
+        barangay_name,
       };
 
       if (userType === "Admin" || userType === "Supervisor") {
         userData.user_name = username;
-        await setDoc(doc(db, "tb_users", uid), userData); // Store in tb_users with UID
+        await setDoc(doc(db, "tb_users", uid), userData);
       } else {
         userData.farmer_id = farmerId;
-        await setDoc(doc(db, "tb_farmers", uid), userData); // Store in tb_farmers with UID
+        await setDoc(doc(db, "tb_farmers", uid), userData);
       }
 
-      console.log("Account created successfully!");
-      alert("Account created successfully!");
-
-      // Reset form and UI
+      showSuccessPanel("Account created successfully!");
       form.reset();
       updateFormFields();
       updateProfilePictureUI();
-      usernameInput.value = "";
       usernameError.textContent = "";
       farmerIdError.textContent = "";
       emailError.textContent = "";
@@ -577,37 +442,30 @@ if (!form.dataset.listenerAdded) {
       passwordMatchMessage.style.display = "none";
       contactError.textContent = "";
       document.getElementById("profilePictureError").textContent = "";
-
-      // Reset password validation indicators
       Object.entries(passwordChecks).forEach(([id]) => {
         document.getElementById(id).style.color = "";
       });
-
-      submitsButton.disabled = true;
     } catch (error) {
-      console.error("Error creating account:", error);
-      showError(error.message);
-      submitsButton.disabled = false;
+      console.error("Error:", error.code, error.message);
+      showError(error.message || "Failed to create account");
+    } finally {
+      submitsButton.disabled = true;
     }
   });
 }
 
-// Add event listeners to trigger validation
-emailInput.addEventListener("input", validateForm);
-usernameInput.addEventListener("input", validateForm);
-farmerIdInput.addEventListener("input", validateForm);
-passwordInput.addEventListener("input", validateForm);
-confirmPasswordInput.addEventListener("input", validateForm);
-userTypeSelect.addEventListener("change", validateForm);
-barangaySelect.addEventListener("change", validateForm);
-profilePictureInput.addEventListener("change", validateForm);
-contactInput.addEventListener("input", validateForm);
+// Add event listeners for all inputs
+const inputs = form.querySelectorAll("input, select");
+inputs.forEach(input => {
+  input.addEventListener("input", validateForm);
+  input.addEventListener("change", validateForm);
+});
 
-// Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
   fetchUserRoles();
   fetchBarangayList();
   updateProfilePictureUI();
-  updateFormFields(); // Ensure the form starts in the default state
+  updateFormFields();
+  submitsButton.disabled = true;
   validateForm();
 });

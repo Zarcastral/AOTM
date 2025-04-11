@@ -119,16 +119,16 @@ function showSuccessPanel(message) {
   successMessage.style.display = "block";
   setTimeout(() => {
     successMessage.style.opacity = "1";
-  }, 5); // Small delay to trigger transition
+  }, 5);
 
   // Fade out after 4 seconds and reload
   setTimeout(() => {
     successMessage.style.opacity = "0";
     setTimeout(() => {
       document.body.removeChild(successMessage);
-      window.location.reload(); // Retain original functionality
-    }, 400); // Match transition duration
-  }, 4000); // Display for 4 seconds, matching the activity log
+      window.location.reload();
+    }, 400);
+  }, 4000);
 }
 
 window.addEventListener("beforeunload", warnUnsavedChanges);
@@ -178,7 +178,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         () => {
           window.removeEventListener("beforeunload", warnUnsavedChanges);
           isFormDirty = false;
-          window.history.back();
+          // Check if we came from the email page
+          const referrer = document.referrer;
+          if (referrer.includes("email.html")) {
+            // Go back twice to skip the email page
+            window.history.go(-3);
+          } else {
+            // Normal back navigation
+            window.history.back();
+          }
         },
         () => {
           e.preventDefault();
@@ -187,7 +195,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       window.removeEventListener("beforeunload", warnUnsavedChanges);
       isFormDirty = false;
-      window.history.back();
+      // Check if we came from the email page
+      const referrer = document.referrer;
+      if (referrer.includes("email.html")) {
+        // Go back twice to skip the email page
+        window.history.go(-3);
+      } else {
+        // Normal back navigation
+        window.history.back();
+      }
     }
   });
 
@@ -331,8 +347,6 @@ function handleFileSelect(event) {
     removeFileButton.style.display = "none";
   }
 }
-
-import { getDoc } from "firebase/firestore";
 
 async function removeProfilePicture() {
   const imgElement = document.getElementById("profile-picture");

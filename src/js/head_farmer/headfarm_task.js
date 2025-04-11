@@ -23,7 +23,9 @@ let totalPages = 0;
 function isPastEndDate(endDate, extendDate) {
   const currentDate = new Date();
   // Use extendDate if it exists and is valid, otherwise use endDate
-  const effectiveEndDate = extendDate ? new Date(extendDate) : new Date(endDate);
+  const effectiveEndDate = extendDate
+    ? new Date(extendDate)
+    : new Date(endDate);
   return currentDate > effectiveEndDate;
 }
 
@@ -101,12 +103,15 @@ export async function fetchProjectsForFarmer() {
           sessionStorage.setItem("selected_crop_type", project.crop_type_name);
           sessionStorage.setItem("selected_crop_name", project.crop_name);
           sessionStorage.setItem("selected_project_end_date", project.end_date);
-// Store extend_date if it exists
-if (project.extend_date) {
-  sessionStorage.setItem("selected_project_extend_date", project.extend_date);
-} else {
-  sessionStorage.removeItem("selected_project_extend_date"); // Clear if no extension
-}
+          // Store extend_date if it exists
+          if (project.extend_date) {
+            sessionStorage.setItem(
+              "selected_project_extend_date",
+              project.extend_date
+            );
+          } else {
+            sessionStorage.removeItem("selected_project_extend_date"); // Clear if no extension
+          }
           console.log(`Fetched project ${project.project_id}`);
           fetchProjectTasks(project.crop_type_name, project.project_id);
         }
@@ -812,7 +817,8 @@ async function configureBackButton() {
 
   if (!projectId) {
     console.error("No project_id found in sessionStorage.");
-    return; // Keep hidden
+    backContainer.style.display = "none"; // Hide if no project ID
+    return;
   }
 
   try {
@@ -825,7 +831,8 @@ async function configureBackButton() {
 
     if (querySnapshot.empty) {
       console.log("Project not found in tb_projects.");
-      return; // Keep hidden
+      backContainer.style.display = "none"; // Hide if project not found
+      return;
     }
 
     const projectData = querySnapshot.docs[0].data();
@@ -836,40 +843,47 @@ async function configureBackButton() {
     const isLeadFarmer = farmerId && String(leadFarmerId) === String(farmerId);
     console.log("isLeadFarmer:", isLeadFarmer);
 
-    const restrictedUserTypes = ["Head Farmer", "Farmer", "Farm President"];
-    const isRestrictedUser = restrictedUserTypes.includes(userType);
-    console.log("isRestrictedUser:", isRestrictedUser);
+    // Define user types and their respective redirect paths
+    const navigationPaths = {
+      Admin: "../../../../public/landing_pages/admin/viewproject.html",
+      Supervisor: "../../../../public/landing_pages/admin/viewproject.html",
+      "Farm President":
+        "../../../public/landing_pages/farm_president/viewproject.html",
+    };
 
-    if (isLeadFarmer) {
+    const canNavigateBack = Object.keys(navigationPaths).includes(userType);
+    console.log("canNavigateBack:", canNavigateBack);
+
+    if (isLeadFarmer && userType === "Head Farmer") {
+      // Hide back button only for Head Farmers who are lead farmers
       backContainer.style.display = "none";
       backContainer.classList.remove("visible");
-      console.log("Back button hidden: farmer_id matches lead_farmer_id.");
-      console.log("Hidden style applied:", backContainer.style.display);
-    } else {
-      backContainer.style.display = "block !important";
+      console.log("Back button hidden: Head Farmer is lead farmer.");
+    } else if (canNavigateBack) {
+      // Show back button and enable navigation for Admin, Supervisor, and Farm President
+      backContainer.style.display = "block";
       backContainer.classList.add("visible");
-      console.log(
-        "Back button visible: farmer_id does not match lead_farmer_id or is absent."
-      );
-      console.log("Visible style applied:", backContainer.style.display);
+      console.log("Back button visible: User is allowed to navigate back.");
 
-      if (!isRestrictedUser) {
-        backLink.addEventListener("click", (event) => {
-          event.preventDefault();
-          sessionStorage.setItem("selectedProjectId", projectId);
-          window.location.href =
-            "../../../../public/landing_pages/admin/viewproject.html";
-          console.log("Navigating to admin viewproject.html");
-        });
-      } else {
-        console.log("Back button uses default href for restricted user.");
-      }
+      backLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        sessionStorage.setItem("selectedProjectId", projectId); // Consistent key
+        const redirectPath = navigationPaths[userType];
+        window.location.href = redirectPath;
+        console.log(`Navigating to ${redirectPath}`);
+      });
+    } else {
+      // For other users (e.g., regular Farmers), hide or use default behavior
+      backContainer.style.display = "none";
+      backContainer.classList.remove("visible");
+      console.log(
+        "Back button hidden: User type not allowed to navigate back."
+      );
     }
   } catch (error) {
     console.error("Error fetching project data for back button:", error);
     backContainer.style.display = "none";
     backContainer.classList.remove("visible");
-    console.log("Error style applied:", backContainer.style.display);
   }
 }
 

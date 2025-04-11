@@ -279,115 +279,14 @@ window.loadCropTypes = async function (selectedCrop, selectedCropType = null) {
   }
 };
 
-window.addEquipmentForm = async function (equipData = null) {
-  const container = document.getElementById("equipment-container");
-  const div = document.createElement("div");
-  div.classList.add("equipment__group");
-
-  const equipmentTypes = await getEquipmentTypes();
-  
-  div.innerHTML = `
-    <div class="form__group">
-      <label class="form__label">Equipment Type:</label>
-      <select class="form__select1 equipment__type">
-        <option value="">Select Equipment Type</option>
-        ${equipmentTypes.map((type) => `<option value="${type}">${type}</option>`).join("")}
-      </select>
-    </div>
-    <div class="form__group">
-      <label class="form__label">Equipment Name:</label>
-      <select class="form__select equipment__name">
-        <option value="">Select Equipment Type First</option>
-      </select>
-    </div>
-    <div class="form__group">
-      <label class="form__label">Equipment Quantity:</label>
-      <input type="number" class="form__input equipment__quantity">
-    </div>
-    <button class="btn btn--remove" onclick="removeEquipmentForm(this)">Remove</button>
-  `;
-
-  container.appendChild(div);
-
-  const equipmentTypeDropdown = div.querySelector(".equipment__type");
-  const equipmentNameDropdown = div.querySelector(".equipment__name");
-  const quantityInput = div.querySelector(".equipment__quantity");
-
-  if (equipData) {
-    equipmentTypeDropdown.value = equipData.equipment_type || "";
-    await loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput);
-    equipmentNameDropdown.value = equipData.equipment_name || "";
-    quantityInput.value = equipData.equipment_quantity || "";
-  }
-
-  equipmentTypeDropdown.addEventListener("change", function () {
-    loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput);
-  });
-};
-
-async function getEquipmentTypes() {
-  const userType = sessionStorage.getItem("user_type");
-  if (!userType) return [];
-
-  const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
-  const uniqueTypes = new Set();
-
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    if (Array.isArray(data.stocks) && data.stocks.some(stock => stock.owned_by === userType)) {
-      uniqueTypes.add(data.equipment_type);
-    }
-  });
-
-  return Array.from(uniqueTypes);
-}
-
-async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput) {
-  const selectedType = equipmentTypeDropdown.value;
-  equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Name</option>';
-  const userType = sessionStorage.getItem("user_type");
-
-  if (!selectedType || !userType) return;
-
-  const q = query(
-    collection(db, "tb_equipment_stock"),
-    where("equipment_type", "==", selectedType)
-  );
-  const querySnapshot = await getDocs(q);
-  
-  window.equipmentStockMap = window.equipmentStockMap || {};
-
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    const stocksArray = Array.isArray(data.stocks) ? data.stocks : [];
-    const userStock = stocksArray.find((stock) => stock.owned_by === userType);
-    const currentStock = userStock ? parseInt(userStock.current_stock) : 0;
-
-    window.equipmentStockMap[data.equipment_name] = currentStock;
-
-    const option = document.createElement("option");
-    option.value = data.equipment_name;
-    option.textContent = `${data.equipment_name} ${
-      currentStock === 0 ? "(Out of Stock)" : `(Stock: ${currentStock})`
-    }`;
-    equipmentNameDropdown.appendChild(option);
-  });
-
-  equipmentNameDropdown.addEventListener("change", function () {
-    const selectedEquipment = this.value;
-    const maxStock = window.equipmentStockMap[selectedEquipment] || 0;
-    quantityInput.value = "";
-    quantityInput.disabled = maxStock === 0;
-    quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
-  });
-
-  quantityInput.addEventListener("input", function () {
-    // No automatic disabling here
-  });
-}
-
 window.addFertilizerForm = async function (fertData = null) {
   const container = document.getElementById("fertilizer-container");
+  const existingFertilizers = Array.from(container.querySelectorAll(".fertilizer__group")).map(group => {
+    const type = group.querySelector(".fertilizer__type").value;
+    const name = group.querySelector(".fertilizer__name").value;
+    return `${type}:${name}`;
+  });
+
   const div = document.createElement("div");
   div.classList.add("fertilizer__group");
 
@@ -411,25 +310,40 @@ window.addFertilizerForm = async function (fertData = null) {
       <label class="form__label">Fertilizer Quantity:</label>
       <input type="number" class="form__input fertilizer__quantity" placeholder="Available Stock: -">
     </div>
-    <button class="btn btn--remove" onclick="removeFertilizerForm(this)">Remove</button>
+    <button class="btn btn--remove" onclick="window.removeFertilizerForm(this)">Remove</button>
   `;
-
-  container.appendChild(div);
 
   const fertilizerTypeDropdown = div.querySelector(".fertilizer__type");
   const fertilizerNameDropdown = div.querySelector(".fertilizer__name");
   const quantityInput = div.querySelector(".fertilizer__quantity");
 
+  // Add event listeners
+  fertilizerTypeDropdown.addEventListener("change", function () {
+    loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput);
+  });
+
+  fertilizerNameDropdown.addEventListener("change", function () {
+    const selectedType = fertilizerTypeDropdown.value;
+    const selectedName = this.value;
+    const key = `${selectedType}:${selectedName}`;
+
+    if (selectedType && selectedName && existingFertilizers.includes(key) && !fertData) {
+      showprojectUpdateMessage(`Fertilizer '${selectedName}' of type '${selectedType}' is already added.`, false);
+      div.remove(); // Remove the duplicate entry
+      return;
+    }
+  });
+
+  // If editing existing data, populate the fields
   if (fertData) {
     fertilizerTypeDropdown.value = fertData.fertilizer_type || "";
     await loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput);
     fertilizerNameDropdown.value = fertData.fertilizer_name || "";
     quantityInput.value = fertData.fertilizer_quantity || "";
+  } else {
+    // Only append if it's a new entry (not from existing data)
+    container.appendChild(div);
   }
-
-  fertilizerTypeDropdown.addEventListener("change", function () {
-    loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput);
-  });
 };
 
 async function getFertilizerTypes() {
@@ -493,13 +407,141 @@ async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdow
   });
 }
 
-function removeFertilizerForm(button) {
-  button.parentElement.remove();
+window.addEquipmentForm = async function (equipData = null) {
+  const container = document.getElementById("equipment-container");
+  const existingEquipment = Array.from(container.querySelectorAll(".equipment__group")).map(group => {
+    const type = group.querySelector(".equipment__type").value;
+    const name = group.querySelector(".equipment__name").value;
+    return `${type}:${name}`;
+  });
+
+  const div = document.createElement("div");
+  div.classList.add("equipment__group");
+
+  const equipmentTypes = await getEquipmentTypes();
+
+  div.innerHTML = `
+    <div class="form__group">
+      <label class="form__label">Equipment Type:</label>
+      <select class="form__select1 equipment__type">
+        <option value="">Select Equipment Type</option>
+        ${equipmentTypes.map((type) => `<option value="${type}">${type}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form__group">
+      <label class="form__label">Equipment Name:</label>
+      <select class="form__select equipment__name">
+        <option value="">Select Equipment Type First</option>
+      </select>
+    </div>
+    <div class="form__group">
+      <label class="form__label">Equipment Quantity:</label>
+      <input type="number" class="form__input equipment__quantity">
+    </div>
+    <button class="btn btn--remove" onclick="window.removeEquipmentForm(this)">Remove</button>
+  `;
+
+  const equipmentTypeDropdown = div.querySelector(".equipment__type");
+  const equipmentNameDropdown = div.querySelector(".equipment__name");
+  const quantityInput = div.querySelector(".equipment__quantity");
+
+  // Add event listeners
+  equipmentTypeDropdown.addEventListener("change", function () {
+    loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput);
+  });
+
+  equipmentNameDropdown.addEventListener("change", function () {
+    const selectedType = equipmentTypeDropdown.value;
+    const selectedName = this.value;
+    const key = `${selectedType}:${selectedName}`;
+
+    if (selectedType && selectedName && existingEquipment.includes(key) && !equipData) {
+      showprojectUpdateMessage(`Equipment '${selectedName}' of type '${selectedType}' is already added.`, false);
+      div.remove(); // Remove the duplicate entry
+      return;
+    }
+  });
+
+  // If editing existing data, populate the fields
+  if (equipData) {
+    equipmentTypeDropdown.value = equipData.equipment_type || "";
+    await loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput);
+    equipmentNameDropdown.value = equipData.equipment_name || "";
+    quantityInput.value = equipData.equipment_quantity || "";
+  } else {
+    // Only append if it's a new entry (not from existing data)
+    container.appendChild(div);
+  }
+};
+
+async function getEquipmentTypes() {
+  const userType = sessionStorage.getItem("user_type");
+  if (!userType) return [];
+
+  const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
+  const uniqueTypes = new Set();
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    if (Array.isArray(data.stocks) && data.stocks.some(stock => stock.owned_by === userType)) {
+      uniqueTypes.add(data.equipment_type);
+    }
+  });
+
+  return Array.from(uniqueTypes);
 }
 
-function removeEquipmentForm(button) {
-  button.parentElement.remove();
+async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput) {
+  const selectedType = equipmentTypeDropdown.value;
+  equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Name</option>';
+  const userType = sessionStorage.getItem("user_type");
+
+  if (!selectedType || !userType) return;
+
+  const q = query(
+    collection(db, "tb_equipment_stock"),
+    where("equipment_type", "==", selectedType)
+  );
+  const querySnapshot = await getDocs(q);
+  
+  window.equipmentStockMap = window.equipmentStockMap || {};
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    const stocksArray = Array.isArray(data.stocks) ? data.stocks : [];
+    const userStock = stocksArray.find((stock) => stock.owned_by === userType);
+    const currentStock = userStock ? parseInt(userStock.current_stock) : 0;
+
+    window.equipmentStockMap[data.equipment_name] = currentStock;
+
+    const option = document.createElement("option");
+    option.value = data.equipment_name;
+    option.textContent = `${data.equipment_name} ${
+      currentStock === 0 ? "(Out of Stock)" : `(Stock: ${currentStock})`
+    }`;
+    equipmentNameDropdown.appendChild(option);
+  });
+
+  equipmentNameDropdown.addEventListener("change", function () {
+    const selectedEquipment = this.value;
+    const maxStock = window.equipmentStockMap[selectedEquipment] || 0;
+    quantityInput.value = "";
+    quantityInput.disabled = maxStock === 0;
+    quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
+  });
+
+  quantityInput.addEventListener("input", function () {
+    // No automatic disabling here
+  });
 }
+
+window.removeFertilizerForm = function (button) {
+  button.parentElement.remove();
+};
+
+window.removeEquipmentForm = function (button) {
+  button.parentElement.remove();
+};
 
 window.getNextProjectID = async function () {
   const counterRef = doc(db, "tb_id_counters", "projects_id_counter");
