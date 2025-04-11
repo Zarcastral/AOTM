@@ -114,10 +114,12 @@ async function fetchProjectDetails() {
             document.getElementById("status").textContent = projectData.status || "No Status";
             document.getElementById("startDate").textContent = projectData.start_date || "N/A";
             document.getElementById("endDate").textContent = projectData.end_date || "N/A";
+            document.getElementById("extendedDate").textContent = projectData.extend_date || "N/A";
             document.getElementById("cropName").textContent = projectData.crop_name || "N/A";
             document.getElementById("cropType").textContent = projectData.crop_type_name || "N/A";
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
+            
 
             console.log("📌 Returning project_id as integer:", projectId);
             return projectId; // Return project_id as integer
