@@ -276,12 +276,19 @@ document.addEventListener("DOMContentLoaded", loadData);
  * @param {string} collectionName - Firestore collection name
  * @param {string} fieldName - Field to check for duplicates
  * @param {string} value - Value to check
+ * @param {string} [excludeDocId] - Optional document ID to exclude from the check
  * @returns {Promise<boolean>} - True if duplicate exists, false otherwise
  */
-window.checkForDuplicate = async function(collectionName, fieldName, value) {
+window.checkForDuplicate = async function(collectionName, fieldName, value, excludeDocId = null) {
     try {
         const q = query(collection(db, collectionName), where(fieldName, '==', value.trim()));
         const querySnapshot = await getDocs(q);
+        
+        if (excludeDocId) {
+            // Return true if any document matches the value, excluding the specified doc ID
+            return querySnapshot.docs.some(doc => doc.id !== excludeDocId);
+        }
+        
         return !querySnapshot.empty;
     } catch (error) {
         console.error(`Error checking for duplicate in ${collectionName}:`, error);
@@ -297,13 +304,13 @@ window.checkForDuplicate = async function(collectionName, fieldName, value) {
 window.editItem = function(collection, id, name) {
     // Validate inputs
     if (!collection || !id || name === undefined) {
-        console.error('Invalid edit parameters:', {collection, id, name});
+        console.error('Invalid edit parameters:', { collection, id, name });
         showCustomMessage('Cannot edit this item', false);
         return;
     }
 
-    // Sanitize name display (prevent XSS)
-    const sanitizedName = name.toString()
+    // Sanitize name display (prevent XSS and trim)
+    const sanitizedName = name.toString().trim()
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
 
@@ -321,6 +328,7 @@ window.saveEditedItem = async function() {
     const collectionName = document.getElementById('edit-item-collection').value;
     const newName = document.getElementById('edit-item-name').value.trim();
 
+    // Validate inputs
     if (!newName) {
         showCustomMessage('Name cannot be empty', false);
         return;
@@ -335,37 +343,101 @@ window.saveEditedItem = async function() {
     };
 
     const fieldToUpdate = fieldMap[collectionName];
-    
+
     if (!fieldToUpdate) {
         showCustomMessage('Invalid collection type', false);
         return;
     }
 
     try {
-        const q = query(collection(db, collectionName), where(fieldToUpdate, '==', newName));
-        const querySnapshot = await getDocs(q);
-
-        const isDuplicate = querySnapshot.docs.some(doc => doc.id !== id);
-        
+        // Check for duplicate name, excluding the current document
+        const isDuplicate = await checkForDuplicate(collectionName, fieldToUpdate, newName, id);
         if (isDuplicate) {
             showCustomMessage(`${fieldToUpdate.replace('_', ' ')} already exists!`, false);
             return;
         }
 
+        // Additional checks for collections with composite uniqueness (e.g., crop type + crop name)
+        if (collectionName === 'tb_crop_types') {
+            // Fetch the current crop type to get its crop_name
+            const cropTypeDoc = await getDoc(doc(db, collectionName, id));
+            if (!cropTypeDoc.exists()) {
+                showCustomMessage('Crop type not found!', false);
+                return;
+            }
+            const cropName = cropTypeDoc.data().crop_name;
+            const q = query(collection(db, collectionName), 
+                where('crop_type_name', '==', newName), 
+                where('crop_name', '==', cropName));
+            const querySnapshot = await getDocs(q);
+            const isDuplicateCombo = querySnapshot.docs.some(doc => doc.id !== id);
+            if (isDuplicateCombo) {
+                showCustomMessage('This crop type name and crop name combination already exists!', false);
+                return;
+            }
+        } else if (collectionName === 'tb_equipment') {
+            // Fetch the current equipment to get its category
+            const equipmentDoc = await getDoc(doc(db, collectionName, id));
+            if (!equipmentDoc.exists()) {
+                showCustomMessage('Equipment not found!', false);
+                return;
+            }
+            const category = equipmentDoc.data().equipment_category;
+            const q = query(collection(db, collectionName), 
+                where('equipment_name', '==', newName), 
+                where('equipment_category', '==', category));
+            const querySnapshot = await getDocs(q);
+            const isDuplicateCombo = querySnapshot.docs.some(doc => doc.id !== id);
+            if (isDuplicateCombo) {
+                showCustomMessage('This equipment name and category combination already exists!', false);
+                return;
+            }
+        } else if (collectionName === 'tb_fertilizer') {
+            // Fetch the current fertilizer to get its type
+            const fertilizerDoc = await getDoc(doc(db, collectionName, id));
+            if (!fertilizerDoc.exists()) {
+                showCustomMessage('Fertilizer not found!', false);
+                return;
+            }
+            const fertilizerType = fertilizerDoc.data().fertilizer_type;
+            const q = query(collection(db, collectionName), 
+                where('fertilizer_name', '==', newName), 
+                where('fertilizer_type', '==', fertilizerType));
+            const querySnapshot = await getDocs(q);
+            const isDuplicateCombo = querySnapshot.docs.some(doc => doc.id !== id);
+            if (isDuplicateCombo) {
+                showCustomMessage('This fertilizer name and type combination already exists!', false);
+                return;
+            }
+        } else if (collectionName === 'tb_farmland') {
+            // Fetch the current farmland to get its barangay_name
+            const farmlandDoc = await getDoc(doc(db, collectionName, id));
+            if (!farmlandDoc.exists()) {
+                showCustomMessage('Farmland not found!', false);
+                return;
+            }
+            const barangayName = farmlandDoc.data().barangay_name;
+            const q = query(collection(db, collectionName), 
+                where('farmland_name', '==', newName), 
+                where('barangay_name', '==', barangayName));
+            const querySnapshot = await getDocs(q);
+            const isDuplicateCombo = querySnapshot.docs.some(doc => doc.id !== id);
+            if (isDuplicateCombo) {
+                showCustomMessage('This farmland name already exists in the selected barangay!', false);
+                return;
+            }
+        }
+
+        // Update the document
         await updateDoc(doc(db, collectionName, id), { [fieldToUpdate]: newName });
 
         showCustomMessage('Item updated successfully', true);
         closePopup('edit-item-popup');
-       
     } catch (error) {
         console.error('Error updating item:', error);
         showCustomMessage('Error updating item. Please try again.', false);
     }
 };
-
-
-
-
 
 
 window.deleteItem = function(collection, id) {
