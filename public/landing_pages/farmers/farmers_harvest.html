@@ -2,11 +2,12 @@
 <html lang="en">
 
 <head>
+  <script type="module" src="../../../src/js/farmers/farmers_harvest.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Organic Baras Harvest</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="farmers_harvest.css">
+  <link rel="stylesheet" href="../../../src/style/farmers/farmers_harvest.css">
   <style>
    
   </style>
@@ -18,51 +19,21 @@
 
   <div class="main-content">
     <div class="table-container">
-      <h2 class="text-xl font-bold mb-4" style="color: #41A186; font-size: 35px;">Task List</h2>
+      <h2 class="panel-title">Harvest History</h2>
       <table>
         <thead>
           <tr>
-            <th>#</th>
             <th>PROJECT NAME</th>
-            <th>TASK NAME</th>
+            <th>HARVEST DATE</th>
             <th>LEAD FARMER</th>
             <th>BARANGAY</th>
             <th>CROPS</th>
-            <th>DURATION</th>
-            <th>STATUS</th>
+            <th>CROP TYPE</th>
+            <th>TOTAL HARVEST</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>Go Green</td>
-            <td>Fertilizer</td>
-            <td>Winston Coleman</td>
-            <td>Mabini</td>
-            <td>Highland Vegetables</td>
-            <td>06-01-2024 - 28-02-2024</td>
-            <td><span class="status on-progress">On Progress</span></td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>Go Green</td>
-            <td>Planting</td>
-            <td>Winston Coleman</td>
-            <td>Mabini</td>
-            <td>Highland Vegetables</td>
-            <td>06-01-2024 - 28-02-2024</td>
-            <td><span class="status completed">Completed <span>✔</span></span></td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td>Go Green</td>
-            <td>Soil Preparation</td>
-            <td>Winston Coleman</td>
-            <td>Mabini</td>
-            <td>Highland Vegetables</td>
-            <td>06-01-2024 - 28-02-2024</td>
-            <td><span class="status completed">Completed <span>✔</span></span></td>
-          </tr>
+        <tbody id="tbody">
+         
         </tbody>
       </table>
     </div>
