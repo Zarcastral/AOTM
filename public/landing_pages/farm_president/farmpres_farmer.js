@@ -131,18 +131,43 @@ async function getTeamStatus(teamId) {
         const projectsQuery = query(collection(db, "tb_projects"), where("team_id", "==", teamId));
         const projectsSnapshot = await getDocs(projectsQuery);
 
-        if (!projectsSnapshot.empty) {
-            // Assuming each team is assigned to only one project; take the first match
-            const projectDoc = projectsSnapshot.docs[0];
-            const projectData = projectDoc.data();
-            const projectName = projectData.project_name || "Unnamed Project";
-            return `Assigned (${projectName})`;
-        } else {
-            return "Available";
+        console.log(`Team ${teamId} has ${projectsSnapshot.size} projects.`);
+
+        if (projectsSnapshot.empty) {
+            return "Available"; // No projects, team is available
         }
+
+        if (projectsSnapshot.size > 50) {
+            console.warn("Large project list for team; ensure tb_projects.team_id and tb_projects.status are indexed.");
+        }
+
+        let hasOngoing = false;
+        let latestProjectName = "Unnamed Project";
+
+        const activeStatuses = ["Ongoing", "Pending", "In Progress"]; // Expandable list
+
+        for (const projectDoc of projectsSnapshot.docs) {
+            const projectData = projectDoc.data();
+            const projectStatus = projectData.status || "";
+            const projectName = projectData.project_name || "Unnamed Project";
+
+            if (activeStatuses.includes(projectStatus)) {
+                hasOngoing = true;
+                latestProjectName = projectName;
+                break; // Stop if an active project is found
+            } else if (projectStatus !== "Completed") {
+                console.warn(`Unknown project status "${projectStatus}" for team ${teamId}; treating as active.`);
+                hasOngoing = true;
+                latestProjectName = projectName;
+                break;
+            }
+            // Continue if "Completed"
+        }
+
+        return hasOngoing ? `Assigned (${latestProjectName})` : "Available";
     } catch (error) {
         console.error(`Error checking status for team ${teamId}:`, error);
-        return "Unknown"; // Fallback in case of error
+        return "Unknown"; // Fallback for errors
     }
 }
 
