@@ -407,6 +407,40 @@ td:last-child {
   font-size: 16px;
   padding: 20px;
 }
+
+/* Finish Project Button Container */
+.finish-project-container {
+  display: flex;
+  justify-content: flex-end;
+  margin: 20px 30px;
+}
+
+/* Finish Project Button */
+#finishProjectButton {
+  background-color: #41a186;
+  color: #ffffff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+#finishProjectButton:hover:not(:disabled) {
+  background-color: #3b8f7a;
+}
+
+#finishProjectButton:disabled {
+  background-color: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+
+
+
 @media screen and (max-width: 768px) {
   .header {
       padding: 0 10px;

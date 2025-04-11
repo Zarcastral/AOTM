@@ -76,12 +76,13 @@ function showErrorPanel(message) {
 function displayNoTasksMessage() {
   const taskTableBody = document.getElementById("taskTableBody");
   if (!taskTableBody) return;
-
-  if (allTasks.length === 0) {
-    taskTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No tasks available.</td></tr>`;
-  }
+  taskTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No tasks available.</td></tr>`;
+  updateFinishProjectButton(); // Update button state when no tasks
 }
 
+// Modified fetchProjectsForFarmer to store project status
+// Modified fetchProjectsForFarmer to store project status
+// Modified fetchProjectsForFarmer to store lead_farmer_id
 export async function fetchProjectsForFarmer() {
   const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
@@ -91,7 +92,7 @@ export async function fetchProjectsForFarmer() {
 
     if (!projectId) {
       console.log("No project ID found for this user.");
-      displayNoTasksMessage(); // Call new function
+      displayNoTasksMessage();
       return;
     }
 
@@ -105,39 +106,38 @@ export async function fetchProjectsForFarmer() {
 
       if (querySnapshot.empty) {
         console.log("Project not found.");
-        displayNoTasksMessage(); // Call new function
+        displayNoTasksMessage();
         return;
       }
 
       querySnapshot.forEach((doc) => {
         const project = doc.data();
-        if (project.status === "Ongoing") {
-          sessionStorage.setItem("selected_crop_type", project.crop_type_name);
-          sessionStorage.setItem("selected_crop_name", project.crop_name);
-          sessionStorage.setItem("selected_project_end_date", project.end_date);
-          // Store extend_date if it exists
-          if (project.extend_date) {
-            sessionStorage.setItem(
-              "selected_project_extend_date",
-              project.extend_date
-            );
-          } else {
-            sessionStorage.removeItem("selected_project_extend_date"); // Clear if no extension
-          }
-          console.log(`Fetched project ${project.project_id}`);
-          fetchProjectTasks(project.crop_type_name, project.project_id);
+        sessionStorage.setItem("selected_crop_type", project.crop_type_name);
+        sessionStorage.setItem("selected_crop_name", project.crop_name);
+        sessionStorage.setItem("selected_project_end_date", project.end_date);
+        sessionStorage.setItem("selected_project_status", project.status);
+        sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Store lead_farmer_id as string
+        if (project.extend_date) {
+          sessionStorage.setItem(
+            "selected_project_extend_date",
+            project.extend_date
+          );
+        } else {
+          sessionStorage.removeItem("selected_project_extend_date");
         }
+        console.log(`Fetched project ${project.project_id}, status: ${project.status}, lead_farmer_id: ${project.lead_farmer_id}`);
+        fetchProjectTasks(project.crop_type_name, project.project_id);
       });
     } catch (error) {
       console.error("Error fetching project:", error);
-      displayNoTasksMessage(); // Call new function
+      displayNoTasksMessage();
     }
     return;
   }
 
   if (!farmerId) {
     console.log("No farmer ID found in session.");
-    displayNoTasksMessage(); // Call new function
+    displayNoTasksMessage();
     return;
   }
 
@@ -148,30 +148,31 @@ export async function fetchProjectsForFarmer() {
 
     if (querySnapshot.empty) {
       console.log("No project found where the farmer is a team lead.");
-      displayNoTasksMessage(); // Call new function
+      displayNoTasksMessage();
       return;
     }
 
     querySnapshot.forEach((doc) => {
       const project = doc.data();
-      if (project.status === "Ongoing") {
-        sessionStorage.setItem(
-          "selected_project_id",
-          String(project.project_id)
-        );
-        sessionStorage.setItem("selected_crop_type", project.crop_type_name);
-        sessionStorage.setItem("selected_crop_name", project.crop_name);
-        sessionStorage.setItem("selected_project_end_date", project.end_date);
-        console.log(`Fetched end_date for project ${project.project_id}`);
-        fetchProjectTasks(project.crop_type_name, project.project_id);
-      }
+      sessionStorage.setItem(
+        "selected_project_id",
+        String(project.project_id)
+      );
+      sessionStorage.setItem("selected_crop_type", project.crop_type_name);
+      sessionStorage.setItem("selected_crop_name", project.crop_name);
+      sessionStorage.setItem("selected_project_end_date", project.end_date);
+      sessionStorage.setItem("selected_project_status", project.status);
+      sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Store lead_farmer_id as string
+      console.log(`Fetched project ${project.project_id}, status: ${project.status}, lead_farmer_id: ${project.lead_farmer_id}`);
+      fetchProjectTasks(project.crop_type_name, project.project_id);
     });
   } catch (error) {
     console.error("Error fetching projects:", error);
-    displayNoTasksMessage(); // Call new function
+    displayNoTasksMessage();
   }
 }
 
+// Modified fetchProjectTasks to update button state
 async function fetchProjectTasks(cropTypeName, projectId) {
   try {
     const tasksRef = collection(db, "tb_project_task");
@@ -186,7 +187,7 @@ async function fetchProjectTasks(cropTypeName, projectId) {
       console.log(`No tasks found for project ID ${projectId}.`);
       allTasks = [];
       filteredTasks = [];
-      displayNoTasksMessage(); // Call new function instead of renderTasks
+      displayNoTasksMessage();
       return;
     }
 
@@ -201,15 +202,14 @@ async function fetchProjectTasks(cropTypeName, projectId) {
 
     filteredTasks = [...allTasks];
     updatePagination();
-
     const userType = sessionStorage.getItem("user_type");
     const allowEditDelete = userType === "Head Farmer";
     renderTasks(allowEditDelete);
-
+    updateFinishProjectButton(); // Check button state after fetching tasks
     attachGlobalEventListeners();
   } catch (error) {
     console.error("❌ Error fetching project tasks:", error);
-    displayNoTasksMessage(); // Call new function
+    displayNoTasksMessage();
   }
 }
 
@@ -222,6 +222,8 @@ function updatePagination() {
   }
 }
 
+// Modified renderTasks to update button state
+// Modified renderTasks to update button state and ensure pagination compatibility
 function renderTasks(allowEditDelete) {
   if (allowEditDelete === undefined) {
     const userType = sessionStorage.getItem("user_type");
@@ -291,10 +293,44 @@ function renderTasks(allowEditDelete) {
   nextBtn.disabled = currentPage === totalPages || filteredTasks.length === 0;
 
   attachRowEventListeners();
+  updateFinishProjectButton(); // Update button state after rendering
 }
 
 let globalListenersAttached = false;
 
+
+// New function to update the Finish Project button state
+// Modified updateFinishProjectButton to check lead_farmer_id
+function updateFinishProjectButton() {
+  const finishButton = document.getElementById("finishProjectButton");
+  if (!finishButton) return;
+
+  const userType = sessionStorage.getItem("user_type");
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
+  const projectStatus = sessionStorage.getItem("selected_project_status");
+
+  // Disable button if:
+  // - User is not Head Farmer
+  // - farmer_id does not match lead_farmer_id
+  // - Project is already Completed
+  if (
+    userType !== "Head Farmer" ||
+    String(farmerId) !== String(leadFarmerId) ||
+    projectStatus === "Completed"
+  ) {
+    finishButton.disabled = true;
+    return;
+  }
+
+  // Enable button only if all tasks are Completed and there are tasks
+  const allTasksCompleted = allTasks.length > 0 && allTasks.every((taskObj) => taskObj.data.task_status === "Completed");
+  finishButton.disabled = !allTasksCompleted;
+}
+
+
+
+// Modified attachGlobalEventListeners to include Finish Project button handler
 function attachGlobalEventListeners() {
   if (globalListenersAttached) return;
   globalListenersAttached = true;
@@ -314,12 +350,18 @@ function attachGlobalEventListeners() {
   });
 
   const addTaskButton = document.getElementById("addTaskButton");
+  const finishProjectButton = document.getElementById("finishProjectButton");
   const userType = sessionStorage.getItem("user_type");
 
   if (userType !== "Head Farmer") {
     addTaskButton.disabled = true;
     addTaskButton.style.opacity = "0.5";
     addTaskButton.style.cursor = "not-allowed";
+    if (finishProjectButton) {
+      finishProjectButton.disabled = true;
+      finishProjectButton.style.opacity = "0.5";
+      finishProjectButton.style.cursor = "not-allowed";
+    }
   }
 
   addTaskButton.addEventListener("click", () => {
@@ -333,6 +375,41 @@ function attachGlobalEventListeners() {
     }
     addTaskModal.classList.remove("hidden");
   });
+
+  // Event listener for Finish Project button
+  if (finishProjectButton) {
+    finishProjectButton.addEventListener("click", async () => {
+      const projectId = sessionStorage.getItem("selected_project_id");
+      if (!projectId) {
+        showErrorPanel("No project selected.");
+        return;
+      }
+
+      try {
+        const projectsRef = collection(db, "tb_projects");
+        const q = query(
+          projectsRef,
+          where("project_id", "==", parseInt(projectId, 10))
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          showErrorPanel("Project not found.");
+          return;
+        }
+
+        const projectDoc = querySnapshot.docs[0];
+        await updateDoc(projectDoc.ref, { status: "Completed" });
+        sessionStorage.setItem("selected_project_status", "Completed");
+        showSuccessPanel("Project marked as Completed!");
+        finishProjectButton.disabled = true; // Disable button after completion
+        console.log(`Project ${projectId} status updated to Completed`);
+      } catch (error) {
+        console.error("❌ Error updating project status:", error);
+        showErrorPanel("Failed to complete project. Try again.");
+      }
+    });
+  }
 
   cancelTaskBtn.addEventListener("click", () => {
     taskNameInput.value = "";
@@ -630,6 +707,8 @@ function cancelEditHandler() {
   originalTaskName = null;
 }
 
+// Modified saveTaskHandler to update button state
+// Modified saveTaskHandler to update button state
 async function saveTaskHandler() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   const extendDate = sessionStorage.getItem("selected_project_extend_date");
@@ -722,12 +801,17 @@ async function saveTaskHandler() {
       currentPage = totalPages;
     }
     renderTasks();
+    updateFinishProjectButton(); // Update button state after adding task
   } catch (error) {
     console.error("❌ Error adding task:", error);
     showErrorPanel("Failed to add task. Try again.");
   }
 }
 
+
+
+// Modified deleteTaskHandler to update button state
+// Modified deleteTaskHandler to update button state
 async function deleteTaskHandler() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   const extendDate = sessionStorage.getItem("selected_project_extend_date");
@@ -768,8 +852,6 @@ async function deleteTaskHandler() {
       );
       await Promise.all(deleteAttendancePromises);
       console.log(`✅ Deleted ${attendanceSnap.size} tb_attendance records`);
-    } else {
-      console.log("No tb_attendance records found for this task.");
     }
 
     const attendanceSubRef = collection(
@@ -785,8 +867,6 @@ async function deleteTaskHandler() {
       console.log(
         `✅ Deleted ${attendanceSubSnap.size} Attendance subcollection records`
       );
-    } else {
-      console.log("No Attendance subcollection records found for this task.");
     }
 
     await deleteDoc(doc(db, "tb_project_task", taskToDelete));
@@ -805,12 +885,12 @@ async function deleteTaskHandler() {
     if (currentPage > totalPages && totalPages > 0) {
       currentPage = totalPages;
     }
-    // Check if no tasks remain after deletion
     if (allTasks.length === 0) {
-      displayNoTasksMessage(); // Call new function
+      displayNoTasksMessage();
     } else {
       renderTasks();
     }
+    updateFinishProjectButton(); // Update button state after deletion
   } catch (error) {
     console.error("❌ Error deleting task and related records:", error);
     showErrorPanel("Failed to delete task. Try again.");
@@ -818,7 +898,7 @@ async function deleteTaskHandler() {
 
   deleteTaskModal.classList.add("hidden");
   taskToDelete = null;
-}
+} 
 
 // Back button logic
 async function configureBackButton() {
