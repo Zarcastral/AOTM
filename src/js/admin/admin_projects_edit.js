@@ -8,11 +8,13 @@ import {
   getDoc,
   query,
   where,
+
   getFirestore,
   addDoc,
   Timestamp,
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
+import { toggleLoadingIndicator } from "../../auth/loading.js"; // Import loading indicator
 const db = getFirestore(app);
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth();
@@ -20,7 +22,7 @@ const auth = getAuth();
 // Lock flag to prevent multiple saveProject executions
 let isSaving = false;
 
-// <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
+// Function to get authenticated user
 async function getAuthenticatedUser() {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, async (user) => {
@@ -48,49 +50,67 @@ async function getAuthenticatedUser() {
   });
 }
 
+// Load project data from localStorage
 async function loadProjectData() {
   const projectDataString = localStorage.getItem("projectData");
-  if (!projectDataString) return;
+  if (!projectDataString) {
+    console.warn("No project data found in localStorage.");
+    return;
+  }
 
   try {
     const projectData = JSON.parse(projectDataString);
-    console.log("Loaded projectData from localStorage:", projectData); // Debug: Check raw data
-    
+    console.log("Loaded projectData from localStorage:", projectData);
+
+    // Populate basic fields
     document.getElementById("project-name").value = projectData.project_name || "";
     document.getElementById("status").value = projectData.status || "Pending";
     document.getElementById("barangay").value = projectData.barangay_name || "";
     document.getElementById("start-date").value = projectData.start_date || "";
     document.getElementById("end-date").value = projectData.end_date || "";
-    
+
+    // Load related dropdowns
     await loadFarmPresidents(projectData.farmer_id);
     await loadCrops(projectData.crop_name);
     await loadCropTypes(projectData.crop_name, projectData.crop_type_name);
-    
+
+    // Set crop quantity and unit
     const quantityInput = document.getElementById("quantity-crop-type");
-    quantityInput.value = projectData.crop_type_quantity || ""; // Set as-is
-    console.log("Setting quantity-crop-type to:", projectData.crop_type_quantity); // Debug: Confirm value
+    quantityInput.value = projectData.crop_type_quantity || "";
     document.getElementById("crop-unit").value = projectData.crop_unit || "kg";
-    
-    if (projectData.fertilizer && projectData.fertilizer.length > 0) {
+    console.log("Set crop_type_quantity:", projectData.crop_type_quantity);
+
+    // Load fertilizer records
+    if (projectData.fertilizer && Array.isArray(projectData.fertilizer)) {
+      console.log("Loading fertilizers:", projectData.fertilizer);
       const container = document.getElementById("fertilizer-container");
-      container.innerHTML = "";
+      container.innerHTML = ""; // Clear existing content
       for (const fert of projectData.fertilizer) {
-        await addFertilizerForm(fert);
+        console.log("Adding fertilizer:", fert);
+        await addFertilizerForm(fert, true); // Bypass duplicate check
       }
+    } else {
+      console.warn("No fertilizer data found or invalid format:", projectData.fertilizer);
     }
-    
-    if (projectData.equipment && projectData.equipment.length > 0) {
+
+    // Load equipment records
+    if (projectData.equipment && Array.isArray(projectData.equipment)) {
+      console.log("Loading equipment:", projectData.equipment);
       const container = document.getElementById("equipment-container");
-      container.innerHTML = "";
+      container.innerHTML = ""; // Clear existing content
       for (const equip of projectData.equipment) {
-        await addEquipmentForm(equip);
+        console.log("Adding equipment:", equip);
+        await addEquipmentForm(equip, true); // Bypass duplicate check
       }
+    } else {
+      console.warn("No equipment data found or invalid format:", projectData.equipment);
     }
   } catch (error) {
     console.error("Error loading project data:", error);
   }
 }
 
+// Load farm presidents
 window.loadFarmPresidents = async function (selectedFarmerId = null) {
   const querySnapshot = await getDocs(
     query(
@@ -100,7 +120,7 @@ window.loadFarmPresidents = async function (selectedFarmerId = null) {
   );
   const assignToSelect = document.getElementById("assign-to");
   assignToSelect.innerHTML = '<option value="">Select Farm President</option>';
-  
+
   let selectedSet = false;
   querySnapshot.forEach((doc) => {
     const option = document.createElement("option");
@@ -112,12 +132,13 @@ window.loadFarmPresidents = async function (selectedFarmerId = null) {
     }
     assignToSelect.appendChild(option);
   });
-  
+
   if (selectedSet) {
     loadBarangay(assignToSelect.value);
   }
 };
 
+// Load barangay based on farm president
 window.loadBarangay = async function (farmPresidentId) {
   const barangayInput = document.getElementById("barangay");
   const projectDataString = localStorage.getItem("projectData");
@@ -148,6 +169,7 @@ window.loadBarangay = async function (farmPresidentId) {
   }
 };
 
+// Load farmland based on barangay
 window.loadFarmland = async function (barangayName, selectedFarmland = null) {
   const farmlandSelect = document.getElementById("farmland");
   farmlandSelect.innerHTML = '<option value="">Select Farmland</option>';
@@ -187,10 +209,11 @@ window.loadFarmland = async function (barangayName, selectedFarmland = null) {
   }
 };
 
+// Load crops
 window.loadCrops = async function (selectedCrop = null) {
   const cropsSelect = document.getElementById("crops");
   const userType = sessionStorage.getItem("user_type");
-  
+
   if (!cropsSelect || !userType) return;
 
   try {
@@ -224,6 +247,7 @@ window.loadCrops = async function (selectedCrop = null) {
   }
 };
 
+// Load crop types
 window.loadCropTypes = async function (selectedCrop, selectedCropType = null) {
   if (!selectedCrop) return;
 
@@ -271,7 +295,7 @@ window.loadCropTypes = async function (selectedCrop, selectedCropType = null) {
 
   const quantityInput = document.getElementById("quantity-crop-type");
   quantityInput.addEventListener("input", function () {
-    // No automatic disabling here
+    // No automatic disabling
   });
 
   if (selectedCropType) {
@@ -279,13 +303,16 @@ window.loadCropTypes = async function (selectedCrop, selectedCropType = null) {
   }
 };
 
-window.addFertilizerForm = async function (fertData = null) {
+// Add fertilizer form
+window.addFertilizerForm = async function (fertData = null, bypassDuplicateCheck = false) {
   const container = document.getElementById("fertilizer-container");
-  const existingFertilizers = Array.from(container.querySelectorAll(".fertilizer__group")).map(group => {
-    const type = group.querySelector(".fertilizer__type").value;
-    const name = group.querySelector(".fertilizer__name").value;
-    return `${type}:${name}`;
-  });
+  const existingFertilizers = bypassDuplicateCheck
+    ? []
+    : Array.from(container.querySelectorAll(".fertilizer__group")).map(group => {
+        const type = group.querySelector(".fertilizer__type").value;
+        const name = group.querySelector(".fertilizer__name").value;
+        return `${type}:${name}`;
+      });
 
   const div = document.createElement("div");
   div.classList.add("fertilizer__group");
@@ -313,13 +340,14 @@ window.addFertilizerForm = async function (fertData = null) {
     <button class="btn btn--remove" onclick="window.removeFertilizerForm(this)">Remove</button>
   `;
 
+  container.appendChild(div); // Append immediately
+
   const fertilizerTypeDropdown = div.querySelector(".fertilizer__type");
   const fertilizerNameDropdown = div.querySelector(".fertilizer__name");
   const quantityInput = div.querySelector(".fertilizer__quantity");
 
-  // Add event listeners
   fertilizerTypeDropdown.addEventListener("change", function () {
-    loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput);
+    loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput, fertData);
   });
 
   fertilizerNameDropdown.addEventListener("change", function () {
@@ -327,25 +355,24 @@ window.addFertilizerForm = async function (fertData = null) {
     const selectedName = this.value;
     const key = `${selectedType}:${selectedName}`;
 
-    if (selectedType && selectedName && existingFertilizers.includes(key) && !fertData) {
+    if (!bypassDuplicateCheck && selectedType && selectedName && existingFertilizers.includes(key)) {
       showprojectUpdateMessage(`Fertilizer '${selectedName}' of type '${selectedType}' is already added.`, false);
-      div.remove(); // Remove the duplicate entry
+      div.remove();
       return;
     }
   });
 
-  // If editing existing data, populate the fields
   if (fertData) {
+    console.log("Populating fertilizer form with:", fertData);
     fertilizerTypeDropdown.value = fertData.fertilizer_type || "";
-    await loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput);
+    await loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput, fertData);
     fertilizerNameDropdown.value = fertData.fertilizer_name || "";
     quantityInput.value = fertData.fertilizer_quantity || "";
-  } else {
-    // Only append if it's a new entry (not from existing data)
-    container.appendChild(div);
+    fertilizerNameDropdown.dispatchEvent(new Event("change"));
   }
 };
 
+// Get fertilizer types
 async function getFertilizerTypes() {
   const userType = sessionStorage.getItem("user_type");
   if (!userType) return [];
@@ -363,7 +390,8 @@ async function getFertilizerTypes() {
   return Array.from(uniqueTypes);
 }
 
-async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput) {
+// Load fertilizer names with stock
+async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdown, quantityInput, fertData = null) {
   const selectedType = fertilizerTypeDropdown.value;
   fertilizerNameDropdown.innerHTML = '<option value="">Select Fertilizer Name</option>';
   const userType = sessionStorage.getItem("user_type");
@@ -388,32 +416,42 @@ async function loadFertilizerNames(fertilizerTypeDropdown, fertilizerNameDropdow
 
     const option = document.createElement("option");
     option.value = data.fertilizer_name;
+    // Show both record quantity (if applicable) and current stock
+    const recordQty = fertData && fertData.fertilizer_name === data.fertilizer_name && fertData.fertilizer_type === selectedType
+      ? fertData.fertilizer_quantity
+      : null;
     option.textContent = `${data.fertilizer_name} ${
-      currentStock === 0 ? "(Out of Stock)" : `(Stock: ${currentStock})`
-    }`;
+      recordQty !== null ? `(Qty: ${recordQty}, Stock: ${currentStock})` : `(Stock: ${currentStock})`
+    }${currentStock === 0 ? " - Out of Stock" : ""}`;
     fertilizerNameDropdown.appendChild(option);
   });
 
   fertilizerNameDropdown.addEventListener("change", function () {
     const selectedFertilizer = this.value;
     const maxStock = window.fertilizerStockMap[selectedFertilizer] || 0;
-    quantityInput.value = "";
     quantityInput.disabled = maxStock === 0;
     quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
+    // Only reset quantity if not pre-populated or if changing to a different item
+    if (!fertData || fertData.fertilizer_name !== selectedFertilizer) {
+      quantityInput.value = "";
+    }
   });
 
   quantityInput.addEventListener("input", function () {
-    // No automatic disabling here
+    // No automatic disabling
   });
 }
 
-window.addEquipmentForm = async function (equipData = null) {
+// Add equipment form
+window.addEquipmentForm = async function (equipData = null, bypassDuplicateCheck = false) {
   const container = document.getElementById("equipment-container");
-  const existingEquipment = Array.from(container.querySelectorAll(".equipment__group")).map(group => {
-    const type = group.querySelector(".equipment__type").value;
-    const name = group.querySelector(".equipment__name").value;
-    return `${type}:${name}`;
-  });
+  const existingEquipment = bypassDuplicateCheck
+    ? []
+    : Array.from(container.querySelectorAll(".equipment__group")).map(group => {
+        const type = group.querySelector(".equipment__type").value;
+        const name = group.querySelector(".equipment__name").value;
+        return `${type}:${name}`;
+      });
 
   const div = document.createElement("div");
   div.classList.add("equipment__group");
@@ -441,13 +479,14 @@ window.addEquipmentForm = async function (equipData = null) {
     <button class="btn btn--remove" onclick="window.removeEquipmentForm(this)">Remove</button>
   `;
 
+  container.appendChild(div); // Append immediately
+
   const equipmentTypeDropdown = div.querySelector(".equipment__type");
   const equipmentNameDropdown = div.querySelector(".equipment__name");
   const quantityInput = div.querySelector(".equipment__quantity");
 
-  // Add event listeners
   equipmentTypeDropdown.addEventListener("change", function () {
-    loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput);
+    loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput, equipData);
   });
 
   equipmentNameDropdown.addEventListener("change", function () {
@@ -455,25 +494,24 @@ window.addEquipmentForm = async function (equipData = null) {
     const selectedName = this.value;
     const key = `${selectedType}:${selectedName}`;
 
-    if (selectedType && selectedName && existingEquipment.includes(key) && !equipData) {
+    if (!bypassDuplicateCheck && selectedType && selectedName && existingEquipment.includes(key)) {
       showprojectUpdateMessage(`Equipment '${selectedName}' of type '${selectedType}' is already added.`, false);
-      div.remove(); // Remove the duplicate entry
+      div.remove();
       return;
     }
   });
 
-  // If editing existing data, populate the fields
   if (equipData) {
+    console.log("Populating equipment form with:", equipData);
     equipmentTypeDropdown.value = equipData.equipment_type || "";
-    await loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput);
+    await loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput, equipData);
     equipmentNameDropdown.value = equipData.equipment_name || "";
     quantityInput.value = equipData.equipment_quantity || "";
-  } else {
-    // Only append if it's a new entry (not from existing data)
-    container.appendChild(div);
+    equipmentNameDropdown.dispatchEvent(new Event("change"));
   }
 };
 
+// Get equipment types
 async function getEquipmentTypes() {
   const userType = sessionStorage.getItem("user_type");
   if (!userType) return [];
@@ -491,7 +529,8 @@ async function getEquipmentTypes() {
   return Array.from(uniqueTypes);
 }
 
-async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput) {
+// Load equipment names with stock
+async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, quantityInput, equipData = null) {
   const selectedType = equipmentTypeDropdown.value;
   equipmentNameDropdown.innerHTML = '<option value="">Select Equipment Name</option>';
   const userType = sessionStorage.getItem("user_type");
@@ -503,7 +542,7 @@ async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, 
     where("equipment_type", "==", selectedType)
   );
   const querySnapshot = await getDocs(q);
-  
+
   window.equipmentStockMap = window.equipmentStockMap || {};
 
   querySnapshot.forEach((doc) => {
@@ -516,33 +555,43 @@ async function loadEquipmentNames(equipmentTypeDropdown, equipmentNameDropdown, 
 
     const option = document.createElement("option");
     option.value = data.equipment_name;
+    // Show both record quantity (if applicable) and current stock
+    const recordQty = equipData && equipData.equipment_name === data.equipment_name && equipData.equipment_type === selectedType
+      ? equipData.equipment_quantity
+      : null;
     option.textContent = `${data.equipment_name} ${
-      currentStock === 0 ? "(Out of Stock)" : `(Stock: ${currentStock})`
-    }`;
+      recordQty !== null ? `(Qty: ${recordQty}, Stock: ${currentStock})` : `(Stock: ${currentStock})`
+    }${currentStock === 0 ? " - Out of Stock" : ""}`;
     equipmentNameDropdown.appendChild(option);
   });
 
   equipmentNameDropdown.addEventListener("change", function () {
     const selectedEquipment = this.value;
     const maxStock = window.equipmentStockMap[selectedEquipment] || 0;
-    quantityInput.value = "";
     quantityInput.disabled = maxStock === 0;
     quantityInput.placeholder = maxStock > 0 ? `Max: ${maxStock}` : "Out of stock";
+    // Only reset quantity if not pre-populated or if changing to a different item
+    if (!equipData || equipData.equipment_name !== selectedEquipment) {
+      quantityInput.value = "";
+    }
   });
 
   quantityInput.addEventListener("input", function () {
-    // No automatic disabling here
+    // No automatic disabling
   });
 }
 
+// Remove fertilizer form
 window.removeFertilizerForm = function (button) {
   button.parentElement.remove();
 };
 
+// Remove equipment form
 window.removeEquipmentForm = function (button) {
   button.parentElement.remove();
 };
 
+// Get next project ID
 window.getNextProjectID = async function () {
   const counterRef = doc(db, "tb_id_counters", "projects_id_counter");
   const counterSnap = await getDoc(counterRef);
@@ -556,6 +605,7 @@ window.getNextProjectID = async function () {
   return newProjectID;
 };
 
+// Get farmland ID
 window.getFarmlandId = async function (farmlandName) {
   if (!farmlandName) return null;
 
@@ -568,6 +618,7 @@ window.getFarmlandId = async function (farmlandName) {
   return !querySnapshot.empty ? querySnapshot.docs[0].data().farmland_id : null;
 };
 
+// Get farmer ID by name
 async function getFarmerIdByName(farmPresidentName) {
   try {
     const farmersQuery = query(
@@ -586,11 +637,13 @@ async function getFarmerIdByName(farmPresidentName) {
   }
 }
 
+// Update save button state
 function updateSaveButtonState() {
   const saveButton = document.getElementById("save-button");
-  saveButton.disabled = false; // Always enabled, no validation here
+  saveButton.disabled = false; // Always enabled
 }
 
+// Reset form
 function resetForm() {
   document.getElementById("project-name").value = "";
   document.getElementById("assign-to").selectedIndex = 0;
@@ -606,17 +659,18 @@ function resetForm() {
   document.getElementById("fertilizer-container").innerHTML = "";
   document.getElementById("equipment-container").innerHTML = "";
   localStorage.removeItem("projectData");
-  
+
   setTimeout(() => {
     window.location.href = "admin_projects_list.html";
-  }, 4300);
+  }, 500);
 }
 
-// Helper function to check if a value is a Firestore Timestamp object from localStorage
+// Check if value is a Firestore Timestamp
 function isTimestampObject(value) {
   return value && typeof value === "object" && "seconds" in value && "nanoseconds" in value;
 }
 
+// Save project
 window.saveProject = async function () {
   if (isSaving) {
     showprojectUpdateMessage("Save operation is already in progress. Please wait.", false);
@@ -627,11 +681,10 @@ window.saveProject = async function () {
   const cancelButton = document.getElementById("cancel-button");
   const saveButton = document.getElementById("save-button");
   cancelButton.disabled = true;
-  saveButton.disabled = true; // Disable during save
+  saveButton.disabled = true;
 
-  // Show "Saving..." popup with a 1-second minimum delay
-  showprojectUpdateMessage("Project is saving...", true, true);
-  await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second delay
+  // Show loading indicator
+  toggleLoadingIndicator(true);
 
   try {
     const userType = sessionStorage.getItem("user_type");
@@ -650,9 +703,8 @@ window.saveProject = async function () {
     const startDate = document.getElementById("start-date").value;
     const endDate = document.getElementById("end-date").value;
 
-    console.log("quantityCropType before validation:", quantityCropType); // Debug: Check input value
+    console.log("quantityCropType before validation:", quantityCropType);
 
-    // Validate required dropdowns and fields
     if (!projectName) {
       throw new Error("Project name is required");
     }
@@ -699,7 +751,7 @@ window.saveProject = async function () {
       const type = group.querySelector(".fertilizer__type").value;
       const name = group.querySelector(".fertilizer__name").value;
       const quantity = parseInt(group.querySelector(".fertilizer__quantity").value) || 0;
-      if (type && name && quantity >= 0) { // Allow 0 for removal
+      if (type && name && quantity >= 0) {
         fertilizerData.push({
           fertilizer_type: type,
           fertilizer_name: name,
@@ -715,7 +767,7 @@ window.saveProject = async function () {
       const type = group.querySelector(".equipment__type").value;
       const name = group.querySelector(".equipment__name").value;
       const quantity = parseInt(group.querySelector(".equipment__quantity").value) || 0;
-      if (type && name && quantity >= 0) { // Allow 0 for removal
+      if (type && name && quantity >= 0) {
         equipmentData.push({
           equipment_type: type,
           equipment_name: name,
@@ -763,7 +815,7 @@ window.saveProject = async function () {
       farm_land: farmlandName,
       farmland_id: farmlandId,
       crop_type_name: cropTypeName,
-      crop_type_quantity: quantityCropType, // Ensure integer
+      crop_type_quantity: quantityCropType,
       crop_unit: cropUnit,
       start_date: startDate,
       end_date: endDate,
@@ -776,13 +828,12 @@ window.saveProject = async function () {
       project_creator: projectCreator,
     };
 
-    console.log("projectData before save:", projectData); // Debug: Confirm quantity before saving
+    console.log("projectData before save:", projectData);
 
-    // --- Stock Adjustment Logic ---
-    // 1. Crop Stock Update
+    // Crop Stock Update
     const originalCropQuantity = parseInt(existingProjectData.crop_type_quantity) || 0;
     const cropQuantityDiff = quantityCropType - originalCropQuantity;
-    console.log("originalCropQuantity:", originalCropQuantity, "quantityCropType:", quantityCropType, "cropQuantityDiff:", cropQuantityDiff); // Debug
+    console.log("originalCropQuantity:", originalCropQuantity, "quantityCropType:", quantityCropType, "cropQuantityDiff:", cropQuantityDiff);
     if (cropQuantityDiff !== 0) {
       const cropQuery = query(
         collection(db, "tb_crop_stock"),
@@ -795,16 +846,15 @@ window.saveProject = async function () {
         const cropData = cropDoc.data();
         const stocksArray = cropData.stocks || [];
         const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
-        
+
         if (stockIndex !== -1) {
           const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
-          const newStock = currentStock - cropQuantityDiff; // Negative diff = take, Positive diff = give
-          console.log("currentStock:", currentStock, "newStock:", newStock); // Debug
-          
+          const newStock = currentStock - cropQuantityDiff;
+
           if (newStock < 0) {
             throw new Error(`Not enough stock for: ${cropTypeName}. Available stock is: ${currentStock}.`);
           }
-          
+
           stocksArray[stockIndex].current_stock = newStock;
           await updateDoc(cropDocRef, { stocks: stocksArray });
         } else {
@@ -815,7 +865,7 @@ window.saveProject = async function () {
       }
     }
 
-    // 2. Fertilizer Stock Update
+    // Fertilizer Stock Update
     const originalFertilizerMap = new Map(
       (existingProjectData.fertilizer || []).map(f => [`${f.fertilizer_type}:${f.fertilizer_name}`, f.fertilizer_quantity])
     );
@@ -823,7 +873,7 @@ window.saveProject = async function () {
       const key = `${newFert.fertilizer_type}:${newFert.fertilizer_name}`;
       const originalQuantity = originalFertilizerMap.get(key) || 0;
       const fertQuantityDiff = newFert.fertilizer_quantity - originalQuantity;
-      
+
       if (fertQuantityDiff !== 0) {
         const fertQuery = query(
           collection(db, "tb_fertilizer_stock"),
@@ -837,15 +887,15 @@ window.saveProject = async function () {
           const fertData = fertDoc.data();
           const stocksArray = fertData.stocks || [];
           const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
-          
+
           if (stockIndex !== -1) {
             const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
             const newStock = currentStock - fertQuantityDiff;
-            
+
             if (newStock < 0) {
               throw new Error(`Not enough stock for: ${newFert.fertilizer_name}. Available stock is: ${currentStock}.`);
             }
-            
+
             stocksArray[stockIndex].current_stock = newStock;
             await updateDoc(fertDocRef, { stocks: stocksArray });
           } else {
@@ -855,9 +905,8 @@ window.saveProject = async function () {
           throw new Error(`Fertilizer '${newFert.fertilizer_name}' not found in inventory`);
         }
       }
-      originalFertilizerMap.delete(key); // Remove processed items
+      originalFertilizerMap.delete(key);
     }
-    // Handle removed fertilizers (give stock back)
     for (const [key, originalQuantity] of originalFertilizerMap) {
       const [type, name] = key.split(":");
       const fertQuery = query(
@@ -872,7 +921,7 @@ window.saveProject = async function () {
         const fertData = fertDoc.data();
         const stocksArray = fertData.stocks || [];
         const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
-        
+
         if (stockIndex !== -1) {
           const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
           stocksArray[stockIndex].current_stock = currentStock + originalQuantity;
@@ -881,7 +930,7 @@ window.saveProject = async function () {
       }
     }
 
-    // 3. Equipment Stock Update
+    // Equipment Stock Update
     const originalEquipmentMap = new Map(
       (existingProjectData.equipment || []).map(e => [`${e.equipment_type}:${e.equipment_name}`, e.equipment_quantity])
     );
@@ -889,7 +938,7 @@ window.saveProject = async function () {
       const key = `${newEquip.equipment_type}:${newEquip.equipment_name}`;
       const originalQuantity = originalEquipmentMap.get(key) || 0;
       const equipQuantityDiff = newEquip.equipment_quantity - originalQuantity;
-      
+
       if (equipQuantityDiff !== 0) {
         const equipQuery = query(
           collection(db, "tb_equipment_stock"),
@@ -903,15 +952,15 @@ window.saveProject = async function () {
           const equipData = equipDoc.data();
           const stocksArray = equipData.stocks || [];
           const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
-          
+
           if (stockIndex !== -1) {
             const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
             const newStock = currentStock - equipQuantityDiff;
-            
+
             if (newStock < 0) {
               throw new Error(`Not enough stock for: ${newEquip.equipment_name}. Available stock is: ${currentStock}.`);
             }
-            
+
             stocksArray[stockIndex].current_stock = newStock;
             await updateDoc(equipDocRef, { stocks: stocksArray });
           } else {
@@ -921,9 +970,8 @@ window.saveProject = async function () {
           throw new Error(`Equipment '${newEquip.equipment_name}' not found in inventory`);
         }
       }
-      originalEquipmentMap.delete(key); // Remove processed items
+      originalEquipmentMap.delete(key);
     }
-    // Handle removed equipment (give stock back)
     for (const [key, originalQuantity] of originalEquipmentMap) {
       const [type, name] = key.split(":");
       const equipQuery = query(
@@ -938,7 +986,7 @@ window.saveProject = async function () {
         const equipData = equipDoc.data();
         const stocksArray = equipData.stocks || [];
         const stockIndex = stocksArray.findIndex(stock => stock.owned_by === projectCreator);
-        
+
         if (stockIndex !== -1) {
           const currentStock = parseInt(stocksArray[stockIndex].current_stock) || 0;
           stocksArray[stockIndex].current_stock = currentStock + originalQuantity;
@@ -953,7 +1001,7 @@ window.saveProject = async function () {
       where("project_id", "==", projectID)
     );
     const querySnapshot = await getDocs(projectQuery);
-    
+
     let projectDocRef;
     if (!querySnapshot.empty) {
       projectDocRef = querySnapshot.docs[0].ref;
@@ -965,22 +1013,28 @@ window.saveProject = async function () {
     await window.saveActivityLog("Update", description);
 
     await updateDoc(projectDocRef, projectData);
-    console.log("Saved projectData to Firestore:", projectData); // Debug: Confirm saved data
+    console.log("Saved projectData to Firestore:", projectData);
 
+    // Hide loading indicator and show success message
+    toggleLoadingIndicator(false);
     showprojectUpdateMessage("Project saved successfully!", true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     resetForm();
   } catch (error) {
-    console.error("SaveProject Error:", error); // Debug log
-    showprojectUpdateMessage(error.message || "Something went wrong. Please try again.", false); // Error popup
-    cancelButton.disabled = false; // Re-enable cancel button
-    saveButton.disabled = false; // Re-enable save button
+    console.error("SaveProject Error:", error);
+    // Hide loading indicator and show error message
+    toggleLoadingIndicator(false);
+    showprojectUpdateMessage(error.message || "Something went wrong. Please try again.", false);
+    cancelButton.disabled = false;
+    saveButton.disabled = false;
   } finally {
     isSaving = false;
+    // Ensure loading indicator is hidden in case of uncaught errors
+    toggleLoadingIndicator(false);
   }
 };
 
-// Message display function
+// Show update message
 function showprojectUpdateMessage(message, success, isLoading = false) {
   const projectUpdateMessage = document.getElementById("project-update-message");
   if (!projectUpdateMessage) {
@@ -994,7 +1048,7 @@ function showprojectUpdateMessage(message, success, isLoading = false) {
   }
 
   messageElement.textContent = message;
-  projectUpdateMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336"; // Green for success, red for error
+  projectUpdateMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
   projectUpdateMessage.style.opacity = "1";
   projectUpdateMessage.style.display = "block";
 
@@ -1004,7 +1058,7 @@ function showprojectUpdateMessage(message, success, isLoading = false) {
       setTimeout(() => {
         projectUpdateMessage.style.display = "none";
       }, 300);
-    }, 4000);
+    }, 500);
   }
 }
 
@@ -1024,11 +1078,11 @@ document.getElementById("cancel-button").addEventListener("click", function () {
 document.getElementById("save-button").addEventListener("click", saveProject);
 
 document.getElementById("start-date").addEventListener("change", function () {
-  // No automatic disabling here
+  // No automatic disabling
 });
 
 document.getElementById("end-date").addEventListener("change", function () {
-  // No automatic disabling here
+  // No automatic disabling
 });
 
 // Global stock maps
@@ -1036,7 +1090,9 @@ window.cropStockMap = {};
 window.fertilizerStockMap = {};
 window.equipmentStockMap = {};
 
+// Initialize on page load
 window.onload = async function () {
+  console.log("Page loaded, initializing data...");
   await loadFarmPresidents();
   await loadCrops();
   await loadProjectData();

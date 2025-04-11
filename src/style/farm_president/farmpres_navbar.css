@@ -8,6 +8,7 @@ html, body {
   margin: 0;
   overflow: hidden;
 }
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -21,6 +22,7 @@ html, body {
   z-index: 50;
   transition: transform 0.3s ease-in-out;
 }
+
 .logo-container {
   display: flex;
   align-items: center;
@@ -74,35 +76,35 @@ html, body {
 /* Individual Hover Effects */
 .dash a:hover img,
 .dash a.selected img {
-  content: url(../../images/dashGreen.png);
+  content: url(../../../public/images/dashGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .proj a:hover img,
 .proj a.selected img {
-  content: url(../../images/graphGreen.png);
+  content: url(../../../public/images/graphGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .harv a:hover img,
 .harv a.selected img {
-  content: url(../../images/bagGreen.png);
+  content: url(../../../public/images/bagGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .inv a:hover img,
 .inv a.selected img {
-  content: url(../../images/boxGreen.png);
+  content: url(../../../public/images/boxGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .farm a:hover img,
 .farm a.selected img {
-  content: url(../../images/profileGreen.png);
+  content: url(../../../public/images/profileGreen.png);
   height: 20px;
   width: 20px;
 }
@@ -110,14 +112,14 @@ html, body {
 
 .rep a:hover img,
 .rep a.selected img {
-  content: url(../../images/folderGreen.png);
+  content: url(../../../public/images/folderGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .task a:hover img,
 .task a.selected img {
-  content: url(../../images/flashGreen.png);
+  content: url(../../../public/images/flashGreen.png);
   height: 20px;
   width: 20px;
 }
@@ -130,6 +132,7 @@ html, body {
   font-size: 18px;
   color: #41A186;
 }
+
 
 
 .sett a:hover,
@@ -158,17 +161,17 @@ iframe {
 #mobile-menu-button {
   display: none;
   position: fixed;
-  top: 5px;
-  left: 10px;
   z-index: 60;
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   border: none;
   padding: 10px;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   height: 50px;
-  width: 40px;
+  width: 50px;
+  margin-top: 5px;
+  margin-left: 10px;
 }
 
 /* Responsive Styles */

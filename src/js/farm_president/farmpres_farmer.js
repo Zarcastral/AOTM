@@ -1,4 +1,3 @@
-import { initializeApp } from "firebase/app";
 import { 
     getFirestore, 
     collection, 
@@ -13,16 +12,7 @@ import {
     addDoc 
 } from "firebase/firestore";
 
-// Firebase Config
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
+import app from "../../config/firebase_config";
 
 // Function to show success panel
 function showSuccessPanel(message) {
@@ -69,8 +59,7 @@ function showErrorPanel(message) {
     }, 400);
   }, 4000);
 }
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
 async function loadTeamList() {
@@ -131,18 +120,43 @@ async function getTeamStatus(teamId) {
         const projectsQuery = query(collection(db, "tb_projects"), where("team_id", "==", teamId));
         const projectsSnapshot = await getDocs(projectsQuery);
 
-        if (!projectsSnapshot.empty) {
-            // Assuming each team is assigned to only one project; take the first match
-            const projectDoc = projectsSnapshot.docs[0];
-            const projectData = projectDoc.data();
-            const projectName = projectData.project_name || "Unnamed Project";
-            return `Assigned (${projectName})`;
-        } else {
-            return "Available";
+        console.log(`Team ${teamId} has ${projectsSnapshot.size} projects.`);
+
+        if (projectsSnapshot.empty) {
+            return "Available"; // No projects, team is available
         }
+
+        if (projectsSnapshot.size > 50) {
+            console.warn("Large project list for team; ensure tb_projects.team_id and tb_projects.status are indexed.");
+        }
+
+        let hasOngoing = false;
+        let latestProjectName = "Unnamed Project";
+
+        const activeStatuses = ["Ongoing", "Pending", "In Progress"]; // Expandable list
+
+        for (const projectDoc of projectsSnapshot.docs) {
+            const projectData = projectDoc.data();
+            const projectStatus = projectData.status || "";
+            const projectName = projectData.project_name || "Unnamed Project";
+
+            if (activeStatuses.includes(projectStatus)) {
+                hasOngoing = true;
+                latestProjectName = projectName;
+                break; // Stop if an active project is found
+            } else if (projectStatus !== "Completed") {
+                console.warn(`Unknown project status "${projectStatus}" for team ${teamId}; treating as active.`);
+                hasOngoing = true;
+                latestProjectName = projectName;
+                break;
+            }
+            // Continue if "Completed"
+        }
+
+        return hasOngoing ? `Assigned (${latestProjectName})` : "Available";
     } catch (error) {
         console.error(`Error checking status for team ${teamId}:`, error);
-        return "Unknown"; // Fallback in case of error
+        return "Unknown"; // Fallback for errors
     }
 }
 

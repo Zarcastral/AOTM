@@ -13,14 +13,14 @@ html, body {
   top: 0;
   left: 0;
   height: 100vh;
-  width: 235px;
+  width: 250px;
+  border-radius: 0px 0px 30px;
   background-color: white;
   display: flex;
   flex-direction: column;
   z-index: 50;
   transition: transform 0.3s ease-in-out;
 }
-
 .logo-container {
   display: flex;
   align-items: center;
@@ -34,7 +34,7 @@ html, body {
 
 .logo-text {
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 500;
   color: #4a5568;
   margin-left: -10px;
 }
@@ -72,21 +72,73 @@ html, body {
 }
 
 /* Individual Hover Effects */
-.pro a:hover img,
-.pro a.selected img {
-  content: url(../../images/flashGreen.png);
+.dash a:hover img,
+.dash a.selected img {
+  content: url(../../../public/images/dashGreen.png);
+  height: 20px;
+  width: 20px;
+}
+
+.proj a:hover img,
+.proj a.selected img {
+  content: url(../../../public/images/graphGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .harv a:hover img,
 .harv a.selected img {
-  content: url(../../images/bagGreen.png);
+  content: url(../../../public/images/bagGreen.png);
+  height: 20px;
+  width: 20px;
+}
+
+.inv a:hover img,
+.inv a.selected img {
+  content: url(../../../public/images/boxGreen.png);
+  height: 20px;
+  width: 20px;
+}
+
+.farm a:hover img,
+.farm a.selected img {
+  content: url(../../../public/images/profileGreen.png);
   height: 20px;
   width: 20px;
 }
 
 
+.rep a:hover img,
+.rep a.selected img {
+  content: url(../../../public/images/folderGreen.png);
+  height: 20px;
+  width: 20px;
+}
+
+.task a:hover img,
+.task a.selected img {
+  content: url(../../../public/images/flashGreen.png);
+  height: 20px;
+  width: 20px;
+}
+
+
+
+/* Tools Section */
+.tools-section {
+  padding: 12px 20px;
+  font-size: 18px;
+  color: #41A186;
+}
+
+
+.sett a:hover,
+.sett a.selected {
+  color: #41a186;
+  margin-left: 0;
+  padding-left: 40px;
+  border-radius: 0 25px 25px 0;
+}
 
 /* Content area */
 .content {
@@ -106,17 +158,17 @@ iframe {
 #mobile-menu-button {
   display: none;
   position: fixed;
+  top: 5px;
+  left: 10px;
   z-index: 60;
-  background-color: #41a186;
+  background-color: #41A186;
   color: white;
   border: none;
   padding: 10px;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   height: 50px;
-  width: 50px;
-  margin-top: 5px;
-  margin-left: 10px;
+  width: 40px;
 }
 
 /* Responsive Styles */

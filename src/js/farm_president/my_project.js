@@ -1,4 +1,3 @@
-
 import { getFirestore, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp, updateDoc, doc, getDoc } from "firebase/firestore";
 
 // Function to show success panel
@@ -43,6 +42,29 @@ function showErrorPanel(message) {
     }, 4000);
 }
 
+// Function to show no project panel
+function showNoProjectPanel() {
+    const noProjectMessage = document.createElement("div");
+    noProjectMessage.className = "no-project-message";
+    noProjectMessage.textContent = "No Project Assigned Yet.";
+
+    document.body.appendChild(noProjectMessage);
+
+    // Fade in
+    noProjectMessage.style.display = "block";
+    setTimeout(() => {
+        noProjectMessage.style.opacity = "1";
+    }, 5);
+
+    // Fade out after 5 seconds (longer duration for emphasis)
+    setTimeout(() => {
+        noProjectMessage.style.opacity = "0";
+        setTimeout(() => {
+            document.body.removeChild(noProjectMessage);
+        }, 400);
+    }, 5000);
+}
+
 // Firebase Configuration
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
@@ -52,6 +74,7 @@ async function fetchProjectDetails() {
     let farmerId = sessionStorage.getItem("farmer_id");
     if (!farmerId) {
         console.error("❌ No farmer ID found in sessionStorage.");
+        showNoProjectPanel(); // Show panel if no farmer ID
         return null;
     }
 
@@ -59,6 +82,7 @@ async function fetchProjectDetails() {
 
     if (farmerId.trim() === "") {
         console.error("⚠️ Invalid farmer ID (empty or whitespace).");
+        showNoProjectPanel(); // Show panel if invalid farmer ID
         return null;
     }
 
@@ -74,32 +98,57 @@ async function fetchProjectDetails() {
             // Ensure project_id exists and convert to integer
             if (!projectData.project_id && projectData.project_id !== 0) {
                 console.error("❌ Project data missing project_id:", projectData);
+                showNoProjectPanel(); // Show panel if project_id is missing
                 return null;
             }
 
             const projectId = parseInt(projectData.project_id, 10);
             if (isNaN(projectId)) {
                 console.error("❌ Invalid project_id (not a number):", projectData.project_id);
+                showNoProjectPanel(); // Show panel if project_id is invalid
                 return null;
             }
 
+            // Populate project details in the UI
             document.getElementById("projectName").textContent = projectData.project_name || "No Title";
             document.getElementById("status").textContent = projectData.status || "No Status";
             document.getElementById("startDate").textContent = projectData.start_date || "N/A";
             document.getElementById("endDate").textContent = projectData.end_date || "N/A";
+            document.getElementById("extendedDate").textContent = projectData.extend_date || "N/A";
             document.getElementById("cropName").textContent = projectData.crop_name || "N/A";
             document.getElementById("cropType").textContent = projectData.crop_type_name || "N/A";
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
+            
 
             console.log("📌 Returning project_id as integer:", projectId);
             return projectId; // Return project_id as integer
         } else {
             console.error("❌ No project found with lead_farmer_id:", farmerId);
+            showNoProjectPanel(); // Show panel if no project is found
+            // Clear UI fields
+            document.getElementById("projectName").textContent = "N/A";
+            document.getElementById("status").textContent = "N/A";
+            document.getElementById("startDate").textContent = "N/A";
+            document.getElementById("endDate").textContent = "N/A";
+            document.getElementById("cropName").textContent = "N/A";
+            document.getElementById("cropType").textContent = "N/A";
+            document.getElementById("barangayName").textContent = "N/A";
+            document.getElementById("farmPresident").textContent = "N/A";
             return null;
         }
     } catch (error) {
         console.error("🔥 Error fetching project data for lead_farmer_id:", error);
+        showNoProjectPanel(); // Show panel on error
+        // Clear UI fields
+        document.getElementById("projectName").textContent = "N/A";
+        document.getElementById("status").textContent = "N/A";
+        document.getElementById("startDate").textContent = "N/A";
+        document.getElementById("endDate").textContent = "N/A";
+        document.getElementById("cropName").textContent = "N/A";
+        document.getElementById("cropType").textContent = "N/A";
+        document.getElementById("barangayName").textContent = "N/A";
+        document.getElementById("farmPresident").textContent = "N/A";
         return null;
     }
 }
@@ -135,7 +184,7 @@ async function fetchTeams() {
         teamsTableBody.innerHTML = "";
 
         if (querySnapshot.empty) {
-            teamsTableBody.innerHTML = "<tr><td colspan='4'>No teams found for this farmer.</td></tr>";
+            teamsTableBody.innerHTML = "<tr><td colspan='4' class='table-empty'>No teams found for this farmer.</td></tr>";
             return;
         }
 
@@ -170,7 +219,7 @@ async function fetchTeams() {
     }
 }
 
-// Feedback Popup Functions (Copied from Second Code)
+// Feedback Popup Functions
 window.openFeedbackPopup = function () {
     document.getElementById("feedbackPopup").style.display = "flex";
 };
@@ -209,7 +258,7 @@ window.submitFeedback = async function () {
 
     const projectId = await fetchProjectDetails(); // Use fetchProjectDetails instead
     if (!projectId && projectId !== 0) {
-        showErrorPanel("No project found for this farmer.");
+        showNoProjectPanel(); // Use no project panel for consistency
         return;
     }
 
@@ -245,7 +294,7 @@ window.submitFeedback = async function () {
     }
 };
 
-// Feedback UI Function (Copied from Second Code)
+// Feedback UI Function
 function addFeedbackToUI(feedback) {
     const feedbackListContainer = document.getElementById("feedbackList");
     let formattedTimestamp = feedback.timestamp.toLocaleString();
@@ -272,7 +321,7 @@ function addFeedbackToUI(feedback) {
     feedbackListContainer.prepend(feedbackItem);
 }
 
-// Display Feedbacks (Copied from Second Code)
+// Display Feedbacks
 async function displayFeedbacks(projectId) {
     const feedbackListContainer = document.getElementById("feedbackList");
     feedbackListContainer.innerHTML = '<p class="feedback-list-empty">Loading feedbacks...</p>';
@@ -352,6 +401,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await fetchTeams();
     } else {
         console.log("No project_id returned; skipping displayFeedbacks.");
+        showNoProjectPanel(); // Show panel if no project is found
         const feedbackListContainer = document.getElementById("feedbackList");
         if (feedbackListContainer) {
             feedbackListContainer.innerHTML = '<p class="feedback-list-empty">No project found for this farmer.</p>';
