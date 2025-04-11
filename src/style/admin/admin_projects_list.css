@@ -52,6 +52,23 @@ body {
   overflow-y: auto;
 }
 
+.action-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #41a186;
+  transition: color 0.3s ease;
+}
+
+.action-btn .label {
+  font-size: 10px;
+  color: #41a186;
+  margin-left: 5px;
+ 
+}
+
+
 /* Panel container style */
 .panel {
   background-color: white;
@@ -582,6 +599,28 @@ input[type="checkbox"] {
 .rando-line {
   color: slategray;
   transition: color 0.3s ease;
+}
+
+#cancel-extend{
+  width: 35%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  background-color: #c4c4c4;
+  color: white;
+  border: none;
+}
+
+#confirm-extend{
+  width: 35%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  background-color: #41a186;
+  color: white;
+  border: none;
 }
 
 /* Responsive styles */
