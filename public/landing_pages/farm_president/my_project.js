@@ -100,7 +100,6 @@ async function fetchProjectDetails() {
             document.getElementById("endDate").textContent = projectData.end_date || "N/A";
             document.getElementById("cropName").textContent = projectData.crop_name || "N/A";
             document.getElementById("cropType").textContent = projectData.crop_type_name || "N/A";
-            document.getElementById("equipment").textContent = projectData.equipment || "N/A";
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
 

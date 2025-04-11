@@ -156,8 +156,7 @@ label {
   margin-top: 10px;
 }
 
-input
-{
+input {
   width: 95%;
   padding: 8px;
   margin-top: 5px;
@@ -174,6 +173,7 @@ select {
   border-radius: 5px;
   font-size: 14px;
 }
+
 #farmerBox {
   height: 120px;
   overflow-y: auto;
@@ -182,6 +182,32 @@ select {
   padding: 5px;
   margin-top: 5px;
   background: #f9f9f9;
+}
+
+.farmer-item {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+ 
+}
+
+.farmer-name {
+  margin-right: 10px;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.remove-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .button-container {
@@ -208,7 +234,6 @@ select {
   color: white;
 }
 
-
 .search-results {
   position: absolute;
   background: white;
@@ -227,7 +252,6 @@ select {
 .search-item:hover {
   background-color: #f0f0f0;
 }
-
 
 .teams-selector {
   display: flex;
@@ -249,8 +273,8 @@ select {
 }
 
 .rando-line {
-color: slategray;
-transition: color 0.3s ease;
+  color: slategray;
+  transition: color 0.3s ease;
 }
 
 /* Responsive Design */
