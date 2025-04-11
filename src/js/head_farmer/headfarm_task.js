@@ -103,16 +103,16 @@ export async function fetchProjectsForFarmer() {
           sessionStorage.setItem("selected_crop_type", project.crop_type_name);
           sessionStorage.setItem("selected_crop_name", project.crop_name);
           sessionStorage.setItem("selected_project_end_date", project.end_date);
-          // Store extend_date if it exists
+          sessionStorage.setItem("lead_farmer_id", String(project.lead_farmer_id)); // Store lead_farmer_id
           if (project.extend_date) {
             sessionStorage.setItem(
               "selected_project_extend_date",
               project.extend_date
             );
           } else {
-            sessionStorage.removeItem("selected_project_extend_date"); // Clear if no extension
+            sessionStorage.removeItem("selected_project_extend_date");
           }
-          console.log(`Fetched project ${project.project_id}`);
+          console.log(`Fetched project ${project.project_id} with lead_farmer_id ${project.lead_farmer_id}`);
           fetchProjectTasks(project.crop_type_name, project.project_id);
         }
       });
@@ -147,7 +147,8 @@ export async function fetchProjectsForFarmer() {
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         sessionStorage.setItem("selected_project_end_date", project.end_date);
-        console.log(`Fetched end_date for project ${project.project_id}`);
+        sessionStorage.setItem("lead_farmer_id", String(project.lead_farmer_id)); // Store lead_farmer_id
+        console.log(`Fetched project ${project.project_id} with lead_farmer_id ${project.lead_farmer_id}`);
         fetchProjectTasks(project.crop_type_name, project.project_id);
       }
     });
@@ -206,9 +207,19 @@ function updatePagination() {
 }
 
 function renderTasks(allowEditDelete) {
+  const userType = sessionStorage.getItem("user_type");
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const leadFarmerId = sessionStorage.getItem("lead_farmer_id");
+
+  // Determine allowEditDelete if not provided
   if (allowEditDelete === undefined) {
-    const userType = sessionStorage.getItem("user_type");
-    allowEditDelete = userType === "Head Farmer";
+    if (userType === "Head Farmer") {
+      allowEditDelete = true;
+    } else if (userType === "Farm President") {
+      allowEditDelete = farmerId && leadFarmerId && farmerId === leadFarmerId;
+    } else {
+      allowEditDelete = false; // Admin, Supervisor, or other roles
+    }
   }
 
   const taskTableBody = document.getElementById("taskTableBody");
@@ -298,11 +309,27 @@ function attachGlobalEventListeners() {
 
   const addTaskButton = document.getElementById("addTaskButton");
   const userType = sessionStorage.getItem("user_type");
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const leadFarmerId = sessionStorage.getItem("lead_farmer_id");
 
-  if (userType !== "Head Farmer") {
+  // Determine if the user is restricted
+  let isRestricted = false;
+  if (userType === "Admin" || userType === "Supervisor") {
+    isRestricted = true;
+  } else if (userType === "Farm President") {
+    isRestricted = !(farmerId && leadFarmerId && farmerId === leadFarmerId);
+  } else if (userType !== "Head Farmer") {
+    isRestricted = true; // Fallback for other roles
+  }
+
+  if (isRestricted) {
     addTaskButton.disabled = true;
     addTaskButton.style.opacity = "0.5";
     addTaskButton.style.cursor = "not-allowed";
+  } else {
+    addTaskButton.disabled = false;
+    addTaskButton.style.opacity = "1";
+    addTaskButton.style.cursor = "pointer";
   }
 
   addTaskButton.addEventListener("click", () => {
