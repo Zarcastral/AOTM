@@ -42,6 +42,7 @@ extendDatePanel.style.left = "50%";
 extendDatePanel.style.transform = "translate(-50%, -50%)";
 extendDatePanel.style.backgroundColor = "white";
 extendDatePanel.style.padding = "20px";
+extendDatePanel.style.borderRadius = "10px";
 extendDatePanel.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
 extendDatePanel.style.zIndex = "1000";
 document.body.appendChild(extendDatePanel);
@@ -244,7 +245,7 @@ async function updateTable() {
 
     const extendButton =
       (data.status || "pending").toLowerCase() === "ongoing"
-        ? `<button class="action-btn extend-btn" data-id="${data.project_id}" title="Extend Date">ED</button>`
+        ? `<button class="action-btn extend-btn" data-id="${data.project_id}" title="Extend Date">+ Extend Date</button>`
         : "";
 
     row.innerHTML = `
@@ -375,9 +376,10 @@ async function showExtendDatePanel(project_id) {
                     <input type="date" id="extend-date-input">
                     <div id="extend-error" style="color: red; display: none;"></div>
                     <div style="margin-top: 20px;">
-                        <button id="confirm-extend">Confirm</button>
                         <button id="cancel-extend">Cancel</button>
-                    </div>
+                        </div>
+                        <button id="confirm-extend">Confirm</button>
+                      
                 `;
 
         extendDatePanel.style.display = "block";

@@ -11,7 +11,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import app from "../../../src/config/firebase_config.js";
+import app from "../../config/firebase_config.js";
 import { fetchAssignedTasks } from "./fetch_assigned_tasks.js";
 
 const db = getFirestore(app);
