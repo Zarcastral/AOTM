@@ -1,4 +1,3 @@
-
 import { 
     getFirestore, collection, query, where, getDocs, orderBy, doc,
     getDoc, setDoc, updateDoc, addDoc, serverTimestamp
@@ -25,10 +24,10 @@ function showSuccessPanel(message) {
         document.body.removeChild(successMessage);
       }, 400);
     }, 4000);
-  }
+}
   
-  // Function to show error panel
-  function showErrorPanel(message) {
+// Function to show error panel
+function showErrorPanel(message) {
     const errorMessage = document.createElement("div");
     errorMessage.className = "error-message";
     errorMessage.textContent = message;
@@ -48,7 +47,8 @@ function showSuccessPanel(message) {
         document.body.removeChild(errorMessage);
       }, 400);
     }, 4000);
-  }
+}
+
 // Firebase Configuration
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
@@ -81,6 +81,10 @@ async function fetchProjectDetails() {
             document.getElementById("cropType").textContent = projectData.crop_type_name || "N/A";
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
+        } else {
+            // Show no feedback message when no project is found
+            const feedbackListContainer = document.getElementById("feedbackList");
+            feedbackListContainer.innerHTML = '<p class="feedback-list-empty">No feedbacks available.</p>';
         }
     } catch (error) {
         console.error("🔥 Error fetching project data:", error);
@@ -260,9 +264,9 @@ function addFeedbackToUI(feedback) {
     `;
 
     let noFeedbackMessage = document.querySelector("#feedbackList .feedback-list-empty");
-if (noFeedbackMessage) {
-    noFeedbackMessage.remove();
-}
+    if (noFeedbackMessage) {
+        noFeedbackMessage.remove();
+    }
 
     feedbackListContainer.prepend(feedbackItem);
 }
