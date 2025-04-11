@@ -1,4 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import {
   addDoc,
   collection,
@@ -11,20 +10,10 @@ import {
   Timestamp,
   updateDoc,
   where,
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+  onSnapshot
+} from "firebase/firestore";
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 
 // Debounce utility to prevent multiple rapid calls
@@ -354,24 +343,35 @@ async function checkAndNotifyEquipmentStock(projectID, userType) {
 
 window.loadFarmPresidents = async function () {
   try {
-    const querySnapshot = await getDocs(
-      query(
-        collection(db, "tb_farmers"),
-        where("user_type", "==", "Farm President")
-      )
-    );
     const assignToSelect = document.getElementById("assign-to");
     if (!assignToSelect) throw new Error("assign-to element not found");
+
+    // Initial placeholder
     assignToSelect.innerHTML =
       '<option value="" selected disabled>Select Farm President</option>';
-    querySnapshot.forEach((doc) => {
-      const option = document.createElement("option");
-      option.value = doc.id;
-      option.textContent = doc.data().first_name || "Unnamed";
-      assignToSelect.appendChild(option);
+
+    const q = query(
+      collection(db, "tb_farmers"),
+      where("user_type", "==", "Farm President")
+    );
+
+    // Use onSnapshot for real-time updates
+    onSnapshot(q, (querySnapshot) => {
+      assignToSelect.innerHTML =
+        '<option value="" selected disabled>Select Farm President</option>';
+      querySnapshot.forEach((doc) => {
+        const option = document.createElement("option");
+        option.value = doc.id;
+        option.textContent = doc.data().first_name || "Unnamed";
+        assignToSelect.appendChild(option);
+      });
+    }, (error) => {
+      console.error("Error listening to farm presidents:", error);
+      showErrorPanel("Failed to load farm presidents.");
     });
   } catch (error) {
-    console.error("Error loading farm presidents:", error);
+    console.error("Error setting up farm presidents listener:", error);
+    showErrorPanel("Failed to load farm presidents.");
   }
 };
 
@@ -395,25 +395,37 @@ window.loadBarangay = async function (farmPresidentId) {
 
 window.loadFarmland = async function (barangayName) {
   if (!barangayName) return;
+
   try {
-    const querySnapshot = await getDocs(
-      query(
-        collection(db, "tb_farmland"),
-        where("barangay_name", "==", barangayName)
-      )
-    );
     const farmlandSelect = document.getElementById("farmland");
     if (!farmlandSelect) throw new Error("farmland element not found");
+
+    // Initial placeholder
     farmlandSelect.innerHTML =
       '<option value="" selected disabled>Select Farmland</option>';
-    querySnapshot.forEach((doc) => {
-      const option = document.createElement("option");
-      option.value = doc.id;
-      option.textContent = doc.data().farmland_name || "Unnamed";
-      farmlandSelect.appendChild(option);
+
+    const q = query(
+      collection(db, "tb_farmland"),
+      where("barangay_name", "==", barangayName)
+    );
+
+    // Use onSnapshot for real-time updates
+    onSnapshot(q, (querySnapshot) => {
+      farmlandSelect.innerHTML =
+        '<option value="" selected disabled>Select Farmland</option>';
+      querySnapshot.forEach((doc) => {
+        const option = document.createElement("option");
+        option.value = doc.id;
+        option.textContent = doc.data().farmland_name || "Unnamed";
+        farmlandSelect.appendChild(option);
+      });
+    }, (error) => {
+      console.error("Error listening to farmlands:", error);
+      showErrorPanel("Failed to load farmlands.");
     });
   } catch (error) {
-    console.error("Error loading farmland:", error);
+    console.error("Error setting up farmlands listener:", error);
+    showErrorPanel("Failed to load farmlands.");
   }
 };
 
@@ -427,44 +439,58 @@ window.loadCrops = async function () {
   }
 
   const selectedFarmPresident = assignToSelect.value.trim();
-  if (!selectedFarmPresident) return;
+  if (!selectedFarmPresident) {
+    cropsSelect.innerHTML =
+      '<option value="" selected disabled>Select Crop</option>';
+    return;
+  }
 
   const userType = sessionStorage.getItem("user_type");
   if (!userType) {
     console.error("No user_type in session storage");
+    cropsSelect.innerHTML =
+      '<option value="" selected disabled>Select Crop</option>';
     return;
   }
 
   try {
-    const querySnapshot = await getDocs(collection(db, "tb_crop_stock"));
-    const uniqueCrops = new Set();
+    // Use onSnapshot to listen for real-time updates
+    onSnapshot(collection(db, "tb_crop_stock"), (querySnapshot) => {
+      const uniqueCrops = new Set();
 
-    querySnapshot.forEach((doc) => {
-      const cropData = doc.data();
-      const stocksArray = Array.isArray(cropData.stocks) ? cropData.stocks : [];
-      const isOwnedByUser = stocksArray.some(
-        (stock) => stock.owned_by === userType
-      );
+      querySnapshot.forEach((doc) => {
+        const cropData = doc.data();
+        const stocksArray = Array.isArray(cropData.stocks)
+          ? cropData.stocks
+          : [];
+        const isOwnedByUser = stocksArray.some(
+          (stock) => stock.owned_by === userType
+        );
 
-      if (
-        isOwnedByUser &&
-        cropData.crop_name &&
-        cropData.crop_name.trim() !== ""
-      ) {
-        uniqueCrops.add(cropData.crop_name.trim());
-      }
-    });
+        if (
+          isOwnedByUser &&
+          cropData.crop_name &&
+          cropData.crop_name.trim() !== ""
+        ) {
+          uniqueCrops.add(cropData.crop_name.trim());
+        }
+      });
 
-    cropsSelect.innerHTML =
-      '<option value="" selected disabled>Select Crop</option>';
-    uniqueCrops.forEach((crop) => {
-      const option = document.createElement("option");
-      option.value = crop;
-      option.textContent = crop;
-      cropsSelect.appendChild(option);
+      cropsSelect.innerHTML =
+        '<option value="" selected disabled>Select Crop</option>';
+      uniqueCrops.forEach((crop) => {
+        const option = document.createElement("option");
+        option.value = crop;
+        option.textContent = crop;
+        cropsSelect.appendChild(option);
+      });
+    }, (error) => {
+      console.error("Error listening to crops:", error);
+      showErrorPanel("Failed to load crops.");
     });
   } catch (error) {
-    console.error("Error loading crops:", error);
+    console.error("Error setting up crops listener:", error);
+    showErrorPanel("Failed to load crops.");
   }
 };
 
@@ -472,81 +498,102 @@ document
   .getElementById("assign-to")
   ?.addEventListener("change", window.loadCrops);
 
-window.loadCropTypes = async function (selectedCrop) {
-  if (!selectedCrop) return;
-
-  const cropTypeSelect = document.getElementById("crop-type");
-  if (!cropTypeSelect) {
-    console.error("crop-type element not found");
-    return;
-  }
-  cropTypeSelect.innerHTML =
-    '<option value="" selected disabled>Select Crop Type</option>';
-
-  let cropStockMap = {};
-  const userType = sessionStorage.getItem("user_type");
-
-  if (!userType) {
-    console.error("No user_type found in session storage.");
-    return;
-  }
-
-  try {
-    const querySnapshot = await getDocs(
-      query(
-        collection(db, "tb_crop_stock"),
-        where("crop_name", "==", selectedCrop)
-      )
-    );
-
-    if (querySnapshot.empty) {
-      console.error(`⚠️ No stock records found for crop: ${selectedCrop}`);
+  window.loadCropTypes = async function (selectedCrop) {
+    if (!selectedCrop) return;
+  
+    const cropTypeSelect = document.getElementById("crop-type");
+    if (!cropTypeSelect) {
+      console.error("crop-type element not found");
       return;
     }
-
-    querySnapshot.forEach((doc) => {
-      const cropData = doc.data();
-      const cropTypeName = cropData.crop_type_name;
-      const stocksArray = Array.isArray(cropData.stocks) ? cropData.stocks : [];
-
-      const userStock = stocksArray.find(
-        (stock) => stock.owned_by === userType
+  
+    const userType = sessionStorage.getItem("user_type");
+    if (!userType) {
+      console.error("No user_type found in session storage.");
+      cropTypeSelect.innerHTML =
+        '<option value="" selected disabled>Select Crop Type</option>';
+      return;
+    }
+  
+    try {
+      const q = query(
+        collection(db, "tb_crop_stock"),
+        where("crop_name", "==", selectedCrop)
       );
-      const currentStock = userStock
-        ? parseInt(userStock.current_stock, 10) || 0
-        : 0;
-
-      cropStockMap[cropTypeName] = currentStock;
-
-      const option = document.createElement("option");
-      option.value = cropTypeName;
-      option.textContent = `${cropTypeName} ${
-        currentStock === 0 ? "(Out of Stock)" : `(Stock: ${currentStock})`
-      }`;
-      cropTypeSelect.appendChild(option);
-    });
-
-    cropTypeSelect.addEventListener("change", function () {
-      const selectedCropType = this.value;
-      const maxStock = cropStockMap[selectedCropType] || 0;
-      const quantityInput = document.getElementById("quantity-crop-type");
-      if (!quantityInput) return;
-
-      quantityInput.max = maxStock;
-      quantityInput.value = "";
-
-      if (maxStock > 0) {
-        quantityInput.placeholder = `Max: ${maxStock}`;
-        quantityInput.disabled = false;
-      } else {
-        quantityInput.placeholder = "Out of stock";
-        quantityInput.disabled = true;
-      }
-    });
-  } catch (error) {
-    console.error("Error loading crop types:", error);
-  }
-};
+  
+      // Use onSnapshot for real-time updates
+      onSnapshot(q, (querySnapshot) => {
+        if (querySnapshot.empty) {
+          console.error(`⚠️ No stock records found for crop: ${selectedCrop}`);
+          cropTypeSelect.innerHTML =
+            '<option value="" selected disabled>No Crop Types Available</option>';
+          return;
+        }
+  
+        let cropStockMap = {};
+        cropTypeSelect.innerHTML =
+          '<option value="" selected disabled>Select Crop Type</option>';
+  
+        querySnapshot.forEach((doc) => {
+          const cropData = doc.data();
+          const cropTypeName = cropData.crop_type_name;
+          const stocksArray = Array.isArray(cropData.stocks)
+            ? cropData.stocks
+            : [];
+  
+          const userStock = stocksArray.find(
+            (stock) => stock.owned_by === userType
+          );
+          const currentStock = userStock
+            ? parseInt(userStock.current_stock, 10) || 0
+            : 0;
+  
+          cropStockMap[cropTypeName] = currentStock;
+  
+          const option = document.createElement("option");
+          option.value = cropTypeName;
+          option.textContent = `${cropTypeName} ${
+            currentStock === 0 ? "(Out of Stock)" : `(Stock: ${currentStock})`
+          }`;
+          cropTypeSelect.appendChild(option);
+        });
+  
+        // Update the quantity input based on the selected crop type
+        const quantityInput = document.getElementById("quantity-crop-type");
+        if (!quantityInput) return;
+  
+        const updateQuantityInput = () => {
+          const selectedCropType = cropTypeSelect.value;
+          const maxStock = cropStockMap[selectedCropType] || 0;
+          quantityInput.max = maxStock;
+          quantityInput.value = "";
+  
+          if (maxStock > 0) {
+            quantityInput.placeholder = `Max: ${maxStock}`;
+            quantityInput.disabled = false;
+          } else {
+            quantityInput.placeholder = "Out of stock";
+            quantityInput.disabled = true;
+          }
+        };
+  
+        // Update quantity input when crop type changes
+        cropTypeSelect.removeEventListener("change", updateQuantityInput);
+        cropTypeSelect.addEventListener("change", updateQuantityInput);
+  
+        // Trigger initial update if a crop type is already selected
+        if (cropTypeSelect.value) {
+          updateQuantityInput();
+        }
+      }, (error) => {
+        console.error("Error listening to crop types:", error);
+        showErrorPanel("Failed to load crop types.");
+      });
+    } catch (error) {
+      console.error("Error setting up crop types listener:", error);
+      showErrorPanel("Failed to load crop types.");
+    }
+  };
 
 // Function to check if a fertilizer with the same type and name already exists
 function isFertilizerDuplicate(container, type, name, currentDropdown) {
@@ -597,16 +644,17 @@ async function addEquipmentForm() {
   div.classList.add("equipment__group");
 
   try {
-    const equipmentTypes = await getEquipmentTypes();
+    const userType = sessionStorage.getItem("user_type");
+    if (!userType) {
+      console.error("No user type found in session.");
+      return;
+    }
 
     div.innerHTML = `
       <div class="form__group">
           <label class="form__label">Equipment Type:</label>
           <select class="form__select1 equipment__type">
               <option value="" selected disabled>Select Equipment Type</option>
-              ${equipmentTypes
-                .map((type) => `<option value="${type}">${type}</option>`)
-                .join("")}
           </select>
       </div>
       <div class="form__group">
@@ -628,6 +676,35 @@ async function addEquipmentForm() {
     const equipmentNameDropdown = div.querySelector(".equipment__name");
     const quantityInput = div.querySelector(".equipment__quantity");
 
+    // Use onSnapshot to populate equipment types in real-time
+    onSnapshot(collection(db, "tb_equipment_stock"), (querySnapshot) => {
+      const uniqueTypes = new Set();
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (Array.isArray(data.stocks)) {
+          const isOwnedByUser = data.stocks.some(
+            (stock) => stock.owned_by === userType
+          );
+          if (isOwnedByUser) {
+            uniqueTypes.add(data.equipment_type);
+          }
+        }
+      });
+
+      equipmentTypeDropdown.innerHTML =
+        '<option value="" selected disabled>Select Equipment Type</option>';
+      uniqueTypes.forEach((type) => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type;
+        equipmentTypeDropdown.appendChild(option);
+      });
+    }, (error) => {
+      console.error("Error listening to equipment types:", error);
+      showErrorPanel("Failed to load equipment types.");
+    });
+
     equipmentTypeDropdown.addEventListener("change", function () {
       loadEquipmentNames(
         equipmentTypeDropdown,
@@ -636,7 +713,6 @@ async function addEquipmentForm() {
       );
     });
 
-    // Add validation on name selection
     equipmentNameDropdown.addEventListener("change", function () {
       const selectedType = equipmentTypeDropdown.value;
       const selectedName = equipmentNameDropdown.value;
@@ -652,7 +728,7 @@ async function addEquipmentForm() {
           showErrorPanel(
             `Equipment with type '${selectedType}' and name '${selectedName}' is already selected. Please choose a different combination.`
           );
-          equipmentNameDropdown.value = ""; // Reset the selection
+          equipmentNameDropdown.value = "";
           quantityInput.placeholder = "Available Stock: -";
           quantityInput.value = "";
         }
@@ -660,36 +736,7 @@ async function addEquipmentForm() {
     });
   } catch (error) {
     console.error("Error adding equipment form:", error);
-  }
-}
-
-async function getEquipmentTypes() {
-  const userType = sessionStorage.getItem("user_type");
-  if (!userType) {
-    console.error("No user type found in session.");
-    return [];
-  }
-
-  try {
-    const querySnapshot = await getDocs(collection(db, "tb_equipment_stock"));
-    const uniqueTypes = new Set();
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      if (Array.isArray(data.stocks)) {
-        const isOwnedByUser = data.stocks.some(
-          (stock) => stock.owned_by === userType
-        );
-        if (isOwnedByUser) {
-          uniqueTypes.add(data.equipment_type);
-        }
-      }
-    });
-
-    return Array.from(uniqueTypes);
-  } catch (error) {
-    console.error("Error getting equipment types:", error);
-    return [];
+    showErrorPanel("Failed to add equipment form.");
   }
 }
 
@@ -715,40 +762,61 @@ async function loadEquipmentNames(
       collection(db, "tb_equipment_stock"),
       where("equipment_type", "==", selectedType)
     );
-    const querySnapshot = await getDocs(q);
-    equipmentNameDropdown.innerHTML =
-      '<option value="" selected disabled>Select Equipment Name</option>';
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const option = document.createElement("option");
-      option.value = data.equipment_name;
-      option.textContent = data.equipment_name;
-      const firstStockEntry =
-        data.stocks && data.stocks.length > 0 ? data.stocks[0] : null;
-      const currentStock = firstStockEntry ? firstStockEntry.current_stock : 0;
-      option.dataset.stock = currentStock;
-      equipmentNameDropdown.appendChild(option);
-    });
+    // Use onSnapshot for real-time updates
+    onSnapshot(q, (querySnapshot) => {
+      equipmentNameDropdown.innerHTML =
+        '<option value="" selected disabled>Select Equipment Name</option>';
 
-    equipmentNameDropdown.addEventListener("change", function () {
-      const selectedOption =
-        equipmentNameDropdown.options[equipmentNameDropdown.selectedIndex];
-      const stock = selectedOption.dataset.stock || 0;
-      quantityInput.placeholder = `Available Stock: ${stock}`;
-      equipmentNameDropdown.dataset.stock = stock;
-      quantityInput.value = "";
-      quantityInput.setAttribute("max", stock);
-    });
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const option = document.createElement("option");
+        option.value = data.equipment_name;
+        option.textContent = data.equipment_name;
+        const firstStockEntry =
+          data.stocks && data.stocks.length > 0 ? data.stocks[0] : null;
+        const currentStock = firstStockEntry ? firstStockEntry.current_stock : 0;
+        option.dataset.stock = currentStock;
+        equipmentNameDropdown.appendChild(option);
+      });
 
-    quantityInput.addEventListener("input", function () {
-      const maxStock = parseInt(equipmentNameDropdown.dataset.stock) || 0;
-      if (parseInt(quantityInput.value) > maxStock) {
-        quantityInput.value = maxStock;
+      // Update quantity input when equipment name changes
+      const updateQuantityInput = () => {
+        const selectedOption =
+          equipmentNameDropdown.options[equipmentNameDropdown.selectedIndex];
+        const stock = selectedOption?.dataset.stock || 0;
+        quantityInput.placeholder = `Available Stock: ${stock}`;
+        equipmentNameDropdown.dataset.stock = stock;
+        quantityInput.value = "";
+        quantityInput.setAttribute("max", stock);
+      };
+
+      equipmentNameDropdown.removeEventListener("change", updateQuantityInput);
+      equipmentNameDropdown.addEventListener("change", updateQuantityInput);
+
+      // Trigger initial update if an equipment name is already selected
+      if (equipmentNameDropdown.value) {
+        updateQuantityInput();
       }
+
+      // Validate quantity input
+      quantityInput.removeEventListener("input", validateQuantityInput);
+      quantityInput.addEventListener("input", validateQuantityInput);
+
+      function validateQuantityInput() {
+        const maxStock = parseInt(equipmentNameDropdown.dataset.stock) || 0;
+        if (parseInt(quantityInput.value) > maxStock) {
+          quantityInput.value = maxStock;
+          showErrorPanel(`Cannot exceed available stock of ${maxStock}.`);
+        }
+      }
+    }, (error) => {
+      console.error("Error listening to equipment names:", error);
+      showErrorPanel("Failed to load equipment names.");
     });
   } catch (error) {
-    console.error("Error loading equipment names:", error);
+    console.error("Error setting up equipment names listener:", error);
+    showErrorPanel("Failed to load equipment names.");
   }
 }
 
@@ -771,16 +839,17 @@ async function addFertilizerForm() {
   div.classList.add("fertilizer__group");
 
   try {
-    const fertilizerTypes = await getFertilizerTypes();
+    const userType = sessionStorage.getItem("user_type");
+    if (!userType) {
+      console.error("No user type found in session.");
+      return;
+    }
 
     div.innerHTML = `
       <div class="form__group">
           <label class="form__label">Fertilizer Type:</label>
           <select class="form__select1 fertilizer__type">
               <option value="" selected disabled>Select Fertilizer Type</option>
-              ${fertilizerTypes
-                .map((type) => `<option value="${type}">${type}</option>`)
-                .join("")}
           </select>
       </div>
       <div class="form__group">
@@ -802,6 +871,35 @@ async function addFertilizerForm() {
     const fertilizerNameDropdown = div.querySelector(".fertilizer__name");
     const quantityInput = div.querySelector(".fertilizer__quantity");
 
+    // Use onSnapshot to populate fertilizer types in real-time
+    onSnapshot(collection(db, "tb_fertilizer_stock"), (querySnapshot) => {
+      const uniqueTypes = new Set();
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (Array.isArray(data.stocks)) {
+          const isOwnedByUser = data.stocks.some(
+            (stock) => stock.owned_by === userType
+          );
+          if (isOwnedByUser) {
+            uniqueTypes.add(data.fertilizer_type);
+          }
+        }
+      });
+
+      fertilizerTypeDropdown.innerHTML =
+        '<option value="" selected disabled>Select Fertilizer Type</option>';
+      uniqueTypes.forEach((type) => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type;
+        fertilizerTypeDropdown.appendChild(option);
+      });
+    }, (error) => {
+      console.error("Error listening to fertilizer types:", error);
+      showErrorPanel("Failed to load fertilizer types.");
+    });
+
     fertilizerTypeDropdown.addEventListener("change", function () {
       loadFertilizerNames(
         fertilizerTypeDropdown,
@@ -810,7 +908,6 @@ async function addFertilizerForm() {
       );
     });
 
-    // Add validation on name selection
     fertilizerNameDropdown.addEventListener("change", function () {
       const selectedType = fertilizerTypeDropdown.value;
       const selectedName = fertilizerNameDropdown.value;
@@ -826,7 +923,7 @@ async function addFertilizerForm() {
           showErrorPanel(
             `Fertilizer with type '${selectedType}' and name '${selectedName}' is already selected. Please choose a different combination.`
           );
-          fertilizerNameDropdown.value = ""; // Reset the selection
+          fertilizerNameDropdown.value = "";
           quantityInput.placeholder = "Available Stock: -";
           quantityInput.value = "";
         }
@@ -834,36 +931,7 @@ async function addFertilizerForm() {
     });
   } catch (error) {
     console.error("Error adding fertilizer form:", error);
-  }
-}
-
-async function getFertilizerTypes() {
-  const userType = sessionStorage.getItem("user_type");
-  if (!userType) {
-    console.error("No user type found in session.");
-    return [];
-  }
-
-  try {
-    const querySnapshot = await getDocs(collection(db, "tb_fertilizer_stock"));
-    const uniqueTypes = new Set();
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      if (Array.isArray(data.stocks)) {
-        const isOwnedByUser = data.stocks.some(
-          (stock) => stock.owned_by === userType
-        );
-        if (isOwnedByUser) {
-          uniqueTypes.add(data.fertilizer_type);
-        }
-      }
-    });
-
-    return Array.from(uniqueTypes);
-  } catch (error) {
-    console.error("Error getting fertilizer(types:", error);
-    return [];
+    showErrorPanel("Failed to add fertilizer form.");
   }
 }
 
@@ -889,40 +957,61 @@ async function loadFertilizerNames(
       collection(db, "tb_fertilizer_stock"),
       where("fertilizer_type", "==", selectedType)
     );
-    const querySnapshot = await getDocs(q);
-    fertilizerNameDropdown.innerHTML =
-      '<option value="" selected disabled>Select Fertilizer Name</option>';
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const option = document.createElement("option");
-      option.value = data.fertilizer_name;
-      option.textContent = data.fertilizer_name;
-      const firstStockEntry =
-        data.stocks && data.stocks.length > 0 ? data.stocks[0] : null;
-      const currentStock = firstStockEntry ? firstStockEntry.current_stock : 0;
-      option.dataset.stock = currentStock;
-      fertilizerNameDropdown.appendChild(option);
-    });
+    // Use onSnapshot for real-time updates
+    onSnapshot(q, (querySnapshot) => {
+      fertilizerNameDropdown.innerHTML =
+        '<option value="" selected disabled>Select Fertilizer Name</option>';
 
-    fertilizerNameDropdown.addEventListener("change", function () {
-      const selectedOption =
-        fertilizerNameDropdown.options[fertilizerNameDropdown.selectedIndex];
-      const stock = selectedOption.dataset.stock || 0;
-      quantityInput.placeholder = `Available Stock: ${stock}`;
-      fertilizerNameDropdown.dataset.stock = stock;
-      quantityInput.value = "";
-      quantityInput.setAttribute("max", stock);
-    });
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const option = document.createElement("option");
+        option.value = data.fertilizer_name;
+        option.textContent = data.fertilizer_name;
+        const firstStockEntry =
+          data.stocks && data.stocks.length > 0 ? data.stocks[0] : null;
+        const currentStock = firstStockEntry ? firstStockEntry.current_stock : 0;
+        option.dataset.stock = currentStock;
+        fertilizerNameDropdown.appendChild(option);
+      });
 
-    quantityInput.addEventListener("input", function () {
-      const maxStock = parseInt(fertilizerNameDropdown.dataset.stock) || 0;
-      if (parseInt(quantityInput.value) > maxStock) {
-        quantityInput.value = maxStock;
+      // Update quantity input when fertilizer name changes
+      const updateQuantityInput = () => {
+        const selectedOption =
+          fertilizerNameDropdown.options[fertilizerNameDropdown.selectedIndex];
+        const stock = selectedOption?.dataset.stock || 0;
+        quantityInput.placeholder = `Available Stock: ${stock}`;
+        fertilizerNameDropdown.dataset.stock = stock;
+        quantityInput.value = "";
+        quantityInput.setAttribute("max", stock);
+      };
+
+      fertilizerNameDropdown.removeEventListener("change", updateQuantityInput);
+      fertilizerNameDropdown.addEventListener("change", updateQuantityInput);
+
+      // Trigger initial update if a fertilizer name is already selected
+      if (fertilizerNameDropdown.value) {
+        updateQuantityInput();
       }
+
+      // Validate quantity input
+      quantityInput.removeEventListener("input", validateQuantityInput);
+      quantityInput.addEventListener("input", validateQuantityInput);
+
+      function validateQuantityInput() {
+        const maxStock = parseInt(fertilizerNameDropdown.dataset.stock) || 0;
+        if (parseInt(quantityInput.value) > maxStock) {
+          quantityInput.value = maxStock;
+          showErrorPanel(`Cannot exceed available stock of ${maxStock}.`);
+        }
+      }
+    }, (error) => {
+      console.error("Error listening to fertilizer names:", error);
+      showErrorPanel("Failed to load fertilizer names.");
     });
   } catch (error) {
-    console.error("Error loading fertilizer names:", error);
+    console.error("Error setting up fertilizer names listener:", error);
+    showErrorPanel("Failed to load fertilizer names.");
   }
 }
 

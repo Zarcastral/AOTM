@@ -1,183 +1,158 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-    getFirestore, collection, query, where, getDocs, orderBy, doc,
-    getDoc, setDoc, updateDoc, addDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { getFirestore, collection, query, where, getDocs, orderBy, addDoc, serverTimestamp, updateDoc, doc, getDoc }
+ from "firebase/firestore";
 
 // Function to show success panel
 function showSuccessPanel(message) {
     const successMessage = document.createElement("div");
     successMessage.className = "success-message";
     successMessage.textContent = message;
-  
+
     document.body.appendChild(successMessage);
-  
-    // Fade in
+
     successMessage.style.display = "block";
     setTimeout(() => {
-      successMessage.style.opacity = "1";
+        successMessage.style.opacity = "1";
     }, 5);
-  
-    // Fade out after 4 seconds
+
     setTimeout(() => {
-      successMessage.style.opacity = "0";
-      setTimeout(() => {
-        document.body.removeChild(successMessage);
-      }, 400);
+        successMessage.style.opacity = "0";
+        setTimeout(() => {
+            document.body.removeChild(successMessage);
+        }, 400);
     }, 4000);
-  }
-  
-  // Function to show error panel
-  function showErrorPanel(message) {
+}
+
+// Function to show error panel
+function showErrorPanel(message) {
     const errorMessage = document.createElement("div");
     errorMessage.className = "error-message";
     errorMessage.textContent = message;
-  
+
     document.body.appendChild(errorMessage);
-  
-    // Fade in
+
     errorMessage.style.display = "block";
     setTimeout(() => {
-      errorMessage.style.opacity = "1";
+        errorMessage.style.opacity = "1";
     }, 5);
-  
-    // Fade out after 4 seconds
-    setTimeout(() => {
-      errorMessage.style.opacity = "0";
-      setTimeout(() => {
-        document.body.removeChild(errorMessage);
-      }, 400);
-    }, 4000);
-  }
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,    
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+    setTimeout(() => {
+        errorMessage.style.opacity = "0";
+        setTimeout(() => {
+            document.body.removeChild(errorMessage);
+        }, 400);
+    }, 4000);
+}
+
+import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
 
-let globalProjectId = null;
-
+// Function to fetch and display project details
 async function fetchProjectDetails() {
-    let farmerId = sessionStorage.getItem("farmer_id");
-    if (!farmerId) {
-        console.error("❌ No farmer_id found in sessionStorage.");
+    let projectId = sessionStorage.getItem("selectedProjectId");
+
+    if (!projectId) {
+        console.error("❌ No project ID found in sessionStorage.");
+        return;
+    }
+
+    projectId = parseInt(projectId, 10);
+    console.log("📌 Retrieved project_id (after conversion):", projectId, "Type:", typeof projectId);
+
+    if (isNaN(projectId)) {
+        console.error("⚠️ Invalid project ID (not a number).");
         return;
     }
 
     try {
         const projectsRef = collection(db, "tb_projects");
-        const q = query(projectsRef, where("lead_farmer_id", "==", farmerId));
+        const q = query(projectsRef, where("project_id", "==", projectId));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
             const projectData = querySnapshot.docs[0].data();
-            globalProjectId = projectData.project_id;
-            displayFeedbacks(globalProjectId);
+            console.log("✅ Project Data Retrieved:", projectData);
 
             document.getElementById("projectName").textContent = projectData.project_name || "No Title";
             document.getElementById("status").textContent = projectData.status || "No Status";
             document.getElementById("startDate").textContent = projectData.start_date || "N/A";
             document.getElementById("endDate").textContent = projectData.end_date || "N/A";
-            document.getElementById("extendedDate").textContent = projectData.extended_date || "--";
             document.getElementById("cropName").textContent = projectData.crop_name || "N/A";
             document.getElementById("cropType").textContent = projectData.crop_type_name || "N/A";
             document.getElementById("barangayName").textContent = projectData.barangay_name || "N/A";
             document.getElementById("farmPresident").textContent = projectData.farm_president || "N/A";
+        } else {
+            console.error("❌ Project not found in Firestore.");
         }
     } catch (error) {
         console.error("🔥 Error fetching project data:", error);
     }
 }
 
+function storeProjectIdAndRedirect(projectId, teamId) {
+    sessionStorage.setItem("selected_project_id", projectId);
+    window.location.href = `../../../landing_pages/head_farmer/headfarm_task.html?team_id=${teamId}`;
+}
+
+// Expose the function to the global scope
+window.storeProjectIdAndRedirect = storeProjectIdAndRedirect;
+
+// Fetch and display teams
 async function fetchTeams() {
     const teamsTableBody = document.getElementById("teamsTableBody");
-    teamsTableBody.innerHTML = "<tr><td colspan='6' style='text-align: center;'>Loading...</td></tr>";
+    teamsTableBody.innerHTML = "<tr><td colspan='4' style='text-align: center;'>Loading...</td></tr>";
 
     try {
-        let farmerId = sessionStorage.getItem("farmer_id");
-        if (!farmerId) {
-            teamsTableBody.innerHTML = "<tr><td colspan='6' style='text-align: center;'>User not logged in.</td></tr>";
+        const projectId = sessionStorage.getItem("selectedProjectId");
+        if (!projectId) {
+            teamsTableBody.innerHTML = "<tr><td colspan='4'>No project selected.</td></tr>";
             return;
         }
 
-        const projectsRef = collection(db, "tb_projects");
-        const q = query(projectsRef, where("lead_farmer_id", "==", farmerId));
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(
+            query(collection(db, "tb_projects"), 
+            where("project_id", "==", parseInt(projectId)))
+        );
 
         teamsTableBody.innerHTML = "";
+
         if (querySnapshot.empty) {
-            teamsTableBody.innerHTML = "<tr><td colspan='6' style='text-align: center;'>No teams found.</td></tr>";
+            teamsTableBody.innerHTML = "<tr><td colspan='4'>No teams found.</td></tr>";
             return;
         }
 
-        querySnapshot.forEach(doc => {
+        querySnapshot.forEach((doc) => {
             const project = doc.data();
             if (!project.team_id) return;
 
             const teamName = project.team_name || "Unknown Team";
             const leadFarmer = project.lead_farmer || "No Leader";
-            let farmers = project.farmer_name || [];
-            if (!Array.isArray(farmers)) farmers = [];
+            const farmers = project.farmer_name || [];
+            const teamId = project.team_id;
 
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${teamName}</td>
                 <td>${leadFarmer}</td>
                 <td>${farmers.length}</td>
-                <td><img src="../../images/eye.png" class="action-btn" alt="View"></td>
+                <td>
+                    <button 
+                        class="view-btn" 
+                        onclick="storeProjectIdAndRedirect(sessionStorage.getItem('selectedProjectId'), '${teamId}')"
+                    >
+                        <img src="../../images/eye.png" alt="View" class="view-icon">
+                    </button>
+                </td>
             `;
-
-            const viewButton = row.querySelector(".action-btn");
-            viewButton.addEventListener("click", () => openPopup(teamName, leadFarmer, farmers));
             teamsTableBody.appendChild(row);
         });
     } catch (error) {
-        console.error("🔥 Error fetching teams:", error);
-        teamsTableBody.innerHTML = "<tr><td colspan='6' style='text-align: center;'>Failed to load teams.</td></tr>";
+        console.error("Error fetching teams:", error);
+        teamsTableBody.innerHTML = "<tr><td colspan='4'>Failed to load teams.</td></tr>";
     }
 }
 
-// Popup Functions
-/*window.openPopup = function (teamName, leadFarmer, farmers) {
-    const popup = document.getElementById("viewTeamPopup");
-    document.getElementById("popupTeamName").textContent = teamName;
-    document.getElementById("popupLeadFarmer").textContent = leadFarmer;
-
-    const farmerList = document.getElementById("popupFarmerList");
-    farmerList.innerHTML = "";
-    if (farmers.length > 0) {
-        farmers.forEach(farmer => {
-            const listItem = document.createElement("li");
-            listItem.textContent = farmer;
-            farmerList.appendChild(listItem);
-        });
-    } else {
-        farmerList.innerHTML = "<li>No farmers assigned</li>";
-    }
-
-    popup.style.display = "flex";
-};
-
-window.closePopup = function () {
-    document.getElementById("viewTeamPopup").style.display = "none";
-};
-
-document.getElementById("closePopup").addEventListener("click", closePopup);
-window.addEventListener("click", (event) => {
-    const popup = document.getElementById("viewTeamPopup");
-    if (event.target === popup) closePopup();
-})*/
-
-// Feedback Popup
+// Feedback Popup Functions (Copied from Second Code)
 window.openFeedbackPopup = function () {
     document.getElementById("feedbackPopup").style.display = "flex";
 };
@@ -214,7 +189,8 @@ window.submitFeedback = async function () {
         return;
     }
 
-    if (!globalProjectId) {
+    let projectId = parseInt(sessionStorage.getItem("selectedProjectId"), 10);
+    if (!projectId) {
         showErrorPanel("No project selected. Please refresh the page or select a project.");
         return;
     }
@@ -228,7 +204,7 @@ window.submitFeedback = async function () {
 
     let feedbackData = {
         feedback_id: feedback_id,
-        project_id: globalProjectId,
+        project_id: projectId,
         barangay_name: barangay_name,
         concern: concern,
         feedback: feedback,
@@ -250,6 +226,7 @@ window.submitFeedback = async function () {
     }
 };
 
+// Feedback UI Function (Copied from Second Code)
 function addFeedbackToUI(feedback) {
     const feedbackListContainer = document.getElementById("feedbackList");
     let formattedTimestamp = feedback.timestamp.toLocaleString();
@@ -258,27 +235,41 @@ function addFeedbackToUI(feedback) {
     feedbackItem.classList.add("feedback-item");
     feedbackItem.innerHTML = `
         <img src="${feedback.submitted_by_picture || 'default-profile.png'}" class="feedback-avatar" alt="User">
-        <div class="feedback-content3">
+        <div class="feedback-content">
             <div class="feedback-header">
                 <span class="feedback-user">${feedback.submitted_by} • ${feedback.concern} (${feedback.barangay_name})</span>
                 <span class="timestamp">${formattedTimestamp}</span>
             </div>
-            <div class="feedback-header1">
-             <p class="feedback-text">${feedback.feedback}</p>
-             <p class="feedback-status">Status: ${feedback.status}</p>
-            </div>
+            <p class="feedback-text">${feedback.feedback}</p>
+            <p class="feedback-status">Status: ${feedback.status}</p>
         </div>
     `;
 
     let noFeedbackMessage = document.querySelector("#feedbackList .feedback-list-empty");
-if (noFeedbackMessage) {
-    noFeedbackMessage.remove();
-}
+    if (noFeedbackMessage) {
+        noFeedbackMessage.remove();
+    }
 
     feedbackListContainer.prepend(feedbackItem);
 }
 
-async function displayFeedbacks(projectId) {
+// Display Feedbacks (Copied from Second Code)
+async function displayFeedbacks() {
+    let projectId = sessionStorage.getItem("selectedProjectId");
+
+    if (!projectId) {
+        console.error("❌ No project selected.");
+        return;
+    }
+
+    projectId = parseInt(projectId, 10);
+    console.log("📌 Fetching feedbacks for project_id:", projectId, "Type:", typeof projectId);
+
+    if (isNaN(projectId)) {
+        console.error("⚠️ Invalid project ID (not a number).");
+        return;
+    }
+
     const feedbackListContainer = document.getElementById("feedbackList");
     feedbackListContainer.innerHTML = '<p class="feedback-list-empty">Loading feedbacks...</p>';
 
@@ -310,14 +301,14 @@ async function displayFeedbacks(projectId) {
             feedbackItem.innerHTML = `
                 <img src="${feedback.submitted_by_picture || 'default-profile.png'}" class="feedback-avatar" alt="User">
                 <div class="feedback-content">
-                    <div class="feedback-header3">
+                    <div class="feedback-header">
                         <span class="feedback-user">${feedback.submitted_by} • ${feedback.concern} (${feedback.barangay_name})</span>
                         <span class="timestamp">${formattedTimestamp}</span>
                     </div>
-                    <div class="feedback-header1">
+                  <div class="feedback-header1">
                      <p class="feedback-text">${feedback.feedback}</p>
                      <p class="feedback-status" style="color: ${statusColor};">Status: ${feedback.status}</p>
-                    </div>
+                  </div>
                 </div>
             `;
             feedbackListContainer.appendChild(feedbackItem);
@@ -328,7 +319,9 @@ async function displayFeedbacks(projectId) {
     }
 }
 
+// Load project details, teams, and feedbacks when the page loads
 document.addEventListener("DOMContentLoaded", () => {
     fetchProjectDetails();
     fetchTeams();
+    displayFeedbacks();
 });

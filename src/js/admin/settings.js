@@ -1,15 +1,21 @@
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
+import {
+    getFirestore,
+    collection,
+    doc,
+    getDocs,
+    getDoc,
+    setDoc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    query,
+    where,
+    onSnapshot,
+    writeBatch
+} from "firebase/firestore";
+import app from "../../config/firebase_config.js";
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db = getFirestore(app);
 
 let deleteItemId = null;
 let deleteItemCollection = null;
@@ -53,7 +59,7 @@ window.loadCropNames = async function() {
     cropNameSelect.appendChild(defaultOption);
 
     try {
-        const snapshot = await db.collection('tb_crops').get();
+        const snapshot = await getDocs(collection(db, 'tb_crops'));
         snapshot.forEach(doc => {
             const cropData = doc.data();
             const option = document.createElement('option');
@@ -85,7 +91,7 @@ window.loadEquipmentTypes = async function() {
     equipmentCategorySelect.appendChild(defaultOption);
 
     try {
-        const snapshot = await db.collection('tb_equipment_types').get();
+        const snapshot = await getDocs(collection(db, 'tb_equipment_types'));
         snapshot.forEach(doc => {
             const equipmentData = doc.data();
             const option = document.createElement('option');
@@ -117,7 +123,7 @@ window.loadFertilizerTypes = async function() {
     fertilizerCategorySelect.appendChild(defaultOption);
 
     try {
-        const snapshot = await db.collection('tb_fertilizer_types').get();
+        const snapshot = await getDocs(collection(db, 'tb_fertilizer_types'));
         snapshot.forEach(doc => {
             const fertilizerData = doc.data();
             const option = document.createElement('option');
@@ -136,29 +142,24 @@ window.initializeCounters = async function() {
         'fertilizer_id_counter', 'farmland_id_counter'];
 
     for (let counter of counters) {
-        const docRef = db.collection('tb_id_counters').doc(counter);
-        const doc = await docRef.get();
+        const docRef = doc(db, 'tb_id_counters', counter);
+        const docSnap = await getDoc(docRef);
 
-        if (!doc.exists) {
-            await docRef.set({
-                count: 0
-            });
+        if (!docSnap.exists()) {
+            await setDoc(docRef, { count: 0 });
         }
     }
 };
 
 window.getNextId = async function(counterName) {
-    const counterRef = db.collection('tb_id_counters').doc(counterName);
-    const doc = await counterRef.get();
+    const counterRef = doc(db, 'tb_id_counters', counterName);
+    const docSnap = await getDoc(counterRef);
     
-    if (doc.exists) {
-        const currentCount = doc.data().count;
+    if (docSnap.exists()) {
+        const currentCount = docSnap.data().count;
         const nextId = currentCount + 1;
 
-        await counterRef.update({
-            count: nextId
-        });
-
+        await updateDoc(counterRef, { count: nextId });
         return nextId;
     } else {
         console.error(`Counter ${counterName} not found!`);
@@ -171,56 +172,87 @@ window.getNextId = async function(counterName) {
  */
 window.populateBarangayDropdown = async function() {
     const barangaySelect = document.getElementById('barangay-select');
-    
-    // Clear existing options (keep the default/placeholder if needed)
+    if (!barangaySelect) {
+        console.error('Barangay select element not found.');
+        return;
+    }
+
+    // Clear existing options and add default option
     barangaySelect.innerHTML = '<option value="" selected disabled>Select Barangay</option>';
-    
+
     try {
-        const snapshot = await db.collection('tb_barangay').get();
-        const uniqueBarangays = new Set(); // Using Set to track unique names
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const barangayName = data.barangay_name.trim();
-            
-            // Only add if not already in the Set
-            if (barangayName && !uniqueBarangays.has(barangayName)) {
-                uniqueBarangays.add(barangayName);
-                const option = document.createElement('option');
-                option.value = barangayName;
-                option.textContent = barangayName;
-                barangaySelect.appendChild(option);
-            }
+        onSnapshot(collection(db, 'tb_barangay'), (snapshot) => {
+            // Clear existing options except the default one
+            barangaySelect.innerHTML = '<option value="" selected disabled>Select Barangay</option>';
+            const uniqueBarangays = new Set();
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const barangayName = data.barangay_name.trim();
+
+                if (barangayName && !uniqueBarangays.has(barangayName)) {
+                    uniqueBarangays.add(barangayName);
+                    const option = document.createElement('option');
+                    option.value = barangayName;
+                    option.textContent = barangayName;
+                    barangaySelect.appendChild(option);
+                }
+            });
+        }, (error) => {
+            console.error("Error listening to barangays:", error);
+            showCustomMessage("Failed to load barangays.", false);
         });
     } catch (error) {
-        console.error("Error loading barangays:", error);
+        console.error("Error setting up listener for barangays:", error);
         showCustomMessage("Failed to load barangays.", false);
     }
 };
 
-window.onload = populateBarangayDropdown;
+window.addEventListener('load', async () => {
+    await window.populateBarangayDropdown();
+});
 
-window.fetchData = async function(collection, listId, field) {
+window.fetchData = function(collectionName, listId, field) {
     const listContainer = document.getElementById(listId);
+    if (!listContainer) {
+        console.error(`List container with ID ${listId} not found.`);
+        return;
+    }
+
+    // Clear the list initially
     listContainer.innerHTML = '';
 
     try {
-        const snapshot = await db.collection(collection).get();
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const itemDiv = document.createElement('div');
-            itemDiv.classList.add('item');
-            itemDiv.innerHTML = `
-                <span>${data[field] || ''}</span>
-                <div class="actions">
-                    <img src="../../images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('${collection}', '${doc.id}', '${data[field]}')">
-                    <img src="../../images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('${collection}', '${doc.id}')">
-                </div>
-            `;
-            listContainer.appendChild(itemDiv);
+        // Use onSnapshot to listen for real-time updates
+        onSnapshot(collection(db, collectionName), (snapshot) => {
+            // Clear the list on each update to avoid duplicates
+            listContainer.innerHTML = '';
+
+            if (snapshot.empty) {
+                listContainer.innerHTML = '<p>No items found.</p>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('item');
+                itemDiv.innerHTML = `
+                    <span>${data[field] || 'Unnamed'}</span>
+                    <div class="actions">
+                        <img src="../../images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('${collectionName}', '${doc.id}', '${data[field] || ''}')">
+                        <img src="../../images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('${collectionName}', '${doc.id}')">
+                    </div>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+        }, (error) => {
+            console.error(`Error listening to ${collectionName}: `, error);
+            listContainer.innerHTML = '<p>Error loading data. Please try again later.</p>';
         });
     } catch (error) {
-        console.error(`Error fetching ${collection}: `, error);
+        console.error(`Error setting up listener for ${collectionName}: `, error);
+        listContainer.innerHTML = '<p>Error loading data. Please try again later.</p>';
     }
 };
 
@@ -259,9 +291,8 @@ window.editItem = function(collection, id, name) {
 };
 //save edit
 window.saveEditedItem = async function() {
-    // Get form values
     const id = document.getElementById('edit-item-id').value;
-    const collection = document.getElementById('edit-item-collection').value;
+    const collectionName = document.getElementById('edit-item-collection').value;
     const newName = document.getElementById('edit-item-name').value.trim();
 
     if (!newName) {
@@ -269,7 +300,6 @@ window.saveEditedItem = async function() {
         return;
     }
 
-    // Map collections to their respective name fields
     const fieldMap = {
         'tb_barangay': 'barangay_name',
         'tb_crop_types': 'crop_type_name',
@@ -278,7 +308,7 @@ window.saveEditedItem = async function() {
         'tb_farmland': 'farmland_name'
     };
 
-    const fieldToUpdate = fieldMap[collection];
+    const fieldToUpdate = fieldMap[collectionName];
     
     if (!fieldToUpdate) {
         showCustomMessage('Invalid collection type', false);
@@ -286,10 +316,8 @@ window.saveEditedItem = async function() {
     }
 
     try {
-        // Check for duplicate names (except for the current item)
-        const querySnapshot = await db.collection(collection)
-            .where(fieldToUpdate, '==', newName)
-            .get();
+        const q = query(collection(db, collectionName), where(fieldToUpdate, '==', newName));
+        const querySnapshot = await getDocs(q);
 
         const isDuplicate = querySnapshot.docs.some(doc => doc.id !== id);
         
@@ -298,20 +326,11 @@ window.saveEditedItem = async function() {
             return;
         }
 
-        // Perform the update
-        await db.collection(collection).doc(id).update({
-            [fieldToUpdate]: newName
-        });
+        await updateDoc(doc(db, collectionName, id), { [fieldToUpdate]: newName });
 
         showCustomMessage('Item updated successfully', true);
         closePopup('edit-item-popup');
-        loadData(); // Refresh the displayed data
-
-        // Special reload for dependent data
-        if (collection === 'tb_barangay') {
-            loadFarmlandsForBarangay();
-            populateBarangayDropdown();
-        }
+       
     } catch (error) {
         console.error('Error updating item:', error);
         showCustomMessage('Error updating item. Please try again.', false);
@@ -331,12 +350,8 @@ window.deleteItem = function(collection, id) {
 
 window.confirmDelete = function() {
     if (deleteItemId && deleteItemCollection) {
-        db.collection(deleteItemCollection).doc(deleteItemId).delete().then(() => {
+        deleteDoc(doc(db, deleteItemCollection, deleteItemId)).then(() => {
             showCustomMessage('Item deleted successfully', true);
-            loadData();
-            if (deleteItemCollection === 'tb_farmland') {
-                loadFarmlandsForBarangay();
-            }
             closePopup('delete-confirm-popup');
         }).catch(error => {
             console.error('Error deleting item:', error);
@@ -373,9 +388,8 @@ window.addBarangay = async function() {
     }
 
     try {
-        const existingBrgy = await db.collection('tb_barangay')
-            .where('barangay_name', '==', barangayName)
-            .get();
+        const q = query(collection(db, 'tb_barangay'), where('barangay_name', '==', barangayName));
+        const existingBrgy = await getDocs(q);
 
         if (!existingBrgy.empty) {
             showCustomMessage('Barangay name already exists in the database!', false);
@@ -390,8 +404,8 @@ window.addBarangay = async function() {
                 barangay_id: nextBrgyId,
                 barangay_name: barangayName,
                 total_plot_size: totalPlotSize,
-                land_area: parseInt(landArea), // Convert to integer
-                plot_area: parseInt(plotSize), // Convert to integer
+                land_area: parseInt(landArea),
+                plot_area: parseInt(plotSize),
                 dateCreated
             };
             
@@ -400,29 +414,23 @@ window.addBarangay = async function() {
                 barangay_id: nextBrgyId,
                 barangay_name: barangayName,
                 farmland_name: landArea,
-                plot_area: parseInt(plotSize), // Convert to integer
+                plot_area: parseInt(plotSize),
                 dateCreated
             };
             
-
-            const batch = db.batch();
-            const barangayRef = db.collection('tb_barangay').doc();
-            const farmlandRef = db.collection('tb_farmland').doc();
+            const batch = writeBatch(db);
+            const barangayRef = doc(collection(db, 'tb_barangay'));
+            const farmlandRef = doc(collection(db, 'tb_farmland'));
 
             batch.set(barangayRef, barangayData);
             batch.set(farmlandRef, farmlandData);
 
             await batch.commit();
 
-            const barangaySelect = document.getElementById('barangay-select');
-            const option = document.createElement('option');
-            option.value = barangayName.trim();
-            option.textContent = barangayName;
-            barangaySelect.appendChild(option);
 
             showCustomMessage('Barangay and farmland added successfully', true);
             clearBarangayInputs();
-            loadData();
+
             closePopup('add-barangay-popup');
         }
     } catch (error) {
@@ -446,17 +454,18 @@ window.addCropType = async function() {
         return;
     }
 
-    const existingCropType = await db.collection('tb_crop_types')
-        .where('crop_type_name', '==', cropTypeName)
-        .where('crop_name', '==', cropName)
-        .get();
+    const q1 = query(collection(db, 'tb_crop_types'), 
+        where('crop_type_name', '==', cropTypeName), 
+        where('crop_name', '==', cropName));
+    const existingCropType = await getDocs(q1);
 
     if (!existingCropType.empty) {
         showCustomMessage('Crop type already exists in the database!', false);
         return;
     }
 
-    const cropSnapshot = await db.collection('tb_crops').where('crop_name', '==', cropName).get();
+    const q2 = query(collection(db, 'tb_crops'), where('crop_name', '==', cropName));
+    const cropSnapshot = await getDocs(q2);
     let cropNameId = null;
     cropSnapshot.forEach(doc => {
         cropNameId = doc.id;
@@ -469,7 +478,7 @@ window.addCropType = async function() {
 
     const nextCropTypeId = await getNextId('crop_type_id_counter');
     if (nextCropTypeId !== null) {
-        db.collection('tb_crop_types').add({
+        await addDoc(collection(db, 'tb_crop_types'), {
             crop_type_id: nextCropTypeId,
             crop_type_name: cropTypeName,
             crop_name: cropName,
@@ -477,15 +486,12 @@ window.addCropType = async function() {
             current_stock: 0,
             unit: "kg",
             dateAdded
-        }).then(() => {
-            showCustomMessage('Crop Type added successfully', true);
-            clearCropInputs();
-            loadData();
-            closePopup('add-crop-type-popup');
-        }).catch(error => {
-            console.error('Error adding crop type:', error);
-            showCustomMessage('Error adding crop type. Please try again.', false);
         });
+
+        showCustomMessage('Crop Type added successfully', true);
+        clearCropInputs();
+
+        closePopup('add-crop-type-popup');
     }
 };
 
@@ -504,10 +510,10 @@ window.addEquipment = async function() {
         return;
     }
 
-    const existingEquipment = await db.collection('tb_equipment')
-        .where('equipment_name', '==', equipmentName)
-        .where('equipment_category', '==', category)
-        .get();
+    const q = query(collection(db, 'tb_equipment'), 
+        where('equipment_name', '==', equipmentName), 
+        where('equipment_category', '==', category));
+    const existingEquipment = await getDocs(q);
 
     if (!existingEquipment.empty) {
         showCustomMessage('Equipment already exists in the database!', false);
@@ -516,21 +522,17 @@ window.addEquipment = async function() {
 
     const nextEquipmentId = await getNextId('equipment_id_counter');
     if (nextEquipmentId !== null) {
-        db.collection('tb_equipment').add({
+        await addDoc(collection(db, 'tb_equipment'), {
             equipment_id: nextEquipmentId,
             equipment_name: equipmentName,
             equipment_category: category,
             current_quantity: 0,
             dateAdded
-        }).then(() => {
-            showCustomMessage('Equipment added successfully', true);
-            clearEquipmentInputs();
-            loadData();
-            closePopup('add-equipment-popup');
-        }).catch(error => {
-            console.error('Error adding equipment:', error);
-            showCustomMessage('Error adding equipment. Please try again.', false);
         });
+
+        showCustomMessage('Equipment added successfully', true);
+        clearEquipmentInputs();
+        closePopup('add-equipment-popup');
     }
 };
 
@@ -549,10 +551,10 @@ window.addFertilizer = async function() {
         return;
     }
 
-    const existingFertilizer = await db.collection('tb_fertilizer')
-        .where('fertilizer_name', '==', fertilizerName)
-        .where('fertilizer_type', '==', fertilizerType)
-        .get();
+    const q = query(collection(db, 'tb_fertilizer'), 
+        where('fertilizer_name', '==', fertilizerName), 
+        where('fertilizer_type', '==', fertilizerType));
+    const existingFertilizer = await getDocs(q);
 
     if (!existingFertilizer.empty) {
         showCustomMessage('Fertilizer already exists in the database!', false);
@@ -561,62 +563,69 @@ window.addFertilizer = async function() {
 
     const nextFertilizerId = await getNextId('fertilizer_id_counter');
     if (nextFertilizerId !== null) {
-        db.collection('tb_fertilizer').add({
+        await addDoc(collection(db, 'tb_fertilizer'), {
             fertilizer_id: nextFertilizerId,
             fertilizer_name: fertilizerName,
             fertilizer_type: fertilizerType,
             quantity: 0,
             unit: "kg",
             dateAdded
-        }).then(() => {
-            showCustomMessage('Fertilizer added successfully', true);
-            clearFertilizerInputs();
-            loadData();
-            closePopup('add-fertilizer-popup');
-        }).catch(error => {
-            console.error('Error adding fertilizer:', error);
-            showCustomMessage('Error adding fertilizer. Please try again.', false);
         });
+
+        showCustomMessage('Fertilizer added successfully', true);
+        clearFertilizerInputs();
+        closePopup('add-fertilizer-popup');
     }
 };
 
-window.loadFarmlandsForBarangay = async function() {
+window.loadFarmlandsForBarangay = function() {
     const listContainer = document.getElementById('farmland-list');
     const barangaySelect = document.getElementById('barangay-select');
     const selectedBarangayName = barangaySelect.value.trim();
+
+    if (!listContainer || !barangaySelect) {
+        console.error('Farmland list or barangay select not found.');
+        return;
+    }
+
+    // Clear the list initially
+    listContainer.innerHTML = '';
 
     if (!selectedBarangayName) {
         listContainer.innerHTML = '<p>Please select a barangay.</p>';
         return;
     }
 
-    listContainer.innerHTML = '';
-
     try {
-        const snapshot = await db.collection('tb_farmland')
-            .where('barangay_name', '==', selectedBarangayName)
-            .get();
+        const q = query(collection(db, 'tb_farmland'), where('barangay_name', '==', selectedBarangayName));
+        onSnapshot(q, (snapshot) => {
+            // Clear the list on each update to avoid duplicates
+            listContainer.innerHTML = '';
 
-        if (snapshot.empty) {
-            listContainer.innerHTML = '<p>No farmlands found for this barangay.</p>';
-            return;
-        }
+            if (snapshot.empty) {
+                listContainer.innerHTML = '<p>No farmlands found for this barangay.</p>';
+                return;
+            }
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const itemDiv = document.createElement('div');
-            itemDiv.classList.add('item');
-            itemDiv.innerHTML = `
-                <span>${data.farmland_name || 'Unnamed Farmland'}</span>
-                <div class="actions">
-                    <img src="../../images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('tb_farmland', '${doc.id}', '${data.farmland_name}')">
-                    <img src="../../images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('tb_farmland', '${doc.id}')">
-                </div>
-            `;
-            listContainer.appendChild(itemDiv);
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('item');
+                itemDiv.innerHTML = `
+                    <span>${data.farmland_name || 'Unnamed Farmland'}</span>
+                    <div class="actions">
+                        <img src="../../images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('tb_farmland', '${doc.id}', '${data.farmland_name}')">
+                        <img src="../../images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('tb_farmland', '${doc.id}')">
+                    </div>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+        }, (error) => {
+            console.error('Error listening to farmlands:', error);
+            listContainer.innerHTML = '<p>Error loading farmlands. Please try again later.</p>';
         });
     } catch (error) {
-        console.error('Error loading farmlands:', error);
+        console.error('Error setting up listener for farmlands:', error);
         listContainer.innerHTML = '<p>Error loading farmlands. Please try again later.</p>';
     }
 };
@@ -661,10 +670,8 @@ window.addFarmland = async function() {
     }
 
     try {
-        const barangaySnapshot = await db
-            .collection("tb_barangay")
-            .where("barangay_name", "==", selectedBarangayName)
-            .get();
+        const q1 = query(collection(db, 'tb_barangay'), where('barangay_name', '==', selectedBarangayName));
+        const barangaySnapshot = await getDocs(q1);
 
         if (barangaySnapshot.empty) {
             showCustomMessage("Selected barangay does not exist!", false);
@@ -675,11 +682,10 @@ window.addFarmland = async function() {
         const barangayData = barangayDoc.data();
         const barangayId = barangayData.barangay_id;
 
-        const existingFarmland = await db
-            .collection("tb_farmland")
-            .where("barangay_name", "==", selectedBarangayName)
-            .where("farmland_name", "==", farmlandName)
-            .get();
+        const q2 = query(collection(db, 'tb_farmland'), 
+            where('barangay_name', '==', selectedBarangayName), 
+            where('farmland_name', '==', farmlandName));
+        const existingFarmland = await getDocs(q2);
 
         if (!existingFarmland.empty) {
             showCustomMessage("Farmland already exists in this barangay!", false);
@@ -697,15 +703,12 @@ window.addFarmland = async function() {
                 dateAdded,
             };
 
-            await db.collection("tb_farmland").add(newFarmland);
+            await addDoc(collection(db, 'tb_farmland'), newFarmland);
 
             showCustomMessage("Farmland added successfully", true);
             clearFarmlandInputs();
-            loadData();
-            loadFarmlandsForBarangay();
-            populateBarangayDropdown();
+            
 
-            displayNewFarmland(newFarmland);
 
             document.getElementById("farmland-name").value = "";
             document.getElementById("farmland-land-area").value = "";
@@ -719,22 +722,6 @@ window.addFarmland = async function() {
     }
 };
 
-function displayNewFarmland(farmland) {
-    const farmlandList = document.getElementById("farmland-list");
-    const farmlandItem = document.createElement("div");
-    farmlandItem.classList.add("item");
-
-    farmlandItem.innerHTML = `
-        <span><strong>${farmland.farmland_name}</strong> - ${farmland.land_area} hectares 
-        <span>(${farmland.barangay_name})</span></span>
-        <div class="actions">
-            <button class="edit-button"><img src="../../images/Edit.png" class="action-icon" alt="Edit"></button>
-            <button class="delete-button"><img src="../../images/Delete.png" class="action-icon" alt="Delete"></button>
-        </div>
-    `;
-
-    farmlandList.appendChild(farmlandItem);
-}
 
 document.getElementById('confirm-delete-button').addEventListener('click', confirmDelete);
 
