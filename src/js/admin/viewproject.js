@@ -118,7 +118,7 @@ async function fetchProjectDetails() {
 
 function storeProjectIdAndRedirect(projectId, teamId) {
   sessionStorage.setItem("selected_project_id", projectId);
-  window.location.href = `../../../landing_pages/head_farmer/headfarm_task.html?team_id=${teamId}`;
+  window.location.href = `../../../public/landing_pages/head_farmer/headfarm_task.html?team_id=${teamId}`;
 }
 
 // Expose the function to the global scope
