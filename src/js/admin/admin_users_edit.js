@@ -391,8 +391,12 @@ async function saveProfilePicture(username) {
     const snapshot = await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(snapshot.ref);
 
-    // Store in sessionStorage
-    sessionStorage.setItem("userPicture", downloadURL);
+    // Check if the username matches the sessionStorage user_name
+    const sessionUserName = sessionStorage.getItem("user_name");
+    if (sessionUserName && sessionUserName === username) {
+      // Store in sessionStorage only if usernames match
+      sessionStorage.setItem("userPicture", downloadURL);
+    }
 
     // Update Firestore with the image URL
     const q = query(
