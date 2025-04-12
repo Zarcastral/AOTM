@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-  <script type="module" src="../../../src/js/admin/admin_reports_harvest.js"></script>
+  <script type="module" src="../../../src/js/admin/admin_reports_productivity.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Farmers Management</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../src/style/admin/admin_reports_harvest.css">
+  <link rel="stylesheet" href="../../../src/style/admin/admin_reports_productivity.css">
 </head>
 
 <body>
@@ -25,10 +25,10 @@
   </div>
   <div class="panel">
     <div class="table-wrapper">
-      <h2>Harvest Report</h2>
-        <div class="harvest-search-bar">
+      <h2>Productivity Report</h2>
+        <div class="productivity-search-bar">
           <div class="search-and-dropdowns">
-            <input type="text" id="harvest-search-bar" placeholder="Search">
+            <input type="text" id="productivity-search-bar" placeholder="Search">
             <select class="crop_select">
               <option value="">Crops</option>
             </select>
@@ -62,31 +62,28 @@
           </div>
         </div>
       </div>
-      <div class="harvest_table">
+      <div class="productivity_table">
         <table>
           <thead>
             <tr>
-              <th>Commodity</th> <!-- Crops (Lowland, Highland, Leafy, Root Crops, etc,.) -->
-              <th>Type of Crop</th> <!-- Palay, Patatas, Ampalaya, Okra, etc,. -->
-              <th>No. of Farmers Served</th>
-              <th>Barangay</th>
-              <th>Area Planted (ha)</th>
-              <th>To Date</th>
-              <th>Area Harvested (ha)</th>
-              <th>To Date</th>
-              <th>Production (mt)</th>
-              <th>To Date</th>
+              <th>PROJECT NAME</th> <!-- PROJECT'S NAME -->
+              <th>COMMODITY</th> <!-- CROP NAME (HIGHLAND LOWLAND) -->
+              <th>TYPE OF CROP</th> <!-- CROP TYPE (PALAY, MAIS, PATATAS) -->
+              <th>BARANGAY</th> <!-- NAME OF BARANGAY THE PROJECT WAS DONE -->
+              <th>NO. OF FARMERS</th> <!-- NUMBER OF FARMERS INVOLVED -->
+              <th>AVERAGE PRODUCTIVITY</th> <!-- AVERAGE PRODUCTIVITY BASED ON ALL PRODUCTIViTY OF FARMERS -->
+              <th>DURATION</th> <!-- DURATION OF THE PROJECT START DATE / END DATE -->
             </tr>
           </thead>
           <tbody>
-            <!-- Harvest records will be populated here -->
+            <!-- productivity records will be populated here -->
           </tbody>
         </table>
       </div>
-      <div class="harvest-pagination">
-        <span id="harvest-page-number">Page 1</span>
-        <button id="harvest-prev-page" class="harvest-pagination-btn" disabled>&lt;</button>
-        <button id="harvest-next-page" class="harvest-pagination-btn">&gt;</button>
+      <div class="productivity-pagination">
+        <span id="productivity-page-number">Page 1</span>
+        <button id="productivity-prev-page" class="productivity-pagination-btn" disabled>&lt;</button>
+        <button id="productivity-next-page" class="productivity-pagination-btn">&gt;</button>
       </div>
     </div>
   </div>
@@ -158,14 +155,14 @@
               });
           }
 
-          // If no match for the stored active link, reset to Harvest
+          // If no match for the stored active link, reset to productivity
           if (!isMatchFound) {
-              const harvestLink = Array.from(reportLinks).find(link =>
+              const productivityLink = Array.from(reportLinks).find(link =>
                   normalizeUrl(link.href).includes("admin_reports_harvest.html")
               );
-              if (harvestLink) {
-                  harvestLink.classList.add("active");
-                  localStorage.setItem("activeReportLink", harvestLink.href);
+              if (productivityLink) {
+                  productivityLink.classList.add("active");
+                  localStorage.setItem("activeReportLink", productivityLink.href);
               } else {
               }
           }
