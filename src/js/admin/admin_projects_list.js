@@ -41,10 +41,12 @@ extendDatePanel.style.top = "50%";
 extendDatePanel.style.left = "50%";
 extendDatePanel.style.transform = "translate(-50%, -50%)";
 extendDatePanel.style.backgroundColor = "white";
-extendDatePanel.style.padding = "20px";
+extendDatePanel.style.padding = "50px";
 extendDatePanel.style.borderRadius = "10px";
 extendDatePanel.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
 extendDatePanel.style.zIndex = "1000";
+extendDatePanel.style.fontFamily = "'Poppins', sans-serif"; // Updated to Poppins
+extendDatePanel.style.color = "#333";
 document.body.appendChild(extendDatePanel);
 
 let selectedExtendProjectId = null;
@@ -366,6 +368,7 @@ async function showExtendDatePanel(project_id) {
             selectedExtendProjectId = null;
           });
       } else {
+
         extendDatePanel.innerHTML = `
                     <h3>Extend Project Date</h3>
                     <p>Start Date: ${projectData.start_date || "Not set"}</p>
@@ -375,10 +378,10 @@ async function showExtendDatePanel(project_id) {
                     <label for="extend-date-input">New Extension Date:</label>
                     <input type="date" id="extend-date-input">
                     <div id="extend-error" style="color: red; display: none;"></div>
-                    <div style="margin-top: 20px;">
-                        <button id="cancel-extend">Cancel</button>
-                        </div>
-                        <button id="confirm-extend">Confirm</button>
+                    <div class="button-container">
+                      <button id="cancel-extend">Cancel</button>
+                      <button id="confirm-extend">Save</button>
+                    </div>
                       
                 `;
 

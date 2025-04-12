@@ -601,27 +601,65 @@ input[type="checkbox"] {
   transition: color 0.3s ease;
 }
 
-#cancel-extend{
-  width: 35%;
+.button-container {
+  display: flex;
+  justify-content: center; /* Centers the buttons */
+  gap: 10px; /* Adds a small gap between buttons */
+  margin-top: 40px; /* Adds space above the buttons */
+}
+
+#cancel-extend {
+  width: 35%; /* Consistent width for both buttons */
   padding: 10px;
   font-size: 16px;
+  font-weight: bold; /* Added for bold text */
   border-radius: 25px;
   cursor: pointer;
   background-color: #c4c4c4;
   color: white;
   border: none;
+  margin: 0; /* Removed margin-left and margin-top to let flexbox handle positioning */
 }
 
-#confirm-extend{
-  width: 35%;
+#cancel-extend:hover {
+  opacity: 0.8; /* Slightly transparent on hover */
+}
+
+#confirm-extend {
+  width: 35%; /* Match the width of cancel-extend */
   padding: 10px;
   font-size: 16px;
+  font-weight: bold; /* Added for bold text */
   border-radius: 25px;
   cursor: pointer;
   background-color: #41a186;
   color: white;
   border: none;
+  margin: 0; /* Removed margin-left to let flexbox handle positioning */
 }
+
+#confirm-extend:hover {
+  opacity: 0.8; /* Slightly transparent on hover */
+
+}
+
+#close-extend {
+  width: 20%; /* Consistent width for both buttons */
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold; /* Added for bold text */
+  border-radius: 25px;
+  cursor: pointer;
+  background-color: #c4c4c4;
+  color: white;
+  border: none;
+  margin-left: 500px; /* Removed margin-left and margin-top to let flexbox handle positioning */
+}
+
+#close-extend:hover {
+  opacity: 0.8; /* Slightly transparent on hover */
+}
+
 
 /* Responsive styles */
 @media (max-width: 1024px) {
@@ -641,6 +679,7 @@ input[type="checkbox"] {
     font-size: 15px;
     padding: 10px 16px;
   }
+
 }
 
 @media (max-width: 768px) {
