@@ -14,6 +14,7 @@ import {
 
 import app from "../../config/firebase_config.js";
 const db = getFirestore(app);
+
 // Function to show success panel
 function showSuccessPanel(message) {
   const successMessage = document.createElement("div");
@@ -59,6 +60,7 @@ function showErrorPanel(message) {
     }, 400);
   }, 4000);
 }
+
 // Function to fetch and display project details
 async function fetchProjectDetails() {
   let projectId = sessionStorage.getItem("selectedProjectId");
@@ -128,13 +130,13 @@ window.storeProjectIdAndRedirect = storeProjectIdAndRedirect;
 async function fetchTeams() {
   const teamsTableBody = document.getElementById("teamsTableBody");
   teamsTableBody.innerHTML =
-    "<tr><td colspan='4' style='text-align: center;'>Loading...</td></tr>";
+    "<tr><td colspan='4' class='table-empty-message'>Loading...</td></tr>";
 
   try {
     const projectId = sessionStorage.getItem("selectedProjectId");
     if (!projectId) {
       teamsTableBody.innerHTML =
-        "<tr><td colspan='4'>No project selected.</td></tr>";
+        "<tr><td colspan='4' class='table-empty-message'>No project selected.</td></tr>";
       return;
     }
 
@@ -149,39 +151,48 @@ async function fetchTeams() {
 
     if (querySnapshot.empty) {
       teamsTableBody.innerHTML =
-        "<tr><td colspan='4'>No teams found.</td></tr>";
+        "<tr><td colspan='4' class='table-empty-message'>No team assigned yet.</td></tr>";
       return;
     }
+
+    let hasTeams = false;
 
     querySnapshot.forEach((doc) => {
       const project = doc.data();
       if (!project.team_id) return;
 
+      hasTeams = true;
+
       const teamName = project.team_name || "Unknown Team";
       const leadFarmer = project.lead_farmer || "No Leader";
       const farmers = project.farmer_name || [];
-      const teamId = project.team_id; // Assuming `team_id` exists in Firestore
+      const teamId = project.team_id;
 
       const row = document.createElement("tr");
       row.innerHTML = `
-      <td>${teamName}</td>
-      <td>${leadFarmer}</td>
-      <td>${farmers.length}</td>
-      <td>
+        <td>${teamName}</td>
+        <td>${leadFarmer}</td>
+        <td>${farmers.length}</td>
+        <td>
           <button 
-              class="view-btn" 
-              onclick="storeProjectIdAndRedirect(sessionStorage.getItem('selectedProjectId'), '${teamId}')"
+            class="view-btn" 
+            onclick="storeProjectIdAndRedirect(sessionStorage.getItem('selectedProjectId'), '${teamId}')"
           >
-              <img src="../../images/eye.png" alt="View" class="view-icon">
+            <img src="../../images/eye.png" alt="View" class="view-icon">
           </button>
-      </td>
-  `;
+        </td>
+      `;
       teamsTableBody.appendChild(row);
     });
+
+    if (!hasTeams) {
+      teamsTableBody.innerHTML =
+        "<tr><td colspan='4' class='table-empty-message'>No team assigned yet.</td></tr>";
+    }
   } catch (error) {
     console.error("Error fetching teams:", error);
     teamsTableBody.innerHTML =
-      "<tr><td colspan='4'>Failed to load teams.</td></tr>";
+      "<tr><td colspan='4' class='table-empty-message'>Failed to load teams.</td></tr>";
   }
 }
 

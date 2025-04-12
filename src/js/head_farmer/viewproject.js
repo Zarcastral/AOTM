@@ -384,7 +384,7 @@ function addFeedbackToUI(feedback) {
         <img src="${
           feedback.submitted_by_picture || "default-profile.png"
         }" class="feedback-avatar" alt="User">
-        <div class="feedback-content3">
+        <div class="feedback-content"> <!-- Changed from feedback-content3 to feedback-content -->
             <div class="feedback-header">
                 <span class="feedback-user">${feedback.submitted_by} • ${
     feedback.concern
