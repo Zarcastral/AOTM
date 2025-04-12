@@ -442,6 +442,12 @@ textarea {
     transition: opacity 0.4s ease-in-out;
     z-index: 1000;
 }
+.table-empty-message {
+    text-align: center;
+    color: #777;
+    font-size: 16px;
+    padding: 20px;
+  }
 /* Responsive Design */
 @media (max-width: 768px) {
     
