@@ -231,7 +231,7 @@ function updateTable() {
     } else if (farmerAccounts.length === 0) {
         tableBody.innerHTML = `
         <tr>
-            <td colspan="6" style="text-align: center;">No record found</td>
+            <td colspan="5" style="text-align: center;">No record found</td>
         </tr>`;
     }
 
@@ -241,7 +241,6 @@ function updateTable() {
         const formattedBarangay = formatBarangay(data.barangay_name);
         const formattedUserType = formatUserType(data.user_type);
         row.innerHTML = `
-            <td>${data.farmer_id || "Farmer ID not recorded"}</td>
             <td>${currentTeamName || "Team name not recorded"}</td>
             <td>${formattedName || "User's name not recorded"}</td>
             <td>${formattedUserType || "User's role not recorded"}</td>
