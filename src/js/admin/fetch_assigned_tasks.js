@@ -21,60 +21,46 @@ function capitalizeFirstLetter(str) {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function showSuccessPopup(message) {
-    const modal = document.getElementById("success-modal");
-    const messageElement = document.getElementById("success-message");
-    const closeBtn = document.getElementById("close-success-modal");
+// Function to show success panel
+function showSuccessPanel(message) {
+    const successMessage = document.createElement("div");
+    successMessage.className = "success-message";
+    successMessage.textContent = message;
 
-    messageElement.textContent = message;
-    modal.style.display = "flex";
+    document.body.appendChild(successMessage);
 
-    closeBtn.onclick = () => (modal.style.display = "none");
-    window.onclick = (event) => {
-        if (event.target === modal) modal.style.display = "none";
-    };
+    successMessage.style.display = "block";
+    setTimeout(() => {
+        successMessage.style.opacity = "1";
+    }, 5);
+
+    setTimeout(() => {
+        successMessage.style.opacity = "0";
+        setTimeout(() => {
+            document.body.removeChild(successMessage);
+        }, 400);
+    }, 4000);
 }
 
-function showErrorPopup(message) {
-    const modal = document.getElementById("error-modal");
-    const messageElement = document.getElementById("error-message");
-    const closeBtn = document.getElementById("close-error-modal");
+// Function to show error panel
+function showErrorPanel(message) {
+    const errorMessage = document.createElement("div");
+    errorMessage.className = "error-message";
+    errorMessage.textContent = message;
 
-    messageElement.textContent = message;
-    modal.style.display = "block";
+    document.body.appendChild(errorMessage);
 
-    closeBtn.onclick = () => (modal.style.display = "none");
-    window.onclick = (event) => {
-        if (event.target === modal) modal.style.display = "none";
-    };
-}
+    errorMessage.style.display = "block";
+    setTimeout(() => {
+        errorMessage.style.opacity = "1";
+    }, 5);
 
-function showWarningPopup(message) {
-    const modal = document.getElementById("warning-modal");
-    const messageElement = document.getElementById("warning-message");
-    const closeBtn = document.getElementById("close-warning-modal");
-
-    messageElement.textContent = message;
-    modal.style.display = "block";
-
-    closeBtn.onclick = () => (modal.style.display = "none");
-    window.onclick = (event) => {
-        if (event.target === modal) modal.style.display = "none";
-    };
-}
-
-function showInfoPopup(message) {
-    const modal = document.getElementById("info-modal");
-    const messageElement = document.getElementById("info-message");
-    const closeBtn = document.getElementById("close-info-modal");
-
-    messageElement.textContent = message;
-    modal.style.display = "block";
-
-    closeBtn.onclick = () => (modal.style.display = "none");
-    window.onclick = (event) => {
-        if (event.target === modal) modal.style.display = "none";
-    };
+    setTimeout(() => {
+        errorMessage.style.opacity = "0";
+        setTimeout(() => {
+            document.body.removeChild(errorMessage);
+        }, 400);
+    }, 4000);
 }
 
 function showDeleteConfirmationModal(taskId, taskName, cropTypeName) {
@@ -105,14 +91,14 @@ async function deleteTask(taskId) {
         const querySnapshot = await getDocs(taskQuery);
 
         if (querySnapshot.empty) {
-            showErrorPopup("Task not found!");
+            showErrorPanel("Task not found!");
             return;
         }
 
         const deletePromises = querySnapshot.docs.map((taskDoc) => deleteDoc(doc(db, "tb_task_list", taskDoc.id)));
         await Promise.all(deletePromises);
 
-        showSuccessPopup("Task deleted successfully!");
+        showSuccessPanel("Task deleted successfully!");
         await fetchAssignedTasks();
 
         const totalPages = Math.ceil(assignedTasks.length / assignedRowsPerPage);
@@ -125,7 +111,8 @@ async function deleteTask(taskId) {
         displayAssignedTasks(assignedCurrentPage);
         updateAssignedPagination();
     } catch (error) {
-        showErrorPopup("Failed to delete task. Please try again.");
+        console.error("Error deleting task:", error);
+        showErrorPanel("Failed to delete task. Please try again.");
     }
 }
 
@@ -144,7 +131,10 @@ window.openEditSubModal = async function openEditSubModal(taskId, taskName) {
         const tasksCollection = collection(db, "tb_task_list");
         const taskQuery = query(tasksCollection, where("task_id", "==", Number(taskId)));
         const querySnapshot = await getDocs(taskQuery);
-        if (querySnapshot.empty) return;
+        if (querySnapshot.empty) {
+            showErrorPanel("Task not found!");
+            return;
+        }
 
         let docId = "";
         let taskData = {};
@@ -160,7 +150,8 @@ window.openEditSubModal = async function openEditSubModal(taskId, taskName) {
         modal.style.display = "block";
         toggleSaveButton();
     } catch (error) {
-        console.error("Error fetching subtasks:", error); // Added for debugging
+        console.error("Error fetching subtasks:", error);
+        showErrorPanel("Failed to fetch subtasks. Please try again.");
     }
 };
 
@@ -201,25 +192,26 @@ document.getElementById("add-subtask-btn-subtasks").addEventListener("click", ()
     const newSubtaskInput = document.getElementById("new-subtask-input-subtasks");
     let newSubtaskName = newSubtaskInput.value.trim();
 
-    if (newSubtaskName !== "") {
-        newSubtaskName = capitalizeFirstLetter(newSubtaskName);
-        const subtaskList = document.getElementById("subtask-list-subtasks");
-        const existingSubtasks = Array.from(subtaskList.children).map((item) =>
-            item.querySelector(".subtask-text").textContent.trim().toLowerCase()
-        );
-
-        if (existingSubtasks.includes(newSubtaskName.toLowerCase())) {
-            showWarningPopup("Subtask already exists! Please enter a different subtask.");
-            return;
-        }
-
-        const index = subtaskList.children.length;
-        addSubtaskToList(newSubtaskName, index);
-        newSubtaskInput.value = "";
-        document.getElementById("save-subtasks-btn-subtasks").disabled = false;
-    } else {
-        showInfoPopup("Please enter a valid subtask.");
+    if (newSubtaskName === "") {
+        showErrorPanel("Please enter a valid subtask.");
+        return;
     }
+
+    newSubtaskName = capitalizeFirstLetter(newSubtaskName);
+    const subtaskList = document.getElementById("subtask-list-subtasks");
+    const existingSubtasks = Array.from(subtaskList.children).map((item) =>
+        item.querySelector(".subtask-text").textContent.trim().toLowerCase()
+    );
+
+    if (existingSubtasks.includes(newSubtaskName.toLowerCase())) {
+        showErrorPanel(`Subtask "${newSubtaskName}" already exists! Please enter a different subtask.`);
+        return;
+    }
+
+    const index = subtaskList.children.length;
+    addSubtaskToList(newSubtaskName, index);
+    newSubtaskInput.value = "";
+    document.getElementById("save-subtasks-btn-subtasks").disabled = false;
 });
 
 function toggleAddSubtaskButton() {
@@ -246,18 +238,17 @@ function toggleSaveButton() {
     const currentSubtasks = Array.from(subtaskList.children).map((item) =>
         item.querySelector(".subtask-text").textContent.trim()
     );
-    const isSameAsInitial = JSON.stringify(currentSubtasks) === JSON.stringify(initialSubtasks);
+    const initialSubtaskNames = initialSubtasks.map(subtask =>
+        typeof subtask === "object" && subtask.subtask_name ? subtask.subtask_name : subtask
+    );
+    const isSameAsInitial = JSON.stringify(currentSubtasks) === JSON.stringify(initialSubtaskNames);
     saveBtn.disabled = isSameAsInitial;
 }
 
 document.getElementById("save-subtasks-btn-subtasks").addEventListener("click", async (event) => {
     const newSubtaskInput = document.getElementById("new-subtask-input-subtasks");
     if (newSubtaskInput.value.trim() !== "") {
-        if (!window.alertDisplayed) {
-            showWarningPopup("You might want to add the subtask or clear the input field before saving.");
-            window.alertDisplayed = true;
-            setTimeout(() => (window.alertDisplayed = false), 2000);
-        }
+        showErrorPanel("Please add the subtask or clear the input field before saving.");
         return;
     }
 
@@ -266,6 +257,7 @@ document.getElementById("save-subtasks-btn-subtasks").addEventListener("click", 
     const docId = saveBtn.getAttribute("data-doc-id");
 
     if (!taskId || !docId) {
+        showErrorPanel("Invalid task data. Please try again.");
         return;
     }
 
@@ -275,42 +267,29 @@ document.getElementById("save-subtasks-btn-subtasks").addEventListener("click", 
         const subtaskList = document.getElementById("subtask-list-subtasks");
         const subtasks = Array.from(subtaskList.children).map((item) => {
             const subtaskText = item.querySelector(".subtask-text").textContent.trim();
-            return { subtask_name: subtaskText }; // Save as object with subtask_name
+            return { subtask_name: subtaskText };
         });
 
-        // Convert initialSubtasks to an array of strings for comparison
         const initialSubtaskNames = initialSubtasks.map(subtask =>
             typeof subtask === "object" && subtask.subtask_name ? subtask.subtask_name : subtask
         );
 
         if (JSON.stringify(subtasks.map(s => s.subtask_name)) === JSON.stringify(initialSubtaskNames)) {
-            if (!window.alertDisplayed) {
-                showInfoPopup("No changes were made to the subtasks.");
-                window.alertDisplayed = true;
-                setTimeout(() => (window.alertDisplayed = false), 2000);
-            }
-            saveBtn.disabled = false;
+            showErrorPanel("No changes were made to the subtasks.");
             return;
         }
 
         const taskRef = doc(db, "tb_task_list", docId);
         await updateDoc(taskRef, { subtasks });
 
-        if (!window.alertDisplayed) {
-            showSuccessPopup("Subtasks saved successfully!");
-            window.alertDisplayed = true;
-            setTimeout(() => (window.alertDisplayed = false), 2000);
-        }
-
-        initialSubtasks = subtasks; // Update initialSubtasks to match saved structure
+        showSuccessPanel("Subtasks saved successfully!");
+        initialSubtasks = subtasks;
         toggleSaveButton();
         document.getElementById("edit-subtasks-modal").style.display = "none";
     } catch (error) {
-        if (!window.alertDisplayed) {
-            showErrorPopup("Failed to save changes. Please try again.");
-            window.alertDisplayed = true;
-            setTimeout(() => (window.alertDisplayed = false), 2000);
-        }
+        console.error("Error saving subtasks:", error);
+        showErrorPanel("Failed to save changes. Please try again.");
+    } finally {
         saveBtn.disabled = false;
     }
 });
@@ -323,11 +302,17 @@ async function populateCropDropdown() {
     try {
         const cropDropdown = document.getElementById("crop-filter");
         if (!cropDropdown) {
+            showErrorPanel("Crop filter element not found.");
             return;
         }
 
         cropDropdown.innerHTML = `<option value="">Crops</option>`;
         const cropsSnapshot = await getDocs(collection(db, "tb_crops"));
+        if (cropsSnapshot.empty) {
+            showErrorPanel("No crops available.");
+            return;
+        }
+
         cropsSnapshot.forEach((cropDoc) => {
             const cropData = cropDoc.data();
             const cropName = cropData.crop_name || "Unknown Crop";
@@ -342,19 +327,28 @@ async function populateCropDropdown() {
             await populateCropTypeDropdown(selectedCrop);
             fetchAssignedTasks();
         });
-    } catch (error) {}
+    } catch (error) {
+        console.error("Error populating crop dropdown:", error);
+        showErrorPanel("Failed to load crops. Please try again.");
+    }
 }
 
 async function populateCropTypeDropdown(selectedCrop = "") {
     try {
         const cropTypeDropdown = document.getElementById("crop-type-filter");
         if (!cropTypeDropdown) {
+            showErrorPanel("Crop type filter element not found.");
             return;
         }
 
         cropTypeDropdown.innerHTML = `<option value="">Crop Type</option>`;
         const tasksSnapshot = await getDocs(collection(db, "tb_task_list"));
         const cropTypes = new Set();
+
+        if (tasksSnapshot.empty) {
+            showErrorPanel("No crop types available.");
+            return;
+        }
 
         tasksSnapshot.forEach((taskDoc) => {
             const taskData = taskDoc.data();
@@ -374,7 +368,10 @@ async function populateCropTypeDropdown(selectedCrop = "") {
         });
 
         cropTypeDropdown.addEventListener("change", fetchAssignedTasks);
-    } catch (error) {}
+    } catch (error) {
+        console.error("Error populating crop type dropdown:", error);
+        showErrorPanel("Failed to load crop types. Please try again.");
+    }
 }
 
 let assignedTasks = [];
@@ -385,6 +382,7 @@ export async function fetchAssignedTasks() {
     try {
         const taskListTable = document.getElementById("assigned-tasks-table-body");
         if (!taskListTable) {
+            showErrorPanel("Task table element not found.");
             return;
         }
 
@@ -403,6 +401,12 @@ export async function fetchAssignedTasks() {
 
         const querySnapshot = await getDocs(taskQuery);
         assignedTasks = [];
+
+        if (querySnapshot.empty) {
+            displayAssignedTasks(assignedCurrentPage);
+            updateAssignedPagination();
+            return;
+        }
 
         querySnapshot.forEach((taskDoc) => {
             const taskData = taskDoc.data();
@@ -429,7 +433,10 @@ export async function fetchAssignedTasks() {
 
         displayAssignedTasks(assignedCurrentPage);
         updateAssignedPagination();
-    } catch (error) {}
+    } catch (error) {
+        console.error("Error fetching assigned tasks:", error);
+        showErrorPanel("Failed to fetch tasks. Please try again.");
+    }
 }
 
 function displayAssignedTasks(page) {
