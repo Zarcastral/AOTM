@@ -296,6 +296,266 @@ td {
     width: 100%; /* Full width for better usability */
 }
 
+
+/* Base styles for the popup */
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0; /* Ensure full coverage */
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh; /* Fallback for older browsers */
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Increase z-index to ensure it's above all content */
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Popup content container */
+.popup-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px; /* Matches old .container border-radius */
+    width: 400px;
+    max-width: 90%; /* Matches old .popup-content max-width */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Matches old .container shadow */
+    position: relative;
+}
+
+/* Close button */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #333; /* Matches old table text color */
+}
+
+/* Popup heading */
+.popup-content h2 {
+    color: #41A186; /* Matches old .header-title and .top-section h1 */
+    font-size: 24px; /* Matches old .top-section h1 */
+    font-weight: 600;
+    margin: 0 0 15px;
+}
+
+/* Form group for search and farmer box */
+.form-group {
+    margin-bottom: 15px; /* Matches old .form-group */
+}
+
+/* Form group label */
+.form-group label {
+    display: block;
+    margin-bottom: 5px; /* Matches old .form-group label */
+    font-size: 14px;
+    color: #333; /* Matches old table text color */
+    font-weight: 500;
+}
+
+/* Search input */
+#farmerSearch {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc; /* Matches old .form-group input and .search-bar input */
+    border-radius: 4px; /* Matches old .form-group input */
+    font-size: 14px; /* Matches old .search-bar input */
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Search results container */
+.search-results {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ccc; /* Matches old .form-group input border */
+    border-radius: 4px; /* Matches old .form-group input */
+    background: #fff;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 21; /* Slightly higher than .popup to ensure visibility */
+}
+
+/* Individual search result item */
+.search-item {
+    padding: 10px 12px; /* Matches old th, td padding */
+    font-size: 14px; /* Matches old td font-size */
+    color: #333; /* Matches old td color */
+    cursor: pointer;
+}
+
+.search-item:hover {
+    background: #F5F6FA; /* Matches old body background for hover effect */
+}
+
+/* Farmer box for selected farmers */
+.farmer-box {
+    border: 1px solid #ccc; /* Matches old .farmer-box */
+    padding: 10px; /* Matches old .farmer-box */
+    min-height: 50px; /* Matches old .farmer-box */
+    border-radius: 10px; /* Matches old .farmer-box */
+    background: #F5F6FA; /* Matches old body background for consistency */
+}
+
+/* Individual farmer item */
+.farmer-item {
+    background: #f0f0f0; /* Matches old .farmer-item */
+    padding: 12px; /* Matches old .farmer-item */
+    margin: 10px; /* Matches old .farmer-item */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 10px; /* Matches old .farmer-item */
+    font-size: 14px; /* Matches old td font-size */
+    color: #333; /* Matches old td color */
+}
+
+/* Remove button for farmer items */
+.remove-btn {
+    color: #cacaca; /* Matches old .remove-btn */
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 14px;
+}
+
+.remove-btn:hover {
+    opacity: 0.8; /* Matches old .remove-btn:hover */
+}
+
+/* Save button */
+.save-btn {
+    background-color: #41A186; /* Matches old .save-btn */
+    color: white;
+    border: none;
+    padding: 10px 20px; /* Matches old .save-btn */
+    border-radius: 4px; /* Matches old .save-btn */
+    cursor: pointer;
+    width: 100%; /* Matches old .save-btn */
+    font-size: 14px; /* Matches old table td font-size */
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+}
+
+.save-btn:hover {
+    background-color: #369874; /* Slightly darker shade of #41A186 for hover */
+}
+
+/* Responsive Design for 780px */
+@media (max-width: 780px) {
+    .popup-content {
+        width: 90%; /* Matches old .popup-content at 780px */
+        padding: 15px; /* Matches old .popup-content at 780px */
+    }
+
+    .close-btn {
+        font-size: 18px; /* Matches old .close-btn at 780px */
+    }
+
+    .popup-content h2 {
+        font-size: 20px; /* Matches old .top-section h1 at 780px */
+    }
+
+    .form-group label {
+        font-size: 12px; /* Matches old .form-group input at 780px */
+    }
+
+    #farmerSearch {
+        font-size: 12px; /* Matches old .search-bar input at 780px */
+        padding: 6px; /* Matches old .form-group input at 780px */
+    }
+
+    .search-item {
+        font-size: 12px; /* Matches old th, td at 780px */
+        padding: 8px 10px; /* Matches old th, td at 780px */
+    }
+
+    .farmer-box {
+        padding: 8px; /* Slightly reduced for compactness */
+    }
+
+    .farmer-item {
+        font-size: 12px; /* Matches old th, td at 780px */
+        padding: 10px; /* Slightly reduced */
+        margin: 8px; /* Slightly reduced */
+    }
+
+    .remove-btn {
+        font-size: 12px; /* Matches old font-size reduction */
+    }
+
+    .save-btn {
+        padding: 8px 16px; /* Matches old .save-btn at 780px */
+        font-size: 14px; /* Matches old .save-btn at 780px */
+    }
+}
+
+/* Responsive Design for 420px */
+@media (max-width: 420px) {
+    .popup-content {
+        width: 95%; /* Matches old .popup-content at 420px */
+        padding: 10px; /* Matches old .popup-content at 420px */
+    }
+
+    .close-btn {
+        font-size: 16px; /* Matches old .close-btn at 420px */
+    }
+
+    .popup-content h2 {
+        font-size: 18px; /* Slightly smaller than 780px for fit */
+    }
+
+    .form-group label {
+        font-size: 10px; /* Matches old .form-group input at 420px */
+    }
+
+    #farmerSearch {
+        font-size: 10px; /* Matches old .search-bar input at 420px */
+        padding: 5px; /* Matches old .form-group input at 420px */
+    }
+
+    .search-results {
+        max-height: 120px; /* Slightly reduced for smaller screens */
+    }
+
+    .search-item {
+        font-size: 11px; /* Matches old td at 420px */
+        padding: 5px 8px; /* Matches old td at 420px */
+    }
+
+    .farmer-box {
+        padding: 5px; /* Further reduced */
+        min-height: 40px; /* Slightly reduced */
+    }
+
+    .farmer-item {
+        font-size: 11px; /* Matches old td at 420px */
+        padding: 8px; /* Further reduced */
+        margin: 5px; /* Further reduced */
+    }
+
+    .remove-btn {
+        font-size: 10px; /* Matches old font-size reduction */
+    }
+
+    .save-btn {
+        padding: 6px 12px; /* Matches old .save-btn at 420px */
+        font-size: 12px; /* Matches old .save-btn at 420px */
+    }
+}
+
+
+
 /* Responsive Design for 780px */
 @media (max-width: 780px) {
     body {
@@ -515,3 +775,6 @@ td {
         font-size: 12px; /* Further reduce font size */
     }
 }
+
+
+

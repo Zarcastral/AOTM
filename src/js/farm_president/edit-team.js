@@ -24,6 +24,12 @@ const itemsPerPage = 5;
 let isTeamAssigned = false; // New flag to track team assignment
 
 async function loadTeamData() {
+    // Hide popup immediately to prevent flash
+    const addFarmerPopup = document.getElementById('addFarmerPopup');
+    if (addFarmerPopup) {
+        addFarmerPopup.style.display = 'none';
+    }
+
     if (!teamId) {
         alert('No team ID provided');
         window.location.href = 'team-list.html';
@@ -401,6 +407,7 @@ async function updateTeamInFirestore() {
     }
 }
 
+// Render search results for farmers
 function renderFarmerResults(searchValue = '') {
     const resultsContainer = document.getElementById('searchResults');
     resultsContainer.innerHTML = '';
@@ -446,13 +453,27 @@ function addFarmerToBox(farmer) {
     removeBtn.classList.add('remove-btn');
     removeBtn.addEventListener('click', () => {
         farmerDiv.remove();
-        farmersList.push(farmer);
+        farmersList.push(farmer); // Add back to available farmers
+        // Refresh results only if search bar has focus or value
+        const farmerSearch = document.getElementById('farmerSearch');
+        if (farmerSearch === document.activeElement || farmerSearch.value) {
+            renderFarmerResults(farmerSearch.value);
+        }
     });
 
     farmerDiv.appendChild(removeBtn);
     farmerBox.appendChild(farmerDiv);
-    farmersList = farmersList.filter(f => f.id !== farmer.id);
+    farmersList = farmersList.filter(f => f.id !== farmer.id); // Remove from available farmers
+    // Refresh results only if search bar has focus or value
+    const farmerSearch = document.getElementById('farmerSearch');
+    if (farmerSearch === document.activeElement || farmerSearch.value) {
+        renderFarmerResults(farmerSearch.value);
+    }
 }
+
+
+
+
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
     renderTable(e.target.value);
@@ -480,13 +501,7 @@ document.getElementById('nextPage').addEventListener('click', () => {
     }
 });
 
-document.getElementById('addFarmerBtn').addEventListener('click', (e) => {
-    e.preventDefault();
-    if (e.target.disabled) {
-        return; // Do nothing if the button is disabled
-    }
-    document.getElementById('addFarmerPopup').style.display = 'flex';
-});
+
 
 document.getElementById('closePopup').addEventListener('click', () => {
     document.getElementById('addFarmerPopup').style.display = 'none';
@@ -495,12 +510,13 @@ document.getElementById('closePopup').addEventListener('click', () => {
     document.getElementById('searchResults').innerHTML = '';
 });
 
+// Event listeners for the search bar
 const farmerSearch = document.getElementById('farmerSearch');
 const searchResults = document.getElementById('searchResults');
 
 // Show all farmers when the search bar is focused
 farmerSearch.addEventListener('focus', () => {
-    renderFarmerResults(''); // Empty string shows all farmers
+    renderFarmerResults(farmerSearch.value); // Show results based on current input
     searchResults.style.display = 'block'; // Ensure results are visible
 });
 
@@ -510,13 +526,44 @@ farmerSearch.addEventListener('input', (e) => {
     searchResults.style.display = 'block'; // Keep results visible while typing
 });
 
-// Hide results when clicking outside
+
+
+
+// Hide results when clicking outside, but prevent hiding when clicking input or results
 document.addEventListener('click', (e) => {
+    // Check if the click is outside both farmerSearch and searchResults
     if (!farmerSearch.contains(e.target) && !searchResults.contains(e.target)) {
-        searchResults.style.display = 'none'; // Hide results when clicking outside
+        searchResults.style.display = 'none'; // Hide results
+    }
+    // If clicking the input, ensure results are shown
+    if (farmerSearch.contains(e.target)) {
+        renderFarmerResults(farmerSearch.value);
+        searchResults.style.display = 'block';
     }
 });
 
+
+// Open the popup
+document.getElementById('addFarmerBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (e.target.disabled) {
+        return; // Do nothing if the button is disabled
+    }
+    document.getElementById('addFarmerPopup').style.display = 'block'; // Changed to 'block'
+});
+
+// Close the popup
+document.getElementById('closePopup').addEventListener('click', () => {
+    document.getElementById('addFarmerPopup').style.display = 'none';
+    document.getElementById('farmerBox').innerHTML = '';
+    document.getElementById('farmerSearch').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+    searchResults.style.display = 'none'; // Ensure results are hidden
+});
+
+
+
+// Save selected farmers
 document.getElementById('saveFarmerBtn').addEventListener('click', async () => {
     const farmerBox = document.getElementById('farmerBox');
     const newFarmers = await Promise.all(
@@ -556,7 +603,6 @@ document.getElementById('saveFarmerBtn').addEventListener('click', async () => {
     currentFarmers = [...currentFarmers, ...validFarmers];
     await updateTeamInFirestore();
     
-    // Add alert for successful addition
     alert(`Successfully added ${validFarmers.length} new member${validFarmers.length > 1 ? 's' : ''} to the team!`);
     
     renderTable();
@@ -564,7 +610,14 @@ document.getElementById('saveFarmerBtn').addEventListener('click', async () => {
     document.getElementById('farmerBox').innerHTML = '';
     document.getElementById('farmerSearch').value = '';
     document.getElementById('searchResults').innerHTML = '';
+    searchResults.style.display = 'none'; // Ensure results are hidden
     await fetchFarmers();
 });
 
-document.addEventListener('DOMContentLoaded', loadTeamData);
+document.addEventListener('DOMContentLoaded', () => {
+    const addFarmerPopup = document.getElementById('addFarmerPopup');
+    if (addFarmerPopup) {
+        addFarmerPopup.style.display = 'none'; // Explicitly hide popup
+    }
+    loadTeamData(); // Existing call to initialize page
+});
