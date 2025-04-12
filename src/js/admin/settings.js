@@ -881,21 +881,6 @@ const accountIcon = document.getElementById("account-icon");
 const accountPanel = document.getElementById("account-panel");
 const accountFrame = document.getElementById("account-frame");
 
-accountIcon.addEventListener("click", () => {
-    accountPanel.classList.toggle("active");
-
-    if (accountPanel.classList.contains("active")) {
-        accountFrame.src = "account_loginout.php";
-    } else {
-        accountFrame.src = "";
-    }
-});
-
-document.addEventListener("click", (event) => {
-    if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-        accountPanel.classList.remove("active");
-        accountFrame.src = "";
-    }
-});
+    
 
 initializeCounters();
