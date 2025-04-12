@@ -178,12 +178,12 @@ window.populateBarangayDropdown = async function() {
     }
 
     // Clear existing options and add default option
-    barangaySelect.innerHTML = '<option value="" selected disabled>Select Barangay</option>';
+    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
 
     try {
         onSnapshot(collection(db, 'tb_barangay'), (snapshot) => {
             // Clear existing options except the default one
-            barangaySelect.innerHTML = '<option value="" selected disabled>Select Barangay</option>';
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
             const uniqueBarangays = new Set();
 
             snapshot.forEach(doc => {
