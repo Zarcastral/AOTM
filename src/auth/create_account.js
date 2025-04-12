@@ -87,27 +87,57 @@ function validateForm() {
 
   let isValid = true;
 
-  // Check required fields are not empty
-  if (!userType || !email || !password || !confirmPassword || !firstName || 
-      !lastName || !contact || !birthday || !sex || !barangay || !profilePicture) {
+  if (
+    !userType ||
+    !email ||
+    !password ||
+    !confirmPassword ||
+    !firstName ||
+    !lastName ||
+    !contact ||
+    !birthday ||
+    !sex ||
+    !barangay ||
+    !profilePicture
+  ) {
     isValid = false;
   }
 
-  // Check user type specific fields
   if (userType === "Admin" || userType === "Supervisor") {
     if (!username) isValid = false;
-  } else if (userType === "Farmer" || userType === "Farm President" || userType === "Head Farmer") {
+  } else if (
+    userType === "Farmer" ||
+    userType === "Farm President" ||
+    userType === "Head Farmer"
+  ) {
     if (!farmerId) isValid = false;
   }
 
-  // Check validation messages
-  if (emailError.textContent.includes("❌") || !emailError.textContent.includes("✅")) isValid = false;
-  if ((usernameError.textContent.includes("❌") || !usernameError.textContent.includes("✅")) && username) isValid = false;
-  if ((farmerIdError.textContent.includes("❌") || !farmerIdError.textContent.includes("✅")) && farmerId) isValid = false;
-  if (contactError.textContent.includes("❌") || !contactError.textContent.includes("✅")) isValid = false;
-  
-  // Check password requirements
-  if (!Object.values(passwordChecks).every(regex => regex.test(password))) isValid = false;
+  if (
+    emailError.textContent.includes("❌") ||
+    !emailError.textContent.includes("✅")
+  )
+    isValid = false;
+  if (
+    (usernameError.textContent.includes("❌") ||
+      !usernameError.textContent.includes("✅")) &&
+    username
+  )
+    isValid = false;
+  if (
+    (farmerIdError.textContent.includes("❌") ||
+      !farmerIdError.textContent.includes("✅")) &&
+    farmerId
+  )
+    isValid = false;
+  if (
+    contactError.textContent.includes("❌") ||
+    !contactError.textContent.includes("✅")
+  )
+    isValid = false;
+
+  if (!Object.values(passwordChecks).every((regex) => regex.test(password)))
+    isValid = false;
   if (password !== confirmPassword) isValid = false;
 
   submitsButton.disabled = !isValid;
@@ -117,16 +147,17 @@ function validateForm() {
 function updateProfilePictureUI() {
   const file = profilePictureInput.files[0];
   const profilePictureError = document.getElementById("profilePictureError");
-  
+
   if (file) {
     removeFileBtn.style.display = "inline-block";
     profilePictureError.textContent = "✅ Profile picture uploaded.";
     profilePictureError.style.color = "green";
   } else {
     removeFileBtn.style.display = "none";
-    // Only show error if it was previously set by remove button
-    profilePictureError.textContent = profilePictureError.textContent.includes("❌") 
-      ? "❌ Please upload a profile picture." 
+    profilePictureError.textContent = profilePictureError.textContent.includes(
+      "❌"
+    )
+      ? "❌ Please upload a profile picture."
       : "";
   }
   validateForm();
@@ -176,7 +207,8 @@ const validateContactNumber = () => {
   const contactRegex = /^09\d{9}$/;
 
   if (!contactRegex.test(contactValue)) {
-    contactError.textContent = "❌ Contact number must be 11 digits starting with '09'.";
+    contactError.textContent =
+      "❌ Contact number must be 11 digits starting with '09'.";
     contactError.style.color = "red";
   } else {
     contactError.textContent = "✅ Valid contact number.";
@@ -214,7 +246,11 @@ export function updateFormFields() {
     adminFields.classList.remove("hidden");
     farmerIdInput.required = false;
     usernameInput.required = true;
-  } else if (userType === "Farmer" || userType === "Farm President" || userType === "Head Farmer") {
+  } else if (
+    userType === "Farmer" ||
+    userType === "Farm President" ||
+    userType === "Head Farmer"
+  ) {
     farmerFields.classList.remove("hidden");
     farmerIdInput.required = true;
     usernameInput.required = false;
@@ -267,9 +303,9 @@ confirmPasswordInput.addEventListener("input", validateConfirmPassword);
 
 function debounce(func, delay) {
   let timer;
-  return (...args) => {
+  return function (...args) {
     clearTimeout(timer);
-    timer = setTimeout(() => func(...args), delay);
+    timer = setTimeout(() => func.apply(this, args), delay);
   };
 }
 
@@ -294,8 +330,14 @@ async function checkEmailExists(email) {
     return;
   }
   try {
-    const userQuery = query(collection(db, "tb_users"), where("email", "==", email));
-    const farmerQuery = query(collection(db, "tb_farmers"), where("email", "==", email));
+    const userQuery = query(
+      collection(db, "tb_users"),
+      where("email", "==", email)
+    );
+    const farmerQuery = query(
+      collection(db, "tb_farmers"),
+      where("email", "==", email)
+    );
     const [userSnapshot, farmerSnapshot] = await Promise.all([
       getDocs(userQuery),
       getDocs(farmerQuery),
@@ -316,12 +358,15 @@ async function checkEmailExists(email) {
   validateForm();
 }
 
-emailInput.addEventListener("input", debounce(async () => {
-  const email = emailInput.value.trim();
-  if (email && validateEmailFormat(email)) {
-    await checkEmailExists(email);
-  }
-}, 500));
+emailInput.addEventListener(
+  "input",
+  debounce(async () => {
+    const email = emailInput.value.trim();
+    if (email && validateEmailFormat(email)) {
+      await checkEmailExists(email);
+    }
+  }, 500)
+);
 
 const checkUsernameExists = debounce(async () => {
   const username = usernameInput.value.trim();
@@ -331,11 +376,14 @@ const checkUsernameExists = debounce(async () => {
     return;
   }
   try {
-    const usernameQuery = query(collection(db, "tb_users"), where("user_name", "==", username));
+    const usernameQuery = query(
+      collection(db, "tb_users"),
+      where("user_name", "==", username)
+    );
     const querySnapshot = await getDocs(usernameQuery);
-    
-    usernameError.textContent = querySnapshot.empty 
-      ? "✅ Username is available." 
+
+    usernameError.textContent = querySnapshot.empty
+      ? "✅ Username is available."
       : "❌ Username is already taken.";
     usernameError.style.color = querySnapshot.empty ? "green" : "red";
   } catch (error) {
@@ -356,11 +404,14 @@ const checkFarmerIdExists = debounce(async () => {
     return;
   }
   try {
-    const farmerQuery = query(collection(db, "tb_farmers"), where("farmer_id", "==", farmerId));
+    const farmerQuery = query(
+      collection(db, "tb_farmers"),
+      where("farmer_id", "==", farmerId)
+    );
     const querySnapshot = await getDocs(farmerQuery);
-    
-    farmerIdError.textContent = querySnapshot.empty 
-      ? "✅ Farmer ID is available." 
+
+    farmerIdError.textContent = querySnapshot.empty
+      ? "✅ Farmer ID is available."
       : "❌ Farmer ID is already in use.";
     farmerIdError.style.color = querySnapshot.empty ? "green" : "red";
   } catch (error) {
@@ -375,10 +426,10 @@ farmerIdInput.addEventListener("input", checkFarmerIdExists);
 
 if (!form.dataset.listenerAdded) {
   form.dataset.listenerAdded = "true";
-  
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       showError("Please correct all form errors");
       return;
@@ -401,7 +452,11 @@ if (!form.dataset.listenerAdded) {
     const profilePicture = profilePictureInput.files[0];
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const uid = userCredential.user.uid;
 
       let profilePictureUrl = "";
@@ -454,12 +509,24 @@ if (!form.dataset.listenerAdded) {
   });
 }
 
-// Add event listeners for all inputs
 const inputs = form.querySelectorAll("input, select");
-inputs.forEach(input => {
+inputs.forEach((input) => {
   input.addEventListener("input", validateForm);
   input.addEventListener("change", validateForm);
 });
+
+// Debounce function for click events
+function debounceClick(func, delay) {
+  let timeout;
+  return function (...args) {
+    const context = this;
+    if (timeout) return; // Skip if already processing
+    timeout = setTimeout(() => {
+      func.apply(context, args);
+      timeout = null;
+    }, delay);
+  };
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchUserRoles();
@@ -468,4 +535,58 @@ document.addEventListener("DOMContentLoaded", () => {
   updateFormFields();
   submitsButton.disabled = true;
   validateForm();
+
+  // Password toggle functionality
+  const togglePasswordButtons = document.querySelectorAll(".toggle-password");
+  console.log("Found toggle buttons:", togglePasswordButtons.length);
+  if (togglePasswordButtons.length === 0) {
+    console.error("No toggle-password elements found");
+    return;
+  }
+
+  togglePasswordButtons.forEach((button, index) => {
+    // Remove existing listeners to prevent duplicates
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+
+    const handleToggle = debounceClick((e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(
+        `Toggle button ${index + 1} clicked at ${Date.now()}:`,
+        newButton
+      );
+
+      const targetId = newButton.getAttribute("data-target");
+      const input = document.getElementById(targetId);
+      const showIcon = newButton.querySelector(".eye-icon.show");
+      const hideIcon = newButton.querySelector(".eye-icon.hide");
+
+      if (!input || !showIcon || !hideIcon) {
+        console.error(`Missing elements for toggle ${targetId}`);
+        return;
+      }
+
+      console.log(`Current input type for ${targetId}:`, input.type);
+      if (input.type === "password") {
+        input.type = "text";
+        showIcon.style.display = "none";
+        hideIcon.style.display = "block";
+        console.log(`For ${targetId}: Show icon hidden, hide icon shown`);
+      } else {
+        input.type = "password";
+        showIcon.style.display = "block";
+        hideIcon.style.display = "none";
+        console.log(`For ${targetId}: Hide icon hidden, show icon shown`);
+      }
+      console.log(`New input type for ${targetId}:`, input.type);
+
+      // Force repaint
+      input.style.visibility = "hidden";
+      input.offsetHeight; // Trigger reflow
+      input.style.visibility = "visible";
+    }, 200);
+
+    newButton.addEventListener("click", handleToggle);
+  });
 });
