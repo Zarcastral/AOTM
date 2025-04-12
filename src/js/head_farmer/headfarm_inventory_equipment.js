@@ -1,12 +1,12 @@
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
   collection,
   getDocs,
   getFirestore,
+  onSnapshot,
   query,
   where,
-  onSnapshot,
 } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import app from "../../config/firebase_config.js";
 
 const auth = getAuth(app);
@@ -65,7 +65,7 @@ async function getAuthenticatedFarmer() {
               user_type: currentUserType,
               first_name: currentFirstName,
               middle_name: currentMiddleName,
-              last_name: currentLastName
+              last_name: currentLastName,
             });
           } else {
             console.error("Farmer record not found.");
@@ -95,62 +95,66 @@ async function fetchEquipments() {
       where("status", "==", "Ongoing")
     );
 
-    onSnapshot(projectsQuery, async (snapshot) => {
-      const stockCollection = collection(db, "tb_equipment_stocks");
+    onSnapshot(
+      projectsQuery,
+      async (snapshot) => {
+        const stockCollection = collection(db, "tb_equipment_stocks");
 
-      const equipmentsData = await Promise.all(
-        snapshot.docs.map(async (doc) => {
-          const project = doc.data();
-          const equipmentArray = project.equipment || [];
+        const equipmentsData = await Promise.all(
+          snapshot.docs.map(async (doc) => {
+            const project = doc.data();
+            const equipmentArray = project.equipment || [];
 
-          // Process each equipment in the project
-          const equipmentPromises = equipmentArray.map(async (equip) => {
-            let stockData = {};
+            // Process each equipment in the project
+            const equipmentPromises = equipmentArray.map(async (equip) => {
+              let stockData = {};
 
-            // Fetch stock data from tb_equipment_stocks based on equipment_name
-            const stockQuery = query(
-              stockCollection,
-              where("equipment_name", "==", equip.equipment_name)
-            );
-            const stockSnapshot = await getDocs(stockQuery);
-
-            if (!stockSnapshot.empty) {
-              const stockDoc = stockSnapshot.docs[0].data();
-              const stockEntry = stockDoc.stocks.find(
-                stock => stock.farmer_id === currentFarmerId
+              // Fetch stock data from tb_equipment_stocks based on equipment_name
+              const stockQuery = query(
+                stockCollection,
+                where("equipment_name", "==", equip.equipment_name)
               );
-              if (stockEntry) {
-                stockData = {
-                  stock_date: stockEntry.stock_date,
-                  current_stock: stockEntry.current_stock,
-                  unit: stockEntry.unit
-                };
+              const stockSnapshot = await getDocs(stockQuery);
+
+              if (!stockSnapshot.empty) {
+                const stockDoc = stockSnapshot.docs[0].data();
+                const stockEntry = stockDoc.stocks.find(
+                  (stock) => stock.farmer_id === currentFarmerId
+                );
+                if (stockEntry) {
+                  stockData = {
+                    stock_date: stockEntry.stock_date,
+                    current_stock: stockEntry.current_stock,
+                    unit: stockEntry.unit,
+                  };
+                }
               }
-            }
 
-            return {
-              project_id: project.project_id,
-              project_name: project.project_name,
-              equipment_type: equip.equipment_type,
-              equipment_name: equip.equipment_name,
-              equipmentDate: project.equipment_date || null,
-              ...stockData,
-              owned_by: currentUserType
-            };
-          });
+              return {
+                project_id: project.project_id,
+                project_name: project.project_name,
+                equipment_type: equip.equipment_type,
+                equipment_name: equip.equipment_name,
+                equipmentDate: project.equipment_date || null,
+                ...stockData,
+                owned_by: currentUserType,
+              };
+            });
 
-          return Promise.all(equipmentPromises);
-        })
-      );
+            return Promise.all(equipmentPromises);
+          })
+        );
 
-      // Flatten the array of arrays into a single array
-      equipmentsList = equipmentsData.flat();
-      filteredEquipments = [...equipmentsList];
-      sortEquipmentsByDate();
-      displayEquipments(filteredEquipments);
-    }, (error) => {
-      console.error("Error listening to projects:", error);
-    });
+        // Flatten the array of arrays into a single array
+        equipmentsList = equipmentsData.flat();
+        filteredEquipments = [...equipmentsList];
+        sortEquipmentsByDate();
+        displayEquipments(filteredEquipments);
+      },
+      (error) => {
+        console.error("Error listening to projects:", error);
+      }
+    );
   } catch (error) {
     console.error("Error fetching equipments:", error);
   }
@@ -171,7 +175,7 @@ function displayEquipments(equipmentsList) {
   if (paginatedEquipments.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
+        <td colspan="5" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
       </tr>
     `;
     return;
@@ -181,12 +185,13 @@ function displayEquipments(equipmentsList) {
     const row = document.createElement("tr");
     const date = equipment.stock_date || equipment.equipmentDate;
     const dateAdded = date
-      ? (date.toDate ? date.toDate().toLocaleDateString() : new Date(date).toLocaleDateString())
+      ? date.toDate
+        ? date.toDate().toLocaleDateString()
+        : new Date(date).toLocaleDateString()
       : "Not recorded";
 
     row.innerHTML = `
       <td>${equipment.project_id}</td>
-      <td>${equipment.project_name}</td>
       <td>${equipment.equipment_name}</td>
       <td>${equipment.equipment_type}</td>
       <td>${dateAdded}</td>
@@ -205,13 +210,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function updatePagination() {
   const totalPages = Math.ceil(filteredEquipments.length / rowsPerPage) || 1;
-  document.getElementById("equipment-page-number").textContent = `${currentPage} of ${totalPages}`;
+  document.getElementById(
+    "equipment-page-number"
+  ).textContent = `${currentPage} of ${totalPages}`;
   updatePaginationButtons();
 }
 
 function updatePaginationButtons() {
   document.getElementById("equipment-prev-page").disabled = currentPage === 1;
-  document.getElementById("equipment-next-page").disabled = currentPage >= Math.ceil(filteredEquipments.length / rowsPerPage);
+  document.getElementById("equipment-next-page").disabled =
+    currentPage >= Math.ceil(filteredEquipments.length / rowsPerPage);
 }
 
 document.getElementById("equipment-prev-page").addEventListener("click", () => {
@@ -222,7 +230,7 @@ document.getElementById("equipment-prev-page").addEventListener("click", () => {
 });
 
 document.getElementById("equipment-next-page").addEventListener("click", () => {
-  if ((currentPage * rowsPerPage) < filteredEquipments.length) {
+  if (currentPage * rowsPerPage < filteredEquipments.length) {
     currentPage++;
     displayEquipments(filteredEquipments);
   }
@@ -231,7 +239,9 @@ document.getElementById("equipment-next-page").addEventListener("click", () => {
 async function fetchEquipmentNames() {
   const equipmentsCollection = collection(db, "tb_equipment_types");
   const equipmentsSnapshot = await getDocs(equipmentsCollection);
-  const equipmentNames = equipmentsSnapshot.docs.map(doc => doc.data().equipment_type_name);
+  const equipmentNames = equipmentsSnapshot.docs.map(
+    (doc) => doc.data().equipment_type_name
+  );
   populateEquipmentDropdown(equipmentNames);
 }
 
@@ -241,7 +251,7 @@ function populateEquipmentDropdown(equipmentNames) {
   const firstOption = equipmentSelect.querySelector("option")?.outerHTML || "";
   equipmentSelect.innerHTML = firstOption;
 
-  equipmentNames.forEach(equipmentName => {
+  equipmentNames.forEach((equipmentName) => {
     const option = document.createElement("option");
     option.textContent = equipmentName;
     equipmentSelect.appendChild(option);
@@ -255,7 +265,9 @@ async function fetchProjectNames() {
     where("status", "==", "Ongoing")
   );
   const projectsSnapshot = await getDocs(projectsQuery);
-  const projectNames = projectsSnapshot.docs.map(doc => doc.data().project_name);
+  const projectNames = projectsSnapshot.docs.map(
+    (doc) => doc.data().project_name
+  );
   populateProjectDropdown(projectNames);
 }
 
@@ -266,62 +278,65 @@ function populateProjectDropdown(projectNames) {
   projectSelect.innerHTML = firstOption;
 
   const uniqueProjectNames = [...new Set(projectNames)].sort();
-  uniqueProjectNames.forEach(projectName => {
+  uniqueProjectNames.forEach((projectName) => {
     const option = document.createElement("option");
     option.textContent = projectName;
     projectSelect.appendChild(option);
   });
 }
 
-document.querySelector(".equipment_select").addEventListener("change", function () {
-  const selectedEquipment = this.value.toLowerCase();
-  const selectedProject = document.querySelector(".equip_project_select").value.toLowerCase();
-  
-  filteredEquipments = equipmentsList.filter(equipment => {
-    const matchesEquipment = selectedEquipment ? equipment.equipment_type?.toLowerCase() === selectedEquipment : true;
-    const matchesProject = selectedProject ? equipment.project_name?.toLowerCase() === selectedProject : true;
-    return matchesEquipment && matchesProject;
-  });
-  
-  currentPage = 1;
-  sortEquipmentsByDate();
-  displayEquipments(filteredEquipments);
-});
+document
+  .querySelector(".equipment_select")
+  .addEventListener("change", function () {
+    const selectedEquipment = this.value.toLowerCase();
 
-document.querySelector(".equip_project_select").addEventListener("change", function () {
-  const selectedProject = this.value.toLowerCase();
-  const selectedEquipment = document.querySelector(".equipment_select").value.toLowerCase();
-  
-  filteredEquipments = equipmentsList.filter(equipment => {
-    const matchesProject = selectedProject ? equipment.project_name?.toLowerCase() === selectedProject : true;
-    const matchesEquipment = selectedEquipment ? equipment.equipment_type?.toLowerCase() === selectedEquipment : true;
-    return matchesEquipment && matchesProject;
-  });
-  
-  currentPage = 1;
-  sortEquipmentsByDate();
-  displayEquipments(filteredEquipments);
-});
+    filteredEquipments = equipmentsList.filter((equipment) => {
+      return selectedEquipment
+        ? equipment.equipment_type?.toLowerCase() === selectedEquipment
+        : true;
+    });
 
-document.getElementById("equip-search-bar").addEventListener("input", function () {
-  const searchQuery = this.value.toLowerCase().trim();
-  
-  filteredEquipments = equipmentsList.filter(equipment => {
-    return (
-      (equipment.project_id?.toString().toLowerCase().includes(searchQuery)) ||
-      (equipment.project_name?.toLowerCase().includes(searchQuery)) ||
-      (equipment.equipment_name?.toLowerCase().includes(searchQuery)) ||
-      (equipment.equipment_type?.toLowerCase().includes(searchQuery))
-    );
+    currentPage = 1;
+    sortEquipmentsByDate();
+    displayEquipments(filteredEquipments);
   });
-  
-  currentPage = 1;
-  sortEquipmentsByDate();
-  displayEquipments(filteredEquipments);
-});
+
+document
+  .querySelector(".equip_project_select")
+  .addEventListener("change", function () {
+    const selectedProject = this.value.toLowerCase();
+
+    filteredEquipments = equipmentsList.filter((equipment) => {
+      return selectedProject
+        ? equipment.project_name?.toLowerCase() === selectedProject
+        : true;
+    });
+
+    currentPage = 1;
+    sortEquipmentsByDate();
+    displayEquipments(filteredEquipments);
+  });
+
+document
+  .getElementById("equip-search-bar")
+  .addEventListener("input", function () {
+    const searchQuery = this.value.toLowerCase().trim();
+
+    filteredEquipments = equipmentsList.filter((equipment) => {
+      return (
+        equipment.project_id?.toString().toLowerCase().includes(searchQuery) ||
+        equipment.equipment_name?.toLowerCase().includes(searchQuery) ||
+        equipment.equipment_type?.toLowerCase().includes(searchQuery)
+      );
+    });
+
+    currentPage = 1;
+    sortEquipmentsByDate();
+    displayEquipments(filteredEquipments);
+  });
 
 function getFarmerFullName() {
-  const middleInitial = currentMiddleName 
+  const middleInitial = currentMiddleName
     ? `${currentMiddleName.charAt(0)}.`
     : "";
   return `${currentFirstName} ${middleInitial} ${currentLastName}`.trim();

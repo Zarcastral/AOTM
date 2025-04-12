@@ -837,6 +837,12 @@ window.addFarmland = async function() {
         return;
     }
 
+    const landAreaValue = parseInt(landArea);
+    if (isNaN(landAreaValue) || landAreaValue <= 0) {
+        showCustomMessage("Land area must be a valid positive number!", false);
+        return;
+    }
+
     try {
         // Verify barangay exists
         const barangayQuery = query(collection(db, 'tb_barangay'), where('barangay_name', '==', selectedBarangayName));
@@ -871,7 +877,7 @@ window.addFarmland = async function() {
             barangay_id: barangayId,
             barangay_name: selectedBarangayName,
             farmland_name: farmlandName,
-            land_area: parseInt(landArea),
+            land_area: landAreaValue,
             dateAdded,
         };
 
@@ -879,7 +885,7 @@ window.addFarmland = async function() {
 
         showCustomMessage("Farmland added successfully", true);
         clearFarmlandInputs();
-        barangaySelect.selectedIndex = 0;
+        // No reset of barangaySelect to retain the selected barangay
         closePopup("add-farmland-popup");
     } catch (error) {
         console.error("Error adding farmland:", error);
@@ -888,12 +894,6 @@ window.addFarmland = async function() {
 };
 
 
-document.getElementById('confirm-delete-button').addEventListener('click', confirmDelete);
-
-const accountIcon = document.getElementById("account-icon");
-const accountPanel = document.getElementById("account-panel");
-const accountFrame = document.getElementById("account-frame");
-
-    
+document.getElementById('confirm-delete-button').addEventListener('click', confirmDelete);  
 
 initializeCounters();
