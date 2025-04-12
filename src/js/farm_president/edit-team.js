@@ -206,13 +206,17 @@ function updateButtonStates() {
         if (!deleteButton) {
             deleteButton = document.createElement('button');
             deleteButton.id = 'deleteTeamBtn';
-            deleteButton.textContent = 'Delete Team';
-            deleteButton.style.marginTop = '10px';
-            deleteButton.style.backgroundColor = '#ff4444';
-            deleteButton.style.color = 'white';
-            deleteButton.style.border = 'none';
-            deleteButton.style.padding = '8px 16px';
-            deleteButton.style.cursor = 'pointer';
+            deleteButton.textContent = 'x Delete Team';
+            
+            deleteButton.style.marginLeft = '100px';
+            deleteButton.style.color = '#AC415B'; // White text
+            deleteButton.style.border = 'none'; // No border
+            deleteButton.style.padding = '8px 18px'; // Padding matches the image
+            deleteButton.style.cursor = 'pointer'; // Pointer cursor on hover
+            deleteButton.style.borderRadius = '5px'; // Slightly rounded corners to match the image
+            deleteButton.style.fontSize = '16px'; // Adjust font size to match the text in the image
+            deleteButton.style.fontWeight = '500'; // Medium font weight for a clean look
+            deleteButton.style.fontFamily = 'Arial, sans-serif'; // A clean, sans-serif font similar to the one in the image
             tableContainer.insertAdjacentElement('afterend', deleteButton);
         }
     

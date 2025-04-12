@@ -41,6 +41,10 @@ body {
   cursor: pointer;
 }
 
+.rando-line {
+  color: #848A9C;
+}
+
 #title {
   color: #486581;
   font-size: 17px;
@@ -637,7 +641,30 @@ input[type="checkbox"] {
   justify-content: space-between;
   margin-top: 20px;
 }
+.project-selector {
+  display: flex;
+  gap: 30px;
+  font-size: 20px;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 20px;
+  margin-top: -10px;
+}
 
+.project-selector a {
+  color: #848A9C;
+  transition: color 0.3s ease;
+}
+
+.project-selector a.active {
+  color: #41a186;
+  font-weight: 500;
+}
+
+.project-selector:hover a {
+  color: #41a186;
+}
 /* Responsive styles */
 @media (max-width: 1024px) {
   #title {

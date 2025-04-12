@@ -1,40 +1,67 @@
 body {
     background-color: #F5F6FA;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins';
     margin: 0;
+    cursor: default;
+}
+
+
+#feedbackType {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    width: 250px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
 }
 
 .container {
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 1000px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    margin-top: 30px;
-    padding: 16px;
+    padding: 20px;
+    margin: 0 auto;
 }
 
 .panel {
-    background-color: #fff;
+    background-color: white;
     border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 30px 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.panel h2 {
-    font-size: 24px;
-    font-weight: bold;
-    color: #1a3c34;
+
+/* Project Details Panel */
+.project-details h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-size: 30px;
+    color: black;
     margin-bottom: 20px;
+    margin-top: 5px;
+    
 }
+
 
 /* Project Details */
 .project-details .details {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    font-size: 14px;
+    gap: 15px;
+    text-align: left;
+    margin-bottom: 30px;
+    margin-left: 40px;
+    font-size: 15px;
 }
 
 .details p {
@@ -61,7 +88,7 @@ th, td {
 }
 
 th {
-    font-weight: bold;
+    font-weight: 700;
     color: #1a3c34;
 }
 
@@ -69,25 +96,21 @@ td {
     color: #4b5563;
 }
 
-.view-btn{
-    background-color: transparent;
-    border: none;
-}
-
 /* Action Button */
-.view-btn img {
+.action-btn {
     width: 24px;
     height: 24px;
     border-radius: 50%;
     cursor: pointer;
+    margin-left: 10px;
     transition: background-color 0.3s;
 }
 
-.view-btn:hover img {
-    background-color: #e0e0e0;
+.action-btn:hover {
+    opacity: 0.8;
 }
 
-/* Feedback Panel (Copied from Second Code) */
+/* Feedback Panel */
 .feedback-header {
     display: flex;
     justify-content: space-between; /* Pushes the button to the right */
@@ -96,24 +119,39 @@ td {
     margin-top: 20px;
 }
 
+.feedback-header1 {
+    display: flex;
+    justify-content: space-between; /* Pushes the button to the right */
+    align-items: center; /* Vertically centers the text and button */
+}
+.feedback-header3 {
+    display: flex;
+    justify-content: space-between; /* Pushes the button to the right */
+    align-items: center; /* Vertically centers the text and button */
+    margin-bottom: 20px; /* Space below the header */
+    
+    
+}
 .feedback-panel h2 {
     font-size: 24px;
     font-weight: bold;
     color: #1a3c34;
     margin: 0; /* Remove default margin to align with button */
     margin-left: 30px;
+    
 }
 
 .add-feedback-btn {
     background: none;
     border: none;
-    color: #41A186;
+    color: #41A186;;
     font-weight: bold;
     font-size: 14px;
     cursor: pointer;
     padding: 0; /* Remove padding for natural alignment */
     line-height: 1; /* Matches h2 text alignment */
     margin-right: 30px;
+    margin-top: -10px;
 }
 
 .feedback-item {
@@ -121,12 +159,13 @@ td {
     align-items: flex-start;
     gap: 15px;
     padding: 15px 20px;  /* Keep vertical padding, restore horizontal padding */
-    border-top: 4px solid #EFF1F2;  /* Top border */
-    border-bottom: 3px solid #EFF1F2;  /* Bottom border */
+    border-top: 2px solid #EFF1F2;  /* Top border */
     border-left: none;  /* No left border */
     border-right: none;  /* No right border */
     border-radius: 0;  /* No rounding */
     box-shadow: none;
+    
+    
 }
 
 .feedback-panel {
@@ -146,24 +185,20 @@ td {
     color: #777;
     text-align: center;
 }
-
-.feedback-header1 {
-    display: flex;
-    justify-content: space-between; /* Pushes the button to the right */
-    align-items: center; /* Vertically centers the text and button */
-} 
-
 .feedback-avatar {
     width: 70px;
     height: 70px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #ddd;
+    margin-top: 10px;
 }
 
 .feedback-content {
+    margin-top: 10px;
     flex: 1;
 }
+
 
 .feedback-user {
     font-weight: 600;
@@ -171,9 +206,31 @@ td {
     font-size: 1rem;
 }
 
+.feedback-team {
+    font-weight: 400;
+    color: #777;
+    font-size: 0.9rem;
+    margin-left: 5px;
+}
+
 .timestamp {
     font-size: 0.8rem;
     color: #777;
+}
+
+label[for="feedbackType"] {
+    font-weight: 500; /* Example style */
+    margin-left: -12px;
+}
+
+label[for="feedbackMessage"] {
+    font-weight: 500; /* Example style */
+
+}
+
+
+#feedbackMessage{
+     font-family: 'Poppins';
 }
 
 .feedback-text {
@@ -183,12 +240,26 @@ td {
     line-height: 1.4;
 }
 
+.feedback-status-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
 .feedback-status {
     font-weight: bold;
     font-size: 13px;
 }
 
-/* Popup (Copied from Second Code) */
+.add-feedback-btn {
+    font-weight: 500;
+    font-size: 15px;
+}
+
+
+/* Popup */
 .popup {
     display: none;
     position: fixed;
@@ -203,7 +274,7 @@ td {
 
 .popup-content {
     background: white;
-    padding: 35px;
+    padding: 40px 35px;
     width: 400px;
     border-radius: 8px;
     text-align: center;
@@ -218,6 +289,24 @@ td {
     color: #444;
 }
 
+.popup-content h3 {
+    font-size: 15px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    margin-top: 10px;
+    color: #444;
+    margin-left: -100px;
+}
+
+.popup-content p {
+    font-size: 15px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    margin-top: 10px;
+    color: #444;
+    margin-left: -320px;
+}
+
 .close-btn {
     position: absolute;
     top: 10px;
@@ -225,14 +314,14 @@ td {
     font-size: 30px;
     cursor: pointer;
     color: #c3c3c3;
-    margin-right: 5px;
+    margin-right:5px;
 }
 
 .close-btn:hover {
     opacity: 0.8;
 }
 
-select {
+select{
     width: 100%;
     padding: 8px;
     margin: 15px 0 30px 0;
@@ -248,6 +337,8 @@ textarea {
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
+}
+textarea {
     resize: none;
 }
 
@@ -265,7 +356,6 @@ textarea {
 .popup-content button:hover {
     background: #36886d;
 }
-
 .success-message {
     position: fixed;
     top: 20px;
@@ -301,7 +391,7 @@ textarea {
 }
 .no-project-message {
     position: fixed;
-    top: 15%;
+    top: 13%;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: #AC415B;
@@ -316,19 +406,74 @@ textarea {
     transition: opacity 0.4s ease-in-out;
     z-index: 1000;
 }
-
-.table-empty {
-    text-align: center;
-    color: #777;
-    font-size: 16px;
-}
 /* Responsive Design */
 @media (max-width: 768px) {
-    .project-details .details {
-        grid-template-columns: repeat(2, 1fr);
+    
+    .panel {
+      padding: 10px 20px;
+      margin: 5px;
     }
 
-    .feedback-panel {
-        width: 100%;
+    .feedback-panel h2 {
+        margin-left: 10px;
     }
-}
+  
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-left: 540px;
+      
+    }
+    .project-details h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-size: 25px;
+        color: #1a3c34;
+        margin-bottom: 20px;
+        margin-top: 8px;
+    }
+    
+    .details {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        text-align: left;
+        margin-bottom: 30px;
+        margin-left: 10px;
+        font-size: 10px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+  
+    .panel {
+      padding: 10px 20px;
+      margin: 10px;
+    }
+   
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-left: 540px;
+      
+    }
+
+    .project-details h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-size: 25px;
+        color: #1a3c34;
+        margin-bottom: 20px;
+        margin-top: 8px;
+    }
+    
+    .details {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        text-align: left;
+        margin-bottom: 30px;
+        margin-left: 10px;
+        font-size: 10px;
+    }
+  }

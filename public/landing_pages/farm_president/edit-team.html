@@ -7,8 +7,17 @@
     <link rel="stylesheet" href="../../../src/style/farm_president/edit-team.css">
 </head>
 <body>
+    <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+  <div class="back">
+    <a href="farmpres_farmer.html" class="back-link">
+        <img src="../../images/arrow-left.png" alt="Back" width="30" height="30">
+    </a>
+</div>
     <div class="container">
-        <div class="header">
+        
+        <div class="top-section">
             <h1 id="teamNameHeader">Team Name</h1>
             <a href="#" class="add-farmer" id="addFarmerBtn">+ Add Farmer</a>
         </div>
@@ -52,5 +61,9 @@
     </div>
 
 <script type="module" src="../../../src/js/farm_president/edit-team.js"></script>
+
+<!-- Import the reusable script from src/auth -->
+<script type="module" src="../../../src/auth/header.js"></script>
+
 </body>
 </html>
