@@ -419,17 +419,18 @@ td:last-child {
 #finishProjectButton {
   background-color: #41a186;
   color: #ffffff;
-  padding: 10px 20px;
+  padding: 10px 25px;
   border: none;
-  border-radius: 5px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   transition: background-color 0.3s ease;
+  margin-right: 10px;
 }
 
 #finishProjectButton:hover:not(:disabled) {
-  background-color: #3b8f7a;
+  opacity: 0.8;
 }
 
 #finishProjectButton:disabled {

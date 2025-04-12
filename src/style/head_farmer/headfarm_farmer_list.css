@@ -42,13 +42,14 @@ body {
   padding: 20px;
   overflow-y: auto;
 }
+
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
 }
 .team-panel {
   background: white;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   margin: 20px;
@@ -61,6 +62,11 @@ body {
   font-size: 20px;
   font-weight: bold;
   color: #41A186;
+  margin-left: 10px;
+}
+
+.table-wrapper{
+  padding: 10px;
 }
 
 .team-table {
@@ -71,33 +77,49 @@ body {
   overflow: hidden;
 }
 th{
-  font-weight: 500;
+  font-weight: 600;
   font-size: 15px;
 }
 td{
   font-size: 12px;
 }
 .team-table th, .team-table td {
-  padding: 12px;
+  padding: 15px;
   text-align: left;
   border-bottom: 2px solid #f0f0f0;
+  
 }
+
+th:nth-child(1), 
+td:nth-child(1){
+  width: 150px;
+  min-width: 100px;
+  text-align: left;
+}
+
 th:nth-child(2), 
 td:nth-child(2){
-  width: 120px;
-  min-width: 130px;
+  width: 150px;
+  min-width: 100px;
   text-align: left;
 }
 th:nth-child(3), 
 td:nth-child(3){
   width: 120px;
-  min-width: 130px;
+  min-width: 100px;
   text-align: left;
 }
-th:nth-child(6), 
-td:nth-child(6){
+th:nth-child(4), 
+td:nth-child(4){
   width: 120px;
-  min-width: 130px;
+  min-width: 100px;
+  text-align: left;
+}
+
+th:nth-child(5), 
+td:nth-child(5){
+  width: 120px;
+  min-width: 100px;
   text-align: left;
 }
 .team-table td img.edit-img {
@@ -167,6 +189,7 @@ td:nth-child(6){
   padding: 10px;
   display: none;
   z-index: 10;
+  
 }
 
 .account-panel.active {

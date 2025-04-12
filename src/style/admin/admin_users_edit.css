@@ -1,9 +1,50 @@
 body {
-    font-family: 'Poppins';
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-  }
+  margin: 0;
+  height: 100vh;
+  background-color: #f5f6fa;
+  font-family: "Poppins";
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+}
+
+.header {
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41a186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  overflow-y: auto;
+}
 
   .header {
     min-height: 60px;
@@ -129,11 +170,12 @@ button[type="submit"] {
     border-radius: 25px;
     font-size: 16px;
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
 }
 
 button[type="submit"]:hover {
-  background-color: #318a71; /*dark shade hover */
-  transition: background-color 0.3s ease;
+  opacity: 0.8;
 }
 
 #close-button {
@@ -145,10 +187,12 @@ button[type="submit"]:hover {
     border-radius: 25px;
     font-size: 16px;
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
 }
 
 #close-button:hover {
-  background-color: #B0B7C0;
+  opacity: 0.8;
 
 }
 
@@ -190,7 +234,7 @@ button[type="submit"]:hover {
   }
   
   button:hover {
-    background-color: #41A186;
+    opacity: 0.8;
   }
   
 
@@ -261,14 +305,13 @@ button[type="submit"]:hover {
 }
 
 #confirmationPanel #confirmCancel:hover {
-  background-color: #B0B7C0;
+  opacity: 0.8;
 
 
 }
 
 #confirmationPanel #confirmYes:hover {
-  background-color: #318a71; /*dark shade hover*/
-  transition: background-color 0.3s ease;
+  opacity: 0.8;
 
 }
 
@@ -326,8 +369,7 @@ button[type="submit"]:hover {
 }
 
 #errorPanel button:hover {
-  background-color:rgb(90, 101, 112);
-  transition: background-color 0.3s ease, opacity 0.3s ease; 
+  opacity: 0.8; 
 }
 
 #errorBackdrop {
@@ -444,9 +486,7 @@ button[type="submit"]:hover {
 
 .close:hover,
 .close:focus {
-  color: #bbb;
-  text-decoration: none;
-  cursor: pointer;
+  opacity: 0.8;
 }
 
 .delete-message-panel {
