@@ -20,12 +20,7 @@ body {
   padding: 0 20px;
 }
 
-#title {
-  color: #486581;
-  font-size: 17px;
-  font-weight: 500;
-  margin: 10px 0 10px 0;
-}
+
 
 .header-title {
   font-size: 30px;
@@ -50,6 +45,13 @@ body {
   flex-direction: column;
   padding: 30px;
   overflow-y: auto;
+}
+
+#title {
+  color: #486581;
+  font-size: 17px;
+  font-weight: 500;
+  margin: 10px 0 10px 0;
 }
 
 .action-btn {
@@ -724,6 +726,7 @@ input[type="checkbox"] {
     font-size: 15px;
     padding: 10px 16px;
   }
+
 }
 
 @media (max-width: 768px) {
