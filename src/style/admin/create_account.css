@@ -4,6 +4,7 @@ body {
   background-color: #F5F6FA;
   font-family: 'Poppins';
   display: flex;
+  font-family: 'Poppins', sans-serif;
   flex-direction: column;
 }
 
@@ -234,9 +235,9 @@ select {
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: red;
+  color: #AC415B;
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 500;
   background: none;
   border: none;
   outline: none;
@@ -244,7 +245,7 @@ select {
 }
 
 .remove-file:hover {
-  color: #cc0000; /* Slightly darker red on hover */
+ opacity: 0.7;
 }
 .success-message {
   position: fixed;
