@@ -411,6 +411,43 @@ async function teamAssign(project_id) {
             status: "Ongoing",
           });
 
+          // Prepare notifications for all farmers in farmer_name array
+          const notificationPromises = [];
+
+          // Notification for the lead farmer
+          notificationPromises.push(
+            addDoc(collection(db, "tb_notifications"), {
+              description: `Project ${project_id} is assigned for you to manage`,
+              project_id: Number(project_id),
+              read: false,
+              recipient: selectedTeam.lead_farmer_id,
+              timestamp: serverTimestamp(),
+              title: "NEW PROJECT ASSIGNED",
+              type: "",
+            })
+          );
+
+          // Notifications for each farmer in farmer_name array
+          selectedTeam.farmer_name.forEach((farmer) => {
+            if (
+              farmer.farmer_id &&
+              farmer.farmer_id !== selectedTeam.lead_farmer_id
+            ) {
+              notificationPromises.push(
+                addDoc(collection(db, "tb_notifications"), {
+                  description: `A new project (${project_id}) has been assigned to your team: ${selectedTeam.team_name}`,
+                  project_id: Number(project_id),
+                  read: false,
+                  recipient: farmer.farmer_id,
+                  timestamp: serverTimestamp(),
+                  title: "NEW TEAM PROJECT",
+                  type: "",
+                })
+              );
+            }
+          });
+
+          // Execute all updates and notifications
           await Promise.all([
             addStockToCropStock(project_id),
             saveFertilizerStockAfterUse(project_id),
@@ -424,15 +461,7 @@ async function teamAssign(project_id) {
                   )
                 );
             })(),
-            addDoc(collection(db, "tb_notifications"), {
-              description: `Project ${project_id} is assigned for you to manage`,
-              project_id: Number(project_id),
-              read: false,
-              recipient: selectedTeam.lead_farmer_id,
-              timestamp: serverTimestamp(),
-              title: "NEW PROJECT ASSIGNED",
-              type: "",
-            }),
+            ...notificationPromises, // Include all notification creations
           ]);
 
           showDeleteMessage(
