@@ -19,7 +19,7 @@
         <img src="../../images/arrow-left.png" alt="Back" width="30" height="30">
       </a>
     </div>
-    
+
     <div class="panel">
       <h1>Create Account</h1>
       <form id="createAccountForm" class="form-container">
@@ -48,9 +48,15 @@
           <span id="emailError"></span>
         </div>
 
-        <div class="form-group">
+        <div class="form-group password-container">
           <label for="password">Password:</label>
-          <input type="password" id="password" required>
+          <div class="password-wrapper">
+            <input type="password" id="password" required>
+            <span class="toggle-password" data-target="password">
+              <img src="../../images/eye.png" alt="Show Password" class="eye-icon show">
+              <img src="../../images/eye-off.png" alt="Hide Password" class="eye-icon hide" style="display: none;">
+            </span>
+          </div>
         </div>
 
         <ul id="passwordRequirements">
@@ -60,9 +66,15 @@
           <li id="lengthCheck"><span class="bullet"></span> Minimum <b>8 characters</b></li>
         </ul>
 
-        <div class="form-group">
+        <div class="form-group password-container">
           <label for="confirmPassword">Confirm Password:</label>
-          <input type="password" id="confirmPassword" required>
+          <div class="password-wrapper">
+            <input type="password" id="confirmPassword" required>
+            <span class="toggle-password" data-target="confirmPassword">
+              <img src="../../images/eye.png" alt="Show Password" class="eye-icon show">
+              <img src="../../images/eye-off.png" alt="Hide Password" class="eye-icon hide" style="display: none;">
+            </span>
+          </div>
           <p id="confirmPasswordError" style="color: #AC415B; font-size: 14px; display: none;">
             ❌ Passwords do not match.
           </p>
@@ -135,4 +147,5 @@
   </script>
   <script type="module" src="../../../src/auth/header.js"></script>
 </body>
+
 </html>

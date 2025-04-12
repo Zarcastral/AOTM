@@ -1,10 +1,9 @@
 body {
   margin: 0;
   height: 100vh;
-  background-color: #F5F6FA;
-  font-family: 'Poppins';
+  background-color: #f5f6fa;
+  font-family: "Poppins", sans-serif;
   display: flex;
-  font-family: 'Poppins', sans-serif;
   flex-direction: column;
 }
 
@@ -25,53 +24,21 @@ body {
   margin-top: -30px;
 }
 
-#sex {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-  font-size: 16px;
-  color: #243B53;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  outline: none;
-  width: 500px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-  background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
-  background-size: 16px;
-  cursor: pointer;
-}
-
-#user_type {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-  font-size: 16px;
-  color: #243B53;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  outline: none;
-  width: 500px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-  background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
-  background-size: 16px;
-  cursor: pointer;
-}
-
+#sex,
+#user_type,
 #barangay {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 5px;
   outline: none;
   width: 500px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
@@ -79,7 +46,7 @@ body {
 .header-title {
   font-size: 30px;
   font-weight: bold;
-  color: #41A186;
+  color: #41a186;
 }
 
 .header-icons {
@@ -97,9 +64,9 @@ body {
 .main-content {
   display: flex;
   flex-direction: column;
-  padding: 50px; /* Padding around the panels */
-  overflow-y: auto; /* Enable vertical scrolling */
-  overflow-x: hidden; /* Disable horizontal scrolling */
+  padding: 50px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .panel {
@@ -137,10 +104,7 @@ select {
 }
 
 #sex,
-#user_type {
-  width: 99%;
-}
-
+#user_type,
 #barangay {
   width: 99%;
 }
@@ -209,7 +173,6 @@ select {
   width: 100%;
 }
 
-/* Add these styles to your existing CSS */
 .file-input-container {
   position: relative;
   display: flex;
@@ -226,7 +189,7 @@ select {
 
 #profilePicture {
   flex: 1;
-  padding-right: 30px; /* Make space for the "×" button */
+  padding-right: 30px;
 }
 
 .remove-file {
@@ -235,7 +198,7 @@ select {
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #AC415B;
+  color: #ac415b;
   font-size: 20px;
   font-weight: 500;
   background: none;
@@ -245,8 +208,9 @@ select {
 }
 
 .remove-file:hover {
- opacity: 0.7;
+  opacity: 0.7;
 }
+
 .success-message {
   position: fixed;
   top: 20px;
@@ -269,7 +233,7 @@ select {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #AC415B;
+  background-color: #ac415b;
   color: white;
   padding: 10px 20px;
   border-radius: 20px;
@@ -281,28 +245,74 @@ select {
   transition: opacity 0.3s ease;
 }
 
+/* Password toggle styles */
+.password-container {
+  position: relative;
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  padding: 10px;
+  z-index: 200; /* Higher to avoid overlap */
+  pointer-events: auto;
+  width: 24px;
+  height: 24px;
+  user-select: none; /* Prevent text selection */
+}
+
+.eye-icon {
+  width: 24px;
+  height: 24px;
+  display: none;
+}
+
+.eye-icon.show {
+  display: block;
+}
+
+.eye-icon.hide {
+  display: none;
+}
+
+/* Fallback for image failure */
+.toggle-password:empty::before {
+  content: "👁️";
+  font-size: 18px;
+  color: #243b53;
+}
+
 @media (max-width: 768px) {
   .back {
     margin-left: 10px;
     margin-bottom: 3px;
     margin-top: 10px;
   }
-  
-  
+
   .panel {
     padding: 30px;
     margin: 10px;
-    
   }
-  
+
   .main-content {
-    display: flex;
-    flex-direction: column;
-    padding: 10px; /* Padding around the panels */
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden; /* Disable horizontal scrolling */
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
- 
 }
 
 @media (max-width: 480px) {
@@ -311,22 +321,17 @@ select {
     margin-bottom: 5px;
     margin-top: 50px;
   }
-  
-  
+
   .panel {
     padding: 30px;
     margin: 10px;
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden; 
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .main-content {
-    display: flex;
-    flex-direction: column;
-    padding: 10px; /* Padding around the panels */
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden; /* Disable horizontal scrolling */
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
-
-  
 }
