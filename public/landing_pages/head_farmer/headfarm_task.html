@@ -51,7 +51,20 @@
         </div>
         <!-- Add Finish Project button below the task panel -->
         <div class="finish-project-container">
-            <button id="finishProjectButton" disabled> ✓  Task completed</button>
+            <button id="finishProjectButton" disabled> ✓ Task completed</button>
+            <button id="failProjectButton" disabled> ✗ Project Failed</button>
+        </div>
+        
+        <!-- Add Failed Confirmation Modal -->
+        <div id="failProjectModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Confirm Project Failure</h2>
+                <p>Are you sure you want to mark this project as Failed? This action cannot be undone.</p>
+                <div class="modal-buttons">
+                    <button id="cancelFailBtn">Cancel</button>
+                    <button id="confirmFailBtn">Confirm</button>
+                </div>
+            </div>
         </div>
     </div>
 
