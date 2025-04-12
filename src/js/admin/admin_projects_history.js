@@ -6,7 +6,8 @@ import {
     getFirestore,
     setDoc,
     doc,
-    deleteDoc
+    deleteDoc,
+    onSnapshot
 } from "firebase/firestore";
 
 import app from "../../config/firebase_config.js";
@@ -53,25 +54,15 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let projectList = [];
 
-async function fetch_projects(filter = {}) {
+async function movePendingAndOngoingProjects() {
     try {
-        // Get current user's user_type
-        const currentUserType = await getAuthenticatedUser();
-        
-        // Query tb_project_history where project_creator matches current user's user_type
         const projectsQuery = query(
-            collection(db, "tb_project_history"),
-            where("project_creator", "==", currentUserType)
+            collection(db, "tb_project_history")
         );
         const querySnapshot = await getDocs(projectsQuery);
-        
-        projectList = [];
-        let projectIdList = [];
 
-        // Check for Pending or Ongoing projects at page load and move them to tb_projects
         for (const document of querySnapshot.docs) {
             const data = document.data();
-            const projectId = String(data.project_id || "");
             const status = (data.status || "").toLowerCase();
 
             // If status is Pending or Ongoing, move to tb_projects
@@ -79,50 +70,90 @@ async function fetch_projects(filter = {}) {
                 const projectRef = doc(db, "tb_projects", document.id);
                 await setDoc(projectRef, data); // Move entire document
                 await deleteDoc(document.ref); // Delete from tb_project_history
-                console.log(`Moved project ${projectId} with status ${status} to tb_projects`);
-                continue; // Skip adding to projectList
-            }
-
-            // Process remaining projects for display
-            const searchTerm = filter.search?.toLowerCase();
-            const matchesSearch = searchTerm
-                ? `${data.project_name || ""}`.toLowerCase().includes(searchTerm) ||
-                `${data.farm_president || ""}`.toLowerCase().includes(searchTerm) ||
-                `${data.lead_farmer || ""}`.toLowerCase().includes(searchTerm) ||
-                (data.start_date || "").includes(searchTerm) ||
-                (data.end_date || "").includes(searchTerm) ||
-                (data.crop_name || "").toLowerCase().includes(searchTerm) ||
-                (data.crop_type_name || "").toLowerCase().includes(searchTerm) ||
-                (data.status || "").toLowerCase().includes(searchTerm)
-                : true;
-
-            const matchesBarangay = filter.barangay
-                ? (data.barangay_name || "").toLowerCase() === filter.barangay.toLowerCase()
-                : true;
-
-            if (matchesSearch && matchesBarangay) {
-                projectIdList.push(projectId);
-                projectList.push({ project_id: projectId, ...data });
+                console.log(`Moved project ${data.project_id} with status ${status} to tb_projects`);
             }
         }
+    } catch (error) {
+        console.error("Error moving projects:", error);
+    }
+}
 
-        projectList.sort((a, b) => {
-            const startA = a.start_date ? new Date(a.start_date) : new Date(0);
-            const startB = b.start_date ? new Date(b.start_date) : new Date(0);
-            const endA = a.end_date ? new Date(a.end_date) : new Date(0);
-            const endB = b.end_date ? new Date(b.end_date) : new Date(0);
+function setupProjectListener(filter = {}) {
+    try {
+        // Get current user's user_type
+        getAuthenticatedUser().then(currentUserType => {
+            // Query tb_project_history where project_creator matches current user's user_type
+            const projectsQuery = query(
+                collection(db, "tb_project_history"),
+                where("project_creator", "==", currentUserType)
+            );
 
-            if (startB - startA !== 0) {
-                return startB - startA;
-            }
-            return endB - endA;
+            // Set up real-time listener
+            onSnapshot(projectsQuery, (querySnapshot) => {
+                projectList = [];
+                let projectIdList = [];
+
+                querySnapshot.forEach((document) => {
+                    const data = document.data();
+                    const projectId = String(data.project_id || "");
+                    const status = (data.status || "").toLowerCase();
+
+                    // Only include Completed or Failed projects
+                    if (status === "completed" || status === "failed") {
+                        const searchTerm = filter.search?.toLowerCase();
+                        const matchesSearch = searchTerm
+                            ? `${data.project_name || ""}`.toLowerCase().includes(searchTerm) ||
+                            `${data.farm_president || ""}`.toLowerCase().includes(searchTerm) ||
+                            `${data.lead_farmer || ""}`.toLowerCase().includes(searchTerm) ||
+                            (data.start_date || "").includes(searchTerm) ||
+                            (data.end_date || "").includes(searchTerm) ||
+                            (data.crop_name || "").toLowerCase().includes(searchTerm) ||
+                            (data.crop_type_name || "").toLowerCase().includes(searchTerm) ||
+                            (data.status || "").toLowerCase().includes(searchTerm)
+                            : true;
+
+                        const matchesBarangay = filter.barangay
+                            ? (data.barangay_name || "").toLowerCase() === filter.barangay.toLowerCase()
+                            : true;
+
+                        if (matchesSearch && matchesBarangay) {
+                            projectIdList.push(projectId);
+                            projectList.push({ project_id: projectId, ...data });
+                        }
+                    }
+                });
+
+                // Sort projects: Completed first, Failed last, then by start_date and end_date (newest first)
+                projectList.sort((a, b) => {
+                    const statusA = (a.status || "").toLowerCase();
+                    const statusB = (b.status || "").toLowerCase();
+
+                    // Prioritize Completed over Failed
+                    if (statusA === "completed" && statusB === "failed") return -1;
+                    if (statusA === "failed" && statusB === "completed") return 1;
+
+                    // Within same status, sort by start_date (newest first)
+                    const startA = a.start_date ? new Date(a.start_date) : new Date(0);
+                    const startB = b.start_date ? new Date(b.start_date) : new Date(0);
+                    if (startB - startA !== 0) {
+                        return startB - startA;
+                    }
+
+                    // If start_dates are equal, sort by end_date (newest first)
+                    const endA = a.end_date ? new Date(a.end_date) : new Date(0);
+                    const endB = b.end_date ? new Date(b.end_date) : new Date(0);
+                    return endB - endA;
+                });
+
+                console.log("Project IDs:", projectIdList);
+
+                currentPage = 1;
+                updateTable();
+                updatePagination();
+            });
+        }).catch(error => {
+            console.error("Error setting up listener:", error);
         });
-
-        console.log("Project IDs:", projectIdList);
-
-        currentPage = 1;
-        updateTable();
-        updatePagination();
     } catch (error) {
         console.error("Error Fetching Project History:", error);
     }
@@ -177,8 +208,6 @@ function logProjectDetails() {
     });
     console.log("---------------------------");
 }
-
-logProjectDetails();
 
 //  <------------- TABLE DISPLAY AND UPDATE ------------->
 function updateTable() {
@@ -246,14 +275,14 @@ nextPageBtn.addEventListener("click", () => changePage("next"));
 
 // EVENT LISTENER FOR SEARCH BAR AND DROPDOWN
 searchBar.addEventListener("input", () => {
-    fetch_projects({
+    setupProjectListener({
         search: searchBar.value,
         barangay: barangaySelect.value,
     });
 });
 
 barangaySelect.addEventListener("change", () => {
-    fetch_projects({
+    setupProjectListener({
         search: searchBar.value,
         barangay: barangaySelect.value,
     });
@@ -290,5 +319,8 @@ async function fetch_barangays() {
     }
 }
 
-fetch_projects();
-fetch_barangays();
+// Initial setup
+movePendingAndOngoingProjects().then(() => {
+    setupProjectListener();
+    fetch_barangays();
+});

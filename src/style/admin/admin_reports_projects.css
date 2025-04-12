@@ -5,6 +5,7 @@ body {
   font-family: 'Poppins';
   display: flex;
   flex-direction: column;
+  cursor: default;
 }
 
 .header {
@@ -56,6 +57,22 @@ body {
 
 
 .barangay_select{
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+.status_select{
   padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
@@ -134,6 +151,7 @@ body {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   margin-top: 20px;
+  position: relative; /* Ensure the panel is a positioning context */
 }
 
 
@@ -199,7 +217,7 @@ border-radius: 5px;
 .calendar-btn-icon {
   width: 55px;
   height: 40px;
-  margin-left: 420px;
+  margin-left: 260px;
   cursor: pointer;
 }
 
@@ -302,7 +320,6 @@ table {
 th,
 td {
   padding: 8px;
-  font-size: 10px;
   text-align: center;
   border: 1px solid #848A9C;
 }
@@ -311,9 +328,10 @@ th {
   background-color: white;
   color: #41A186;
   font-weight: 600;
+  font-size: 12px;
 }
 td {
-  font-size: 7px;
+  font-size: 9px;
 
 }
 
@@ -367,6 +385,7 @@ tbody tr:hover {
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
+  margin-bottom: 60px; /* Add space for pagination */
 }
 
 .checkbox {
@@ -417,12 +436,14 @@ tbody tr:hover {
 
 
 .projects-pagination {
+  position: absolute; /* Stick to the bottom-right of the panel */
+  bottom: 20px;
+  right: 20px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-top: 20px;
-  width: 100%;
   gap: 10px;
+  margin-top: 0; /* Remove top margin to avoid spacing issues */
 }
 
 #projects-page-number {
@@ -431,8 +452,7 @@ tbody tr:hover {
 }
 
 .projects-pagination-btn {
-  padding: 10px 10px;
-  margin: 0;
+  padding: 10px;
   font-size: 25px;
   border: none;
   border-radius: 0;
@@ -544,21 +564,22 @@ tbody tr:hover {
 }
 
 .preview-btn {
-  padding: 10px 20px;
+  padding: 10px 40px;
+  font-weight: 600;
   border: none;
-  border-radius: 5px;
+  border-radius: 25px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
 }
 
 .cancel-btn {
-  background-color: #E2E8F0;
-  color: #333;
+  background-color: #c4c4c4;
+  color: white;
 }
 
 .cancel-btn:hover {
-  background-color: #CBD5E0;
+  background-color: #acacac;
 }
 
 .done-btn {
@@ -567,7 +588,7 @@ tbody tr:hover {
 }
 
 .done-btn:hover {
-  background-color: #318a71;
+  background-color: #2c8169;
 }
 
 

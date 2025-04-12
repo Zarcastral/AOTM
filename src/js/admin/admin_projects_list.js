@@ -757,6 +757,7 @@ function showDeleteMessage(message, success) {
 }
 
 // <------------- REAL-TIME LISTENER FOR MOVING COMPLETED PROJECTS ------------->
+// <------------- REAL-TIME LISTENER FOR MOVING COMPLETED AND FAILED PROJECTS ------------->
 function setupProjectHistoryListener() {
   const projectsCollection = collection(db, "tb_projects");
   const historyCollection = collection(db, "tb_project_history");
@@ -769,22 +770,22 @@ function setupProjectHistoryListener() {
       // Treat missing or empty status as "Pending"
       const status = (projectData.status || "pending").toLowerCase();
 
-      if (status === "completed") {
+      if (status === "completed" || status === "failed") {
         try {
           await setDoc(doc(historyCollection, projectId), {
             ...projectData,
             moved_to_history_timestamp: new Date().toISOString(),
+            history_status: status // Optional: Store the status that triggered the move
           });
           await deleteDoc(doc(db, "tb_projects", projectId));
-          fetch_projects();
+          fetch_projects(); // Update the table in real-time
         } catch (error) {
-          console.error("Error moving completed project to history:", error);
+          console.error(`Error moving ${status} project to history:`, error);
         }
       }
     });
   });
 }
-
 // <------------- INITIALIZATION ------------->
 document.addEventListener("DOMContentLoaded", () => {
   const successMessage = localStorage.getItem("successMessage");

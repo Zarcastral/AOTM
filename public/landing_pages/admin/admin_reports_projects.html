@@ -35,6 +35,13 @@
               <select class="barangay_select">
                 <option value="">Barangay</option>
               </select>
+              <select class="status_select">
+                <option value="">Status</option>
+                <option value="Completed">Completed</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="Pending">Pending</option>
+                <option value="Failed">Failed</option>
+              </select>
             </div>
           <div class="calendar-icon">
               <img src="../../images/Calendar.png" alt="calendar" class="calendar-btn-icon">
@@ -80,7 +87,6 @@
                 <th>Fertilizer</th>
                 <th>Equipment</th>
                 <th>Duration</th>
-
               </tr>
             </thead>
             <tbody>
@@ -89,7 +95,7 @@
           </table>
         </div>
         <div class="projects-pagination">
-          <span id="projects-page-number">Page 1</span>
+          <span id="projects-page-number"></span>
           <button id="projects-prev-page" class="projects-pagination-btn" disabled>&lt;</button>
           <button id="projects-next-page" class="projects-pagination-btn">&gt;</button>
         </div>

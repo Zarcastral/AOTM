@@ -157,127 +157,206 @@ async function fetchProjects() {
 
     const userType = userSnapshot.docs[0].data().user_type;
     const projectsCollection = collection(db, "tb_projects");
+    const projectHistoryCollection = collection(db, "tb_project_history");
     const projectsQuery = query(projectsCollection);
+    const projectHistoryQuery = query(projectHistoryCollection);
 
-    onSnapshot(projectsQuery, async (snapshot) => {
-      // Step 1: Collect unique farmland_ids from projects as numbers
-      const farmlandIds = new Set();
-      snapshot.docs.forEach(docSnapshot => {
-        const project = docSnapshot.data();
-        if (project.farmland_id !== undefined && project.farmland_id !== null) {
-          farmlandIds.add(Number(project.farmland_id)); // Ensure it's a number
-        }
-      });
-
-      console.log("Unique farmland_ids from projects:", Array.from(farmlandIds));
-
-      // Step 2: Fetch relevant farmland documents
-      let farmlandMap = new Map();
-      if (farmlandIds.size > 0) {
-        const farmlandIdsArray = Array.from(farmlandIds);
-        const batchSize = 10; // Firestore 'in' query limit
-        const batches = [];
-        for (let i = 0; i < farmlandIdsArray.length; i += batchSize) {
-          const batch = farmlandIdsArray.slice(i, i + batchSize);
-          batches.push(batch);
-        }
-
-        const farmlandCollection = collection(db, "tb_farmland");
-        const farmlandPromises = batches.map(batch => {
-          const farmlandQuery = query(farmlandCollection, where("farmland_id", "in", batch));
-          return getDocs(farmlandQuery);
+    // Combine listeners for both collections
+    const unsubscribeProjects = onSnapshot(projectsQuery, async (projectsSnapshot) => {
+      const unsubscribeHistory = onSnapshot(projectHistoryQuery, async (historySnapshot) => {
+        // Step 1: Collect unique farmland_ids from both collections as numbers
+        const farmlandIds = new Set();
+        
+        // Process tb_projects
+        projectsSnapshot.docs.forEach(docSnapshot => {
+          const project = docSnapshot.data();
+          if (project.farmland_id !== undefined && project.farmland_id !== null) {
+            farmlandIds.add(Number(project.farmland_id)); // Ensure it's a number
+          }
         });
 
-        const farmlandSnapshots = await Promise.all(farmlandPromises);
-        farmlandSnapshots.forEach(snapshot => {
-          console.log("Farmland documents fetched in batch:", snapshot.docs.length);
-          snapshot.docs.forEach(doc => {
-            const data = doc.data();
-            const farmlandId = Number(data.farmland_id); // Ensure it's a number
-            farmlandMap.set(farmlandId, data.land_area || "N/A");
-            console.log(`Farmland ID: ${farmlandId}, Land Area: ${data.land_area || "N/A"}`);
+        // Process tb_project_history
+        historySnapshot.docs.forEach(docSnapshot => {
+          const project = docSnapshot.data();
+          if (project.farmland_id !== undefined && project.farmland_id !== null) {
+            farmlandIds.add(Number(project.farmland_id)); // Ensure it's a number
+          }
+        });
+
+        console.log("Unique farmland_ids from projects and history:", Array.from(farmlandIds));
+
+        // Step 2: Fetch relevant farmland documents
+        let farmlandMap = new Map();
+        if (farmlandIds.size > 0) {
+          const farmlandIdsArray = Array.from(farmlandIds);
+          const batchSize = 10; // Firestore 'in' query limit
+          const batches = [];
+          for (let i = 0; i < farmlandIdsArray.length; i += batchSize) {
+            const batch = farmlandIdsArray.slice(i, i + batchSize);
+            batches.push(batch);
+          }
+
+          const farmlandCollection = collection(db, "tb_farmland");
+          const farmlandPromises = batches.map(batch => {
+            const farmlandQuery = query(farmlandCollection, where("farmland_id", "in", batch));
+            return getDocs(farmlandQuery);
           });
+
+          const farmlandSnapshots = await Promise.all(farmlandPromises);
+          farmlandSnapshots.forEach(snapshot => {
+            console.log("Farmland documents fetched in batch:", snapshot.docs.length);
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const farmlandId = Number(data.farmland_id); // Ensure it's a number
+              farmlandMap.set(farmlandId, data.land_area || "N/A");
+              console.log(`Farmland ID: ${farmlandId}, Land Area: ${data.land_area || "N/A"}`);
+            });
+          });
+        } else {
+          console.log("No farmland_ids found in projects or history.");
+        }
+
+        // Step 2.5: Fetch task counts from tb_project_task
+        const taskCollection = collection(db, "tb_project_task");
+        const taskSnapshot = await getDocs(taskCollection);
+        const taskCountMap = new Map();
+        
+        // Count tasks per project_id (project_id in tb_project_task is a string)
+        taskSnapshot.docs.forEach(taskDoc => {
+          const taskData = taskDoc.data();
+          const projectId = taskData.project_id; // String in tb_project_task
+          if (projectId !== undefined && projectId !== null) {
+            const currentCount = taskCountMap.get(projectId) || 0;
+            taskCountMap.set(projectId, currentCount + 1);
+          }
         });
-      } else {
-        console.log("No farmland_ids found in projects.");
-      }
 
-      // Step 2.5: Fetch task counts from tb_project_task
-      const taskCollection = collection(db, "tb_project_task");
-      const taskSnapshot = await getDocs(taskCollection);
-      const taskCountMap = new Map();
-      
-      // Count tasks per project_id (project_id in tb_project_task is a string)
-      taskSnapshot.docs.forEach(taskDoc => {
-        const taskData = taskDoc.data();
-        const projectId = taskData.project_id; // String in tb_project_task
-        if (projectId !== undefined && projectId !== null) {
-          const currentCount = taskCountMap.get(projectId) || 0;
-          taskCountMap.set(projectId, currentCount + 1);
-        }
+        console.log("Task counts per project:", Object.fromEntries(taskCountMap));
+
+        // Step 3: Process projects from both collections
+        projectsList = [];
+
+        // Process tb_projects
+        projectsSnapshot.docs.forEach((docSnapshot) => {
+          const project = docSnapshot.data();
+          project.id = docSnapshot.id;
+          project.source = "tb_projects"; // Add source for debugging
+
+          // Log project farmland_id for debugging
+          console.log(`Project ID: ${project.project_id}, Farmland ID: ${project.farmland_id}, Source: {tb_projects}`);
+
+          // Get land_area using farmland_id
+          if (project.farmland_id !== undefined && project.farmland_id !== null) {
+            const farmlandId = Number(project.farmland_id); // Ensure it's a number
+            const landArea = farmlandMap.get(farmlandId);
+            project.land_area = landArea !== undefined ? landArea : "N/A";
+            console.log(`Farmland ID ${farmlandId} lookup result: ${project.land_area}`);
+          } else {
+            project.land_area = "N/A";
+            console.log(`No farmland_id for Project ID: ${project.project_id}`);
+          }
+
+          // Add task count to project (convert project_id to string for lookup)
+          const projectId = String(project.project_id); // Convert number to string to match tb_project_task
+          project.task_count = taskCountMap.get(projectId) || 0;
+          console.log(`Project ID: ${projectId}, Task Count: ${project.task_count}`);
+
+          // Extract equipment names from the equipment array
+          if (project.equipment && Array.isArray(project.equipment) && project.equipment.length > 0) {
+            const equipmentNames = project.equipment
+              .map((equip) => equip.equipment_name || "Unknown")
+              .filter((name) => name !== "Unknown" || project.equipment.every(e => !e.equipment_name));
+            project.equipment = equipmentNames.length > 0 ? equipmentNames.join("<br>") : "N/A";
+          } else {
+            project.equipment = "N/A";
+          }
+
+          // Extract fertilizer names from the fertilizer array
+          if (project.fertilizer && Array.isArray(project.fertilizer) && project.fertilizer.length > 0) {
+            const fertilizerNames = project.fertilizer
+              .map((fert) => fert.fertilizer_name || "Unknown")
+              .filter((name) => name !== "Unknown" || project.fertilizer.every(f => !f.fertilizer_name));
+            project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join("<br>") : "N/A";
+          } else {
+            project.fertilizer = "N/A";
+          }
+
+          // Extract farmer names from the farmer_name array
+          if (project.farmer_name && Array.isArray(project.farmer_name) && project.farmer_name.length > 0) {
+            const farmerNames = project.farmer_name
+              .map((farmer) => farmer.farmer_name || "Unknown")
+              .filter((name) => name !== "Unknown" || project.farmer_name.every(f => !f.farmer_name));
+            project.farmer_name = farmerNames.length > 0 ? farmerNames.join("<br>") : "N/A";
+          } else {
+            project.farmer_name = "N/A";
+          }
+
+          projectsList.push(project);
+        });
+
+        // Process tb_project_history
+        historySnapshot.docs.forEach((docSnapshot) => {
+          const project = docSnapshot.data();
+          project.id = docSnapshot.id;
+          project.source = "tb_project_history"; // Add source for debugging
+
+          // Log project farmland_id for debugging
+          console.log(`Project ID: ${project.project_id}, Farmland ID: ${project.farmland_id}, Source: tb_project_history`);
+
+          // Get land_area using farmland_id
+          if (project.farmland_id !== undefined && project.farmland_id !== null) {
+            const farmlandId = Number(project.farmland_id); // Ensure it's a number
+            const landArea = farmlandMap.get(farmlandId);
+            project.land_area = landArea !== undefined ? landArea : "N/A";
+            console.log(`Farmland ID ${farmlandId} lookup result: ${project.land_area}`);
+          } else {
+            project.land_area = "N/A";
+            console.log(`No farmland_id for Project ID: ${project.project_id}`);
+          }
+
+          // Add task count to project (convert project_id to string for lookup)
+          const projectId = String(project.project_id); // Convert number to string to match tb_project_task
+          project.task_count = taskCountMap.get(projectId) || 0;
+          console.log(`Project ID: ${projectId}, Task Count: ${project.task_count}`);
+
+          // Extract equipment names from the equipment array
+          if (project.equipment && Array.isArray(project.equipment) && project.equipment.length > 0) {
+            const equipmentNames = project.equipment
+              .map((equip) => equip.equipment_name || "Unknown")
+              .filter((name) => name !== "Unknown" || project.equipment.every(e => !e.equipment_name));
+            project.equipment = equipmentNames.length > 0 ? equipmentNames.join("<br>") : "N/A";
+          } else {
+            project.equipment = "N/A";
+          }
+
+          // Extract fertilizer names from the fertilizer array
+          if (project.fertilizer && Array.isArray(project.fertilizer) && project.fertilizer.length > 0) {
+            const fertilizerNames = project.fertilizer
+              .map((fert) => fert.fertilizer_name || "Unknown")
+              .filter((name) => name !== "Unknown" || project.fertilizer.every(f => !f.fertilizer_name));
+            project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join("<br>") : "N/A";
+          } else {
+            project.fertilizer = "N/A";
+          }
+
+          // Extract farmer names from the farmer_name array
+          if (project.farmer_name && Array.isArray(project.farmer_name) && project.farmer_name.length > 0) {
+            const farmerNames = project.farmer_name
+              .map((farmer) => farmer.farmer_name || "Unknown")
+              .filter((name) => name !== "Unknown" || project.farmer_name.every(f => !f.farmer_name));
+            project.farmer_name = farmerNames.length > 0 ? farmerNames.join("<br>") : "N/A";
+          } else {
+            project.farmer_name = "N/A";
+          }
+
+          projectsList.push(project);
+        });
+
+        originalProjectsList = projectsList;
+        filterProjects();
+      }, (error) => {
+        console.error("Error listening to Project History:", error);
       });
-
-      console.log("Task counts per project:", Object.fromEntries(taskCountMap));
-
-      // Step 3: Process projects
-      projectsList = snapshot.docs.map((docSnapshot) => {
-        const project = docSnapshot.data();
-        project.id = docSnapshot.id;
-
-        // Log project farmland_id for debugging
-        console.log(`Project ID: ${project.project_id}, Farmland ID: ${project.farmland_id}`);
-
-        // Get land_area using farmland_id
-        if (project.farmland_id !== undefined && project.farmland_id !== null) {
-          const farmlandId = Number(project.farmland_id); // Ensure it's a number
-          const landArea = farmlandMap.get(farmlandId);
-          project.land_area = landArea !== undefined ? landArea : "N/A";
-          console.log(`Farmland ID ${farmlandId} lookup result: ${project.land_area}`);
-        } else {
-          project.land_area = "N/A";
-          console.log(`No farmland_id for Project ID: ${project.project_id}`);
-        }
-
-        // Add task count to project (convert project_id to string for lookup)
-        const projectId = String(project.project_id); // Convert number to string to match tb_project_task
-        project.task_count = taskCountMap.get(projectId) || 0;
-        console.log(`Project ID: ${projectId}, Task Count: ${project.task_count}`);
-
-        // Extract equipment names from the equipment array
-        if (project.equipment && Array.isArray(project.equipment) && project.equipment.length > 0) {
-          const equipmentNames = project.equipment
-            .map((equip) => equip.equipment_name || "Unknown")
-            .filter((name) => name !== "Unknown" || project.equipment.every(e => !e.equipment_name));
-          project.equipment = equipmentNames.length > 0 ? equipmentNames.join("<br>") : "N/A";
-        } else {
-          project.equipment = "N/A";
-        }
-
-        // Extract fertilizer names from the fertilizer array
-        if (project.fertilizer && Array.isArray(project.fertilizer) && project.fertilizer.length > 0) {
-          const fertilizerNames = project.fertilizer
-            .map((fert) => fert.fertilizer_name || "Unknown")
-            .filter((name) => name !== "Unknown" || project.fertilizer.every(f => !f.fertilizer_name));
-          project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join("<br>") : "N/A";
-        } else {
-          project.fertilizer = "N/A";
-        }
-
-        // Extract farmer names from the farmer_name array
-        if (project.farmer_name && Array.isArray(project.farmer_name) && project.farmer_name.length > 0) {
-          const farmerNames = project.farmer_name
-            .map((farmer) => farmer.farmer_name || "Unknown")
-            .filter((name) => name !== "Unknown" || project.farmer_name.every(f => !f.farmer_name));
-          project.farmer_name = farmerNames.length > 0 ? farmerNames.join("<br>") : "N/A";
-        } else {
-          project.farmer_name = "N/A";
-        }
-
-        return project;
-      });
-
-      originalProjectsList = projectsList;
-      filterProjects();
     }, (error) => {
       console.error("Error listening to Projects:", error);
     });
@@ -366,14 +445,15 @@ function sortProjectsById() {
     const statusPriority = {
       "Completed": 0,
       "Ongoing": 1,
-      "Pending": 2
+      "Pending": 2,
+      "Failed": 3
     };
 
     // Get status values, defaulting to a low-priority value if not found
     const statusA = a.status || "Pending"; // Default to Pending if status is missing
     const statusB = b.status || "Pending";
-    const priorityA = statusPriority[statusA] !== undefined ? statusPriority[statusA] : 3; // Default to 3 if status not in map
-    const priorityB = statusPriority[statusB] !== undefined ? statusPriority[statusB] : 3;
+    const priorityA = statusPriority[statusA] !== undefined ? statusPriority[statusA] : 4; // Default to 4 if status not in map
+    const priorityB = statusPriority[statusB] !== undefined ? statusPriority[statusB] : 4;
 
     // Compare statuses first
     if (priorityA !== priorityB) {
@@ -405,6 +485,7 @@ function filterProjects() {
   const searchQuery = document.getElementById("projects-search-bar").value.toLowerCase().trim();
   const selectedBarangay = document.querySelector(".barangay_select").value.toLowerCase();
   const selectedCropType = document.querySelector(".crop_select").value.toLowerCase();
+  const selectedStatus = document.querySelector(".status_select").value.toLowerCase();
 
   // Start with the full projects list
   filteredProjects = [...originalProjectsList];
@@ -428,6 +509,11 @@ function filterProjects() {
   // Apply crop type filter (only if a crop type is selected)
   if (selectedCropType) {
     filteredProjects = filteredProjects.filter(project => project.crop_type_name?.toLowerCase() === selectedCropType);
+  }
+
+  // Apply status filter (only if a status is selected)
+  if (selectedStatus) {
+    filteredProjects = filteredProjects.filter(project => project.status?.toLowerCase() === selectedStatus);
   }
 
   // Apply month/year filter (if applicable)
@@ -632,6 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById("projects-search-bar").addEventListener("input", filterProjects);
   document.querySelector(".barangay_select").addEventListener("change", filterProjects);
   document.querySelector(".crop_select").addEventListener("change", filterProjects);
+  document.querySelector(".status_select").addEventListener("change", filterProjects);
 
   // Pagination event listeners
   document.getElementById("projects-prev-page").addEventListener("click", () => {
