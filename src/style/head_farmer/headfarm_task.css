@@ -438,7 +438,31 @@ td:last-child {
   color: #6b7280;
   cursor: not-allowed;
 }
+/* Failed Project Button */
+#failProjectButton {
+  background-color: #ac415b;
+  color: #ffffff;
+  padding: 10px 25px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  margin-left: 10px;
+}
 
+#failProjectButton:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+#failProjectButton:disabled {
+  background-color: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Modal styles already cover the failProjectModal (reusing existing modal CSS) */
 
 
 
