@@ -1122,6 +1122,19 @@ window.saveProject = async function () {
       showErrorPanel(
         `Farm President '${farmPresidentName}' not found. Please select a valid Farm President.`
       );
+      saveButton.disabled = false;
+      return;
+    }
+
+    // Validate start date: should not be in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to midnight for comparison
+    const startDateObj = new Date(startDate);
+    if (startDateObj < today) {
+      showErrorPanel(
+        "Start Date cannot be in the past. Please select today or a future date."
+      );
+      saveButton.disabled = false;
       return;
     }
 
@@ -1174,15 +1187,16 @@ window.saveProject = async function () {
           "\n- "
         )}`
       );
+      saveButton.disabled = false;
       return;
     }
 
-    const startDateObj = new Date(startDate);
     const endDateObj = new Date(endDate);
     if (endDateObj < startDateObj) {
       showErrorPanel(
         "End Date cannot be earlier than Start Date. Please select a valid date range."
       );
+      saveButton.disabled = false;
       return;
     }
 
@@ -1198,6 +1212,7 @@ window.saveProject = async function () {
       showErrorPanel(
         `Crop type '${cropTypeName}' not found in inventory for '${cropName}'.`
       );
+      saveButton.disabled = false;
       return;
     }
 
@@ -1211,6 +1226,7 @@ window.saveProject = async function () {
       showErrorPanel(
         `Not enough stock for '${cropTypeName}'. Available: ${currentCropStock}${cropUnit}, Required: ${quantityCropType}${cropUnit}.`
       );
+      saveButton.disabled = false;
       return;
     }
 
@@ -1262,7 +1278,7 @@ window.saveProject = async function () {
       recipient: farmerId,
       timestamp: Timestamp.now(),
       title: "NEW PROJECT",
-      type: "", // Empty string as specified
+      type: "",
     };
 
     await addDoc(collection(db, "tb_notifications"), notificationData);
@@ -1356,13 +1372,9 @@ window.saveProject = async function () {
     // Fetch updated stocks (optional, for logging)
     await fetchFertilizerStock(projectID);
     await fetchEquipmentStock(projectID);
-    
-    // Reset form and re-enable save button
-    resetForm();
   } catch (error) {
     console.error("Error saving project:", error);
     showErrorPanel("Failed to save project. Please try again.");
-  } finally {
     saveButton.disabled = false;
   }
 };

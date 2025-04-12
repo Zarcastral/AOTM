@@ -89,43 +89,33 @@ export async function fetchProjectsForFarmer() {
 
   if (["Admin", "Supervisor", "Farm President"].includes(userType)) {
     const projectId = sessionStorage.getItem("selected_project_id");
-
     if (!projectId) {
       console.log("No project ID found for this user.");
       displayNoTasksMessage();
       return;
     }
-
+    // Existing logic for Admin/Supervisor/Farm President
     try {
       const projectsRef = collection(db, "tb_projects");
-      const q = query(
-        projectsRef,
-        where("project_id", "==", parseInt(projectId, 10))
-      );
+      const q = query(projectsRef, where("project_id", "==", parseInt(projectId, 10)));
       const querySnapshot = await getDocs(q);
-
       if (querySnapshot.empty) {
         console.log("Project not found.");
         displayNoTasksMessage();
         return;
       }
-
       querySnapshot.forEach((doc) => {
         const project = doc.data();
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         sessionStorage.setItem("selected_project_end_date", project.end_date);
         sessionStorage.setItem("selected_project_status", project.status);
-        sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Store lead_farmer_id as string
+        sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id));
         if (project.extend_date) {
-          sessionStorage.setItem(
-            "selected_project_extend_date",
-            project.extend_date
-          );
+          sessionStorage.setItem("selected_project_extend_date", project.extend_date);
         } else {
           sessionStorage.removeItem("selected_project_extend_date");
         }
-        console.log(`Fetched project ${project.project_id}, status: ${project.status}, lead_farmer_id: ${project.lead_farmer_id}`);
         fetchProjectTasks(project.crop_type_name, project.project_id);
       });
     } catch (error) {
@@ -143,29 +133,55 @@ export async function fetchProjectsForFarmer() {
 
   try {
     const projectsRef = collection(db, "tb_projects");
-    const q = query(projectsRef, where("lead_farmer_id", "==", farmerId));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      console.log("No project found where the farmer is a team lead.");
-      displayNoTasksMessage();
-      return;
+    let q;
+    if (userType === "Head Farmer") {
+      // Try lead_farmer_id first
+      q = query(projectsRef, where("lead_farmer_id", "==", farmerId));
+      const leadQuerySnapshot = await getDocs(q);
+      if (!leadQuerySnapshot.empty) {
+        leadQuerySnapshot.forEach((doc) => {
+          const project = doc.data();
+          sessionStorage.setItem("selected_project_id", String(project.project_id));
+          sessionStorage.setItem("selected_crop_type", project.crop_type_name);
+          sessionStorage.setItem("selected_crop_name", project.crop_name);
+          sessionStorage.setItem("selected_project_end_date", project.end_date);
+          sessionStorage.setItem("selected_project_status", project.status);
+          sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id));
+          fetchProjectTasks(project.crop_type_name, project.project_id);
+        });
+        return;
+      }
+      // Fallback: Check if farmer is associated with any project (requires a new field or collection)
+      console.log("No lead project found, checking associated projects...");
+      // Example: Assume a collection tb_project_members with farmer_id
+      const membersRef = collection(db, "tb_project_members");
+      q = query(membersRef, where("farmer_id", "==", farmerId));
+      const memberQuerySnapshot = await getDocs(q);
+      if (memberQuerySnapshot.empty) {
+        console.log("No projects found for farmer.");
+        displayNoTasksMessage();
+        return;
+      }
+      // Get the first associated project (adjust as needed)
+      const projectId = memberQuerySnapshot.docs[0].data().project_id;
+      q = query(projectsRef, where("project_id", "==", parseInt(projectId, 10)));
+      const projectQuerySnapshot = await getDocs(q);
+      if (!projectQuerySnapshot.empty) {
+        projectQuerySnapshot.forEach((doc) => {
+          const project = doc.data();
+          sessionStorage.setItem("selected_project_id", String(project.project_id));
+          sessionStorage.setItem("selected_crop_type", project.crop_type_name);
+          sessionStorage.setItem("selected_crop_name", project.crop_name);
+          sessionStorage.setItem("selected_project_end_date", project.end_date);
+          sessionStorage.setItem("selected_project_status", project.status);
+          sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id));
+          fetchProjectTasks(project.crop_type_name, project.project_id);
+        });
+      } else {
+        console.log("No project details found.");
+        displayNoTasksMessage();
+      }
     }
-
-    querySnapshot.forEach((doc) => {
-      const project = doc.data();
-      sessionStorage.setItem(
-        "selected_project_id",
-        String(project.project_id)
-      );
-      sessionStorage.setItem("selected_crop_type", project.crop_type_name);
-      sessionStorage.setItem("selected_crop_name", project.crop_name);
-      sessionStorage.setItem("selected_project_end_date", project.end_date);
-      sessionStorage.setItem("selected_project_status", project.status);
-      sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Store lead_farmer_id as string
-      console.log(`Fetched project ${project.project_id}, status: ${project.status}, lead_farmer_id: ${project.lead_farmer_id}`);
-      fetchProjectTasks(project.crop_type_name, project.project_id);
-    });
   } catch (error) {
     console.error("Error fetching projects:", error);
     displayNoTasksMessage();
@@ -303,29 +319,34 @@ let globalListenersAttached = false;
 // Modified updateFinishProjectButton to check lead_farmer_id
 function updateFinishProjectButton() {
   const finishButton = document.getElementById("finishProjectButton");
-  if (!finishButton) return;
+  const failButton = document.getElementById("failProjectButton");
+  if (!finishButton || !failButton) return;
 
   const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
   const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
   const projectStatus = sessionStorage.getItem("selected_project_status");
 
-  // Disable button if:
-  // - User is not Head Farmer
-  // - farmer_id does not match lead_farmer_id
-  // - Project is already Completed
-  if (
-    userType !== "Head Farmer" ||
-    String(farmerId) !== String(leadFarmerId) ||
-    projectStatus === "Completed"
-  ) {
+  // Disable both buttons if project is already Completed or Failed
+  if (projectStatus === "Completed" || projectStatus === "Failed") {
     finishButton.disabled = true;
+    failButton.disabled = true;
     return;
   }
 
-  // Enable button only if all tasks are Completed and there are tasks
-  const allTasksCompleted = allTasks.length > 0 && allTasks.every((taskObj) => taskObj.data.task_status === "Completed");
-  finishButton.disabled = !allTasksCompleted;
+  // Finish button logic (unchanged)
+  if (
+    userType !== "Head Farmer" ||
+    String(farmerId) !== String(leadFarmerId)
+  ) {
+    finishButton.disabled = true;
+  } else {
+    const allTasksCompleted = allTasks.length > 0 && allTasks.every((taskObj) => taskObj.data.task_status === "Completed");
+    finishButton.disabled = !allTasksCompleted;
+  }
+
+  // Fail button: Enable only for Farm President
+  failButton.disabled = userType !== "Farm President";
 }
 
 
@@ -351,6 +372,7 @@ function attachGlobalEventListeners() {
 
   const addTaskButton = document.getElementById("addTaskButton");
   const finishProjectButton = document.getElementById("finishProjectButton");
+  const failProjectButton = document.getElementById("failProjectButton");
   const userType = sessionStorage.getItem("user_type");
 
   if (userType !== "Head Farmer") {
@@ -376,7 +398,7 @@ function attachGlobalEventListeners() {
     addTaskModal.classList.remove("hidden");
   });
 
-  // Event listener for Finish Project button
+  // Finish Project button handler (unchanged)
   if (finishProjectButton) {
     finishProjectButton.addEventListener("click", async () => {
       const projectId = sessionStorage.getItem("selected_project_id");
@@ -402,12 +424,65 @@ function attachGlobalEventListeners() {
         await updateDoc(projectDoc.ref, { status: "Completed" });
         sessionStorage.setItem("selected_project_status", "Completed");
         showSuccessPanel("Project marked as Completed!");
-        finishProjectButton.disabled = true; // Disable button after completion
+        finishProjectButton.disabled = true;
+        updateFinishProjectButton(); // Update both buttons
         console.log(`Project ${projectId} status updated to Completed`);
       } catch (error) {
         console.error("❌ Error updating project status:", error);
         showErrorPanel("Failed to complete project. Try again.");
       }
+    });
+  }
+
+  // Fail Project button handler
+  if (failProjectButton) {
+    failProjectButton.addEventListener("click", () => {
+      failProjectModal.classList.remove("hidden");
+    });
+  }
+
+  // Fail Modal handlers
+  if (confirmFailBtn) {
+    confirmFailBtn.addEventListener("click", async () => {
+      const projectId = sessionStorage.getItem("selected_project_id");
+      if (!projectId) {
+        showErrorPanel("No project selected.");
+        failProjectModal.classList.add("hidden");
+        return;
+      }
+
+      try {
+        const projectsRef = collection(db, "tb_projects");
+        const q = query(
+          projectsRef,
+          where("project_id", "==", parseInt(projectId, 10))
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          showErrorPanel("Project not found.");
+          failProjectModal.classList.add("hidden");
+          return;
+        }
+
+        const projectDoc = querySnapshot.docs[0];
+        await updateDoc(projectDoc.ref, { status: "Failed" });
+        sessionStorage.setItem("selected_project_status", "Failed");
+        showSuccessPanel("Project marked as Failed!");
+        failProjectModal.classList.add("hidden");
+        updateFinishProjectButton(); // Update both buttons
+        console.log(`Project ${projectId} status updated to Failed`);
+      } catch (error) {
+        console.error("❌ Error updating project status to Failed:", error);
+        showErrorPanel("Failed to mark project as Failed. Try again.");
+        failProjectModal.classList.add("hidden");
+      }
+    });
+  }
+
+  if (cancelFailBtn) {
+    cancelFailBtn.addEventListener("click", () => {
+      failProjectModal.classList.add("hidden");
     });
   }
 
@@ -581,6 +656,24 @@ function openEditModal(taskId, currentTaskName) {
   closeEditModalBtn.addEventListener("click", cancelEditHandler);
   editTaskNameInput.addEventListener("input", checkTaskNameChange);
 }
+
+
+
+
+const failProjectModal = document.getElementById("failProjectModal");
+const confirmFailBtn = document.getElementById("confirmFailBtn");
+const cancelFailBtn = document.getElementById("cancelFailBtn");
+
+
+
+
+
+
+
+
+
+
+
 
 function checkTaskNameChange() {
   const currentInput = editTaskNameInput.value.trim();

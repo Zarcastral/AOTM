@@ -97,6 +97,10 @@ async function fetch_projects(filter = {}) {
       if ((data.farmer_id || "").toLowerCase() !== farmerId.toLowerCase())
         return;
 
+      // Exclude projects with "Completed" or "Failed" status
+      const status = (data.status || "").toLowerCase();
+      if (["completed", "failed"].includes(status)) return;
+
       const tasks = taskMap.get(projectId) || [];
       const { totalSubtasks, completedSubtasks } =
         calculateProgressFromTasks(tasks);
@@ -146,6 +150,38 @@ async function fetch_projects(filter = {}) {
     console.error("Error fetching projects:", error);
   }
 }
+
+
+async function fetch_filtered_status() {
+  try {
+    const allowedStatuses = ["ongoing", "pending"];
+    const projectSnapshot = await getDocs(collection(db, "tb_projects"));
+    const filteredStatuses = new Set();
+
+    projectSnapshot.forEach((doc) => {
+      const status = (doc.data().status || "").toLowerCase();
+      if (allowedStatuses.includes(status) && !filteredStatuses.has(status)) {
+        filteredStatuses.add(status.toUpperCase());
+      }
+    });
+
+    // Clear existing status options except the default "All" (if present)
+    statusSelect.innerHTML = '<option value="">All</option>';
+
+    // Add filtered statuses to the dropdown
+    filteredStatuses.forEach((status) => {
+      const option = document.createElement("option");
+      option.value = status;
+      option.textContent = status;
+      statusSelect.appendChild(option);
+    });
+
+    if (isDev) console.log("Filtered statuses:", [...filteredStatuses]);
+  } catch (error) {
+    console.error("Error fetching filtered statuses:", error);
+  }
+}
+
 
 // Calculate progress from pre-fetched tasks
 function calculateProgressFromTasks(tasks) {
@@ -723,4 +759,4 @@ function showDeleteMessage(message, success = true) {
   }, 4000);
 }
 
-fetch_status();
+fetch_filtered_status();
