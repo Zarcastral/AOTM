@@ -100,6 +100,28 @@ body {
   z-index: 10;
 }
 
+#leadFarmer {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243b53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
+
+/* Optional: Style for the placeholder option */
+#leadFarmer option[value=""] {
+  color: #888;
+  font-style: italic;
+}
 .account-panel.active {
   display: block;
 }
@@ -165,14 +187,6 @@ input {
   font-size: 14px;
 }
 
-select {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 14px;
-}
 
 #farmerBox {
   height: 120px;
@@ -182,6 +196,8 @@ select {
   padding: 5px;
   margin-top: 5px;
   background: #f9f9f9;
+  margin-bottom: 20px;
+  margin-top: 10px;
 }
 
 .farmer-item {
@@ -193,6 +209,7 @@ select {
 
 .farmer-name {
   margin-right: 10px;
+
 }
 
 .remove-btn {
@@ -219,14 +236,19 @@ select {
 .btn {
   padding: 10px 15px;
   border: none;
-  border-radius: 5px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 14px;
   width: 48%;
 }
 
 .btn-cancel {
-  background-color: #ccc;
+  background-color: #cacaca;
+  color: white;
+}
+
+.btn-cancel:hover {
+ opacity: 0.8;
 }
 
 .btn-save {
@@ -234,6 +256,10 @@ select {
   color: white;
 }
 
+.btn-save:hover {
+  opacity: 0.8;
+ }
+ 
 .search-results {
   position: absolute;
   background: white;
