@@ -139,7 +139,7 @@
             // If no match for the stored active link, reset to Harvest
             if (!isMatchFound) {
                 const harvestLink = Array.from(reportLinks).find(link =>
-                    normalizeUrl(link.href).includes("viewproject.html")
+                    normalizeUrl(link.href).includes("farmpres_project.html")
                 );
                 if (harvestLink) {
                     harvestLink.classList.add("active");

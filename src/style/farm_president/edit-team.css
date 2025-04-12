@@ -54,7 +54,6 @@ body {
     background: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
-    z-index: 10;
     height: auto;
 }
 
@@ -199,10 +198,14 @@ td {
 .popup-content {
     background: #fff;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 10px;
     width: 400px;
-    max-width: 90%; /* Ensure popup fits on smaller screens */
-    position: relative;
+    max-width: 90%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%); /* Center both horizontally and vertically */
 }
 
 .close-btn {

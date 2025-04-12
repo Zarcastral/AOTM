@@ -100,6 +100,8 @@ body {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   margin-top: 0px;
+  position: relative; /* Establish positioning context */
+  padding-bottom: 60px; /* Add padding to prevent content overlap with pagination */
 }
 
 
@@ -325,12 +327,14 @@ transition: color 0.3s ease;
 .harvest-pagination,
 .fertilizer-pagination,
 .equipment-pagination {
-display: flex;
-justify-content: flex-end;
-align-items: center; /* Aligns vertically */
-margin-top: 20px;
-width: 100%;
-gap: 10px; /* Adds spacing between elements */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: absolute;
+  bottom: 20px; /* Distance from bottom */
+  right: 20px; /* Distance from right */
+  margin-top: 0; /* Remove previous margin */
+  gap: 10px;
 }
 
 #harvest-page-number{

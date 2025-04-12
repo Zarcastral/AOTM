@@ -20,8 +20,6 @@ body {
   padding: 0 20px;
 }
 
-
-
 .header-title {
   font-size: 30px;
   font-weight: bold;
@@ -67,20 +65,17 @@ body {
   font-size: 10px;
   color: #41a186;
   margin-left: 5px;
- 
 }
 
-
-/* Panel container style */
 .panel {
   background-color: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   border-radius: 10px;
-  padding: 45px 20px 20px 20px;
+  padding: 45px 20px 60px 20px;
+  position: relative;
 }
 
-/* Table styles */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -231,7 +226,6 @@ input[type="checkbox"] {
   margin-bottom: 1rem;
 }
 
-/* New Project Button */
 .add-project-btn {
   background-color: #41a186;
   color: white;
@@ -253,13 +247,12 @@ input[type="checkbox"] {
   transition: background-color 0.3s ease;
 }
 
-/* Pagination styles */
 .pagination-container {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  margin-top: 20px;
-  width: 100%;
   gap: 10px;
 }
 
@@ -289,7 +282,6 @@ input[type="checkbox"] {
   cursor: not-allowed;
 }
 
-/* Progress Bar Styles */
 .progress-bar-container {
   width: 100%;
   background-color: #f0f0f0;
@@ -308,7 +300,6 @@ input[type="checkbox"] {
   transition: width 0.3s ease-in-out;
 }
 
-/* Confirmation Panel Style */
 .confirmation-panel {
   position: fixed;
   top: 0;
@@ -367,7 +358,6 @@ input[type="checkbox"] {
   transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 
-/* Success Message Style */
 .delete-message {
   position: fixed;
   top: 20px;
@@ -383,7 +373,6 @@ input[type="checkbox"] {
   transition: opacity 0.3s ease;
 }
 
-/* Basic styling for the search container */
 .search-container {
   display: flex;
   gap: 10px;
@@ -391,7 +380,6 @@ input[type="checkbox"] {
   align-items: center;
 }
 
-/* Styling for search input */
 #search-bar {
   padding: 10px;
   font-size: 16px;
@@ -402,7 +390,6 @@ input[type="checkbox"] {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Styling for the Status select dropdown */
 #status_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
@@ -420,7 +407,6 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-/* Optional: Style for the placeholder option */
 #status_select option[value=""] {
   color: #888;
   font-style: italic;
@@ -443,7 +429,6 @@ input[type="checkbox"] {
   opacity: 0.7;
 }
 
-/* Bulk Delete Button Style */
 #bulk-delete {
   color: white;
   padding: 10px 10px;
@@ -467,7 +452,6 @@ input[type="checkbox"] {
   cursor: not-allowed;
 }
 
-/* Bulk Delete Panel Style */
 .bulk-delete-panel {
   position: fixed;
   top: 0;
@@ -485,7 +469,6 @@ input[type="checkbox"] {
   display: flex;
 }
 
-/* Confirmation Message Style for Bulk Delete */
 .confirm-bulk-delete-message {
   background-color: white;
   padding: 20px;
@@ -494,7 +477,6 @@ input[type="checkbox"] {
   text-align: center;
 }
 
-/* Bulk Confirm and Cancel Button Styles */
 .bulk-confirm-btn,
 .bulk-cancel-btn {
   margin: 10px;
@@ -526,7 +508,6 @@ input[type="checkbox"] {
   transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 
-/* Bulk Delete Success Message Style */
 .bulk-delete-message {
   position: fixed;
   top: 20px;
@@ -602,13 +583,14 @@ input[type="checkbox"] {
   color: slategray;
   transition: color 0.3s ease;
 }
+
 .extend-date-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Matches the semi-transparent overlay in the image */
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 999;
   display: none;
   pointer-events: auto;
@@ -619,44 +601,44 @@ input[type="checkbox"] {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: white; /* Matches the white background in the image */
-  padding: 30px 35px; /* Reduced to match the tighter padding in the image */
-  border-radius: 10px; /* Matches the rounded corners in the image */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Slightly lighter shadow to match the image */
+  background-color: white;
+  padding: 30px 35px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   display: none;
   color: #333333;
-  width: 300px; /* Approximate width to match the image */
+  width: 300px;
 }
 
 .extend-date-panel h3 {
-  margin: 0 0 5px 0; /* Tight gap below heading to match the image */
-  font-size: 30px; /* Matches the heading size in the image */
-  font-weight: 700; /* Bold to match the image */
+  margin: 0 0 5px 0;
+  font-size: 30px;
+  font-weight: 700;
   color: #333333;
 }
 
 .extend-date-panel p {
-  margin: 2px 0; /* Tight spacing between details to match the image */
-  font-size: 14px; /* Matches the font size of details in the image */
+  margin: 2px 0;
+  font-size: 14px;
   color: #333333;
 }
 
 .extend-date-panel label {
   display: block;
-  margin: 10px 0 10px 0; /* Adjusted to match the spacing in the image */
+  margin: 10px 0 10px 0;
   font-weight: 500;
-  font-size: 14px; /* Matches the label size in the image */
+  font-size: 14px;
   color: #333333;
 }
 
 .extend-date-input {
   width: 100%;
-  padding: 6px 8px; /* Adjusted to match the input size in the image */
-  margin-top: 0; /* No extra margin to keep it tight */
-  border: 1px solid #C3C3C3; /* Matches the border in the image */
+  padding: 6px 8px;
+  margin-top: 0;
+  border: 1px solid #C3C3C3;
   border-radius: 5px;
-  font-size: 14px; /* Matches the placeholder size in the image */
+  font-size: 14px;
   box-sizing: border-box;
   font-family: poppins;
 }
@@ -665,32 +647,32 @@ input[type="checkbox"] {
   color: red;
   margin-top: 5px;
   display: none;
-  font-size: 12px; /* Smaller error text to match typical UI */
+  font-size: 12px;
 }
 
 .button-container {
-  margin-top: 15px; /* Reduced to match the spacing in the image */
+  margin-top: 15px;
   text-align: right;
 }
 
 .button-container button {
-  padding: 8px 30px; /* Smaller padding to match the buttons in the image */
+  padding: 8px 30px;
   font-weight: 600;
   margin-left: 10px;
   border: none;
-  border-radius: 20px; /* Matches the rounded buttons in the image */
+  border-radius: 20px;
   cursor: pointer;
-  font-size: 14px; /* Matches the button text size in the image */
+  font-size: 14px;
 }
 
 .confirm-extend {
-  background-color: #41a186; /* Matches the green "Save" button in the image */
+  background-color: #41a186;
   color: white;
 }
 
 .button-container .cancel-extend {
-  padding: 8px 25px; /* Adjusted to match the input size in the image */
-  background-color: #c4c4c4; /* Matches the gray "Cancel" button in the image */
+  padding: 8px 25px;
+  background-color: #c4c4c4;
   color: white;
 }
 
@@ -700,108 +682,252 @@ input[type="checkbox"] {
 }
 
 .confirm-extend:hover {
-  background-color: #398d75; /* Slightly darker green on hover */
+  background-color: #398d75;
   transition: background-color 0.3s ease;
 }
 
-.cancel-extend:hover, .close-extend:hover {
-  background-color: #afafaf; /* Slightly darker gray on hover */
+.cancel-extend:hover,
+.close-extend:hover {
+  background-color: #afafaf;
   transition: background-color 0.3s ease;
 }
+
 /* Responsive styles */
+@media (max-width: 1200px) {
+  .project-selector {
+    gap: 20px;
+    font-size: 18px;
+  }
+  #search-bar {
+    width: 250px;
+  }
+  #status_select {
+    width: 180px;
+  }
+  .panel {
+    padding: 30px 15px 50px 15px;
+  }
+}
+
 @media (max-width: 1024px) {
+  .header-title {
+    font-size: 26px;
+  }
   #title {
     font-size: 15px;
   }
   .main-content {
-    padding: 30px;
+    padding: 20px;
   }
   .panel {
-    width: 100%;
+    padding: 30px 15px 50px 15px;
   }
   .search-container {
     gap: 0.5rem;
-  }
-  .add-project-btn {
-    font-size: 15px;
-    padding: 10px 16px;
-  }
-
-}
-
-@media (max-width: 768px) {
-  #title {
-    font-size: 12px;
-    margin-left: 20px;
-  }
-  .add-project-btn {
-    margin-top: 20px;
-    margin-right: 40px;
-    margin-bottom: -20px;
-  }
-  .main-content {
-    padding: 10px;
-  }
-  .panel {
-    width: 85%;
-    padding: 20px;
-    border-radius: 10px;
-    margin-left: 20px;
+    flex-wrap: wrap;
   }
   #search-bar,
-  #barangay-select {
-    width: 80%;
+  #barangay-select,
+  #status_select {
+    width: 100%;
+    max-width: 300px;
   }
-  table {
+  .add-project-btn {
     font-size: 14px;
+    padding: 8px 16px;
   }
   th,
   td {
     padding: 0.8rem;
+    font-size: 11px;
   }
-  .add-project-btn {
-    font-size: 12px;
-    padding: 10px 16px;
-  }
-  .pagination-container {
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-  .pagination-btn {
-    font-size: 18px;
-    padding: 8px;
+  th:first-child,
+  th:nth-child(2),
+  th:nth-child(3),
+  th:nth-child(4),
+  th:nth-child(5),
+  th:nth-child(6),
+  th:nth-child(7),
+  th:last-child {
+    min-width: 100px;
   }
 }
 
-@media (max-width: 480px) {
-  #title {
-    font-size: 15px;
-  }
+@media (max-width: 768px) {
   .header {
-    padding: 0 10px;
+    padding: 0 15px;
+    height: 50px;
   }
   .header-title {
-    font-size: 24px;
+    font-size: 22px;
   }
   .header-icons img {
     width: 20px;
     height: 20px;
   }
+  #title {
+    font-size: 14px;
+    margin: 10px 0;
+  }
+  .main-content {
+    padding: 15px;
+  }
   .panel {
-    padding: 10%;
+    width: 100%;
+    padding: 20px 10px 40px 10px;
+    margin-left: 0;
+    border-radius: 8px;
+  }
+  .search-container {
+    flex-direction: column;
+    align-items: stretch;
   }
   #search-bar,
-  #barangay-select {
-    width: 80%;
+  #barangay-select,
+  #status_select {
+    width: 100%;
+    font-size: 14px;
+    padding: 8px;
+  }
+  .add-project-btn {
+    font-size: 13px;
+    padding: 8px 14px;
+    margin: 10px 0 0 0;
+  }
+  .table-wrapper {
+    overflow-x: auto;
+  }
+  table {
+    font-size: 12px;
+    min-width: 600px;
+  }
+  th,
+  td {
+    padding: 0.6rem;
   }
   .pagination-container {
-    flex-direction: column;
-    align-items: center;
+    position: static;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 8px;
   }
   .pagination-btn {
-    width: 100%;
-    font-size: 16px;
+    font-size: 20px;
     padding: 6px;
+  }
+  .modal {
+    width: 90%;
+    padding: 15px;
+  }
+  .confirmation-message,
+  .confirm-bulk-delete-message {
+    padding: 20px;
+    width: 80%;
+  }
+  .confirm-btn,
+  .cancel-btn,
+  .bulk-confirm-btn,
+  .bulk-cancel-btn {
+    width: 45%;
+    font-size: 14px;
+    padding: 8px;
+  }
+  .extend-date-panel {
+    width: 90%;
+    max-width: 280px;
+    padding: 20px;
+  }
+  .extend-date-panel h3 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 10px;
+    height: 45px;
+  }
+  .header-title {
+    font-size: 20px;
+  }
+  .header-icons {
+    gap: 10px;
+  }
+  .header-icons img {
+    width: 18px;
+    height: 18px;
+  }
+  #title {
+    font-size: 13px;
+  }
+  .main-content {
+    padding: 10px;
+  }
+  .panel {
+    padding: 15px 8px 30px 8px;
+    border-radius: 6px;
+  }
+  .search-container {
+    gap: 8px;
+  }
+  #search-bar,
+  #barangay-select,
+  #status_select {
+    font-size: 13px;
+    padding: 6px;
+  }
+  .add-project-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  table {
+    font-size: 11px;
+  }
+  th,
+  td {
+    padding: 0.5rem;
+  }
+  .action-btn img {
+    width: 20px;
+    height: 20px;
+  }
+  .pagination-container {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .pagination-btn {
+    font-size: 18px;
+    padding: 5px;
+  }
+  #page-number {
+    font-size: 14px;
+  }
+  .confirmation-message,
+  .confirm-bulk-delete-message {
+    padding: 15px;
+    width: 90%;
+  }
+  .confirm-btn,
+  .cancel-btn,
+  .bulk-confirm-btn,
+  .bulk-cancel-btn {
+    width: 100%;
+    margin: 5px 0;
+    font-size: 13px;
+  }
+  .extend-date-panel {
+    padding: 15px;
+  }
+  .extend-date-panel h3 {
+    font-size: 20px;
+  }
+  .extend-date-panel p,
+  .extend-date-panel label,
+  .extend-date-input {
+    font-size: 12px;
+  }
+  .button-container button {
+    font-size: 12px;
+    padding: 6px 20px;
   }
 }

@@ -70,11 +70,12 @@ body {
   background-color: white;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
-  padding: 15px;
   border-radius: 10px;
   min-height: 650px; /* Your specified minimum height */
   display: flex;
   flex-direction: column; /* Stack children vertically */
+  padding: 45px 20px 60px 20px; /* Increased bottom padding to accommodate pagination */
+  position: relative; /* Make panel the positioning context for pagination */
 }
 
 
@@ -232,13 +233,12 @@ margin-bottom: 1rem;
 
 /* Pagination styles */
 .pagination-container {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  margin-top: 20px;
-  width: 100%;
   gap: 10px;
-  flex-shrink: 0; /* Prevents pagination from shrinking */
 }
 #page-number {
     font-size: 17px;
@@ -646,7 +646,7 @@ body.preview-active::before {
   .search-container {
       flex-direction: column;
       align-items: flex-start;
-      gap: 5px; /* Reduce gap for smaller screens */
+      gap: 5px;
   }
 
   #search-bar, #barangay-select {
@@ -658,13 +658,20 @@ body.preview-active::before {
   }
 
   .pagination-container {
-      flex-direction: column;
-      align-items: center;
+      position: static; /* Remove absolute positioning for better flow */
+      margin-top: 15px; /* Add spacing above pagination */
+      justify-content: center; /* Center pagination buttons */
+      gap: 8px; /* Slightly reduce gap */
+      padding: 10px 0; /* Add vertical padding */
   }
 
   .pagination-btn {
-      font-size: 14px;
-      width: auto;
+      font-size: 20px; /* Slightly smaller buttons */
+      padding: 8px; /* Adjust padding */
+  }
+
+  #page-number {
+      font-size: 16px; /* Adjust page number size */
   }
 
   .add-user-btn {
@@ -686,14 +693,20 @@ body.preview-active::before {
   }
 
   .pagination-container {
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
+      position: static; /* Ensure static positioning */
+      margin-top: 10px; /* Reduced top margin */
+      justify-content: center; /* Center buttons */
+      gap: 6px; /* Further reduce gap */
+      padding: 8px 0; /* Adjust padding */
   }
 
   .pagination-btn {
-      width: 100%;
-      margin: 5px 0;
+      font-size: 18px; /* Smaller buttons for mobile */
+      padding: 6px; /* Reduced padding */
+  }
+
+  #page-number {
+      font-size: 14px; /* Smaller page number */
   }
 
   .header-title {

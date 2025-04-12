@@ -179,10 +179,10 @@ body {
 .panel {
   background-color: white;
   width: 90%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-top: 20px;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+  padding: 45px 20px 60px 20px; /* Increased bottom padding to accommodate pagination */    margin-top: 0px;
   border-radius: 10px;
+  position: relative; /* Make panel the positioning context for pagination */
 }
 /*
   background-color: white;
@@ -402,12 +402,12 @@ transition: color 0.3s ease;
 .crops-pagination,
 .fertilizer-pagination,
 .equipment-pagination {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
   display: flex;
-  justify-content: flex-end;
-  align-items: center; /* Aligns vertically */
-  margin-top: 20px;
-  width: 100%;
-  gap: 10px; /* Adds spacing between elements */
+  align-items: center;
+  gap: 10px;
 }
 
 #crop-page-number, #fertilizer-page-number, #equipment-page-number {
