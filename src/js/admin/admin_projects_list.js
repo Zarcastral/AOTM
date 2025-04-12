@@ -33,20 +33,6 @@ const cancelDeleteButton = document.getElementById("cancel-delete");
 const deleteMessage = document.getElementById("delete-message");
 let selectedRowId = null;
 
-const extendDatePanel = document.createElement("div");
-extendDatePanel.id = "extend-date-panel";
-extendDatePanel.style.display = "none";
-extendDatePanel.style.position = "fixed";
-extendDatePanel.style.top = "50%";
-extendDatePanel.style.left = "50%";
-extendDatePanel.style.transform = "translate(-50%, -50%)";
-extendDatePanel.style.backgroundColor = "white";
-extendDatePanel.style.padding = "20px";
-extendDatePanel.style.borderRadius = "10px";
-extendDatePanel.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
-extendDatePanel.style.zIndex = "1000";
-document.body.appendChild(extendDatePanel);
-
 let selectedExtendProjectId = null;
 
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
@@ -342,59 +328,47 @@ async function showExtendDatePanel(project_id) {
       const projectData = querySnapshot.docs[0].data();
       selectedExtendProjectId = project_id;
 
+      const extendForm = document.getElementById("extend-date-form");
+      const extendedMessage = document.getElementById("extended-message");
+      const extendDatePanel = document.getElementById("extend-date-panel");
+      const extendOverlay = document.getElementById("extend-date-overlay");
+
       if (projectData.extend_date) {
-        extendDatePanel.innerHTML = `
-                    <h3>Extend Project Date</h3>
-                    <p>Start Date: ${projectData.start_date || "Not set"}</p>
-                    <p>Current End Date: ${
-                      projectData.end_date || "Not set"
-                    }</p>
-                    <p>Extended Date: ${projectData.extend_date}</p>
-                    <p style="color: red;">This project has already been extended once. No further extensions allowed.</p>
-                    <div style="margin-top: 20px;">
-                        <button id="close-extend">Close</button>
-                    </div>
-                `;
+        // Show already extended message
+        document.getElementById("start-date-extended").textContent = `Start Date: ${projectData.start_date || "Not set"}`;
+        document.getElementById("current-end-date-extended").textContent = `Current End Date: ${projectData.end_date || "Not set"}`;
+        document.getElementById("extended-date").textContent = `Extended Date: ${projectData.extend_date}`;
+        extendForm.style.display = "none";
+        extendedMessage.style.display = "block";
         extendDatePanel.style.display = "block";
+        extendOverlay.style.display = "block"; // Show overlay
         document.body.style.overflow = "hidden";
 
-        document
-          .getElementById("close-extend")
-          .addEventListener("click", () => {
-            extendDatePanel.style.display = "none";
-            document.body.style.overflow = "auto";
-            selectedExtendProjectId = null;
-          });
+        document.getElementById("close-extend").addEventListener("click", () => {
+          extendDatePanel.style.display = "none";
+          extendOverlay.style.display = "none"; // Hide overlay
+          document.body.style.overflow = "auto";
+          selectedExtendProjectId = null;
+        });
       } else {
-        extendDatePanel.innerHTML = `
-                    <h3>Extend Project Date</h3>
-                    <p>Start Date: ${projectData.start_date || "Not set"}</p>
-                    <p>Current End Date: ${
-                      projectData.end_date || "Not set"
-                    }</p>
-                    <label for="extend-date-input">New Extension Date:</label>
-                    <input type="date" id="extend-date-input">
-                    <div id="extend-error" style="color: red; display: none;"></div>
-                    <div style="margin-top: 20px;">
-                        <button id="cancel-extend">Cancel</button>
-                        </div>
-                        <button id="confirm-extend">Confirm</button>
-                      
-                `;
-
+        // Show extend date form
+        document.getElementById("start-date").textContent = `Start Date: ${projectData.start_date || "Not set"}`;
+        document.getElementById("current-end-date").textContent = `Current End Date: ${projectData.end_date || "Not set"}`;
+        document.getElementById("extend-date-input").value = "";
+        document.getElementById("extend-error").style.display = "none";
+        extendForm.style.display = "block";
+        extendedMessage.style.display = "none";
         extendDatePanel.style.display = "block";
+        extendOverlay.style.display = "block"; // Show overlay
         document.body.style.overflow = "hidden";
 
-        document
-          .getElementById("confirm-extend")
-          .addEventListener("click", () => handleExtendDate(projectData));
-        document
-          .getElementById("cancel-extend")
-          .addEventListener("click", () => {
-            extendDatePanel.style.display = "none";
-            document.body.style.overflow = "auto";
-            selectedExtendProjectId = null;
-          });
+        document.getElementById("confirm-extend").addEventListener("click", () => handleExtendDate(projectData));
+        document.getElementById("cancel-extend").addEventListener("click", () => {
+          extendDatePanel.style.display = "none";
+          extendOverlay.style.display = "none"; // Hide overlay
+          document.body.style.overflow = "auto";
+          selectedExtendProjectId = null;
+        });
       }
     }
   } catch (error) {
@@ -406,6 +380,7 @@ async function showExtendDatePanel(project_id) {
 async function handleExtendDate(projectData) {
   const extendDateInput = document.getElementById("extend-date-input").value;
   const errorDiv = document.getElementById("extend-error");
+  const extendOverlay = document.getElementById("extend-date-overlay");
 
   if (!extendDateInput) {
     errorDiv.textContent = "Please select a new end date.";
@@ -439,7 +414,8 @@ async function handleExtendDate(projectData) {
           "This project has already been extended once.",
           false
         );
-        extendDatePanel.style.display = "none";
+        document.getElementById("extend-date-panel").style.display = "none";
+        extendOverlay.style.display = "none"; // Hide overlay
         document.body.style.overflow = "auto";
         selectedExtendProjectId = null;
         return;
@@ -449,7 +425,8 @@ async function handleExtendDate(projectData) {
         extend_date: extendDateInput,
       });
 
-      extendDatePanel.style.display = "none";
+      document.getElementById("extend-date-panel").style.display = "none";
+      extendOverlay.style.display = "none"; // Hide overlay
       document.body.style.overflow = "auto";
       showDeleteMessage("Project extension date added successfully!", true);
       fetch_projects();
