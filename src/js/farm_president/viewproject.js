@@ -295,7 +295,7 @@ async function displayFeedbacks() {
 
         feedbackArray.forEach((feedback) => {
             let formattedTimestamp = feedback.timestamp.toDate().toLocaleString();
-            let statusColor = feedback.status === "Pending" ? "gold" : "green";
+            let statusColor = feedback.status === "Pending" ? "#848a9c" : "#41a186";
 
             const feedbackItem = document.createElement("div");
             feedbackItem.classList.add("feedback-item");

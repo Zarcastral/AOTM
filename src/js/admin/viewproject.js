@@ -312,7 +312,7 @@ function addFeedbackToUI(feedback) {
     }
   }
 
-  let statusColor = feedback.status === "Pending" ? "gold" : "green";
+  let statusColor = feedback.status === "Pending" ? "#848a9c" : "#41a186";
 
   const feedbackItem = document.createElement("div");
   feedbackItem.classList.add("feedback-item");
@@ -343,7 +343,7 @@ function addFeedbackToUI(feedback) {
                       ? `<button class="acknowledge-btn" data-id="${
                           feedback.id || ""
                         }">
-                          <img src="../../images/image 27.png" alt="Acknowledge" class="acknowledge-icon">
+                          <img src="../../images/check.png" alt="Acknowledge" class="acknowledge-icon">
                          </button>`
                       : ""
                   }
@@ -467,7 +467,7 @@ async function displayFeedbacks() {
                           ${
                             feedback.status === "Pending"
                               ? `<button class="acknowledge-btn" data-id="${feedback.id}">
-                                  <img src="../../images/image 27.png" alt="Acknowledge" class="acknowledge-icon">
+                                  <img src="../../images/check.png" alt="Acknowledge" class="acknowledge-icon">
                                  </button>`
                               : ""
                           }
