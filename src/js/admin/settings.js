@@ -300,7 +300,6 @@ window.checkForDuplicate = async function(collectionName, fieldName, value, excl
 
 
 
-//edit
 window.editItem = function(collection, id, name) {
     // Validate inputs
     if (!collection || !id || name === undefined) {
@@ -311,18 +310,32 @@ window.editItem = function(collection, id, name) {
 
     // Sanitize name display (prevent XSS and trim)
     const sanitizedName = name.toString().trim()
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+        .replace(/</g, '<')
+        .replace(/>/g, '>');
 
     // Set form values
     document.getElementById('edit-item-id').value = id;
     document.getElementById('edit-item-collection').value = collection;
-    document.getElementById('edit-item-name').value = sanitizedName;
+    const nameInput = document.getElementById('edit-item-name');
+    nameInput.value = sanitizedName;
+
+    // Disable save button by default
+    const saveButton = document.querySelector('#edit-item-popup .btn-primary');
+    saveButton.disabled = true;
+
+    // Store initial name for comparison
+    const initialName = sanitizedName;
+
+    // Add input event listener to enable/disable save button
+    nameInput.addEventListener('input', function() {
+        saveButton.disabled = nameInput.value.trim() === initialName;
+    });
 
     // Show popup
     openPopup('edit-item-popup');
 };
-//save edit
+
+// Save edit (unchanged, included for completeness)
 window.saveEditedItem = async function() {
     const id = document.getElementById('edit-item-id').value;
     const collectionName = document.getElementById('edit-item-collection').value;

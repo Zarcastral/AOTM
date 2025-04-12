@@ -551,3 +551,9 @@ button.add-button:hover {
     opacity: 0;
     transition: opacity 0.3s ease;
 }
+
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
