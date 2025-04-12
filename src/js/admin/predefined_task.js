@@ -21,8 +21,6 @@ const editTaskModal = document.getElementById("edit-task-modal");
 const openAddTaskModalBtn = document.getElementById("open-add-task-modal");
 const closeAddTaskModalBtn = document.getElementById("close-add-task-modal");
 const closeEditTaskModalBtn = document.getElementById("close-edit-task-modal");
-const duplicateTaskModal = document.getElementById("duplicate-task-modal");
-const noChangesModal = document.getElementById("no-changes-modal");
 const deleteConfirmationModal = document.getElementById(
   "delete-confirmation-modal"
 );
@@ -30,25 +28,6 @@ const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
 const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
 const searchBar = document.getElementById("search-bar");
 let taskToDeleteId = null;
-
-const duplicateSubtaskModal = document.createElement("div");
-duplicateSubtaskModal.classList.add("modal");
-duplicateSubtaskModal.innerHTML = `
-    <div class="modal-content">
-      <h2>Subtask Already Exists</h2>
-      <p id="duplicate-subtask-message"></p>
-      <button id="close-duplicate-subtask-modal">Okay</button>
-    </div>
-  `;
-document.body.appendChild(duplicateSubtaskModal);
-
-const closeDuplicateSubtaskModal = document.getElementById(
-  "close-duplicate-subtask-modal"
-);
-const closeDuplicateTaskModal = document.getElementById(
-  "close-duplicate-task-modal"
-);
-const closeNoChangesModal = document.getElementById("close-no-changes-modal");
 
 const addTaskBtn = document.getElementById("add-task-btn");
 const saveTasksBtn = document.getElementById("save-tasks-btn");
@@ -68,48 +47,54 @@ let allTasks = [];
 
 addTaskBtn.disabled = true;
 
+// Function to show success panel
+function showSuccessPanel(message) {
+  const successMessage = document.createElement("div");
+  successMessage.className = "success-message";
+  successMessage.textContent = message;
+
+  document.body.appendChild(successMessage);
+
+  successMessage.style.display = "block";
+  setTimeout(() => {
+    successMessage.style.opacity = "1";
+  }, 5);
+
+  setTimeout(() => {
+    successMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(successMessage);
+    }, 400);
+  }, 4000);
+}
+
+// Function to show error panel
+function showErrorPanel(message) {
+  const errorMessage = document.createElement("div");
+  errorMessage.className = "error-message";
+  errorMessage.textContent = message;
+
+  document.body.appendChild(errorMessage);
+
+  errorMessage.style.display = "block";
+  setTimeout(() => {
+    errorMessage.style.opacity = "1";
+  }, 5);
+
+  setTimeout(() => {
+    errorMessage.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(errorMessage);
+    }, 400);
+  }, 4000);
+}
+
 // Debounce function to limit how often fetchTasks is called
 function debounce(func, delay) {
   let timeoutId;
   return function (...args) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func.apply(this, args), delay);
-  };
-}
-
-function showAlert(message) {
-  const alertModal = document.getElementById("error-modal");
-  const alertMessage = document.getElementById("error-message");
-  const closeAlertBtn = document.getElementById("close-error-modal");
-
-  alertMessage.textContent = message;
-  alertModal.style.display = "flex";
-
-  closeAlertBtn.onclick = () => {
-    alertModal.style.display = "none";
-  };
-}
-
-function showDuplicateTasks(duplicateTasks, selectedCropTypeName) {
-  const duplicateTasksModal = document.getElementById("duplicate-tasks-modal");
-  const duplicateCropTypeName = document.getElementById(
-    "duplicate-crop-type-name"
-  );
-  const duplicateTasksMessage = document.getElementById(
-    "duplicate-tasks-message"
-  );
-  const closeDuplicateTasksBtn = document.getElementById(
-    "close-duplicate-tasks-modal"
-  );
-
-  duplicateCropTypeName.textContent = `"${selectedCropTypeName}":`;
-  duplicateTasksMessage.textContent = duplicateTasks
-    .map((task) => `- ${task}`)
-    .join("\n");
-  duplicateTasksModal.style.display = "flex";
-
-  closeDuplicateTasksBtn.onclick = () => {
-    duplicateTasksModal.style.display = "none";
   };
 }
 
@@ -155,9 +140,6 @@ function checkSaveButtonState() {
 
 closeAddTaskModalBtn.addEventListener("click", closeAddTaskPopup);
 closeEditTaskModalBtn.addEventListener("click", closeEditTaskPopup);
-closeDuplicateSubtaskModal.addEventListener("click", () => {
-  duplicateSubtaskModal.style.display = "none";
-});
 
 newSubtaskInput.addEventListener("input", checkSaveButtonState);
 newTaskInput.addEventListener("input", checkSaveButtonState);
@@ -173,8 +155,7 @@ addTaskBtn.addEventListener("click", async () => {
   taskName = taskName.charAt(0).toUpperCase() + taskName.slice(1);
 
   if (tasks.includes(taskName)) {
-    duplicateTaskMessage.textContent = `"${taskName}" is already in the list.`;
-    duplicateTaskModal.style.display = "flex";
+    showErrorPanel(`"${taskName}" is already in the list.`);
     return;
   }
 
@@ -183,8 +164,7 @@ addTaskBtn.addEventListener("click", async () => {
   );
 
   if (!querySnapshot.empty) {
-    duplicateTaskMessage.textContent = `"${taskName}" already exists in the database.`;
-    duplicateTaskModal.style.display = "flex";
+    showErrorPanel(`"${taskName}" already exists in the database.`);
     return;
   }
 
@@ -210,19 +190,24 @@ newTaskList.addEventListener("click", (e) => {
 
 saveTasksBtn.addEventListener("click", async () => {
   if (tasks.length === 0) {
-    noChangesModal.style.display = "flex";
+    showErrorPanel("No new tasks were added.");
     return;
   }
 
-  for (const taskName of tasks) {
-    await addDoc(collection(db, "tb_pretask"), {
-      task_name: taskName,
-      subtasks: [],
-    });
+  try {
+    for (const taskName of tasks) {
+      await addDoc(collection(db, "tb_pretask"), {
+        task_name: taskName,
+        subtasks: [],
+      });
+    }
+    closeAddTaskPopup();
+    fetchTasks();
+    showSuccessPanel("Tasks added successfully!");
+  } catch (error) {
+    console.error("Error adding tasks:", error);
+    showErrorPanel("Failed to add tasks. Please try again.");
   }
-
-  closeAddTaskPopup();
-  fetchTasks();
 });
 
 saveSubtasksBtn.addEventListener("click", async () => {
@@ -239,7 +224,7 @@ saveSubtasksBtn.addEventListener("click", async () => {
   if (
     JSON.stringify(updatedSubtasks) === JSON.stringify(formattedInitialSubtasks)
   ) {
-    noChangesModal.style.display = "flex";
+    showErrorPanel("No changes were made to subtasks.");
     return;
   }
 
@@ -249,8 +234,10 @@ saveSubtasksBtn.addEventListener("click", async () => {
 
     closeEditTaskPopup();
     fetchTasks();
+    showSuccessPanel("Subtasks updated successfully!");
   } catch (error) {
     console.error("Error updating subtasks:", error);
+    showErrorPanel("Failed to update subtasks. Please try again.");
   }
 });
 
@@ -259,93 +246,98 @@ async function fetchTasks(searchQuery = "") {
   taskList.style.opacity = "0";
   taskList.innerHTML = "";
 
-  const querySnapshot = await getDocs(collection(db, "tb_pretask"));
+  try {
+    const querySnapshot = await getDocs(collection(db, "tb_pretask"));
 
-  allTasks = [];
-  querySnapshot.forEach((doc) => {
-    allTasks.push({
-      id: doc.id,
-      data: doc.data(),
+    allTasks = [];
+    querySnapshot.forEach((doc) => {
+      allTasks.push({
+        id: doc.id,
+        data: doc.data(),
+      });
     });
-  });
 
-  let filteredTasks = allTasks;
-  if (searchQuery) {
-    filteredTasks = allTasks.filter((task) =>
-      task.data.task_name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
-
-  const totalPages = Math.ceil(filteredTasks.length / rowsPerPage);
-
-  if (currentPage < 1) currentPage = 1;
-  if (currentPage > totalPages) currentPage = totalPages;
-
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = Math.min(startIndex + rowsPerPage, filteredTasks.length);
-
-  if (filteredTasks.length === 0) {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td colspan="2" class="no-tasks-found">No tasks found</td>
-    `;
-    taskList.appendChild(row);
-  } else {
-    for (let i = startIndex; i < endIndex; i++) {
-      const taskData = filteredTasks[i].data;
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${taskData.task_name}</td>
-        <td>
-          <img src="../../images/image 27.png" alt="Edit" title="Edit Task" class="action-icon edit-task-icon" data-id="${filteredTasks[i].id}">
-          <img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon" data-id="${filteredTasks[i].id}">
-        </td>
-      `;
-      taskList.appendChild(row);
+    let filteredTasks = allTasks;
+    if (searchQuery) {
+      filteredTasks = allTasks.filter((task) =>
+        task.data.task_name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
-    const deleteIcons = document.querySelectorAll(".delete-task-icon");
-    deleteIcons.forEach((icon) => {
-      icon.addEventListener("click", (e) => {
-        taskToDeleteId = e.target.dataset.id;
-        deleteConfirmationModal.style.display = "flex";
+    const totalPages = Math.ceil(filteredTasks.length / rowsPerPage);
+
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, filteredTasks.length);
+
+    if (filteredTasks.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td colspan="2" class="no-tasks-found">No tasks found</td>
+      `;
+      taskList.appendChild(row);
+    } else {
+      for (let i = startIndex; i < endIndex; i++) {
+        const taskData = filteredTasks[i].data;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${taskData.task_name}</td>
+          <td>
+            <img src="../../images/image 27.png" alt="Edit" title="Edit Task" class="action-icon edit-task-icon" data-id="${filteredTasks[i].id}">
+            <img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon" data-id="${filteredTasks[i].id}">
+          </td>
+        `;
+        taskList.appendChild(row);
+      }
+
+      const deleteIcons = document.querySelectorAll(".delete-task-icon");
+      deleteIcons.forEach((icon) => {
+        icon.addEventListener("click", (e) => {
+          taskToDeleteId = e.target.dataset.id;
+          deleteConfirmationModal.style.display = "flex";
+        });
       });
-    });
 
-    const editIcons = document.querySelectorAll(".edit-task-icon");
-    editIcons.forEach((icon) => {
-      icon.addEventListener("click", async (e) => {
-        editingTaskId = e.target.dataset.id;
-        editTaskModal.style.display = "flex";
+      const editIcons = document.querySelectorAll(".edit-task-icon");
+      editIcons.forEach((icon) => {
+        icon.addEventListener("click", async (e) => {
+          editingTaskId = e.target.dataset.id;
+          editTaskModal.style.display = "flex";
 
-        const taskRef = doc(db, "tb_pretask", editingTaskId);
-        const taskSnap = await getDoc(taskRef);
+          const taskRef = doc(db, "tb_pretask", editingTaskId);
+          const taskSnap = await getDoc(taskRef);
 
-        if (taskSnap.exists()) {
-          const taskData = taskSnap.data();
-          subtaskList.innerHTML = "";
-          initialSubtasks = [...taskData.subtasks];
+          if (taskSnap.exists()) {
+            const taskData = taskSnap.data();
+            subtaskList.innerHTML = "";
+            initialSubtasks = [...taskData.subtasks];
 
-          taskData.subtasks.forEach((subtask) => {
-            const subtaskName =
-              typeof subtask === "string" ? subtask : subtask.subtask_name;
-            const li = document.createElement("li");
-            li.innerHTML = `${subtaskName} <img src="../../images/Delete.png" alt="Delete" class="delete-subtask-btn">`;
-            subtaskList.appendChild(li);
-          });
+            taskData.subtasks.forEach((subtask) => {
+              const subtaskName =
+                typeof subtask === "string" ? subtask : subtask.subtask_name;
+              const li = document.createElement("li");
+              li.innerHTML = `${subtaskName} <img src="../../images/Delete.png" alt="Delete" class="delete-subtask-btn">`;
+              subtaskList.appendChild(li);
+            });
 
-          saveSubtasksBtn.disabled = true;
-          checkSaveButtonState();
-        }
+            saveSubtasksBtn.disabled = true;
+            checkSaveButtonState();
+          }
+        });
       });
-    });
+    }
+
+    setTimeout(() => {
+      taskList.style.opacity = "1";
+    }, 100);
+
+    updatePaginationControls(totalPages);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    showErrorPanel("Failed to fetch tasks. Please try again.");
   }
-
-  setTimeout(() => {
-    taskList.style.opacity = "1";
-  }, 100);
-
-  updatePaginationControls(totalPages);
 }
 
 function updatePaginationControls(totalPages) {
@@ -360,10 +352,16 @@ function updatePaginationControls(totalPages) {
 
 confirmDeleteBtn.addEventListener("click", async () => {
   if (taskToDeleteId) {
-    await deleteDoc(doc(db, "tb_pretask", taskToDeleteId));
-    taskToDeleteId = null;
-    deleteConfirmationModal.style.display = "none";
-    fetchTasks(searchBar.value.trim());
+    try {
+      await deleteDoc(doc(db, "tb_pretask", taskToDeleteId));
+      taskToDeleteId = null;
+      deleteConfirmationModal.style.display = "none";
+      fetchTasks(searchBar.value.trim());
+      showSuccessPanel("Task deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      showErrorPanel("Failed to delete task. Please try again.");
+    }
   }
 });
 
@@ -384,10 +382,7 @@ addSubtaskBtn.addEventListener("click", () => {
   );
 
   if (existingSubtasks.includes(subtaskName)) {
-    document.getElementById(
-      "duplicate-subtask-message"
-    ).textContent = `"${subtaskName}" is already in the list.`;
-    duplicateSubtaskModal.style.display = "flex";
+    showErrorPanel(`"${subtaskName}" is already in the list.`);
     return;
   }
 
@@ -435,6 +430,7 @@ async function loadCropTypes() {
     cropTypeSelect.innerHTML = "<option value=''></option>";
 
     if (querySnapshot.empty) {
+      showErrorPanel("No crop types available.");
       return;
     }
 
@@ -460,25 +456,36 @@ async function loadCropTypes() {
     });
   } catch (error) {
     console.error("Error loading crop types:", error);
+    showErrorPanel("Failed to load crop types. Please try again.");
   }
 }
 
 async function loadTasks() {
-  const querySnapshot = await getDocs(collection(db, "tb_pretask"));
-  taskCheckboxesContainer.innerHTML = "";
+  try {
+    const querySnapshot = await getDocs(collection(db, "tb_pretask"));
+    taskCheckboxesContainer.innerHTML = "";
 
-  querySnapshot.forEach((doc) => {
-    const taskData = doc.data();
-    const label = document.createElement("label");
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.value = doc.id;
-    checkbox.name = "tasks";
-    label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(taskData.task_name));
-    taskCheckboxesContainer.appendChild(label);
-    taskCheckboxesContainer.appendChild(document.createElement("br"));
-  });
+    if (querySnapshot.empty) {
+      showErrorPanel("No tasks available to assign.");
+      return;
+    }
+
+    querySnapshot.forEach((doc) => {
+      const taskData = doc.data();
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = doc.id;
+      checkbox.name = "tasks";
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(taskData.task_name));
+      taskCheckboxesContainer.appendChild(label);
+      taskCheckboxesContainer.appendChild(document.createElement("br"));
+    });
+  } catch (error) {
+    console.error("Error loading tasks:", error);
+    showErrorPanel("Failed to load tasks. Please try again.");
+  }
 }
 
 assignTasksBtn.addEventListener("click", async () => {
@@ -492,7 +499,7 @@ assignTasksBtn.addEventListener("click", async () => {
   ).map((checkbox) => checkbox.value);
 
   if (!selectedCropTypeId || selectedTaskIds.length === 0) {
-    showAlert("Please select a crop type and at least one task.");
+    showErrorPanel("Please select a crop type and at least one task.");
     assignTasksBtn.disabled = false;
     return;
   }
@@ -502,7 +509,7 @@ assignTasksBtn.addEventListener("click", async () => {
     const cropSnap = await getDoc(cropRef);
 
     if (!cropSnap.exists()) {
-      showAlert("Error: Crop type not found.");
+      showErrorPanel("Error: Crop type not found.");
       assignTasksBtn.disabled = false;
       return;
     }
@@ -566,7 +573,10 @@ assignTasksBtn.addEventListener("click", async () => {
     }
 
     if (duplicateTasks.length > 0) {
-      showDuplicateTasks(duplicateTasks, selectedCropTypeName);
+      const duplicateMessage = `The following tasks are already assigned to "${selectedCropTypeName}":\n${duplicateTasks
+        .map((task) => `- ${task}`)
+        .join("\n")}`;
+      showErrorPanel(duplicateMessage);
     }
 
     if (selectedTaskIds.length > duplicateTasks.length) {
@@ -579,20 +589,11 @@ assignTasksBtn.addEventListener("click", async () => {
         fetchAssignedTasks();
       }
 
-      const successModal = document.getElementById("success-modal");
-      const successMessage = document.getElementById("success-message");
-      const closeSuccessBtn = document.getElementById("close-success-modal");
-
-      successMessage.textContent = "Tasks assigned successfully!";
-      successModal.style.display = "flex";
-
-      closeSuccessBtn.onclick = () => {
-        successModal.style.display = "none";
-        assignTaskModal.style.display = "none";
-      };
+      showSuccessPanel("Tasks assigned successfully!");
+      assignTaskModal.style.display = "none";
     }
   } catch (error) {
-    showAlert("An error occurred while assigning tasks. Please try again.");
+    showErrorPanel("An error occurred while assigning tasks. Please try again.");
     console.error("Error assigning tasks:", error);
   } finally {
     assignTasksBtn.disabled = false;
@@ -635,13 +636,4 @@ document.getElementById("next-page-btn").addEventListener("click", () => {
     currentPage++;
     fetchTasks(searchBar.value.trim());
   }
-});
-
-const duplicateTaskMessage = document.getElementById("duplicate-task-message");
-closeDuplicateTaskModal.addEventListener("click", () => {
-  duplicateTaskModal.style.display = "none";
-});
-
-closeNoChangesModal.addEventListener("click", () => {
-  noChangesModal.style.display = "none";
 });
