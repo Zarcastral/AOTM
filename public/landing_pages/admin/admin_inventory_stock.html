@@ -23,6 +23,7 @@
     </div>
 
     <div class="panel">
+      <div class="table-wrapper">
       <h2>Crops</h2>
       <div class="crop-search-bar">
         <input type="text" id="crop-search-bar" placeholder="Search">
@@ -47,6 +48,7 @@
             <!-- Crops will be populated here -->
           </tbody>
         </table>
+      </div>
         <div class="crops-pagination">
           <span id="crop-page-number">Page 1</span>
           <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
@@ -310,30 +312,7 @@
     <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
   </div>
 
-  <script>
-    const accountIcon = document.getElementById("account-icon");
-    const accountPanel = document.getElementById("account-panel");
-    const accountFrame = document.getElementById("account-frame");
 
-    // Load content when account icon is clicked
-    accountIcon.addEventListener("click", () => {
-      accountPanel.classList.toggle("active");
-
-      // Load external content in iframe
-      if (accountPanel.classList.contains("active")) {
-        accountFrame.src = "logout.html"; // Change to the URL of your content page
-      } else {
-        accountFrame.src = ""; // Clear iframe content when panel is closed
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-        accountPanel.classList.remove("active");
-        accountFrame.src = ""; // Clear iframe content when clicking outside
-      }
-    });
-  </script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const stockLinks = document.querySelectorAll(".stock-selector a");

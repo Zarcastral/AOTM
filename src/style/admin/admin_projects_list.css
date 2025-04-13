@@ -74,6 +74,7 @@ body {
   border-radius: 10px;
   padding: 45px 20px 60px 20px;
   position: relative;
+  
 }
 
 table {
@@ -707,6 +708,14 @@ input[type="checkbox"] {
   .panel {
     padding: 30px 15px 50px 15px;
   }
+  .pagination-container {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -750,6 +759,14 @@ input[type="checkbox"] {
   th:nth-child(7),
   th:last-child {
     min-width: 100px;
+  }
+  .pagination-container {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 }
 
@@ -806,9 +823,11 @@ input[type="checkbox"] {
     padding: 0.6rem;
   }
   .pagination-container {
-    position: static;
-    justify-content: center;
-    margin-top: 10px;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
     gap: 8px;
   }
   .pagination-btn {
@@ -892,7 +911,11 @@ input[type="checkbox"] {
     height: 20px;
   }
   .pagination-container {
-    flex-wrap: wrap;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
     gap: 5px;
   }
   .pagination-btn {

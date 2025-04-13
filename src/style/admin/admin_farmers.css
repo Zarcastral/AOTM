@@ -7,9 +7,10 @@ body {
   display: flex;
   flex-direction: column;
   cursor: default;
+  overflow-x: hidden;
 }
 
-
+/* Header */
 .header {
   min-height: 60px;
   height: 60px;
@@ -19,10 +20,12 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-title {
-  font-size: 30px;
+  font-size: clamp(24px, 5vw, 30px);
   font-weight: bold;
   color: #41A186;
 }
@@ -34,68 +37,77 @@ body {
 }
 
 .header-icons img {
-  width: 24px;
-  height: 24px;
+  width: clamp(20px, 4vw, 24px);
+  height: clamp(20px, 4vw, 24px);
   cursor: pointer;
 }
 
-#barangay-select{
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-  font-size: 16px;
+/* Dropdown */
+#barangay-select {
+  padding: 10px 30px 10px 10px;
+  font-size: clamp(14px, 3vw, 16px);
   color: #243B53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
-  width: 100px;
+  width: clamp(100px, 30vw, 180px); /* Shortened width */
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
 
-
+/* Main content */
 .main-content {
   display: flex;
   flex-direction: column;
-  padding: 50px; /* Padding around the panels */
-  overflow-y: auto; /* Enable vertical scrolling */
+  padding: clamp(20px, 5vw, 50px);
+  overflow-y: auto;
+  flex-grow: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Panel container style */
-
+/* Panel */
 .panel {
   background-color: white;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   border-radius: 10px;
-  min-height: 650px; /* Your specified minimum height */
+  min-height: 400px;
   display: flex;
-  flex-direction: column; /* Stack children vertically */
-  padding: 45px 20px 60px 20px; /* Increased bottom padding to accommodate pagination */
-  position: relative; /* Make panel the positioning context for pagination */
+  flex-direction: column;
+  padding: clamp(20px, 5vw, 45px) clamp(10px, 3vw, 20px);
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 
-
 /* Table styles */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  flex-grow: 1;
+  min-height: 0;
+  margin-bottom: 60px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
-}
-
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  flex-grow: 1; /* Takes up available space above pagination */
-  min-height: 0; /* Prevents overflow issues in flex context */
+  min-width: 600px;
 }
 
 th, td {
-  padding: 1rem;
-  text-align: left; /* aligns only when th, td and th both have text-align: center; do not know why*/
+  padding: clamp(8px, 2vw, 12px);
+  text-align: left;
   border-bottom: 2px solid #f0f0f0;
 }
 
@@ -103,21 +115,22 @@ th {
   background-color: white;
   font-weight: 600;
   color: #333;
+  font-size: clamp(12px, 2.5vw, 14px);
 }
 
 th:first-child, td:first-child {
-  text-align: center; /* Center the content in the column for better appearance */
+  text-align: center;
 }
 
 th:nth-child(3), td:nth-child(3) {
-  width: 200px; /* Adjusted width for the action column */
-  min-width: 100px; /* Minimum width to ensure usability */
-  text-align: Left; /* Center the content in the column for better appearance */
+  width: clamp(100px, 20vw, 200px);
+  min-width: 100px;
+  text-align: left;
 }
 
 th:last-child, td:last-child {
-  width: 170px; /* Fixed width for the action column; adjust as needed */
-  min-width: 100px; /* Minimum width to ensure usability */
+  width: clamp(100px, 15vw, 170px);
+  min-width: 100px;
   text-align: center;
 }
 
@@ -129,25 +142,21 @@ tbody tr {
 input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  border: 1px solid #D1D5DB; /* Thin border */
-  border-radius: 4px; /* Optional: Slightly rounded corners */
+  border: 1px solid #D1D5DB;
+  border-radius: 4px;
   outline: none;
   background-color: white;
   cursor: pointer;
-  -webkit-appearance: none; /* Removes default browser styling */
-  -moz-appearance: none;
   appearance: none;
   margin-top: 10px;
 }
 
-/* Style when checkbox is checked */
 input[type="checkbox"]:checked {
-  background-color: #41A186; /* Green color */
+  background-color: #41A186;
   border-color: #41A186;
   position: relative;
 }
 
-/* Create the checkmark */
 input[type="checkbox"]:checked::after {
   content: '';
   position: absolute;
@@ -164,60 +173,67 @@ tbody tr:hover {
   background-color: #F3F4F6;
 }
 
+/* Search container */
 .search-container {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  margin-top: 30px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
 }
 
-#search-bar, #barangay-select {
-  padding: 8px;
-  font-size: 16px;
-  border: 1px solid lightgray; 
-  border-radius: 5px;
-  outline: none;
-}
 #search-bar {
-  width: 300px;
+  padding: 10px;
+  font-size: clamp(14px, 3vw, 16px);
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: clamp(150px, 40vw, 250px); /* Shortened width */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 #search-bar:focus, #barangay-select:focus {
   border-color: #aaa;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
-.search-container input,
-.search-container select {
-padding: 0.5rem;
-border: 1px solid #dcdcdc;
-border-radius: 5px;
-}
+
+/* Action buttons */
 .action-btn {
   border: none;
   background: none;
   cursor: pointer;
   font-size: 16px;
   margin: 0 5px;
+  padding: 8px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .action-btn:hover {
   opacity: 0.7;
 }
 
+.action-btn img {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+
+/* Button container */
 .btn-container {
-display: flex;
-justify-content: flex-end;
-margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
 }
 
 /* New User Button */
 .add-user-btn {
-  background-color: #41A186; /*light shade*/
+  background-color: #41A186;
   color: white;
-  padding: 12px 20px;
-  font-size: 18px;
+  padding: clamp(10px, 2vw, 12px) clamp(15px, 3vw, 20px);
+  font-size: clamp(14px, 3vw, 18px);
   font-weight: bold;
-  text-align: center;
   border-radius: 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -226,12 +242,11 @@ margin-bottom: 1rem;
 }
 
 .add-user-btn:hover {
-  background-color: #318a71; /*dark shade hover */
+  background-color: #318a71;
   text-decoration: none;
-  transition: background-color 0.3s ease;
 }
 
-/* Pagination styles */
+/* Pagination */
 .pagination-container {
   position: absolute;
   bottom: 10px;
@@ -239,18 +254,18 @@ margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 10px;
+  z-index: 10;
 }
+
 #page-number {
-    font-size: 17px;
-    color: #333;
-  }
+  font-size: clamp(14px, 3vw, 17px);
+  color: #333;
+}
 
 .pagination-btn {
-  padding: 10px 10px;
-  margin: 0;
-  font-size: 25px;
+  padding: clamp(6px, 2vw, 10px);
+  font-size: clamp(18px, 4vw, 25px);
   border: none;
-  border-radius: 0;
   cursor: pointer;
   background: none;
   transition: color 0.3s ease;
@@ -258,16 +273,15 @@ margin-bottom: 1rem;
 }
 
 .pagination-btn:hover {
-    color: #41A186;
+  color: #41A186;
 }
 
 .pagination-btn:disabled {
-    color: #bbb;
-    cursor: not-allowed;
+  color: #bbb;
+  cursor: not-allowed;
 }
 
-
-/* Confirmation Panel Style */
+/* Confirmation Panel */
 .confirmation-panel {
   position: fixed;
   top: 0;
@@ -284,8 +298,8 @@ margin-bottom: 1rem;
 
 .confirmation-panel.show {
   display: flex;
-
 }
+
 .confirmation-message {
   background-color: white;
   padding: 20px;
@@ -317,19 +331,18 @@ margin-bottom: 1rem;
   border: none;
 }
 
-
 #cancel-delete:hover {
   background-color: #B0B7C0;
 }
 
 .confirm-btn {
-  background-color: #41A186; /*light shade*/
+  background-color: #41A186;
   color: white;
   border: none;
 }
 
 .confirm-btn:hover {
-  background-color: #318a71; /*dark shade hover */
+  background-color: #318a71;
   transition: background-color 0.3s ease;
 }
 
@@ -340,19 +353,20 @@ margin-bottom: 1rem;
 }
 
 .cancel-btn:hover {
-  background-color:rgb(90, 101, 112);
-  transition: background-color 0.3s ease, opacity 0.3s ease; 
+  background-color: #B0B7C0;
+  transition: background-color 0.3s ease;
 }
+
+/* Button container */
 .button-container {
   width: 90%;
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
   margin-left: 100px;
-
 }
 
-
+/* Download button */
 .download-btn {
   background-color: #41A186;
   color: white;
@@ -364,21 +378,21 @@ margin-bottom: 1rem;
   transition: background-color 0.2s;
 }
 
+.download-btn:hover {
+  background-color: #318a71;
+}
+
 .download-icon {
   width: 22px;
   height: 22px;
   object-fit: contain;
   vertical-align: middle;
-  margin-top: -5px; /* Nudges the icon closer to the text */
+  margin-top: -5px;
   margin-left: 10px;
   margin-right: 5px;
 }
 
-.download-btn:hover {
-  background-color: #318a71;
-}
-
-/* Success Message Style */
+/* Success Message */
 .delete-message {
   position: fixed;
   top: 20px;
@@ -396,58 +410,7 @@ margin-bottom: 1rem;
   transition: opacity 0.3s ease;
 }
 
-/* Basic styling for the search container */
-.search-container {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  align-items: center;
-}
-
-/* Styling for search input */
-#search-bar {
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  outline: none;
-  width: 250px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-
-/* Styling for the Barangay select dropdown */
-#barangay-select {
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  outline: none;
-  width: 200px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Optional: Style for the placeholder option */
-#barangay-select option[value=""] {
-  color: #888;
-  font-style: italic;
-}
-
-.action-btn img {
-  width: 25px; 
-  height: 25px;
-  object-fit: contain;
-}
-
-
-.action-btn {
-  padding: 8px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Bulk Delete Button Style */
+/* Bulk Delete Button */
 #bulk-delete {
   color: white;
   padding: 10px 10px;
@@ -471,7 +434,7 @@ margin-bottom: 1rem;
   cursor: not-allowed;
 }
 
-/* Bulk Delete Panel Style */
+/* Bulk Delete Panel */
 .bulk-delete-panel {
   position: fixed;
   top: 0;
@@ -489,7 +452,6 @@ margin-bottom: 1rem;
   display: flex;
 }
 
-/* Confirmation Message Style for Bulk Delete */
 .confirm-bulk-delete-message {
   background-color: white;
   padding: 20px;
@@ -499,7 +461,6 @@ margin-bottom: 1rem;
   text-align: center;
 }
 
-/* Bulk Confirm and Cancel Button Styles */
 .bulk-confirm-btn, .bulk-cancel-btn {
   margin: 10px;
   padding: 10px 35px;
@@ -510,13 +471,13 @@ margin-bottom: 1rem;
 }
 
 .bulk-confirm-btn {
-  background-color: #41A186; /*light shade*/
+  background-color: #41A186;
   color: white;
   border: none;
 }
 
 .bulk-confirm-btn:hover {
-  background-color: #318a71; /*dark shade hover */
+  background-color: #318a71;
   transition: background-color 0.3s ease;
 }
 
@@ -530,13 +491,13 @@ margin-bottom: 1rem;
   background-color: #B0B7C0;
 }
 
-/* Bulk Delete Success Message Style */
+/* Bulk Delete Success Message */
 .bulk-delete-message {
   position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #41A186; /*light shade*/
+  background-color: #41A186;
   color: white;
   padding: 10px 20px;
   border-radius: 5px;
@@ -554,37 +515,37 @@ margin-bottom: 1rem;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh; /* Full viewport height */
+  height: 100vh;
   background-color: white;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  border-radius: 0; /* Remove border radius for full-screen effect */
+  border-radius: 0;
   z-index: 1000;
   display: none;
   flex-direction: column;
   overflow: hidden;
-  padding: 0; /* Remove padding to maximize content area */
+  padding: 0;
 }
 
 #pdf-preview-container {
   flex: 1;
   overflow-y: auto;
-  border: none; /* Remove border for full-screen effect */
-  padding: 20px; /* Add padding inside the container for content */
+  border: none;
+  padding: 20px;
 }
 
 #pdf-preview-container iframe {
   width: 100%;
-  height: 100%; /* Ensures the iframe fills the container */
-  border: none; /* Removes default iframe border */
+  height: 100%;
+  border: none;
 }
 
 .preview-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 15px 20px; /* Add padding to the button area */
-  background-color: #f5f6fa; /* Match the background color of the main content */
-  border-top: 1px solid #D1D5DB; /* Add a separator line above the buttons */
+  padding: 15px 20px;
+  background-color: #f5f6fa;
+  border-top: 1px solid #D1D5DB;
 }
 
 .preview-btn {
@@ -601,9 +562,9 @@ margin-bottom: 1rem;
   color: #FFFFFF;
   padding: 10px 10px;
   font-weight: 600;
-  width: 100px; /* Fixed width to match or be slightly larger than "Done" */
+  width: 100px;
   height: 40px;
-  text-align: center; /* Ensure text is centered within the button */
+  text-align: center;
   margin-top: 0px;
   margin-right: -2px;
 }
@@ -618,14 +579,13 @@ margin-bottom: 1rem;
   width: 100px;
   height: 40px;
   font-weight: 600;
-  
 }
 
 .done-btn:hover {
   background-color: #318a71;
 }
 
-/* Overlay to dim the background when preview is open */
+/* Overlay for preview */
 body.preview-active::before {
   content: '';
   position: fixed;
@@ -636,95 +596,143 @@ body.preview-active::before {
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
+
 /* Responsive styles */
 @media (max-width: 768px) {
+  .header {
+    padding: 0 10px;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
   .panel {
-      width: 95%;
-      padding: 15px;
+    padding: 15px;
+    min-height: 300px;
   }
 
   .search-container {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 5px;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
   }
 
-  #search-bar, #barangay-select {
-      width: 100%;
+  #search-bar {
+    width: clamp(150px, 50vw, 220px);
+  }
+
+  #barangay-select {
+    width: clamp(105px, 40vw, 160px);
   }
 
   table {
-      font-size: 14px;
+    font-size: 14px;
+  }
+
+  th, td {
+    padding: 8px;
   }
 
   .pagination-container {
-      position: static; /* Remove absolute positioning for better flow */
-      margin-top: 15px; /* Add spacing above pagination */
-      justify-content: center; /* Center pagination buttons */
-      gap: 8px; /* Slightly reduce gap */
-      padding: 10px 0; /* Add vertical padding */
+    bottom: 10px;
+    right: 15px;
   }
 
   .pagination-btn {
-      font-size: 20px; /* Slightly smaller buttons */
-      padding: 8px; /* Adjust padding */
+    font-size: 20px;
+    padding: 8px;
   }
 
   #page-number {
-      font-size: 16px; /* Adjust page number size */
+    font-size: 16px;
   }
 
   .add-user-btn {
-      width: 100%;
-      font-size: 16px;
-      padding: 10px;
-      text-align: center;
+    width: clamp(150px, 50vw, 200px);
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .button-container {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .confirm-btn, .cancel-btn, #cancel-delete {
+    width: 40%;
+    font-size: 14px;
+  }
+
+  .bulk-confirm-btn, .bulk-cancel-btn {
+    padding: 8px 20px;
+    font-size: 14px;
   }
 }
 
 @media (max-width: 480px) {
-  .panel {
-      width: 100%;
-      padding: 10px;
-  }
-
-  #search-bar, #barangay-select {
-      width: 100%;
-  }
-
-  .pagination-container {
-      position: static; /* Ensure static positioning */
-      margin-top: 10px; /* Reduced top margin */
-      justify-content: center; /* Center buttons */
-      gap: 6px; /* Further reduce gap */
-      padding: 8px 0; /* Adjust padding */
-  }
-
-  .pagination-btn {
-      font-size: 18px; /* Smaller buttons for mobile */
-      padding: 6px; /* Reduced padding */
-  }
-
-  #page-number {
-      font-size: 14px; /* Smaller page number */
-  }
-
   .header-title {
-      font-size: 24px;
+    font-size: 20px;
   }
 
   .header-icons img {
-      width: 20px;
-      height: 20px;
+    width: 18px;
+    height: 18px;
   }
 
-  .add-user-btn {
-      width: 100%;
-      font-size: 14px;
-      padding: 8px;
+  .main-content {
+    padding: 10px;
+  }
+
+  .panel {
+    padding: 10px;
+    min-height: 250px;
+  }
+
+  #search-bar {
+    width: clamp(120px, 60vw, 200px);
+  }
+
+  #barangay-select {
+    width: clamp(80px, 50vw, 140px);
   }
 
   table {
-      font-size: 12px;
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 6px;
+  }
+
+  .pagination-container {
+    bottom: 8px;
+    right: 10px;
+  }
+
+  .pagination-btn {
+    font-size: 18px;
+    padding: 6px;
+  }
+
+  #page-number {
+    font-size: 14px;
+  }
+
+  .add-user-btn {
+    width: clamp(120px, 60vw, 180px);
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .confirm-btn, .cancel-btn, #cancel-delete {
+    width: 40%;
+    font-size: 14px;
+  }
+
+  .bulk-confirm-btn, .bulk-cancel-btn {
+    padding: 8px 20px;
+    font-size: 14px;
   }
 }

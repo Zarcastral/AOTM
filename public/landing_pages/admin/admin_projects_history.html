@@ -14,20 +14,21 @@
 
     <div class="main-content">
         <div class="project-selector">
-            <span class="project-list"><a href="../admin/admin_projects_list.html">Project List</a></span> <div class="rando-line">|</div>
+            <span class="project-list"><a href="../admin/admin_projects_list.html">Project List</a></span>
+            <div class="rando-line">|</div>
             <span class="project-history"><a href="../admin/admin_projects_history.html">Project History</a></span>
         </div>
         <section id="title">COMPLETED PROJECTS</section>
 
         <div class="panel">
-    <div class="table-wrapper">
-        <div class="search-container">
-            <input type="text" id="search-bar" placeholder="Search" /> 
-            <select id="barangay-select">
-                <option value="">Select Barangay</option>
-                <!-- record will be dynamically added here -->
-            </select>
-        </div>
+            <div class="search-container">
+                <input type="text" id="search-bar" placeholder="Search" /> 
+                <select id="barangay-select">
+                    <option value="">Select Barangay</option>
+                    <!-- record will be dynamically added here -->
+                </select>
+            </div>
+            <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
@@ -44,108 +45,93 @@
                     <tbody id="table_body">
                         <!-- Rows will be dynamically added here -->
                     </tbody>
-                </table>    
-        </div>
+                </table>
+            </div>
             <div class="pagination-container">
                 <span id="page-number">Page 1</span>
                 <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
                 <button id="next-page" class="pagination-btn">&gt;</button>
+            </div>
         </div>
     </div>
-  </div>
-    
-        <!-- Confirmation Message Panel -->
-    <div id="confirmation-panel" class="confirmation-panel">
-        <div class="confirmation-message">
-            <p>Are you sure you want to delete the record?</p>
-            <button id="confirm-delete" class="confirm-btn">Okay</button>
-            <button id="cancel-delete" class="cancel-btn">Cancel</button>
-        </div>
-    </div>
-    <!-- Success Message Panel -->
-    <div id="delete-message" class="delete-message">
-        <p>Record has been successfully deleted!</p>
-    </div>
+
     <!-- Import the reusable script from src/auth -->
-  <script type="module" src="../../../src/auth/header.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const reportLinks = document.querySelectorAll(".project-history a");
-  
-        // Debugging: Log all links and their hrefs
-  
-        // Clear any active link state when the page is loaded
-        reportLinks.forEach(link => link.classList.remove("active"));
-  
-        // Retrieve stored active link from localStorage
-        const activeLink = localStorage.getItem("activeReportLink");
-  
-        // Normalize URLs for comparison (remove trailing slashes, etc.)
-        const normalizeUrl = (url) => {
-            try {
-                return new URL(url, window.location.origin).href;
-            } catch (e) {
-                return url;
-            }
-        };
-  
-        // Get the current page URL
-        const currentPageUrl = normalizeUrl(window.location.href);
-  
-        // Find the link that matches the current page
-        let currentPageLink = null;
-        reportLinks.forEach(link => {
-            const normalizedLinkHref = normalizeUrl(link.href);
-            if (normalizedLinkHref === currentPageUrl) {
-                currentPageLink = link;
-            }
-        });
-  
-        // If the current page matches a link, set it as active and update localStorage
-        if (currentPageLink) {
-            currentPageLink.classList.add("active");
-            localStorage.setItem("activeReportLink", currentPageLink.href);
-        } else {
-            // If no match for the current page, fall back to the stored active link
-            let isMatchFound = false;
-            if (activeLink) {
-                reportLinks.forEach(link => {
-                    const normalizedLinkHref = normalizeUrl(link.href);
-                    const normalizedActiveLink = normalizeUrl(activeLink);
-                    if (normalizedLinkHref === normalizedActiveLink) {
-                        link.classList.add("active");
-                        isMatchFound = true;
+    <script type="module" src="../../../src/auth/header.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const reportLinks = document.querySelectorAll(".project-history a");
+
+            // Clear any active link state when the page is loaded
+            reportLinks.forEach(link => link.classList.remove("active"));
+
+            // Retrieve stored active link from localStorage
+            const activeLink = localStorage.getItem("activeReportLink");
+
+            // Normalize URLs for comparison (remove trailing slashes, etc.)
+            const normalizeUrl = (url) => {
+                try {
+                    return new URL(url, window.location.origin).href;
+                } catch (e) {
+                    return url;
+                }
+            };
+
+            // Get the current page URL
+            const currentPageUrl = normalizeUrl(window.location.href);
+
+            // Find the link that matches the current page
+            let currentPageLink = null;
+            reportLinks.forEach(link => {
+                const normalizedLinkHref = normalizeUrl(link.href);
+                if (normalizedLinkHref === currentPageUrl) {
+                    currentPageLink = link;
+                }
+            });
+
+            // If the current page matches a link, set it as active and update localStorage
+            if (currentPageLink) {
+                currentPageLink.classList.add("active");
+                localStorage.setItem("activeReportLink", currentPageLink.href);
+            } else {
+                // If no match for the current page, fall back to the stored active link
+                let isMatchFound = false;
+                if (activeLink) {
+                    reportLinks.forEach(link => {
+                        const normalizedLinkHref = normalizeUrl(link.href);
+                        const normalizedActiveLink = normalizeUrl(activeLink);
+                        if (normalizedLinkHref === normalizedActiveLink) {
+                            link.classList.add("active");
+                            isMatchFound = true;
+                        }
+                    });
+                }
+
+                // If no match for the stored active link, reset to Harvest
+                if (!isMatchFound) {
+                    const harvestLink = Array.from(reportLinks).find(link =>
+                        normalizeUrl(link.href).includes("admin_projects_list.html")
+                    );
+                    if (harvestLink) {
+                        harvestLink.classList.add("active");
+                        localStorage.setItem("activeReportLink", harvestLink.href);
                     }
-                });
-            }
-  
-            // If no match for the stored active link, reset to Harvest
-            if (!isMatchFound) {
-                const harvestLink = Array.from(reportLinks).find(link =>
-                    normalizeUrl(link.href).includes("admin_projects_list.html")
-                );
-                if (harvestLink) {
-                    harvestLink.classList.add("active");
-                    localStorage.setItem("activeReportLink", harvestLink.href);
-                } else {
                 }
             }
-        }
-  
-        // Add click event listeners to update the active link
-        reportLinks.forEach(link => {
-            link.addEventListener("click", function () {
-                // Remove active class from all links
-                reportLinks.forEach(link => link.classList.remove("active"));
-  
-                // Add active class to clicked link
-                this.classList.add("active");
-  
-                // Store the active link in localStorage
-                localStorage.setItem("activeReportLink", this.href);
+
+            // Add click event listeners to update the active link
+            reportLinks.forEach(link => {
+                link.addEventListener("click", function () {
+                    // Remove active class from all links
+                    reportLinks.forEach(link => link.classList.remove("active"));
+
+                    // Add active class to clicked link
+                    this.classList.add("active");
+
+                    // Store the active link in localStorage
+                    localStorage.setItem("activeReportLink", this.href);
+                });
             });
         });
-    });
-  </script>
+    </script>
 </body>
 </html>
