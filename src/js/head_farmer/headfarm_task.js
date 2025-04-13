@@ -241,10 +241,14 @@ function updatePagination() {
 // Modified renderTasks to update button state
 // Modified renderTasks to update button state and ensure pagination compatibility
 function renderTasks(allowEditDelete) {
-  if (allowEditDelete === undefined) {
-    const userType = sessionStorage.getItem("user_type");
-    allowEditDelete = userType === "Head Farmer";
-  }
+  const userType = sessionStorage.getItem("user_type");
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
+  const isLeadFarmer = String(farmerId) === String(leadFarmerId);
+
+  // Override allowEditDelete based on userType and lead_farmer_id
+  allowEditDelete =
+    userType === "Head Farmer" || (userType === "Farm President" && isLeadFarmer);
 
   const taskTableBody = document.getElementById("taskTableBody");
   if (!taskTableBody) return;
@@ -334,24 +338,28 @@ function updateFinishProjectButton() {
     return;
   }
 
-  // Finish button logic (unchanged)
+  // Enable finish button for Head Farmer or Farm President with matching lead_farmer_id
+  const isLeadFarmer = String(farmerId) === String(leadFarmerId);
   if (
-    userType !== "Head Farmer" ||
-    String(farmerId) !== String(leadFarmerId)
+    (userType === "Head Farmer" || (userType === "Farm President" && isLeadFarmer)) &&
+    isLeadFarmer
   ) {
-    finishButton.disabled = true;
-  } else {
-    const allTasksCompleted = allTasks.length > 0 && allTasks.every((taskObj) => taskObj.data.task_status === "Completed");
+    const allTasksCompleted =
+      allTasks.length > 0 &&
+      allTasks.every((taskObj) => taskObj.data.task_status === "Completed");
     finishButton.disabled = !allTasksCompleted;
+  } else {
+    finishButton.disabled = true;
   }
 
-  // Fail button: Enable only for Farm President
+  // Fail button: Enable only for Farm President (regardless of lead_farmer_id)
   failButton.disabled = userType !== "Farm President";
 }
 
 
 
 // Modified attachGlobalEventListeners to include Finish Project button handler
+// Modified attachGlobalEventListeners to enable addTaskButton for Farm President with matching lead_farmer_id
 function attachGlobalEventListeners() {
   if (globalListenersAttached) return;
   globalListenersAttached = true;
@@ -374,8 +382,15 @@ function attachGlobalEventListeners() {
   const finishProjectButton = document.getElementById("finishProjectButton");
   const failProjectButton = document.getElementById("failProjectButton");
   const userType = sessionStorage.getItem("user_type");
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
+  const isLeadFarmer = String(farmerId) === String(leadFarmerId);
 
-  if (userType !== "Head Farmer") {
+  // Enable addTaskButton for Head Farmer or Farm President with matching lead_farmer_id
+  if (
+    userType !== "Head Farmer" &&
+    !(userType === "Farm President" && isLeadFarmer)
+  ) {
     addTaskButton.disabled = true;
     addTaskButton.style.opacity = "0.5";
     addTaskButton.style.cursor = "not-allowed";
@@ -384,6 +399,10 @@ function attachGlobalEventListeners() {
       finishProjectButton.style.opacity = "0.5";
       finishProjectButton.style.cursor = "not-allowed";
     }
+  } else {
+    addTaskButton.disabled = false;
+    addTaskButton.style.opacity = "1";
+    addTaskButton.style.cursor = "pointer";
   }
 
   addTaskButton.addEventListener("click", () => {
@@ -398,7 +417,7 @@ function attachGlobalEventListeners() {
     addTaskModal.classList.remove("hidden");
   });
 
-  // Finish Project button handler (unchanged)
+  // Finish Project button handler
   if (finishProjectButton) {
     finishProjectButton.addEventListener("click", async () => {
       const projectId = sessionStorage.getItem("selected_project_id");

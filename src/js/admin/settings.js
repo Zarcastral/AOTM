@@ -758,11 +758,14 @@ window.loadFarmlandsForBarangay = function() {
     // Clear the list initially
     listContainer.innerHTML = '';
 
+    // If no barangay is selected (default "Select Barangay"), load all farmlands
     if (!selectedBarangayName) {
-        listContainer.innerHTML = '<p>Please select a barangay.</p>';
+        // Reuse fetchData to load all farmlands
+        fetchData('tb_farmland', 'farmland-list', 'farmland_name');
         return;
     }
 
+    // If a barangay is selected, load only farmlands for that barangay
     try {
         const q = query(collection(db, 'tb_farmland'), where('barangay_name', '==', selectedBarangayName));
         onSnapshot(q, (snapshot) => {
@@ -795,7 +798,7 @@ window.loadFarmlandsForBarangay = function() {
         console.error('Error setting up listener for farmlands:', error);
         listContainer.innerHTML = '<p>Error loading farmlands. Please try again later.</p>';
     }
-};
+};;
 
 document.getElementById('barangay-select').addEventListener('change', loadFarmlandsForBarangay);
 
