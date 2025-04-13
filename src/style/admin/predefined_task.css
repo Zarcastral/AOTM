@@ -756,3 +756,101 @@ border-radius: 5px;
       font-size: 14px;
   }
 }
+@media (max-width: 600px) {
+  /* Panel should NOT restrict overflow */
+  .panel {
+    overflow: visible; /* Allow table to scroll */
+    padding: 10px;
+  }
+
+  /* Table container (forces scroll) */
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth iOS scroll */
+    border: 1px solid #f0f0f0; /* Visual boundary */
+    border-radius: 8px;
+  }
+
+  /* Table itself (expands beyond viewport if needed) */
+  .assigned-task-table {
+    width: 100%;
+    min-width: 500px; /* Ensures table is wide enough for content */
+    border-collapse: collapse;
+  }
+
+  /* Table cells (prevent text wrapping) */
+  .assigned-task-table th,
+  .assigned-task-table td {
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap; /* Keep text in one line */
+    font-size: 14px; /* Slightly smaller text for readability */
+  }
+
+  /* Sticky first column (e.g., task name) */
+  .assigned-task-table th:first-child,
+  .assigned-task-table td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+    min-width: 120px; /* Ensure enough width for content */
+  }
+
+  /* Sticky action buttons column */
+  .assigned-task-table td:last-child {
+    position: sticky;
+    right: 0;
+    background: white;
+    z-index: 2;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+    min-width: 100px; /* Ensure action buttons are accessible */
+  }
+
+  /* Action buttons for smaller screens */
+  .edit-task-btn,
+  .delete-task-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 15px;
+  }
+
+  /* Search container adjustments */
+  .search-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap if needed */
+    gap: 8px; /* Reduced gap for compactness */
+    margin-bottom: 1rem;
+    padding: 0 10px; /* Ensure padding within panel */
+    justify-content: center; /* Align items to the start */
+  }
+
+  /* Search bar */
+  #search-bar {
+    width: 100%; /* Full width on small screens */
+    max-width: 300px; /* Cap width to prevent overflow */
+    padding: 8px 12px;
+    font-size: 14px; /* Smaller font for readability */
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    margin: 0; /* Remove conflicting margins */
+    box-sizing: border-box; /* Ensure padding is included in width */
+  }
+
+  /* Dropdowns */
+  #crop-filter,
+  #crop-type-filter,
+  #crop-type-select {
+    width: 100%; /* Full width on small screens */
+    max-width: 150px; /* Cap width to fit content */
+    padding: 8px 24px 8px 10px; /* Adjust padding for arrow */
+    font-size: 14px; /* Smaller font for readability */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 0; /* Remove conflicting margins */
+    background-position: right 8px center; /* Adjust arrow position */
+    background-size: 14px; /* Smaller arrow for smaller dropdown */
+    box-sizing: border-box; /* Ensure padding is included in width */
+  }
+}
