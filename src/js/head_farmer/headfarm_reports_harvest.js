@@ -59,12 +59,12 @@ async function fetchHarvest() {
     }
     
     const farmerData = farmerSnapshot.docs[0].data();
-    const currentFarmerId = farmerData.farmer_id; // Get the farmer_id field from the document
+    const currentFarmerId = farmerData.farmer_id;
     if (!currentFarmerId) {
       console.error("farmer_id field not found in farmer document");
       return;
     }
-    console.log("Current Farmer ID:", currentFarmerId); // Debugging
+    console.log("Current Farmer ID:", currentFarmerId);
 
     // Reference to both collections
     const harvestCollection = collection(db, "tb_harvest");
@@ -86,7 +86,7 @@ async function fetchHarvest() {
     // Listen to tb_harvest
     const unsubscribeHarvest = onSnapshot(harvestQuery, (snapshot) => {
       const harvestData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: "tb_harvest" }));
-      console.log("Harvest Data:", harvestData); // Debugging
+      console.log("Harvest Data:", harvestData);
       updateHarvestList(harvestData, "tb_harvest");
     }, (error) => {
       console.error("Error listening to tb_harvest:", error);
@@ -95,7 +95,7 @@ async function fetchHarvest() {
     // Listen to tb_harvest_history
     const unsubscribeHistory = onSnapshot(harvestHistoryQuery, (snapshot) => {
       const historyData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: "tb_harvest_history" }));
-      console.log("Harvest History Data:", historyData); // Debugging
+      console.log("Harvest History Data:", historyData);
       updateHarvestList(historyData, "tb_harvest_history");
     }, (error) => {
       console.error("Error listening to tb_harvest_history:", error);
@@ -103,9 +103,7 @@ async function fetchHarvest() {
 
     // Function to update harvestList and trigger display
     function updateHarvestList(newData, source) {
-      // Filter out existing records from the same source
       harvestList = harvestList.filter(item => item.source !== source);
-      // Add new data
       harvestList = [...harvestList, ...newData];
       originalHarvestList = harvestList;
       filterHarvest();
@@ -225,6 +223,8 @@ function showMonthPicker() {
 
 function displayHarvest(harvestList) {
   const tableBody = document.querySelector(".harvest_table table tbody");
+  const downloadBtn = document.getElementById("download-btn");
+
   if (!tableBody) {
     console.error("Table body not found inside .harvest_table");
     return;
@@ -235,7 +235,8 @@ function displayHarvest(harvestList) {
   const endIndex = startIndex + rowsPerPage;
   const paginatedHarvest = harvestList.slice(startIndex, endIndex);
 
-  if (paginatedHarvest.length === 0) {
+  if (filteredHarvest.length === 0) {
+    downloadBtn.disabled = true;
     const messageRow = document.createElement("tr");
     messageRow.classList.add("no-records-message");
     messageRow.innerHTML = `
@@ -243,15 +244,16 @@ function displayHarvest(harvestList) {
     `;
     tableBody.appendChild(messageRow);
     return;
+  } else {
+    downloadBtn.disabled = false;
   }
 
   paginatedHarvest.forEach((harvest) => {
     const row = document.createElement("tr");
-    // Adjust field mappings based on the document structure in the image
-    const commodity = harvest.project_name || "N/A"; // Using project_name as commodity
-    const cropType = harvest.crop_name || "N/A"; // Assuming crop_name exists, adjust if different
-    const farmersCount = harvest.lead_farmer ? 1 : 0; // Since lead_farmer is a single name
-    const barangay = harvest.barangay_name || "N/A"; // Adjust if barangay_name is stored differently
+    const commodity = harvest.project_name || "N/A";
+    const cropType = harvest.crop_name || "N/A";
+    const farmersCount = harvest.lead_farmer ? 1 : 0;
+    const barangay = harvest.barangay_name || "N/A";
     const areaPlanted = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
     const startDate = harvest.start_date ? formatDate(new Date(harvest.start_date)) : "N/A";
     const areaHarvested = harvest.land_area ? `${harvest.land_area} ha` : "N/A";
