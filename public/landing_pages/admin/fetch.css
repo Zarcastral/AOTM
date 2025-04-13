@@ -270,3 +270,75 @@
   color: #bbb;
   cursor: not-allowed;
 }
+/* Responsive styles */
+@media (max-width: 768px) {
+  #edit-subtasks-modal .modal-content {
+    width: 90%;
+    padding: 20px 15px; /* Reduced padding for tablets */
+  }
+
+  #edit-subtasks-modal #edit-task-name-display {
+    font-size: 20px; /* Slightly smaller heading */
+  }
+
+  #edit-subtasks-modal #new-subtask-input-subtasks {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  #edit-subtasks-modal #add-subtask-btn-subtasks {
+    font-size: 14px;
+  }
+
+  #edit-subtasks-modal #save-subtasks-btn-subtasks {
+    font-size: 14px;
+    padding: 8px 16px;
+    width: 100px;
+  }
+
+  #edit-subtasks-modal .close {
+    font-size: 24px; /* Smaller close button */
+    right: 15px;
+    top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  #edit-subtasks-modal .modal-content {
+    width: 95%;
+    padding: 15px 10px; /* Further reduced padding for mobile */
+  }
+
+  #edit-subtasks-modal #edit-task-name-display {
+    font-size: 18px;
+  }
+
+  #edit-subtasks-modal #new-subtask-input-subtasks {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  #edit-subtasks-modal #add-subtask-btn-subtasks {
+    font-size: 13px;
+  }
+
+  #edit-subtasks-modal #save-subtasks-btn-subtasks {
+    font-size: 13px;
+    padding: 7px 14px;
+    width: 90px;
+  }
+
+  #edit-subtasks-modal .task-list li {
+    padding: 8px 10px; /* Smaller padding for list items */
+  }
+
+  #edit-subtasks-modal .close {
+    font-size: 20px;
+    right: 10px;
+    top: 6px;
+  }
+
+  #edit-subtasks-modal #add {
+    font-size: 14px;
+  }
+}
