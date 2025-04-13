@@ -7,11 +7,13 @@ body {
   display: flex;
   flex-direction: column;
 }
+
 .title-project {
-  font-weight: bold; /* Makes the text bold */
+  font-weight: bold;
   display: inline-block;
-  margin-bottom: 10px; /* Adds space between the span and the panel */
+  margin-bottom: 10px;
 }
+
 .header {
   min-height: 60px;
   height: 60px;
@@ -59,6 +61,7 @@ body {
   margin-top: 20px;
   margin-bottom: 20px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 /* Styling for search input */
@@ -74,7 +77,7 @@ body {
 
 /* Styling for the Status select dropdown */
 #status_select {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243b53;
   border: 1px solid #ccc;
@@ -82,10 +85,10 @@ body {
   outline: none;
   width: 200px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
@@ -99,18 +102,18 @@ body {
 .main-content {
   display: flex;
   flex-direction: column;
-  padding: 50px; /* Padding around the panels */
-  overflow-y: auto; /* Enable vertical scrolling */
+  padding: 50px;
+  overflow-y: auto;
 }
 
 /* Panel container style */
-
 .panel {
   background-color: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
-  padding: 15px;
+  padding: 15px 15px 60px 15px; /* Increased bottom padding for pagination */
   border-radius: 8px;
+  position: relative;
 }
 
 /* Table styles */
@@ -141,57 +144,57 @@ th {
 }
 
 th:first-child {
-  width: 100px; /* Fixed width for the action column; adjust as needed */
-  min-width: 120px; /* Minimum width to ensure usability */
+  width: 100px;
+  min-width: 120px;
   text-align: left;
 }
 
 th:nth-child(2),
 td:nth-child(2) {
-  width: 100px; /* Fixed width for the action column; adjust as needed */
-  min-width: 130px; /* Minimum width to ensure usability */
+  width: 100px;
+  min-width: 130px;
   text-align: left;
 }
 
 th:nth-child(3),
 td:nth-child(3) {
-  width: 100px; /* Fixed width for the action column; adjust as needed */
-  min-width: 100px; /* Minimum width to ensure usability */
+  width: 100px;
+  min-width: 100px;
   text-align: left;
 }
 
 th:nth-child(4),
 td:nth-child(4) {
-  width: 100px; /* Fixed width for the action column; adjust as needed */
-  min-width: 100px; /* Minimum width to ensure usability */
+  width: 100px;
+  min-width: 100px;
   text-align: left;
 }
 
 th:nth-child(5),
 td:nth-child(5) {
-  width: 100px; /* Fixed width for the action column; adjust as needed */
-  min-width: 90px; /* Minimum width to ensure usability */
+  width: 100px;
+  min-width: 90px;
   text-align: left;
 }
 
 th:nth-child(6),
 td:nth-child(6) {
-  width: 250px; /* Fixed width for the action column; adjust as needed */
-  min-width: 110px; /* Minimum width to ensure usability */
+  width: 250px;
+  min-width: 110px;
   text-align: left;
 }
 
 th:nth-child(7),
 td:nth-child(7) {
-  width: 100px; /* Fixed width for the action column; adjust as needed */
-  min-width: 20px; /* Minimum width to ensure usability */
+  width: 100px;
+  min-width: 20px;
   text-align: left;
 }
 
 th:last-child,
 td:last-child {
-  width: 170px; /* Fixed width for the action column; adjust as needed */
-  min-width: 150px; /* Minimum width to ensure usability */
+  width: 170px;
+  min-width: 150px;
   text-align: center;
 }
 
@@ -199,9 +202,11 @@ tbody tr {
   background-color: white;
   border-bottom: 2px solid #f0f0f0;
 }
+
 tbody tr:hover {
   background-color: #f3f4f6;
 }
+
 /* Remove border from the last row */
 tbody tr:last-child td {
   border-bottom: none;
@@ -210,42 +215,20 @@ tbody tr:last-child td {
 input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  border: 1px solid #d1d5db; /* Thin border */
-  border-radius: 4px; /* Optional: Slightly rounded corners */
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
   outline: none;
   background-color: white;
   cursor: pointer;
 }
 
-.search-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-#search-bar,
-#barangay-select {
-  padding: 8px;
-  font-size: 16px;
-  border: 1px solid lightgray;
-  border-radius: 5px;
-  outline: none;
-}
-#search-bar {
-  width: 300px;
-}
-
 #search-bar:focus,
-#barangay-select:focus {
+#barangay-select:focus,
+#status_select:focus {
   border-color: #aaa;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
-.search-container input,
-.search-container select {
-  padding: 0.5rem;
-  border: 1px solid #dcdcdc;
-  border-radius: 5px;
-}
+
 .action-btn {
   border: none;
   background: none;
@@ -262,21 +245,21 @@ input[type="checkbox"] {
 
 /* Progress Bar Styles */
 .progress-bar-container {
-  width: 100%; /* Full width of the table cell */
-  background-color: #f0f0f0; /* Matches your table's light gray theme */
-  border-radius: 5px; /* Slightly rounded corners */
-  overflow: hidden; /* Ensures the inner bar doesn't spill out */
-  height: 20px; /* Fixed height for consistency */
+  width: 100%;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  overflow: hidden;
+  height: 20px;
 }
 
 .progress-bar {
-  height: 100%; /* Fills the container height */
-  background-color: #41a186; /* Matches your theme's green color */
-  text-align: center; /* Centers the percentage text */
-  color: white; /* White text for contrast */
-  line-height: 20px; /* Vertically centers text within the bar */
-  font-size: 12px; /* Matches your table's font size */
-  transition: width 0.3s ease-in-out; /* Smooth animation for future dynamic updates */
+  height: 100%;
+  background-color: #41a186;
+  text-align: center;
+  color: white;
+  line-height: 20px;
+  font-size: 12px;
+  transition: width 0.3s ease-in-out;
 }
 
 /* New User Button */
@@ -297,18 +280,18 @@ input[type="checkbox"] {
 .add-project-btn:hover {
   background-color: #318a71;
   text-decoration: none;
-  transition: background-color 0.3s ease;
 }
 
 /* Pagination styles */
 .pagination-container {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
   display: flex;
-  justify-content: flex-end;
-  align-items: center; /* Aligns vertically */
-  margin-top: 20px;
-  width: 100%;
-  gap: 10px; /* Adds spacing between elements */
+  align-items: center;
+  gap: 10px;
 }
+
 #page-number {
   font-size: 17px;
   color: #333;
@@ -355,12 +338,12 @@ input[type="checkbox"] {
 
 .confirmation-message {
   background-color: white;
-  padding: 20px; /* Adjusted to match the second image */
+  padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 100%;
-  max-width: 400px; /* Match the width of the second image */
+  max-width: 400px;
 }
 
 /* Style for the "Select a Team" heading */
@@ -376,7 +359,7 @@ input[type="checkbox"] {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  text-align: left; /* Align text to the left like in the second image */
+  text-align: left;
 }
 
 /* Style for the team item */
@@ -386,7 +369,7 @@ input[type="checkbox"] {
   padding: 10px;
   margin-top: -10px;
   border-radius: 4px;
-  cursor: pointer; /* Make it clickable */
+  cursor: pointer;
 }
 
 /* Style for the selected team */
@@ -412,7 +395,7 @@ input[type="checkbox"] {
 .cancel-btn {
   margin-top: 20px;
   width: 35%;
-  padding: 10px 20px; /* Adjusted padding to match the second image */
+  padding: 10px 20px;
   font-size: 16px;
   border-radius: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -423,7 +406,7 @@ input[type="checkbox"] {
   background-color: #41a186;
   color: white;
   border: none;
-  margin-left: 10px; /* Space between buttons */
+  margin-left: 10px;
 }
 
 .confirm-btn:hover {
@@ -437,7 +420,7 @@ input[type="checkbox"] {
 }
 
 .cancel-btn:hover {
-  background-color: #b0b7c0; /* Slightly darker gray on hover */
+  background-color: #b0b7c0;
 }
 
 /* Success Message Style */
@@ -446,7 +429,7 @@ input[type="checkbox"] {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: transparent; /* Remove the default green */
+  background-color: transparent;
   color: white;
   padding: 10px 20px;
   border-radius: 20px;
@@ -456,42 +439,6 @@ input[type="checkbox"] {
   z-index: 1001;
   opacity: 0;
   transition: opacity 0.3s ease;
-}
-
-/* Basic styling for the search container */
-.search-container {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  align-items: center;
-}
-
-/* Styling for search input */
-#search-bar {
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  outline: none;
-  width: 400px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Styling for the Status select dropdown */
-#status_select {
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  outline: none;
-  width: 200px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Optional: Style for the placeholder option */
-#status_select option[value=""] {
-  color: #888;
-  font-style: italic;
 }
 
 .action-btn img {
@@ -580,7 +527,6 @@ input[type="checkbox"] {
 
 .bulk-confirm-btn:hover {
   background-color: #38853c;
-  transition: background-color 0.3s ease;
 }
 
 .bulk-cancel-btn {
@@ -591,7 +537,6 @@ input[type="checkbox"] {
 
 .bulk-cancel-btn:hover {
   background-color: rgb(90, 101, 112);
-  transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 
 /* Bulk Delete Success Message Style */
@@ -610,8 +555,9 @@ input[type="checkbox"] {
   opacity: 0;
   transition: opacity 0.3s ease;
 }
+
 .modal {
-  display: none; /* Hidden by default */
+  display: none;
   position: fixed;
   z-index: 1000;
   left: 50%;
@@ -641,6 +587,7 @@ input[type="checkbox"] {
   justify-content: space-between;
   margin-top: 20px;
 }
+
 .project-selector {
   display: flex;
   gap: 30px;
@@ -665,112 +612,260 @@ input[type="checkbox"] {
 .project-selector:hover a {
   color: #41a186;
 }
+
 /* Responsive styles */
+@media (max-width: 1200px) {
+  .project-selector {
+    gap: 20px;
+    font-size: 18px;
+  }
+  #search-bar {
+    width: 250px;
+  }
+  #status_select {
+    width: 180px;
+  }
+  .panel {
+    padding: 10px 10px 50px 10px; /* Reduced bottom padding slightly */
+  }
+  .pagination-container {
+    bottom: 10px;
+    right: 15px;
+    gap: 8px;
+  }
+}
+
 @media (max-width: 1024px) {
+  .header-title {
+    font-size: 26px;
+  }
   #title {
     font-size: 15px;
   }
   .main-content {
-    padding: 30px;
+    padding: 20px;
   }
-
   .panel {
+    padding: 10px 10px 50px 10px;
     width: 100%;
   }
-
   .search-container {
     gap: 0.5rem;
+    flex-wrap: wrap;
   }
-
+  #search-bar,
+  #barangay-select,
+  #status_select {
+    width: 250px;
+    max-width: 300px;
+  }
   .add-project-btn {
-    font-size: 15px;
-    padding: 10px 16px;
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+  th,
+  td {
+    padding: 0.8rem;
+    font-size: 11px;
+  }
+  th:first-child,
+  th:nth-child(2),
+  th:nth-child(3),
+  th:nth-child(4),
+  th:nth-child(5),
+  th:nth-child(6),
+  th:nth-child(7),
+  th:last-child {
+    min-width: 100px;
+  }
+  .pagination-container {
+    bottom: 10px;
+    right: 15px;
+    gap: 8px;
+  }
+  .confirmation-message {
+    padding: 20px;
+    max-width: 350px;
+  }
+  .team-details p:first-child {
+    font-size: 14px;
   }
 }
 
 @media (max-width: 768px) {
-  #title {
-    font-size: 12px;
-    margin-left: 20px;
-  }
-
-  .main-content {
-    padding: 10px;
-  }
-
-  .panel {
-    width: 85%;
-    padding: 20px;
-    border-radius: 10px;
-    margin-left: 20px;
-  }
-
-  #search-bar,
-  #barangay-select {
-    width: 80%;
-  }
-
-  table {
-    font-size: 14px;
-  }
-
-  th,
-  td {
-    padding: 0.8rem;
-  }
-
-  .add-project-btn {
-    font-size: 12px;
-    padding: 10px 16px;
-  }
-
-  .pagination-container {
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .pagination-btn {
-    font-size: 18px;
-    padding: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  #title {
-    font-size: 15px;
-  }
-
   .header {
-    padding: 0 10px;
+    padding: 0 15px;
+    height: 50px;
   }
-
   .header-title {
-    font-size: 24px;
+    font-size: 22px;
   }
-
   .header-icons img {
     width: 20px;
     height: 20px;
   }
-
+  #title {
+    font-size: 14px;
+    margin: 10px 0;
+  }
+  .main-content {
+    padding: 15px;
+  }
   .panel {
-    padding: 10%;
-  }
-
-  #search-bar,
-  #barangay-select {
-    width: 80%;
-  }
-
-  .pagination-container {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .pagination-btn {
     width: 100%;
-    font-size: 16px;
+    padding: 10px 10px 40px 10px; /* Adjusted bottom padding */
+    margin-left: 0;
+    border-radius: 8px;
+  }
+  .search-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  #search-bar,
+  #barangay-select,
+  #status_select {
+    width: 100%;
+    max-width: 200px;
+    font-size: 14px;
+    padding: 8px;
+  }
+  .add-project-btn {
+    font-size: 13px;
+    padding: 8px 14px;
+    margin: 10px 0 0 0;
+  }
+  .table-wrapper {
+    overflow-x: auto;
+  }
+  table {
+    font-size: 12px;
+    min-width: 600px;
+  }
+  th,
+  td {
+    padding: 0.6rem;
+  }
+  .pagination-container {
+    bottom: -5px;
+    right: 10px;
+    gap: 8px;
+  }
+  .modal {
+    width: 90%;
+    padding: 15px;
+  }
+  .confirmation-message,
+  .confirm-bulk-delete-message {
+    padding: 20px;
+    width: 80%;
+    max-width: 300px;
+  }
+  .confirmation-message p {
+    font-size: 20px;
+  }
+  .confirm-btn,
+  .cancel-btn,
+  .bulk-confirm-btn,
+  .bulk-cancel-btn {
+    width: 45%;
+    font-size: 14px;
+    padding: 8px;
+  }
+  .team-details p:first-child {
+    font-size: 13px;
+  }
+  .team-details p {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 10px;
+    height: 45px;
+  }
+  .header-title {
+    font-size: 20px;
+  }
+  .header-icons {
+    gap: 10px;
+  }
+  .header-icons img {
+    width: 18px;
+    height: 18px;
+  }
+  #title {
+    font-size: 13px;
+  }
+  .main-content {
+    padding: 10px;
+  }
+  .panel {
+    padding: 8px 8px 30px 8px; /* Minimal bottom padding for pagination */
+    border-radius: 6px;
+  }
+  .search-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  #search-bar,
+  #barangay-select,
+  #status_select {
+    width: 100%;
+    max-width: 150px;
+    font-size: 13px;
     padding: 6px;
+  }
+  .add-project-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  table {
+    font-size: 11px;
+  }
+  th,
+  td {
+    padding: 0.5rem;
+  }
+  .action-btn img {
+    width: 20px;
+    height: 20px;
+  }
+  .pagination-container {
+    bottom: 0px;
+    right: 8px;
+    gap: 5px;
+  }
+  .pagination-btn {
+    font-size: 18px;
+    padding: 5px;
+  }
+  #page-number {
+    font-size: 14px;
+  }
+  .confirmation-message,
+  .confirm-bulk-delete-message {
+    padding: 15px;
+    width: 90%;
+    max-width: 250px;
+  }
+  .confirmation-message p {
+    font-size: 18px;
+  }
+  .confirm-btn,
+  .cancel-btn,
+  .bulk-confirm-btn,
+  .bulk-cancel-btn {
+    width: 100%;
+    margin: 5px 0;
+    font-size: 13px;
+  }
+  .team-details p:first-child {
+    font-size: 12px;
+  }
+  .team-details p {
+    font-size: 8px;
   }
 }

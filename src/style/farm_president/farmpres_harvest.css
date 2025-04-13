@@ -6,6 +6,7 @@ body {
   display: flex;
   flex-direction: column;
 }
+
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -41,8 +42,7 @@ body {
   cursor: pointer;
 }
 
-
-#harvest-search-bar{
+#harvest-search-bar {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
@@ -52,20 +52,19 @@ body {
 #harvest-search-bar {
   padding: 9px;
   font-size: 15px;
-  border: 1px solid lightgray; 
-  border-radius: px;
+  border: 1px solid lightgray;
+  border-radius: 6px;
   outline: none;
 }
-
 
 .main-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px; /* Space between panels */
-  padding: 20px; /* Padding around the panels */
-  overflow-y: auto; /* Enable vertical scrolling */
-  max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
+  gap: 20px;
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
 }
 
 /* Account Panel Styles */
@@ -74,7 +73,7 @@ body {
   top: 60px;
   right: 20px;
   width: 300px;
-  height: 400px; /* Set a fixed height here */
+  height: 400px;
   background: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   padding: 10px;
@@ -88,8 +87,7 @@ body {
   color: #41A186;
   margin-bottom: 20px;
   padding: 20px 20px;
-  /* Remove negative margin-top to avoid overlap with content above */
-  margin-top: 0; /* Reset to default */
+  margin-top: 0;
   margin-left: -20px;
 }
 
@@ -116,6 +114,7 @@ body {
 .account-panel ul li:last-child {
   border-bottom: none;
 }
+
 .panel {
   background-color: white;
   width: 90%;
@@ -123,35 +122,42 @@ body {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   margin-top: 0px;
+  position: relative; /* Contain absolute positioned elements */
+  padding-bottom: 60px;
 }
 
-.harvest-search-bar{
+.harvest-search-bar {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
 }
-.panel table th, .panel table td {
+
+.panel table th,
+.panel table td {
   text-align: center;
-  vertical-align: middle; /* Ensures vertical alignment */
+  vertical-align: middle;
 }
 
 .image-header img {
-  display: block; /* Makes the image block-level for better alignment */
-  margin: 0 auto; /* Centers the image horizontally */
+  display: block;
+  margin: 0 auto;
 }
-.harvest-search-bar input{
+
+.harvest-search-bar input {
   width: 300px;
   padding: 8px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
 }
 
-.harvest-search-bar select{
+.harvest-search-bar select {
   padding: 8px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
 }
-.panel table th, .panel table td {
+
+.panel table th,
+.panel table td {
   text-align: left;
   vertical-align: middle;
 }
@@ -176,43 +182,49 @@ th {
   color: #333;
   font-weight: 600;
 }
-th:first-child{
+
+th:first-child {
   padding-left: 12px;
 }
 
-td:first-child{
-  width: 140px; /* Adjusted width for the action column */
-  min-width: 140px; /* Minimum width to ensure usability */
-  text-align: left; /* Center the content in the column for better appearance */
+td:first-child {
+  width: 140px;
+  min-width: 140px;
+  text-align: left;
 }
 
-th:nth-child(3), td:nth-child(3) {
-  width: 120px; /* Adjusted width for the action column */
-  min-width: 130px; /* Minimum width to ensure usability */
-  text-align: left; /* Center the content in the column for better appearance */
+th:nth-child(3),
+td:nth-child(3) {
+  width: 120px;
+  min-width: 130px;
+  text-align: left;
 }
 
-th:nth-child(5), td:nth-child(5) {
-  width: 170px; /* Adjusted width for the action column */
-  min-width: 170px; /* Minimum width to ensure usability */
-  text-align: left; /* Center the content in the column for better appearance */
+th:nth-child(5),
+td:nth-child(5) {
+  width: 170px;
+  min-width: 170px;
+  text-align: left;
 }
 
-th:nth-child(6), td:nth-child(6) {
-  width: 130px; /* Adjusted width for the action column */
-  min-width: 130px; /* Minimum width to ensure usability */
-  text-align: left; /* Center the content in the column for better appearance */
+th:nth-child(6),
+td:nth-child(6) {
+  width: 130px;
+  min-width: 130px;
+  text-align: left;
 }
 
-.panel table th:nth-child(7), .panel table td:nth-child(7) {
-  width: 140px; /* Adjusted width for the action column */
-  min-width: 140px; /* Minimum width to ensure usability */
-  text-align: center; /* Center the content in the column for better appearance */
+.panel table th:nth-child(7),
+.panel table td:nth-child(7) {
+  width: 140px;
+  min-width: 140px;
+  text-align: center;
 }
 
-.panel table th:last-child, .panel table td:last-child {
-  width: 150px; /* Fixed width for the action column; adjust as needed */
-  min-width: 150px; /* Minimum width to ensure usability */
+.panel table th:last-child,
+.panel table td:last-child {
+  width: 150px;
+  min-width: 150px;
   text-align: center;
 }
 
@@ -232,7 +244,7 @@ tbody tr:hover {
 }
 
 .btn-new-project {
-  background-color: #41A186;;
+  background-color: #41A186;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -273,47 +285,47 @@ tbody tr:hover {
 }
 
 .rando-line {
-color: slategray;
-transition: color 0.3s ease;
+  color: slategray;
+  transition: color 0.3s ease;
 }
-
 
 /* Pagination styles */
 .harvest-pagination,
 .fertilizer-pagination,
 .equipment-pagination {
-display: flex;
-justify-content: flex-end;
-align-items: center; /* Aligns vertically */
-margin-top: 20px;
-width: 100%;
-gap: 10px; /* Adds spacing between elements */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: absolute;
+  bottom: 10px; /* Inside panel padding */
+  right: 10px; /* Inside panel padding */
+  gap: 10px;
 }
 
-#harvest-page-number{
-font-size: 17px;
-color: #333;
+#harvest-page-number {
+  font-size: 17px;
+  color: #333;
 }
 
-.harvest-pagination-btn{
-padding: 10px 10px;
-margin: 0;
-font-size: 25px;
-border: none;
-border-radius: 0;
-cursor: pointer;
-background: none;
-transition: color 0.3s ease;
-color: #333;
+.harvest-pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
 }
 
-.harvest-pagination-btn:hover{
-color: #41A186;
+.harvest-pagination-btn:hover {
+  color: #41A186;
 }
 
-.harvest-pagination-btn:disabled{
-color: #bbb;
-cursor: not-allowed;
+.harvest-pagination-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
 }
 
 .action-btn {
@@ -323,26 +335,28 @@ cursor: not-allowed;
   font-size: 16px;
   margin: 0 5px;
 }
+
 .action-btn img {
   margin-top: 5px;
-  width: 30px; 
+  width: 30px;
   height: 30px;
   object-fit: contain;
 }
+
 .action-btn:hover {
   opacity: 0.7;
 }
 
 /* Modal Overlay (Background) */
 .modal-overlay {
-  display: none; /* Hidden by default */
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-  z-index: 1000; /* Ensure it’s above other content */
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
   justify-content: center;
   align-items: center;
 }
@@ -383,7 +397,7 @@ cursor: not-allowed;
   font-size: 35px;
   cursor: pointer;
   color: #C4C4C4;
-  margin-top: -75px
+  margin-top: -75px;
 }
 
 .modal-close-btn:hover {
@@ -423,23 +437,21 @@ cursor: not-allowed;
 }
 
 .form-group select {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-    font-size: 16px;
-    color: #243B53;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    outline: none;
-    width: 100%;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-    background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
-    background-size: 16px;
-    cursor: pointer;
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
 }
-
-
 
 .form-group textarea {
   height: 150px;
@@ -467,21 +479,21 @@ cursor: not-allowed;
 /* Total Harvest Group (Total Harvest/Unit) */
 .total-harvest-group {
   display: flex;
-  gap: 15px; /* Gap between Total Harvest and Unit */
+  gap: 15px;
   margin-bottom: 25px;
 }
 
 .total-harvest-group > div {
-  flex: none; /* Remove equal flex distribution */
+  flex: none;
 }
 
 .total-harvest-group > div:first-child {
-  flex-grow: 3; /* Total Harvest takes up more space */
-  min-width: 0; /* Prevent overflow */
+  flex-grow: 3;
+  min-width: 0;
 }
 
 .total-harvest-group > div:last-child {
-  width: 80px; /* Fixed width for Unit field to match the image */
+  width: 80px;
 }
 
 .total-harvest-group > div:last-child input {
@@ -491,15 +503,15 @@ cursor: not-allowed;
 /* Modal Footer */
 .modal-footer {
   display: flex;
-  justify-content: flex-end; /* Aligns buttons to the right */
+  justify-content: flex-end;
   padding-top: 15px;
   border-top: 1px solid #E2E8F0;
-  gap: 10px; /* Space between buttons */
+  gap: 10px;
 }
 
 /* Close Button */
 .close-btn {
-  background-color: #C4C4C4; /* Gray background for a neutral look */
+  background-color: #C4C4C4;
   color: white;
   padding: 10px 40px;
   border: none;
@@ -511,7 +523,7 @@ cursor: not-allowed;
 
 /* Close Button Hover */
 .close-btn:hover {
-  background-color: #B0B7C0; /* Slightly darker gray on hover */
+  background-color: #B0B7C0;
 }
 
 /* Submit Button */
@@ -552,28 +564,28 @@ cursor: not-allowed;
   font-weight: 400;
   text-align: center;
   border-radius: 20px;
-  margin-top: -10px;
-  margin-right: -90px;
-  margin-bottom: -90px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   border: none;
   text-decoration: none;
+  position: relative;
+  top: 20px; /* Inside panel padding */
+  left: 190px; /* Inside panel padding */
 }
 
 .add-user-btn:hover {
-  color: #3a8d76; 
+  color: #3a8d76;
   text-decoration: none;
   transition: background-color 0.3s ease;
 }
 
 .action-icon-add {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    vertical-align: middle;
-    margin-right: -5px; /* Nudges the icon closer to the text */
-    margin-top: -3px; /* Nudges the icon closer to the text */
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: -5px;
+  margin-top: -3px;
 }
 
 .disabled-field {
@@ -586,7 +598,7 @@ cursor: not-allowed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color:  #41A186;
+  background-color: #41A186;
   color: white;
   padding: 15px 20px;
   border-radius: 25px;
@@ -596,14 +608,6 @@ cursor: not-allowed;
   z-index: 1001;
   opacity: 0;
   transition: opacity 0.3s ease;
-}
-
-
-.button-container {
-width: 90%;
-display: flex;
-justify-content: flex-end;
-margin-top: 20px;
 }
 
 .download-btn {
@@ -626,7 +630,7 @@ margin-top: 20px;
   height: 20px;
   object-fit: contain;
   vertical-align: middle;
-  margin-top: -4px; /* Nudges the icon closer to the text */
+  margin-top: -4px;
 }
 
 .submit-harvest-btn {
@@ -641,82 +645,85 @@ margin-top: 20px;
   transition: background-color 0.2s;
   margin-top: -20px;
   box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .submit-harvest-icon {
+}
+
+.submit-harvest-icon {
   width: 20px;
   height: 20px;
   object-fit: contain;
   vertical-align: middle;
-  margin-top: -4px; /* Nudges the icon closer to the text */
-  }
-  
-  .submit-harvest-btn:hover {
-  background-color: #318a71;
-  }
-
-  .confirmation-panel {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  
-  .confirmation-message {
-    background-color: white;
-    padding: 20px;
-    width: 500px;
-    border-radius: 25px;
-    font-weight: 400;
-    font-size: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-  }
-  
-  .confirmation-message p {
-    margin: 0 0 30px 0;
-  }
-  
-  .cancel-btn, .confirm-btn {
-    margin: 10px;
-    width: 35%;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 25px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .cancel-btn {
-    background-color: #cacaca;
-    color: white;
-    border: none;
-  }
-  
-  .confirm-btn {
-    background-color: #41A186;
-    color: white;
-    border: none;
-  }
-
-  .confirm-btn:hover {
-    background-color: #318a71;
-    transition: background-color 0.3s ease;
+  margin-top: -4px;
 }
+
+.submit-harvest-btn:hover {
+  background-color: #318a71;
+}
+
+.confirmation-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.confirmation-message {
+  background-color: white;
+  padding: 20px;
+  width: 500px;
+  border-radius: 25px;
+  font-weight: 400;
+  font-size: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.confirmation-message p {
+  margin: 0 0 30px 0;
+}
+
+.cancel-btn,
+.confirm-btn {
+  margin: 10px;
+  width: 35%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: #cacaca;
+  color: white;
+  border: none;
+}
+
+.confirm-btn {
+  background-color: #41A186;
+  color: white;
+  border: none;
+}
+
+.confirm-btn:hover {
+  background-color: #318a71;
+  transition: background-color 0.3s ease;
+}
+
 .cancel-btn:hover {
   background-color: #B0B7C0;
 }
-  
-  .duplicate-row {
-    background-color: #e0e0e0; /* Slightly grayed-out effect */
-    opacity: 0.8;
-  }
+
+.duplicate-row {
+  background-color: #e0e0e0;
+  opacity: 0.8;
+}
+
 @media screen and (max-width: 768px) {
   .add-user-btn {
     background-color: white;
@@ -726,21 +733,21 @@ margin-top: 20px;
     font-weight: 400;
     text-align: center;
     border-radius: 20px;
-    margin-top: -10px;
-    margin-right: -50px;
-    margin-bottom: -90px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     border: none;
     text-decoration: none;
+    position: relative;
+    top: 20px; /* Inside panel padding */
+    left: 520px; /* Inside panel padding */
   }
-  
+
   .add-user-btn:hover {
-    color: #318a71; 
+    color: #318a71;
     text-decoration: none;
     transition: background-color 0.3s ease;
   }
-  
+
   .header {
     padding: 0 10px;
   }
@@ -780,17 +787,17 @@ margin-top: 20px;
     font-weight: 400;
     text-align: center;
     border-radius: 20px;
-    margin-top: -10px;
-    margin-right: -30px;
-    margin-bottom: -90px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     border: none;
     text-decoration: none;
+    position: relative;
+    top: 20px; /* Inside panel padding */
+    left: 880px; /* Inside panel padding */
   }
-  
+
   .add-user-btn:hover {
-    color: #318a71; 
+    color: #318a71;
     text-decoration: none;
     transition: background-color 0.3s ease;
   }
