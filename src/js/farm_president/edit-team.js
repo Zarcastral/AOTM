@@ -70,10 +70,10 @@ function showErrorPanel(message) {
 
 async function loadTeamData() {
     // Hide popup immediately to prevent flash
-    const addFarmerPopup = document.getElementById('addFarmerPopup');
-    if (addFarmerPopup) {
-        addFarmerPopup.style.display = 'none';
-    }
+    //const addFarmerPopup = document.getElementById('addFarmerPopup');
+    //if (addFarmerPopup) {
+      //  addFarmerPopup.style.display = 'none';
+    //}
 
     if (!teamId) {
         showErrorPanel('No team ID provided');

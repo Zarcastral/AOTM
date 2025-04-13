@@ -723,6 +723,12 @@ td {
     }
 }
 
+
+#addFarmerPopup,
+#deleteTeamPopup {
+    display: none;
+}
+
 /* Responsive Design for 420px */
 @media (max-width: 420px) {
     body {
