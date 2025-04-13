@@ -39,7 +39,7 @@ body {
 }
 
 .year-selector {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
@@ -47,17 +47,17 @@ body {
   outline: none;
   width: 200px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
 
 .main-content {
   flex: 1;
-  padding: 0px 40px; /* Reduced top padding from 20px to 10px to minimize white space */
+  padding: 0 40px;
   overflow-y: auto;
 }
 
@@ -65,7 +65,7 @@ body {
 .top-section {
   display: flex;
   gap: 20px;
-  margin-bottom: 40px; /* Increased margin to create more space below */
+  margin-bottom: 40px;
   position: relative;
 }
 
@@ -73,7 +73,7 @@ body {
 .system-stats-section {
   flex: 1;
   position: relative;
-  padding-top: 0; /* Removed padding-top to eliminate white space */
+  padding-top: 0;
 }
 
 .system-stats {
@@ -90,32 +90,29 @@ body {
   align-items: center;
   gap: 15px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  flex: 1; /* Ensure each card takes equal height */
+  flex: 1;
 }
 
 .stats-icon {
-  width: 60px; /* Size to match Image 2 */
-  height: 60px; /* Size to match Image 2 */
+  width: 60px;
+  height: 60px;
 }
 
-.farmers-icon {
-  /* No background image needed anymore */
-}
-
+.farmers-icon,
 .projects-icon {
-  /* No background image needed anymore */
+  /* No background image needed */
 }
 
 .stats-info {
   display: flex;
   align-items: center;
-  gap: 15px; /* Reduced from 20px to 15px to match the tighter spacing in Image 2 */
+  gap: 15px;
   flex: 1;
   justify-content: space-between;
 }
 
 .stats-info p {
-  font-size: 35px; /* Increased from 16px to 18px to match Image 2 */
+  font-size: 35px;
   font-weight: 500;
   color: #333;
   margin: 0;
@@ -128,14 +125,14 @@ body {
 }
 
 .number-wrapper h3 {
-  font-size: 48px; /* Increased from 36px to 48px to match Image 2 */
+  font-size: 48px;
   font-weight: 500;
   margin: 0;
   color: #333;
 }
 
 .number-wrapper span {
-  font-size: 16px; /* Increased from 14px to 16px to match Image 2 */
+  font-size: 16px;
   color: #888;
 }
 
@@ -143,7 +140,7 @@ body {
 .project-status-section {
   flex: 1;
   position: relative;
-  padding-top: 0; /* Removed padding-top to eliminate white space */
+  padding-top: 0;
 }
 
 .project-status {
@@ -153,17 +150,16 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 68%; /* Ensure it takes at least the full height of the parent */
+  min-height: 68%;
   padding: 30px;
 }
 
-/* Project Status Section */
 .status-circles {
   display: flex;
   gap: 20px;
   justify-content: space-around;
   align-items: center;
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  flex-wrap: wrap;
 }
 
 .circle {
@@ -171,7 +167,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center the content vertically */
+  justify-content: center;
 }
 
 .circle span {
@@ -204,46 +200,39 @@ body {
 }
 
 .circle span::after {
-  content: attr(data-count); /* Use a data attribute to display the number */
+  content: attr(data-count);
   position: relative;
-  z-index: 2; /* Ensure the number is above the white inner circle */
+  z-index: 2;
 }
 
-.circle.completed span {
-  /* The conic-gradient will be set dynamically */
-}
-
-.circle.in-progress span {
-  /* The conic-gradient will be set dynamically */
-}
-
+.circle.completed span,
+.circle.in-progress span,
 .circle.not-started span {
-  /* The conic-gradient will be set dynamically */
+  /* Conic-gradient set dynamically */
 }
 
 .circle p {
   font-size: 20px;
   color: #333;
   margin: 0;
-  text-align: center; /* Ensure the label is centered below the circle */
+  text-align: center;
 }
 
-/* Add a colored dot before each <p> */
 .circle.completed p::before {
   content: "\2022";
-  color: #41A186; /* Green dot for Completed */
+  color: #41A186;
   margin-right: 5px;
 }
 
 .circle.in-progress p::before {
   content: "\2022";
-  color: #6277B3; /* Blue dot for In Progress */
+  color: #6277B3;
   margin-right: 5px;
 }
 
 .circle.not-started p::before {
   content: "\2022";
-  color: #F28F8F; /* Red dot for Not Started */
+  color: #F28F8F;
   margin-right: 5px;
 }
 
@@ -324,12 +313,12 @@ body {
 .year-selector-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* Space between label and select */
+  gap: 10px;
 }
 
 .year-selector-label {
   font-size: 14px;
-  color: #333; /* Adjust color to match your design */
+  color: #333;
   font-weight: 500;
 }
 
@@ -353,16 +342,15 @@ body {
   align-items: flex-end;
   position: relative;
   flex: 1;
-  overflow: hidden; /* Prevent scrolling */
+  overflow: hidden;
   min-height: 300px;
-  padding-bottom: 60px; /* Increased padding to make space for month labels */
+  padding-bottom: 60px;
 }
 
-/* Create a pseudo-element for the horizontal line separator */
 .bar-chart::after {
   content: '';
   position: absolute;
-  bottom: 30px; /* Position the line above the month labels */
+  bottom: 30px;
   left: 0;
   right: 0;
   height: 1px;
@@ -372,34 +360,32 @@ body {
 
 .bar {
   flex: 1;
-  width: 20px; /* Adjust as needed */
+  width: 20px;
   margin: 0 5px;
   background-color: #d3e8e1;
   border-radius: 5px 5px 0 0;
   position: relative;
   height: var(--bar-height);
   transition: background-color 0.2s ease, transform 0.1s ease;
-  z-index: 1; /* Ensure bars are above the horizontal line */
-  
+  z-index: 1;
 }
 
 .bar.highlighted {
   background-color: #41A186;
   transition: background-color 0.2s ease;
-  box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2); /* Added shadow */
-
+  box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
 }
 
 .bar::after {
   content: attr(data-month);
   position: absolute;
-  top: calc(100% + 30px); /* Position below the bar and the horizontal line */
+  top: calc(100% + 30px);
   left: 50%;
   transform: translateX(-50%);
-  font-size: px;
+  font-size: 12px; /* Updated from missing value to 12px */
   color: #333;
   white-space: nowrap;
-  z-index: 2; /* Ensure labels are above the horizontal line */
+  z-index: 2;
 }
 
 .bar-chart::before {
@@ -408,24 +394,15 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 30px; /* Ensure grid lines stop at the horizontal line */
+  bottom: 30px;
   background: repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent calc((100% / 13) - 1px),
-      #e0e0e0 calc((100% / 13) - 1px),
-      #e0e0e0 calc(100% / 13)
+    to bottom,
+    transparent,
+    transparent calc((100% / 13) - 1px),
+    #e0e0e0 calc((100% / 13) - 1px),
+    #e0e0e0 calc(100% / 13)
   );
   z-index: -1;
-}
-
-/* Section Titles */
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #486581;
-  position: static; /* Remove absolute positioning */
-  margin-bottom: 5px; /* Reduced from 10px to minimize downward shift */
 }
 
 /* Account Panel Styles */
@@ -434,7 +411,7 @@ body {
   top: 60px;
   right: 20px;
   width: 300px;
-  height: 400px; /* Set a fixed height here */
+  height: 400px;
   background: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
@@ -466,6 +443,7 @@ body {
 .account-panel ul li:last-child {
   border-bottom: none;
 }
+
 .number-wrapper.total-farmers {
   display: flex;
   flex-direction: column;
@@ -475,23 +453,37 @@ body {
 
 .number-wrapper.total-farmers .change-indicators {
   position: absolute;
-  top: -10px; /* Above the base number */
-  left: 36px; /* Aligned with the left edge of the base number */
+  top: -10px;
+  left: 36px;
   font-size: 12px;
 }
 
 .number-wrapper.total-farmers .new-farmers {
-  color: #888; /* Default gray color for +0 */
+  color: #888;
 }
 
 .number-wrapper.total-farmers .new-farmers.active {
-  color: #41A186; /* Green when there are new farmers */
+  color: #41A186;
 }
+
 /* Responsive Design */
 @media screen and (max-width: 1024px) {
+  .header {
+    padding: 0 15px;
+  }
+
+  .header-title {
+    font-size: clamp(24px, 5vw, 26px);
+  }
+
+  .main-content {
+    padding: 0 30px;
+  }
+
   .top-section {
     flex-direction: column;
     gap: 15px;
+    margin-bottom: 30px;
   }
 
   .system-stats-section,
@@ -507,6 +499,7 @@ body {
 
   .status-circles {
     gap: 15px;
+    justify-content: center;
   }
 
   .circle span {
@@ -521,20 +514,21 @@ body {
 
   .analytics-section {
     margin-top: 30px;
+    height: 350px;
+  }
+
+  .analytics {
+    padding: 15px;
   }
 
   .bar-chart {
-    height: 180px;
-  }
-
-  .bar-chart::before {
-    height: 180px;
-    background-size: 100% 18px;
+    min-height: 250px;
   }
 
   .y-axis {
-    height: 180px;
-    font-size: 10px;
+    width: 35px;
+    min-height: 250px;
+    font-size: 11px;
   }
 }
 
@@ -544,7 +538,7 @@ body {
   }
 
   .header-title {
-    font-size: 1.25rem;
+    font-size: clamp(20px, 4vw, 22px);
   }
 
   .header-icons img {
@@ -553,27 +547,32 @@ body {
   }
 
   .main-content {
-    padding: 5px 50px;
+    padding: 0 20px;
   }
 
-  .header {
-    padding-left: 50px;
+  .year-selector {
+    width: 160px;
+    font-size: 14px;
+    padding: 8px 25px 8px 8px;
+    background-size: 14px;
   }
 
   .account-panel {
-    width: 100%;
+    width: clamp(250px, 80vw, 280px);
     height: auto;
-    top: 80px;
-    padding: 20px;
+    top: 70px;
+    right: 10px;
+    padding: 15px;
   }
 
   .top-section {
-    flex-direction: column;
-    margin-bottom: 30px;
+    gap: 10px;
+    margin-bottom: 20px;
   }
 
   .stats-card {
     padding: 15px;
+    gap: 10px;
   }
 
   .stats-icon {
@@ -593,9 +592,14 @@ body {
     font-size: 14px;
   }
 
+  .project-status {
+    padding: 15px;
+  }
+
   .status-circles {
-    flex-direction: column;
-    gap: 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .circle span {
@@ -610,30 +614,64 @@ body {
 
   .analytics-section {
     margin-top: 20px;
+    height: 300px;
+  }
+
+  .analytics {
+    padding: 12px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 15px;
   }
 
   .bar-chart {
-    height: 150px;
+    min-height: 200px;
+    padding-bottom: 50px;
   }
 
-  .bar-chart::before {
-    height: 150px;
-    background-size: 100% 15px;
+  .bar-chart::after {
+    bottom: 25px;
   }
 
-  .y-axis {
-    height: 150px;
-    font-size: 10px;
+  .bar {
+    width: 15px;
+    margin: 0 3px;
   }
 
   .bar::after {
     font-size: 10px;
+    top: calc(100% + 25px);
+  }
+
+  .y-axis {
+    width: 30px;
+    min-height: 200px;
+    font-size: 10px;
+  }
+
+  .year-selector-container {
+    gap: 8px;
+  }
+
+  .year-selector-label {
+    font-size: 13px;
+  }
+
+  .year-selector {
+    font-size: 13px;
+    padding: 4px;
   }
 }
 
 @media screen and (max-width: 480px) {
+  .header {
+    padding: 0 8px;
+  }
+
   .header-title {
-    font-size: 1.1rem;
+    font-size: clamp(18px, 3.5vw, 20px);
   }
 
   .header-icons img {
@@ -642,17 +680,27 @@ body {
   }
 
   .main-content {
-    padding: 5px 50px;
+    padding: 0 15px;
+  }
+
+  .year-selector {
+    width: 140px;
+    font-size: 13px;
+    padding: 6px 20px 6px 6px;
+    background-size: 12px;
   }
 
   .account-panel {
-    width: 100%;
-    height: 60%;
-    padding: 15px;
+    width: 90vw;
+    height: auto;
+    top: 65px;
+    right: 5px;
+    padding: 10px;
   }
 
   .stats-card {
     padding: 10px;
+    gap: 8px;
   }
 
   .stats-icon {
@@ -673,7 +721,12 @@ body {
   }
 
   .project-status {
-    padding: 15px;
+    padding: 12px;
+  }
+
+  .status-circles {
+    flex-direction: column;
+    gap: 15px;
   }
 
   .circle span {
@@ -683,30 +736,182 @@ body {
   }
 
   .circle p {
-    font-size: 12px;
+    font-size: 13px;
+  }
+
+  .analytics-section {
+    margin-top: 15px;
+    height: 250px;
   }
 
   .analytics {
-    padding: 15px;
+    padding: 10px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 10px;
   }
 
   .bar-chart {
-    height: 120px;
+    min-height: 180px;
+    padding-bottom: 40px;
   }
 
-  .bar-chart::before {
-    height: 120px;
-    background-size: 100% 12px;
+  .bar-chart::after {
+    bottom: 20px;
+  }
+
+  .bar {
+    width: 12px;
+    margin: 0 2px;
+  }
+
+  .bar::after {
+    font-size: 9px;
+    top: calc(100% + 20px);
   }
 
   .y-axis {
-    height: 120px;
-    font-size: 8px;
     width: 25px;
+    min-height: 180px;
+    font-size: 9px;
+  }
+
+  .year-selector-container {
+    gap: 6px;
+  }
+
+  .year-selector-label {
+    font-size: 12px;
+  }
+
+  .year-selector {
+    font-size: 12px;
+    padding: 3px;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .header {
+    padding: 0 6px;
+  }
+
+  .header-title {
+    font-size: clamp(16px, 3vw, 18px);
+  }
+
+  .header-icons img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .main-content {
+    padding: 0 10px;
+  }
+
+  .year-selector {
+    width: 120px;
+    font-size: 12px;
+    padding: 5px 15px 5px 5px;
+    background-size: 10px;
+  }
+
+  .account-panel {
+    width: 95vw;
+    top: 60px;
+    padding: 8px;
+  }
+
+  .stats-card {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .stats-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .stats-info p {
+    font-size: 20px;
+  }
+
+  .number-wrapper h3 {
+    font-size: 26px;
+  }
+
+  .number-wrapper span {
+    font-size: 11px;
+  }
+
+  .project-status {
+    padding: 10px;
+  }
+
+  .status-circles {
+    gap: 12px;
+  }
+
+  .circle span {
+    width: 70px;
+    height: 70px;
+    font-size: 18px;
+  }
+
+  .circle p {
+    font-size: 12px;
+  }
+
+  .analytics-section {
+    margin-top: 10px;
+    height: 220px;
+  }
+
+  .analytics {
+    padding: 8px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .bar-chart {
+    min-height: 160px;
+    padding-bottom: 35px;
+  }
+
+  .bar-chart::after {
+    bottom: 18px;
+  }
+
+  .bar {
+    width: 10px;
+    margin: 0 1px;
   }
 
   .bar::after {
     font-size: 8px;
-    bottom: -20px;
+    top: calc(100% + 18px);
+  }
+
+  .y-axis {
+    width: 20px;
+    min-height: 160px;
+    font-size: 8px;
+  }
+
+  .year-selector-container {
+    gap: 5px;
+  }
+
+  .year-selector-label {
+    font-size: 11px;
+  }
+
+  .year-selector {
+    font-size: 11px;
+    padding: 2px;
   }
 }

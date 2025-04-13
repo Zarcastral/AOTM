@@ -38,7 +38,7 @@ body {
   cursor: pointer;
 }
 
-.crop_select{
+.crop_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
@@ -55,8 +55,7 @@ body {
   cursor: pointer;
 }
 
-
-.barangay_select{
+.barangay_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
@@ -72,7 +71,8 @@ body {
   background-size: 16px;
   cursor: pointer;
 }
-.status_select{
+
+.status_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
@@ -97,7 +97,6 @@ body {
   overflow-y: auto;
   max-height: calc(100vh - 60px);
 }
-
 
 .account-panel {
   position: absolute;
@@ -154,7 +153,6 @@ body {
   position: relative; /* Ensure the panel is a positioning context */
 }
 
-
 .projects-search-bar {
   display: flex;
   justify-content: space-between;
@@ -177,23 +175,22 @@ body {
 #projects-search-bar {
   padding: 8px;
   font-size: 16px;
-  border: 1px solid lightgray; 
+  border: 1px solid lightgray;
   border-radius: 5px;
   outline: none;
-}
-#projects-search-bar {
   width: 300px;
 }
 
 #projects-search-bar:focus {
   border-color: #aaa;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
+
 .projects-search-bar input,
 .projects-search-bar select {
-padding: 0.5rem;
-border: 1px solid #dcdcdc;
-border-radius: 5px;
+  padding: 0.5rem;
+  border: 1px solid #dcdcdc;
+  border-radius: 5px;
 }
 
 .image-header img {
@@ -230,7 +227,6 @@ border-radius: 5px;
   opacity: 0.7;
 }
 
-
 #month-picker {
   position: absolute;
   background-color: #333;
@@ -256,7 +252,8 @@ border-radius: 5px;
   font-weight: bold;
 }
 
-#prev-year, #next-year {
+#prev-year,
+#next-year {
   background: none;
   border: none;
   color: white;
@@ -299,6 +296,7 @@ border-radius: 5px;
 #clear-btn:hover {
   background-color: #34836c;
 }
+
 .panel table th {
   text-align: center;
   vertical-align: middle;
@@ -330,9 +328,9 @@ th {
   font-weight: 600;
   font-size: 12px;
 }
+
 td {
   font-size: 9px;
-
 }
 
 th:nth-child(2),
@@ -340,6 +338,7 @@ td:nth-child(2) {
   width: 100px;
   min-width: 100px;
 }
+
 th:nth-child(5),
 td:nth-child(5) {
   width: 100px;
@@ -357,21 +356,25 @@ td:nth-child(7) {
   width: 100px;
   min-width: 100px;
 }
+
 th:nth-child(11),
 td:nth-child(11) {
   width: 90px;
   min-width: 70px;
 }
+
 th:nth-child(12),
 td:nth-child(12) {
   width: 100px;
   min-width: 100px;
 }
+
 th:nth-child(13),
 td:nth-child(13) {
   width: 100px;
   min-width: 100px;
 }
+
 th:last-child,
 td:last-child {
   width: 70px;
@@ -434,16 +437,14 @@ tbody tr:hover {
   font-weight: bold;
 }
 
-
 .projects-pagination {
-  position: absolute; /* Stick to the bottom-right of the panel */
+  position: absolute;
   bottom: 20px;
   right: 20px;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 10px;
-  margin-top: 0; /* Remove top margin to avoid spacing issues */
+  z-index: 1; /* Ensure it stays above table content */
 }
 
 #projects-page-number {
@@ -505,7 +506,7 @@ tbody tr:hover {
   font-size: 20px;
 }
 
-.report-selector a{
+.report-selector a {
   color: slategray;
   transition: color 0.3s ease;
 }
@@ -523,7 +524,6 @@ tbody tr:hover {
   color: slategray;
   transition: color 0.3s ease;
 }
-
 
 .pdf-preview-panel {
   position: fixed;
@@ -591,7 +591,6 @@ tbody tr:hover {
   background-color: #2c8169;
 }
 
-
 body.preview-active::before {
   content: '';
   position: fixed;
@@ -601,4 +600,305 @@ body.preview-active::before {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 1024px) {
+  .crop_select {
+    width: 130px;
+  }
+
+  .barangay_select,
+  .status_select {
+    width: 180px;
+  }
+
+  .projects-pagination {
+    bottom: 10px;
+    right: 10px;
+  }
+
+  #projects-search-bar,
+  .projects-search-bar input {
+    width: 250px;
+  }
+
+  .panel {
+    width: 95%;
+  }
+
+  .button-container {
+    width: 95%;
+  }
+
+  .calendar-btn-icon {
+    margin-left: 200px;
+  }
+}
+/* Base Styles for Harvest Pagination */
+.harvest-pagination {
+  display: flex;
+  justify-content: center; /* Center the pagination */
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+  /* Removed width and max-width to allow natural centering */
+  /* Removed position: relative as it's not needed for centering */
+}
+
+#harvest-page-number {
+  font-size: 17px;
+  color: #333;
+}
+
+.harvest-pagination-btn {
+  padding: 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.harvest-pagination-btn:hover {
+  color: #41A186;
+}
+
+.harvest-pagination-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Tablet Breakpoint */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 10px;
+  }
+
+  .header-title {
+    font-size: clamp(20px, 4vw, 24px);
+  }
+
+  .crop_select {
+    width: clamp(90px, 15vw, 110px);
+    font-size: 14px;
+    padding: 8px 20px 8px 10px;
+  }
+
+  .barangay_select {
+    width: clamp(100px, 20vw, 130px);
+    font-size: 14px;
+    padding: 8px 20px 8px 10px;
+  }
+
+  #harvest-search-bar {
+    width: clamp(120px, 30vw, 180px);
+    font-size: 14px;
+  }
+
+  .harvest-search-bar {
+    flex-wrap: nowrap;
+    min-width: 0;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .search-and-dropdowns {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .search-container {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .calendar-btn-icon {
+    width: 45px;
+    height: 35px;
+  }
+
+  .panel {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .button-container {
+    width: 95%;
+  }
+
+  .projects-pagination {
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .harvest-pagination {
+    justify-content: center; /* Ensure centering */
+  }
+
+  .account-panel {
+    width: clamp(180px, 50vw, 250px);
+    right: 10px;
+  }
+
+  th,
+  td {
+    font-size: clamp(7px, 1.5vw, 9px);
+    padding: 6px;
+  }
+}
+
+/* Mobile Phone Breakpoint */
+@media (max-width: 480px) {
+  .header-icons {
+    gap: 10px;
+  }
+
+  .header-icons img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .crop_select {
+    width: clamp(70px, 18vw, 90px);
+    font-size: 12px;
+    padding: 6px 15px 6px 8px;
+  }
+
+  .barangay_select {
+    width: clamp(80px, 22vw, 110px);
+    font-size: 12px;
+    padding: 6px 15px 6px 8px;
+  }
+
+  #harvest-search-bar {
+    width: clamp(100px, 28vw, 130px);
+    font-size: 12px;
+  }
+
+  .harvest-search-bar {
+    flex-wrap: nowrap;
+    min-width: 0;
+    width: 100%;
+    gap: 5px;
+  }
+
+  .search-and-dropdowns {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+
+  .search-container {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+
+  .calendar-btn-icon {
+    width: 40px;
+    height: 30px;
+  }
+
+  .panel {
+    width: 98%;
+    padding: 10px;
+    overflow-x: auto;
+  }
+
+  .button-container {
+    width: 98%;
+  }
+
+  .projects-pagination {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    padding: 5px;
+  }
+
+  .projects-pagination-btn {
+    padding: 5px;
+    font-size: 20px;
+  }
+
+  #projects-page-number {
+    font-size: 14px;
+  }
+
+  .harvest-pagination {
+    justify-content: center; /* Ensure centering */
+  }
+
+  .download-btn {
+    padding: 10px 15px;
+    font-size: 12px;
+  }
+
+  .harvest-pagination-btn {
+    font-size: 20px;
+    padding: 5px;
+  }
+
+  .report-selector {
+    gap: 15px;
+    font-size: clamp(14px, 2.5vw, 16px);
+  }
+}
+
+/* Extra Small Mobile Breakpoint (for 320px and below) */
+@media (max-width: 360px) {
+  .crop_select {
+    width: clamp(60px, 18vw, 80px);
+    font-size: 12px;
+    padding: 5px 12px 5px 6px;
+  }
+
+  .barangay_select {
+    width: clamp(70px, 22vw, 90px);
+    font-size: 12px;
+    padding: 5px 12px 5px 6px;
+  }
+
+  #harvest-search-bar {
+    width: clamp(80px, 25vw, 100px);
+    font-size: 12px;
+  }
+
+  .calendar-btn-icon {
+    width: 35px;
+    height: 28px;
+  }
+
+  .harvest-search-bar {
+    gap: 3px;
+  }
+
+  .search-and-dropdowns {
+    gap: 3px;
+  }
+
+  .search-container {
+    gap: 3px;
+  }
+
+  .projects-pagination {
+    bottom: 5px;
+    right: 5px;
+    padding: 5px;
+  }
+
+  .projects-pagination-btn {
+    padding: 5px;
+    font-size: 18px;
+  }
+
+  #projects-page-number {
+    font-size: 12px;
+  }
+
+  .harvest-pagination {
+    justify-content: center; /* Ensure centering */
+  }
 }

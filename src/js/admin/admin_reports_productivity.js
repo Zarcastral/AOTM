@@ -450,7 +450,7 @@
     // <---------------------------------> PAGINATION <--------------------------------->
     function updatePagination() {
         const totalPages = Math.ceil(filteredProjects.length / rowsPerPage) || 1;
-        document.getElementById("productivity-page-number").textContent = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById("productivity-page-number").textContent = ` ${currentPage} of ${totalPages}`;
         document.getElementById("productivity-prev-page").disabled = currentPage === 1;
         document.getElementById("productivity-next-page").disabled = currentPage >= totalPages;
     }
