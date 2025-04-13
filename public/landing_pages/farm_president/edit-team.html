@@ -8,15 +8,14 @@
 </head>
 <body>
     <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
-  <div class="back">
-    <a href="farmpres_farmer.html" class="back-link">
-        <img src="../../images/arrow-left.png" alt="Back" width="30" height="30">
-    </a>
-</div>
+    <div class="back">
+        <a href="farmpres_farmer.html" class="back-link">
+            <img src="../../images/arrow-left.png" alt="Back" width="30" height="30">
+        </a>
+    </div>
     <div class="container">
-        
         <div class="top-section">
             <h1 id="teamNameHeader">Team Name</h1>
             <a href="#" class="add-farmer" id="addFarmerBtn">+ Add Farmer</a>
@@ -43,6 +42,7 @@
         </div>
     </div>
 
+    <!-- Add Farmer Popup -->
     <div class="popup" id="addFarmerPopup">
         <div class="popup-content">
             <span class="close-btn" id="closePopup">x</span>
@@ -60,10 +60,21 @@
         </div>
     </div>
 
-<script type="module" src="../../../src/js/farm_president/edit-team.js"></script>
+    <!-- Delete Team Confirmation Popup -->
+    <div class="popup" id="deleteTeamPopup">
+        <div class="popup-content">
+            <span class="close-btn" id="closeDeletePopup">x</span>
+            <h2>Confirm Delete</h2>
+            <p id="deleteTeamMessage"></p>
+            <div class="popup-actions">
+                <button class="cancel-btn" id="cancelDeleteBtn">Cancel</button>
+                <button class="confirm-btn" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
 
-<!-- Import the reusable script from src/auth -->
-<script type="module" src="../../../src/auth/header.js"></script>
-
+    <script type="module" src="../../../src/js/farm_president/edit-team.js"></script>
+    <!-- Import the reusable script from src/auth -->
+    <script type="module" src="../../../src/auth/header.js"></script>
 </body>
 </html>

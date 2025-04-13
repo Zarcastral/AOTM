@@ -20,7 +20,53 @@ let farmersList = [];
 let currentFarmers = [];
 let currentPage = 1;
 const itemsPerPage = 5;
-let isTeamAssigned = false; // New flag to track team assignment
+let isTeamAssigned = false;
+
+// Function to show success panel
+function showSuccessPanel(message) {
+    const successMessage = document.createElement("div");
+    successMessage.className = "success-message";
+    successMessage.textContent = message;
+  
+    document.body.appendChild(successMessage);
+  
+    // Fade in
+    successMessage.style.display = "block";
+    setTimeout(() => {
+      successMessage.style.opacity = "1";
+    }, 5);
+  
+    // Fade out after 4 seconds
+    setTimeout(() => {
+      successMessage.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(successMessage);
+      }, 400);
+    }, 4000);
+}
+  
+// Function to show error panel
+function showErrorPanel(message) {
+    const errorMessage = document.createElement("div");
+    errorMessage.className = "error-message";
+    errorMessage.textContent = message;
+  
+    document.body.appendChild(errorMessage);
+  
+    // Fade in
+    errorMessage.style.display = "block";
+    setTimeout(() => {
+      errorMessage.style.opacity = "1";
+    }, 5);
+  
+    // Fade out after 4 seconds
+    setTimeout(() => {
+      errorMessage.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(errorMessage);
+      }, 400);
+    }, 4000);
+}
 
 async function loadTeamData() {
     // Hide popup immediately to prevent flash
@@ -30,7 +76,7 @@ async function loadTeamData() {
     }
 
     if (!teamId) {
-        alert('No team ID provided');
+        showErrorPanel('No team ID provided');
         window.location.href = 'team-list.html';
         return;
     }
@@ -45,32 +91,30 @@ async function loadTeamData() {
             document.getElementById('teamNameHeader').textContent = `${teamData.team_name || 'Team Name'} (ID: ${teamId})`;
             currentFarmers = Array.isArray(teamData.farmer_name) ? teamData.farmer_name : [];
             await fetchFarmers();
-            isTeamAssigned = await isTeamAssignedToProject(teamId); // Check assignment status
+            isTeamAssigned = await isTeamAssignedToProject(teamId);
             renderTable();
-            updateButtonStates(); // Update button states after loading
+            updateButtonStates();
         } else {
-            alert('Team not found');
+            showErrorPanel('Team not found');
             window.location.href = 'team-list.html';
         }
     } catch (error) {
         console.error('Error loading team data:', error);
-        alert('Error loading team data. Please try again.');
+        showErrorPanel('Error loading team data. Please try again.');
     }
 }
 
-// New function to check if team is assigned to a project
 async function isTeamAssignedToProject(teamId) {
     try {
         const projectsQuery = query(collection(db, "tb_projects"), where("team_id", "==", parseInt(teamId)));
         const projectsSnapshot = await getDocs(projectsQuery);
-        return !projectsSnapshot.empty; // True if assigned, false if not
+        return !projectsSnapshot.empty;
     } catch (error) {
         console.error(`Error checking project assignment for team ${teamId}:`, error);
-        return false; // Assume not assigned if there's an error
+        return false;
     }
 }
 
-// New function to update button states
 function updateButtonStates() {
     const addFarmerBtn = document.getElementById('addFarmerBtn');
     const deleteTeamBtn = document.getElementById('deleteTeamBtn');
@@ -112,17 +156,14 @@ async function fetchFarmers() {
 
         const currentBarangay = teamData.barangay_name;
 
-        // Step 1: Fetch all teams to collect all assigned farmer names
         const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
         const assignedFarmerNames = new Set();
 
         teamsSnapshot.forEach((teamDoc) => {
             const docTeamData = teamDoc.data();
-            // Add lead farmer name if present
             if (docTeamData.lead_farmer) {
                 assignedFarmerNames.add(docTeamData.lead_farmer.trim().toLowerCase());
             }
-            // Add all farmer names from farmer_name array
             if (docTeamData.farmer_name && Array.isArray(docTeamData.farmer_name)) {
                 docTeamData.farmer_name.forEach(farmerObj => {
                     if (farmerObj.farmer_name) {
@@ -132,11 +173,10 @@ async function fetchFarmers() {
             }
         });
 
-        // Step 2: Fetch all farmers from tb_farmers in the current barangay
         const q = query(
             collection(db, "tb_farmers"),
             where("barangay_name", "==", currentBarangay),
-            where("user_type", "in", ["Farmer", "Head Farmer"]) // Include both types
+            where("user_type", "in", ["Farmer", "Head Farmer"])
         );
 
         const querySnapshot = await getDocs(q);
@@ -154,7 +194,6 @@ async function fetchFarmers() {
                 };
             });
 
-        // Step 3: Filter out farmers already assigned to any team
         farmersList = allFarmers.filter(farmer => 
             !assignedFarmerNames.has(farmer.farmer_name.trim().toLowerCase())
         );
@@ -205,7 +244,6 @@ function renderTable(searchTerm = '') {
     updatePagination(filteredFarmers.length);
     addRemoveEventListeners();
 
-    // Add Delete Team button below the table
     const tableContainer = document.getElementById('teamTableBody').parentElement.parentElement;
     let deleteButton = document.getElementById('deleteTeamBtn');
     if (!deleteButton) {
@@ -214,19 +252,19 @@ function renderTable(searchTerm = '') {
         deleteButton.textContent = 'x Delete Team';
         
         deleteButton.style.marginLeft = '100px';
-        deleteButton.style.color = '#AC415B'; // White text
-        deleteButton.style.border = 'none'; // No border
-        deleteButton.style.padding = '8px 18px'; // Padding matches the image
-        deleteButton.style.cursor = 'pointer'; // Pointer cursor on hover
-        deleteButton.style.borderRadius = '5px'; // Slightly rounded corners to match the image
-        deleteButton.style.fontSize = '16px'; // Adjust font size to match the text in the image
-        deleteButton.style.fontWeight = '500'; // Medium font weight for a clean look
-        deleteButton.style.fontFamily = 'Arial, sans-serif'; // A clean, sans-serif font similar to the one in the image
+        deleteButton.style.color = '#AC415B';
+        deleteButton.style.border = 'none';
+        deleteButton.style.padding = '8px 18px';
+        deleteButton.style.cursor = 'pointer';
+        deleteButton.style.borderRadius = '5px';
+        deleteButton.style.fontSize = '16px';
+        deleteButton.style.fontWeight = '500';
+        deleteButton.style.fontFamily = 'Arial, sans-serif';
         tableContainer.insertAdjacentElement('afterend', deleteButton);
     }
 
     attachDeleteTeamListener();
-    updateButtonStates(); // Ensure button states are updated after rendering
+    updateButtonStates();
 }
 
 function updatePagination(totalItems) {
@@ -238,42 +276,78 @@ function updatePagination(totalItems) {
 }
 
 async function deleteTeam() {
-    // Show confirmation prompt
-    const confirmDelete = confirm(`Are you sure you want to delete the team "${teamData.team_name}" (ID: ${teamId})? This action cannot be undone.`);
-    if (!confirmDelete) {
-        return; // User canceled the deletion
-    }
+    const deleteTeamPopup = document.getElementById('deleteTeamPopup');
+    const deleteTeamMessage = document.getElementById('deleteTeamMessage');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const closeDeletePopup = document.getElementById('closeDeletePopup');
 
-    try {
-        const q = query(collection(db, "tb_teams"), where("team_id", "==", parseInt(teamId)));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const teamDocRef = doc(db, "tb_teams", querySnapshot.docs[0].id);
-            await deleteDoc(teamDocRef); // Delete the team document
-            alert(`Team "${teamData.team_name}" (ID: ${teamId}) has been successfully deleted!`);
-            window.location.href = 'farmpres_farmer.html'; // Redirect to farmpres_farmer.html
-        } else {
-            throw new Error('Team not found');
-        }
-    } catch (error) {
-        console.error('Error deleting team:', error);
-        alert('Error deleting team. Please try again.');
-    }
+    // Set the confirmation message
+    deleteTeamMessage.textContent = `Are you sure you want to delete the team "${teamData.team_name}" (ID: ${teamId})? This action cannot be undone.`;
+
+    // Show the popup
+    deleteTeamPopup.style.display = 'flex';
+
+    // Return a promise to handle the user's choice
+    return new Promise((resolve) => {
+        const handleCancel = () => {
+            deleteTeamPopup.style.display = 'none';
+            resolve(false); // User canceled
+            // Clean up event listeners
+            confirmDeleteBtn.removeEventListener('click', handleConfirm);
+            cancelDeleteBtn.removeEventListener('click', handleCancel);
+            closeDeletePopup.removeEventListener('click', handleCancel);
+        };
+
+        const handleConfirm = async () => {
+            deleteTeamPopup.style.display = 'none';
+            try {
+                const q = query(collection(db, "tb_teams"), where("team_id", "==", parseInt(teamId)));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const teamDocRef = doc(db, "tb_teams", querySnapshot.docs[0].id);
+                    await deleteDoc(teamDocRef); // Delete the team document
+                    showSuccessPanel(`Team "${teamData.team_name}" (ID: ${teamId}) has been successfully deleted!`);
+                    resolve(true); // Deletion successful
+                    setTimeout(() => {
+                        window.location.href = 'farmpres_farmer.html'; // Redirect after success
+                    }, 2000); // Delay redirect to show success message
+                } else {
+                    throw new Error('Team not found');
+                }
+            } catch (error) {
+                console.error('Error deleting team:', error);
+                showErrorPanel('Error deleting team. Please try again.');
+                resolve(false); // Deletion failed
+            }
+            // Clean up event listeners
+            confirmDeleteBtn.removeEventListener('click', handleConfirm);
+            cancelDeleteBtn.removeEventListener('click', handleCancel);
+            closeDeletePopup.removeEventListener('click', handleCancel);
+        };
+
+        // Add event listeners
+        confirmDeleteBtn.addEventListener('click', handleConfirm);
+        cancelDeleteBtn.addEventListener('click', handleCancel);
+        closeDeletePopup.addEventListener('click', handleCancel);
+    });
 }
 
 function attachDeleteTeamListener() {
     const deleteButton = document.getElementById('deleteTeamBtn');
     if (deleteButton) {
-        deleteButton.removeEventListener('click', deleteTeam); // Prevent duplicate listeners
-        deleteButton.addEventListener('click', deleteTeam);
+        deleteButton.removeEventListener('click', deleteTeam);
+        deleteButton.addEventListener('click', async () => {
+            if (!isTeamAssigned) {
+                await deleteTeam();
+            }
+        });
     }
 }
 
 function addRemoveEventListeners() {
     document.querySelectorAll('.action-btn').forEach(button => {
-        // Remove any existing listeners to prevent duplicates
         button.removeEventListener('click', handleRemoveClick);
-        // Only add listener if team is not assigned and button is not disabled
         if (!isTeamAssigned && !button.disabled) {
             button.addEventListener('click', handleRemoveClick);
         }
@@ -289,27 +363,23 @@ async function handleRemoveClick(e) {
     }
     currentFarmers = currentFarmers.filter(f => f.farmer_id !== farmerId);
     await updateTeamInFirestore();
-    alert(`Successfully removed ${farmer.farmer_name} from the team!`);
-    await fetchFarmers(); // Refresh farmersList to include the removed farmer
+    showSuccessPanel(`Successfully removed ${farmer.farmer_name} from the team!`);
+    await fetchFarmers();
     renderTable(document.getElementById('searchInput').value);
 }
 
 async function fetchFarmerByName(farmerName) {
     try {
-        // Split on the first comma, regardless of space after it
         const nameParts = farmerName.split(',');
         if (nameParts.length < 2) {
             console.error(`Invalid farmer name format: ${farmerName}. Expected format: "last_name, first_name middle_name"`);
             return null;
         }
 
-        // Handle last_name with spaces (e.g., "De Dios")
-        const lastName = nameParts[0].trim(); // e.g., "De Dios"
-        const firstAndMiddle = nameParts.slice(1).join(',').trim(); // e.g., "Justin Du Guzman"
-
+        const lastName = nameParts[0].trim();
+        const firstAndMiddle = nameParts.slice(1).join(',').trim();
         const firstAndMiddleParts = firstAndMiddle ? firstAndMiddle.split(/\s+/) : [];
 
-        // Approach 1: first_name is the first word, rest is middle_name
         let firstName = firstAndMiddleParts[0] || '';
         let middleName = firstAndMiddleParts.length > 1 ? firstAndMiddleParts.slice(1).join(' ') : '';
 
@@ -336,10 +406,9 @@ async function fetchFarmerByName(farmerName) {
             });
         }
 
-        // Approach 2: If no matches, try first_name as all but the last word
         if (matches.length === 0 && firstAndMiddleParts.length > 1) {
-            firstName = firstAndMiddleParts.slice(0, -1).join(' '); // e.g., "Mary Loi"
-            middleName = firstAndMiddleParts[firstAndMiddleParts.length - 1]; // e.g., "Yves"
+            firstName = firstAndMiddleParts.slice(0, -1).join(' ');
+            middleName = firstAndMiddleParts[firstAndMiddleParts.length - 1];
 
             console.log(`Retrying with: last_name="${lastName}", first_name="${firstName}", barangay_name="${teamData.barangay_name}"`);
 
@@ -397,11 +466,10 @@ async function updateTeamInFirestore() {
         }
     } catch (error) {
         console.error('Error updating team:', error);
-        alert('Error updating team. Please try again.');
+        showErrorPanel('Error updating team. Please try again.');
     }
 }
 
-// Render search results for farmers
 function renderFarmerResults(searchValue = '') {
     const resultsContainer = document.getElementById('searchResults');
     resultsContainer.innerHTML = '';
@@ -423,7 +491,7 @@ function renderFarmerResults(searchValue = '') {
         div.addEventListener('click', () => {
             addFarmerToBox(farmer);
             resultsContainer.innerHTML = '';
-            resultsContainer.style.display = 'none'; // Hide after selection
+            resultsContainer.style.display = 'none';
         });
         resultsContainer.appendChild(div);
     });
@@ -431,7 +499,6 @@ function renderFarmerResults(searchValue = '') {
 
 function addFarmerToBox(farmer) {
     const farmerBox = document.getElementById('farmerBox');
-    // Verify farmer is still in farmersList to prevent stale data
     if (!farmersList.some(f => f.farmer_name === farmer.farmer_name)) {
         console.warn(`Farmer ${farmer.farmer_name} is no longer available; skipping addition.`);
         return;
@@ -446,8 +513,7 @@ function addFarmerToBox(farmer) {
     removeBtn.classList.add('remove-btn');
     removeBtn.addEventListener('click', () => {
         farmerDiv.remove();
-        farmersList.push(farmer); // Add back to available farmers
-        // Refresh results only if search bar has focus or value
+        farmersList.push(farmer);
         const farmerSearch = document.getElementById('farmerSearch');
         if (farmerSearch === document.activeElement || farmerSearch.value) {
             renderFarmerResults(farmerSearch.value);
@@ -456,8 +522,7 @@ function addFarmerToBox(farmer) {
 
     farmerDiv.appendChild(removeBtn);
     farmerBox.appendChild(farmerDiv);
-    farmersList = farmersList.filter(f => f.id !== farmer.id); // Remove from available farmers
-    // Refresh results only if search bar has focus or value
+    farmersList = farmersList.filter(f => f.id !== farmer.id);
     const farmerSearch = document.getElementById('farmerSearch');
     if (farmerSearch === document.activeElement || farmerSearch.value) {
         renderFarmerResults(farmerSearch.value);
@@ -497,55 +562,47 @@ document.getElementById('closePopup').addEventListener('click', () => {
     document.getElementById('searchResults').innerHTML = '';
 });
 
-// Event listeners for the search bar
 const farmerSearch = document.getElementById('farmerSearch');
 const searchResults = document.getElementById('searchResults');
 let isSearchFocused = false;
 
-// Show all farmers when the search bar is focused
 farmerSearch.addEventListener('focus', () => {
     isSearchFocused = true;
-    renderFarmerResults(farmerSearch.value); // Show results based on current input
-    searchResults.style.display = 'block'; // Ensure results are visible
+    renderFarmerResults(farmerSearch.value);
+    searchResults.style.display = 'block';
 });
 
-// Clear focus flag when focus is lost
 farmerSearch.addEventListener('blur', () => {
     isSearchFocused = false;
 });
 
-// Filter farmers as the user types
 farmerSearch.addEventListener('input', (e) => {
     renderFarmerResults(e.target.value);
-    searchResults.style.display = 'block'; // Keep results visible while typing
+    searchResults.style.display = 'block';
 });
 
-// Hide results when clicking outside, but not when input is focused
 document.addEventListener('click', (e) => {
     if (!isSearchFocused && !searchResults.contains(e.target) && !farmerSearch.contains(e.target)) {
-        searchResults.style.display = 'none'; // Hide results
+        searchResults.style.display = 'none';
     }
 });
 
-// Open the popup
 document.getElementById('addFarmerBtn').addEventListener('click', (e) => {
     e.preventDefault();
     if (e.target.disabled) {
-        return; // Do nothing if the button is disabled
+        return;
     }
-    document.getElementById('addFarmerPopup').style.display = 'block'; // Changed to 'block'
+    document.getElementById('addFarmerPopup').style.display = 'block';
 });
 
-// Close the popup
 document.getElementById('closePopup').addEventListener('click', () => {
     document.getElementById('addFarmerPopup').style.display = 'none';
     document.getElementById('farmerBox').innerHTML = '';
     document.getElementById('farmerSearch').value = '';
     document.getElementById('searchResults').innerHTML = '';
-    searchResults.style.display = 'none'; // Ensure results are hidden
+    searchResults.style.display = 'none';
 });
 
-// Save selected farmers
 document.getElementById('saveFarmerBtn').addEventListener('click', async () => {
     const farmerBox = document.getElementById('farmerBox');
     const newFarmers = await Promise.all(
@@ -557,13 +614,12 @@ document.getElementById('saveFarmerBtn').addEventListener('click', async () => {
                 
                 if (!farmer) {
                     console.warn(`Farmer not found in initial lists for name: ${farmerName}`);
-                    // Fallback: Fetch from tb_farmers
                     const fetchedFarmer = await fetchFarmerByName(farmerName);
                     if (fetchedFarmer) {
                         farmer = fetchedFarmer;
                     } else {
                         console.error(`Farmer ${farmerName} not found in tb_farmers; skipping.`);
-                        return null; // Skip this farmer
+                        return null;
                     }
                 }
                 
@@ -578,28 +634,32 @@ document.getElementById('saveFarmerBtn').addEventListener('click', async () => {
     const validFarmers = newFarmers.filter(farmer => farmer !== null && farmer.farmer_id !== '');
     
     if (validFarmers.length === 0) {
-        alert('No valid farmers selected to add.');
+        showErrorPanel('No valid farmers selected to add.');
         return;
     }
 
     currentFarmers = [...currentFarmers, ...validFarmers];
     await updateTeamInFirestore();
     
-    alert(`Successfully added ${validFarmers.length} new member${validFarmers.length > 1 ? 's' : ''} to the team!`);
+    showSuccessPanel(`Successfully added ${validFarmers.length} new member${validFarmers.length > 1 ? 's' : ''} to the team!`);
     
     renderTable();
     document.getElementById('addFarmerPopup').style.display = 'none';
     document.getElementById('farmerBox').innerHTML = '';
     document.getElementById('farmerSearch').value = '';
     document.getElementById('searchResults').innerHTML = '';
-    searchResults.style.display = 'none'; // Ensure results are hidden
+    searchResults.style.display = 'none';
     await fetchFarmers();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
     const addFarmerPopup = document.getElementById('addFarmerPopup');
     if (addFarmerPopup) {
-        addFarmerPopup.style.display = 'none'; // Explicitly hide popup
+        addFarmerPopup.style.display = 'none';
     }
-    loadTeamData(); // Existing call to initialize page
+    const deleteTeamPopup = document.getElementById('deleteTeamPopup');
+    if (deleteTeamPopup) {
+        deleteTeamPopup.style.display = 'none';
+    }
+    loadTeamData();
 });
