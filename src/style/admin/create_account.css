@@ -16,31 +16,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-}
-
-.back {
-  margin-bottom: 10px;
-  margin-left: 360px;
-  margin-top: -30px;
-}
-
-#sex,
-#user_type,
-#barangay {
-  padding: 10px 30px 10px 10px;
-  font-size: 16px;
-  color: #243b53;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  outline: none;
-  width: 500px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-  cursor: pointer;
+  position: relative; /* Ensure header stays in normal flow */
+  z-index: 100; /* Prevent overlap issues */
 }
 
 .header-title {
@@ -64,9 +41,17 @@ body {
 .main-content {
   display: flex;
   flex-direction: column;
-  padding: 50px;
+  padding: 60px 50px 50px 50px; /* Increased top padding to clear header + back button */
   overflow-y: auto;
   overflow-x: hidden;
+  flex: 1;
+}
+
+.panel-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .panel {
@@ -75,7 +60,20 @@ body {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-left: 30vw;
+  margin: 0 auto;
+}
+
+.back {
+  position: absolute;
+  top: -40px; /* Consistent with panel offset */
+  left: calc(50% - 210px); /* Align with panel’s left edge (400px / 2 + 10px) */
+  margin: 0;
+  z-index: 50; /* Ensure below header but above panel */
+}
+
+.back-link img {
+  width: 30px;
+  height: 30px;
 }
 
 h1 {
@@ -106,7 +104,20 @@ select {
 #sex,
 #user_type,
 #barangay {
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243b53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
   width: 99%;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
 }
 
 .submit-btn {
@@ -151,6 +162,7 @@ select {
   padding: 20px;
   border-radius: 8px;
   text-align: center;
+  width: 400px;
 }
 
 #closePopup {
@@ -268,11 +280,11 @@ select {
   transform: translateY(-50%);
   cursor: pointer;
   padding: 10px;
-  z-index: 200; /* Higher to avoid overlap */
+  z-index: 200;
   pointer-events: auto;
   width: 24px;
   height: 24px;
-  user-select: none; /* Prevent text selection */
+  user-select: none;
 }
 
 .eye-icon {
@@ -289,49 +301,86 @@ select {
   display: none;
 }
 
-/* Fallback for image failure */
 .toggle-password:empty::before {
   content: "👁️";
   font-size: 18px;
   color: #243b53;
 }
 
+/* Media Queries for Responsiveness */
 @media (max-width: 768px) {
-  .back {
-    margin-left: 10px;
-    margin-bottom: 3px;
-    margin-top: 10px;
+  .main-content {
+    padding: 90px 20px 20px 20px; /* Adjusted top padding */
+  }
+
+  .panel-container {
+    width: 100%;
   }
 
   .panel {
-    padding: 30px;
-    margin: 10px;
+    width: 400px;
   }
 
-  .main-content {
-    padding: 10px;
-    overflow-y: auto;
-    overflow-x: hidden;
+  .back {
+    left: calc(50% - 210px);
+    top: -40px; /* Keep consistent */
+  }
+
+  #sex,
+  #user_type,
+  #barangay {
+    width: 99%;
+  }
+
+  .header {
+    padding: 0 10px;
   }
 }
 
 @media (max-width: 480px) {
-  .back {
-    margin-left: 10px;
-    margin-bottom: 5px;
-    margin-top: 50px;
+  .main-content {
+    padding: 80px 10px 10px 10px; /* Further adjusted top padding */
   }
 
   .panel {
-    padding: 30px;
-    margin: 10px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    width: 300px;
   }
 
+  .back {
+    left: calc(50% - 160px);
+    top: -35px;
+  }
+
+  #sex,
+  #user_type,
+  #barangay {
+    width: 99%;
+  }
+
+  .popup-box {
+    width: 90%;
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 420px) {
   .main-content {
-    padding: 10px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    padding: 60px 10px 10px 10px;
+  }
+
+  .panel {
+    width: 80%;
+    max-width: 400px;
+  }
+
+  .back {
+    left: 10px;
+    top: -35px;
+  }
+
+  #sex,
+  #user_type,
+  #barangay {
+    width: 99%;
   }
 }
