@@ -37,19 +37,17 @@ body {
     cursor: pointer;
 }
 
-
 .back {
     margin-top: 20px;
     margin-left: 100px;
     margin-bottom: 5px;
-  
 }
 
 .container {
-    position: relative; /* Changed to relative for better responsiveness */
+    position: relative;
     width: 1000px;
-    max-width: 80%; /* Ensure it doesn't exceed viewport */
-    margin: 20px auto; /* Center the container */
+    max-width: 80%;
+    margin: 20px auto;
     padding: 20px;
     background: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -205,7 +203,7 @@ td {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%); /* Center both horizontally and vertically */
+    transform: translate(-50%, -50%);
 }
 
 .close-btn {
@@ -236,31 +234,31 @@ td {
     display: flex;
     gap: 1rem;
     margin-bottom: 1rem;
-  }
-  
-  #searchInput {
+}
+
+#searchInput {
     padding: 8px;
     font-size: 15px;
     border: 1px solid lightgray;
     border-radius: 5px;
     outline: none;
-  }
-  
-  #searchInput {
+}
+
+#searchInput {
     max-width: 50%;
-  }
-  
-  #searchInput:focus{
+}
+
+#searchInput:focus {
     border-color: #aaa;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .search-bar input,
-  .search-bar select {
+}
+
+.search-bar input,
+.search-bar select {
     padding: 0.5rem;
     border: 1px solid #dcdcdc;
     border-radius: 5px;
-  }
+}
 
 .farmer-box {
     border: 1px solid #ccc;
@@ -296,9 +294,8 @@ td {
     padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;
-    width: 100%; /* Full width for better usability */
+    width: 100%;
 }
-
 
 /* Base styles for the popup */
 .popup {
@@ -307,15 +304,15 @@ td {
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0; /* Ensure full coverage */
+    bottom: 0;
     width: 100vw;
     height: 100vh;
-    min-height: 100vh; /* Fallback for older browsers */
+    min-height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Increase z-index to ensure it's above all content */
+    z-index: 1000;
     font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
@@ -323,111 +320,99 @@ td {
     overflow: hidden;
 }
 
-/* Popup content container */
 .popup-content {
     background: #fff;
     padding: 20px;
-    border-radius: 10px; /* Matches old .container border-radius */
+    border-radius: 10px;
     width: 400px;
-    max-width: 90%; /* Matches old .popup-content max-width */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Matches old .container shadow */
-    position: relative;
+    max-width: 90%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Close button */
 .close-btn {
     position: absolute;
     top: 10px;
     right: 10px;
     font-size: 20px;
     cursor: pointer;
-    color: #333; /* Matches old table text color */
+    color: #333;
     font-weight: 500;
     color: #cacaca;
 }
 
-/* Popup heading */
 .popup-content h2 {
-    color: #41A186; /* Matches old .header-title and .top-section h1 */
-    font-size: 24px; /* Matches old .top-section h1 */
+    color: #41A186;
+    font-size: 24px;
     font-weight: 600;
     margin: 0 0 15px;
 }
 
-/* Form group for search and farmer box */
 .form-group {
-    margin-bottom: 15px; /* Matches old .form-group */
+    margin-bottom: 15px;
 }
 
-/* Form group label */
 .form-group label {
     display: block;
-    margin-bottom: 5px; /* Matches old .form-group label */
+    margin-bottom: 5px;
     font-size: 14px;
-    color: #333; /* Matches old table text color */
+    color: #333;
     font-weight: 500;
 }
 
-/* Search input */
 #farmerSearch {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ccc; /* Matches old .form-group input and .search-bar input */
-    border-radius: 4px; /* Matches old .form-group input */
-    font-size: 14px; /* Matches old .search-bar input */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
 }
 
-/* Search results container */
 .search-results {
     max-height: 150px;
     overflow-y: auto;
-    border: 1px solid #ccc; /* Matches old .form-group input border */
-    border-radius: 4px; /* Matches old .form-group input */
+    border: 1px solid #ccc;
+    border-radius: 4px;
     background: #fff;
     width: 100%;
     box-sizing: border-box;
-    z-index: 21; /* Slightly higher than .popup to ensure visibility */
+    z-index: 21;
 }
 
-/* Individual search result item */
 .search-item {
-    padding: 10px 12px; /* Matches old th, td padding */
-    font-size: 14px; /* Matches old td font-size */
-    color: #333; /* Matches old td color */
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #333;
     cursor: pointer;
 }
 
 .search-item:hover {
-    background: #F5F6FA; /* Matches old body background for hover effect */
+    background: #F5F6FA;
 }
 
-/* Farmer box for selected farmers */
 .farmer-box {
-    border: 1px solid #ccc; /* Matches old .farmer-box */
-    padding: 10px; /* Matches old .farmer-box */
-    min-height: 50px; /* Matches old .farmer-box */
-    border-radius: 10px; /* Matches old .farmer-box */
-    background: #F5F6FA; /* Matches old body background for consistency */
+    border: 1px solid #ccc;
+    padding: 10px;
+    min-height: 50px;
+    border-radius: 10px;
+    background: #F5F6FA;
 }
 
-/* Individual farmer item */
 .farmer-item {
-    background: #f0f0f0; /* Matches old .farmer-item */
-    padding: 12px; /* Matches old .farmer-item */
-    margin: 10px; /* Matches old .farmer-item */
+    background: #f0f0f0;
+    padding: 12px;
+    margin: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 10px; /* Matches old .farmer-item */
-    font-size: 14px; /* Matches old td font-size */
-    color: #333; /* Matches old td color */
+    border-radius: 10px;
+    font-size: 14px;
+    color: #333;
 }
 
-/* Remove button for farmer items */
 .remove-btn {
-    color: #cacaca; /* Matches old .remove-btn */
+    color: #cacaca;
     cursor: pointer;
     border: none;
     background: none;
@@ -435,234 +420,319 @@ td {
 }
 
 .remove-btn:hover {
-    opacity: 0.8; /* Matches old .remove-btn:hover */
+    opacity: 0.8;
 }
 
-/* Save button */
 .save-btn {
-    background-color: #41A186; /* Matches old .save-btn */
+    background-color: #41A186;
     color: white;
     border: none;
-    padding: 10px 20px; /* Matches old .save-btn */
-    border-radius: 4px; /* Matches old .save-btn */
+    padding: 10px 20px;
+    border-radius: 4px;
     cursor: pointer;
-    width: 100%; /* Matches old .save-btn */
-    font-size: 14px; /* Matches old table td font-size */
+    width: 100%;
+    font-size: 14px;
     font-family: 'Poppins', sans-serif;
     font-weight: 500;
 }
 
 .save-btn:hover {
-    background-color: #369874; /* Slightly darker shade of #41A186 for hover */
+    background-color: #369874;
+}
+
+.success-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #41a186;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: none;
+    font-size: 18px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.error-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #AC415B;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: none;
+    font-size: 18px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Delete Team Popup */
+.popup-actions {
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.cancel-btn {
+    background-color: #cacaca;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 48%;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+}
+
+.cancel-btn:hover {
+    background-color: #b0b0b0;
+}
+
+.confirm-btn {
+    background-color: #AC415B;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 48%;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+}
+
+.confirm-btn:hover {
+    background-color: #912d47;
+}
+
+.popup-content p {
+    font-size: 14px;
+    color: #333;
+    margin: 10px 0 20px;
+    line-height: 1.5;
 }
 
 /* Responsive Design for 780px */
 @media (max-width: 780px) {
     .popup-content {
-        width: 90%; /* Matches old .popup-content at 780px */
-        padding: 15px; /* Matches old .popup-content at 780px */
+        width: 90%;
+        padding: 15px;
     }
 
     .close-btn {
-        font-size: 18px; /* Matches old .close-btn at 780px */
+        font-size: 18px;
     }
 
     .popup-content h2 {
-        font-size: 20px; /* Matches old .top-section h1 at 780px */
+        font-size: 20px;
+    }
+
+    .popup-content p {
+        font-size: 12px;
     }
 
     .form-group label {
-        font-size: 12px; /* Matches old .form-group input at 780px */
+        font-size: 12px;
     }
 
     #farmerSearch {
-        font-size: 12px; /* Matches old .search-bar input at 780px */
-        padding: 6px; /* Matches old .form-group input at 780px */
+        font-size: 12px;
+        padding: 6px;
     }
 
     .search-item {
-        font-size: 12px; /* Matches old th, td at 780px */
-        padding: 8px 10px; /* Matches old th, td at 780px */
+        font-size: 12px;
+        padding: 8px 10px;
     }
 
     .farmer-box {
-        padding: 8px; /* Slightly reduced for compactness */
+        padding: 8px;
     }
 
     .farmer-item {
-        font-size: 12px; /* Matches old th, td at 780px */
-        padding: 10px; /* Slightly reduced */
-        margin: 8px; /* Slightly reduced */
+        font-size: 12px;
+        padding: 10px;
+        margin: 8px;
     }
 
     .remove-btn {
-        font-size: 12px; /* Matches old font-size reduction */
+        font-size: 12px;
     }
 
     .save-btn {
-        padding: 8px 16px; /* Matches old .save-btn at 780px */
-        font-size: 14px; /* Matches old .save-btn at 780px */
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    .cancel-btn, .confirm-btn {
+        padding: 8px 16px;
+        font-size: 12px;
     }
 }
 
 /* Responsive Design for 420px */
 @media (max-width: 420px) {
     .popup-content {
-        width: 95%; /* Matches old .popup-content at 420px */
-        padding: 10px; /* Matches old .popup-content at 420px */
+        width: 95%;
+        padding: 10px;
     }
 
     .close-btn {
-        font-size: 16px; /* Matches old .close-btn at 420px */
+        font-size: 16px;
     }
 
     .popup-content h2 {
-        font-size: 18px; /* Slightly smaller than 780px for fit */
+        font-size: 18px;
+    }
+
+    .popup-content p {
+        font-size: 11px;
     }
 
     .form-group label {
-        font-size: 10px; /* Matches old .form-group input at 420px */
+        font-size: 10px;
     }
 
     #farmerSearch {
-        font-size: 10px; /* Matches old .search-bar input at 420px */
-        padding: 5px; /* Matches old .form-group input at 420px */
+        font-size: 10px;
+        padding: 5px;
     }
 
     .search-results {
-        max-height: 120px; /* Slightly reduced for smaller screens */
+        max-height: 120px;
     }
 
     .search-item {
-        font-size: 11px; /* Matches old td at 420px */
-        padding: 5px 8px; /* Matches old td at 420px */
+        font-size: 11px;
+        padding: 5px 8px;
     }
 
     .farmer-box {
-        padding: 5px; /* Further reduced */
-        min-height: 40px; /* Slightly reduced */
+        padding: 5px;
+        min-height: 40px;
     }
 
     .farmer-item {
-        font-size: 11px; /* Matches old td at 420px */
-        padding: 8px; /* Further reduced */
-        margin: 5px; /* Further reduced */
+        font-size: 11px;
+        padding: 8px;
+        margin: 5px;
     }
 
     .remove-btn {
-        font-size: 10px; /* Matches old font-size reduction */
+        font-size: 10px;
     }
 
     .save-btn {
-        padding: 6px 12px; /* Matches old .save-btn at 420px */
-        font-size: 12px; /* Matches old .save-btn at 420px */
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .cancel-btn, .confirm-btn {
+        padding: 6px 12px;
+        font-size: 10px;
+    }
+
+    .popup-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .cancel-btn, .confirm-btn {
+        width: 100%;
     }
 }
-
-
 
 /* Responsive Design for 780px */
 @media (max-width: 780px) {
     body {
-        height: auto; /* Allow body to expand with content */
+        height: auto;
     }
 
     .container {
-        width: 80%; /* Use percentage for better scaling */
-        margin: 20px auto; /* Center the container */
-        padding: 15px; /* Reduce padding */
+        width: 80%;
+        margin: 20px auto;
+        padding: 15px;
     }
 
     .top-section {
-        flex-direction: column; /* Stack elements vertically */
+        flex-direction: column;
         align-items: flex-start;
         margin-bottom: 30px;
     }
 
     .top-section h1 {
-        font-size: 20px; /* Reduce font size */
+        font-size: 20px;
     }
 
     .add-farmer {
-        font-size: 15px; /* Reduce font size */
+        font-size: 15px;
         margin-left: 280px;
         margin-top: -20px;
     }
 
     .search-bar input {
-        max-width: 50%; /* Full width for smaller screens */
-        font-size: 12px; /* Reduce font size */
+        max-width: 50%;
+        font-size: 12px;
     }
 
     table {
-        font-size: 12px; /* Reduce overall table font size */
+        font-size: 12px;
     }
 
     th, td {
-        padding: 8px 10px; /* Reduce padding for compactness */
-        font-size: 12px; /* Smaller font size */
+        padding: 8px 10px;
+        font-size: 12px;
     }
 
-    /* Hide less critical columns for better fit */
-    th:nth-child(4), td:nth-child(4) { /* Hide Contact column */
+    th:nth-child(4), td:nth-child(4) {
         display: none;
     }
 
     .action-btn {
-        width: 60px; /* Reduce button width */
-        font-size: 10px; /* Smaller font size */
-        padding: 4px 8px; /* Adjust padding */
+        width: 60px;
+        font-size: 10px;
+        padding: 4px 8px;
     }
 
     .pagination span {
-        font-size: 12px; /* Reduce font size */
+        font-size: 12px;
     }
 
     .pagination button {
-        font-size: 14px; /* Slightly smaller arrows */
+        font-size: 14px;
     }
 
     #deleteTeamBtn {
-        font-size: 12px; /* Reduce font size */
-        padding: 6px 12px; /* Adjust padding */
+        font-size: 12px;
+        padding: 6px 12px;
     }
 
     #addFarmerBtn:disabled:hover::after {
-        font-size: 14px; /* Slightly smaller emoji */
-        top: -15px; /* Adjust position */
-    }
-
-    .popup-content {
-        width: 90%; /* Adjust popup width */
-        padding: 15px; /* Reduce padding */
-    }
-
-    .close-btn {
-        font-size: 18px; /* Reduce font size */
-    }
-
-    .form-group input {
-        font-size: 12px; /* Reduce font size */
-        padding: 6px; /* Reduce padding */
-    }
-
-    .save-btn {
-        padding: 8px 16px; /* Reduce padding */
-        font-size: 14px; /* Reduce font size */
+        font-size: 14px;
+        top: -15px;
     }
 }
 
 /* Responsive Design for 420px */
 @media (max-width: 420px) {
     body {
-        height: auto; /* Allow body to expand with content */
+        height: auto;
     }
-    
 
     .container {
-        width: 95%; /* Further reduce width */
-        padding: 10px; /* Further reduce padding */
-        margin: 10px auto; /* Adjust margin */
+        width: 95%;
+        padding: 10px;
+        margin: 10px auto;
     }
 
     .top-section {
@@ -673,15 +743,14 @@ td {
         margin-top: 20px;
         margin-left: 100px;
         margin-bottom: 5px;
-      
     }
 
     .top-section h1 {
-        font-size: 20px; /* Reduce font size */
+        font-size: 20px;
     }
 
     .add-farmer {
-        font-size: 12px; /* Reduce font size */
+        font-size: 12px;
         margin-left: 100px;
         margin-top: -20px;
     }
@@ -691,95 +760,71 @@ td {
     }
 
     .search-bar input {
-        font-size: 10px; /* Further reduce font size */
-        padding: 6px; /* Reduce padding */
+        font-size: 10px;
+        padding: 6px;
     }
 
-    /* Convert table to a stacked layout for better readability */
     table {
-        display: block; /* Change table to block for stacking */
+        display: block;
     }
 
     thead {
-        display: none; /* Hide table headers */
+        display: none;
     }
 
     tr {
-        display: block; /* Each row becomes a block */
+        display: block;
         margin-bottom: 10px;
         border-bottom: 1px solid #e0e0e0;
         padding-bottom: 10px;
     }
 
     td {
-        display: flex; /* Use flex to align label and value */
+        display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 11px; /* Further reduce font size */
-        padding: 5px 8px; /* Further reduce padding */
-        border-bottom: none; /* Remove individual cell borders */
+        font-size: 11px;
+        padding: 5px 8px;
+        border-bottom: none;
     }
 
-    /* Add pseudo-elements to display column names as labels */
     td:before {
-        content: attr(data-label); /* Use data-label attribute for column name */
+        content: attr(data-label);
         font-weight: 600;
         text-transform: uppercase;
         color: #333;
-        flex: 1; /* Take up space for alignment */
+        flex: 1;
     }
 
     td:last-child {
-        justify-content: center; /* Center the action button */
+        justify-content: center;
     }
 
     .action-btn {
-        width: 50px; /* Further reduce button width */
-        font-size: 9px; /* Further reduce font size */
-        padding: 3px 6px; /* Further reduce padding */
+        width: 50px;
+        font-size: 9px;
+        padding: 3px 6px;
     }
 
     .pagination {
-        justify-content: center; /* Center pagination on small screens */
+        justify-content: center;
     }
 
     .pagination span {
-        font-size: 10px; /* Further reduce font size */
+        font-size: 10px;
     }
 
     .pagination button {
-        font-size: 12px; /* Further reduce arrow size */
+        font-size: 12px;
     }
 
     #deleteTeamBtn {
-        font-size: 10px; /* Further reduce font size */
-        padding: 5px 10px; /* Further reduce padding */
+        font-size: 10px;
+        padding: 5px 10px;
     }
 
     #addFarmerBtn:disabled:hover::after {
-        font-size: 12px; /* Further reduce emoji size */
-        top: -12px; /* Adjust position */
-    }
-
-    .popup-content {
-        width: 95%; /* Further adjust popup width */
-        padding: 10px; /* Further reduce padding */
-    }
-
-    .close-btn {
-        font-size: 16px; /* Further reduce font size */
-    }
-
-    .form-group input {
-        font-size: 10px; /* Further reduce font size */
-        padding: 5px; /* Further reduce padding */
-    }
-
-    .save-btn {
-        padding: 6px 12px; /* Further reduce padding */
-        font-size: 12px; /* Further reduce font size */
+        font-size: 12px;
+        top: -12px;
     }
 }
-
-
-
