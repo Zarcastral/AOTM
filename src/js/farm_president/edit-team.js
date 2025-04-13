@@ -1,4 +1,3 @@
-
 import { 
     getFirestore, 
     doc, 
@@ -103,141 +102,140 @@ function updateButtonStates() {
     }
 }
 
-    async function fetchFarmers() {
-        try {
-            if (!teamData || !teamData.barangay_name) {
-                console.error("Team data or barangay name not available.");
-                farmersList = [];
-                return;
-            }
-    
-            const currentBarangay = teamData.barangay_name;
-    
-            // Step 1: Fetch all teams to collect all assigned farmer names
-            const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
-            const assignedFarmerNames = new Set();
-    
-            teamsSnapshot.forEach((teamDoc) => {
-                const docTeamData = teamDoc.data();
-                // Add lead farmer name if present
-                if (docTeamData.lead_farmer) {
-                    assignedFarmerNames.add(docTeamData.lead_farmer.trim().toLowerCase());
-                }
-                // Add all farmer names from farmer_name array
-                if (docTeamData.farmer_name && Array.isArray(docTeamData.farmer_name)) {
-                    docTeamData.farmer_name.forEach(farmerObj => {
-                        if (farmerObj.farmer_name) {
-                            assignedFarmerNames.add(farmerObj.farmer_name.trim().toLowerCase());
-                        }
-                    });
-                }
-            });
-    
-            // Step 2: Fetch all farmers from tb_farmers in the current barangay
-            const q = query(
-                collection(db, "tb_farmers"),
-                where("barangay_name", "==", currentBarangay),
-                where("user_type", "in", ["Farmer", "Head Farmer"]) // Include both types
-            );
-    
-            const querySnapshot = await getDocs(q);
-            const allFarmers = querySnapshot.docs
-                .map(doc => {
-                    const data = doc.data();
-                    const farmerName = `${data.last_name}, ${data.first_name} ${data.middle_name || ''}`.trim();
-                    return {
-                        id: doc.id,
-                        farmer_id: data.farmer_id,
-                        farmer_name: farmerName,
-                        contact: data.contact || '',
-                        barangay_name: data.barangay_name,
-                        user_type: data.user_type
-                    };
-                });
-    
-            // Step 3: Filter out farmers already assigned to any team
-            farmersList = allFarmers.filter(farmer => 
-                !assignedFarmerNames.has(farmer.farmer_name.trim().toLowerCase())
-            );
-    
-            console.log("Fetched available farmers:", farmersList);
-        } catch (error) {
-            console.error("Error fetching farmers:", error);
+async function fetchFarmers() {
+    try {
+        if (!teamData || !teamData.barangay_name) {
+            console.error("Team data or barangay name not available.");
             farmersList = [];
+            return;
         }
-    }
-    
-    function renderTable(searchTerm = '') {
-        const tbody = document.getElementById('teamTableBody');
-        tbody.innerHTML = '';
-    
-        const leadFarmerEntry = {
-            farmer_id: teamData.lead_farmer_id || 'lead_' + teamData.team_id,
-            farmer_name: teamData.lead_farmer || 'No Lead Farmer',
-            contact: teamData.lead_farmer_contact || farmersList.find(f => f.farmer_name === teamData.lead_farmer)?.contact || 'No contact'
-        };
-        const allFarmers = [leadFarmerEntry, ...currentFarmers];
-    
-        const filteredFarmers = allFarmers.filter(farmer => 
-            farmer.farmer_name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const paginatedFarmers = filteredFarmers.slice(start, end);
-    
-        paginatedFarmers.forEach((farmer, index) => {
-            const row = document.createElement('tr');
-            const userRole = farmer.farmer_name === teamData.lead_farmer ? 'Head Farmer' : 'Farmer';
-            const contact = farmer.contact || 'No contact';
-            row.innerHTML = `
-                <td>${start + index + 1}</td>
-                <td>${farmer.farmer_name}</td>
-                <td>${userRole}</td>
-                <td>${contact}</td>
-                <td>
-                    ${userRole === 'Head Farmer' ? '' : 
-                      `<button class="action-btn" data-farmer-id="${farmer.farmer_id}" ${isTeamAssigned ? 'disabled' : ''} style="${isTeamAssigned ? 'opacity: 0.5; cursor: not-allowed;' : ''}">Remove</button>`}
-                </td>
-            `;
-            tbody.appendChild(row);
+
+        const currentBarangay = teamData.barangay_name;
+
+        // Step 1: Fetch all teams to collect all assigned farmer names
+        const teamsSnapshot = await getDocs(collection(db, "tb_teams"));
+        const assignedFarmerNames = new Set();
+
+        teamsSnapshot.forEach((teamDoc) => {
+            const docTeamData = teamDoc.data();
+            // Add lead farmer name if present
+            if (docTeamData.lead_farmer) {
+                assignedFarmerNames.add(docTeamData.lead_farmer.trim().toLowerCase());
+            }
+            // Add all farmer names from farmer_name array
+            if (docTeamData.farmer_name && Array.isArray(docTeamData.farmer_name)) {
+                docTeamData.farmer_name.forEach(farmerObj => {
+                    if (farmerObj.farmer_name) {
+                        assignedFarmerNames.add(farmerObj.farmer_name.trim().toLowerCase());
+                    }
+                });
+            }
         });
-    
-        updatePagination(filteredFarmers.length);
-        addRemoveEventListeners();
-    
-        // Add Delete Team button below the table
-        const tableContainer = document.getElementById('teamTableBody').parentElement.parentElement;
-        let deleteButton = document.getElementById('deleteTeamBtn');
-        if (!deleteButton) {
-            deleteButton = document.createElement('button');
-            deleteButton.id = 'deleteTeamBtn';
-            deleteButton.textContent = 'x Delete Team';
-            
-            deleteButton.style.marginLeft = '100px';
-            deleteButton.style.color = '#AC415B'; // White text
-            deleteButton.style.border = 'none'; // No border
-            deleteButton.style.padding = '8px 18px'; // Padding matches the image
-            deleteButton.style.cursor = 'pointer'; // Pointer cursor on hover
-            deleteButton.style.borderRadius = '5px'; // Slightly rounded corners to match the image
-            deleteButton.style.fontSize = '16px'; // Adjust font size to match the text in the image
-            deleteButton.style.fontWeight = '500'; // Medium font weight for a clean look
-            deleteButton.style.fontFamily = 'Arial, sans-serif'; // A clean, sans-serif font similar to the one in the image
-            tableContainer.insertAdjacentElement('afterend', deleteButton);
-        }
-    
-        attachDeleteTeamListener();
-        updateButtonStates(); // Ensure button states are updated after rendering
+
+        // Step 2: Fetch all farmers from tb_farmers in the current barangay
+        const q = query(
+            collection(db, "tb_farmers"),
+            where("barangay_name", "==", currentBarangay),
+            where("user_type", "in", ["Farmer", "Head Farmer"]) // Include both types
+        );
+
+        const querySnapshot = await getDocs(q);
+        const allFarmers = querySnapshot.docs
+            .map(doc => {
+                const data = doc.data();
+                const farmerName = `${data.last_name}, ${data.first_name} ${data.middle_name || ''}`.trim();
+                return {
+                    id: doc.id,
+                    farmer_id: data.farmer_id,
+                    farmer_name: farmerName,
+                    contact: data.contact || '',
+                    barangay_name: data.barangay_name,
+                    user_type: data.user_type
+                };
+            });
+
+        // Step 3: Filter out farmers already assigned to any team
+        farmersList = allFarmers.filter(farmer => 
+            !assignedFarmerNames.has(farmer.farmer_name.trim().toLowerCase())
+        );
+
+        console.log("Fetched available farmers:", farmersList);
+    } catch (error) {
+        console.error("Error fetching farmers:", error);
+        farmersList = [];
+    }
+}
+
+function renderTable(searchTerm = '') {
+    const tbody = document.getElementById('teamTableBody');
+    tbody.innerHTML = '';
+
+    const leadFarmerEntry = {
+        farmer_id: teamData.lead_farmer_id || 'lead_' + teamData.team_id,
+        farmer_name: teamData.lead_farmer || 'No Lead Farmer',
+        contact: teamData.lead_farmer_contact || farmersList.find(f => f.farmer_name === teamData.lead_farmer)?.contact || 'No contact'
+    };
+    const allFarmers = [leadFarmerEntry, ...currentFarmers];
+
+    const filteredFarmers = allFarmers.filter(farmer => 
+        farmer.farmer_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginatedFarmers = filteredFarmers.slice(start, end);
+
+    paginatedFarmers.forEach((farmer, index) => {
+        const row = document.createElement('tr');
+        const userRole = farmer.farmer_name === teamData.lead_farmer ? 'Head Farmer' : 'Farmer';
+        const contact = farmer.contact || 'No contact';
+        row.innerHTML = `
+            <td>${start + index + 1}</td>
+            <td>${farmer.farmer_name}</td>
+            <td>${userRole}</td>
+            <td>${contact}</td>
+            <td>
+                ${userRole === 'Head Farmer' ? '' : 
+                  `<button class="action-btn" data-farmer-id="${farmer.farmer_id}" ${isTeamAssigned ? 'disabled' : ''} style="${isTeamAssigned ? 'opacity: 0.5; cursor: not-allowed;' : ''}">Remove</button>`}
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    updatePagination(filteredFarmers.length);
+    addRemoveEventListeners();
+
+    // Add Delete Team button below the table
+    const tableContainer = document.getElementById('teamTableBody').parentElement.parentElement;
+    let deleteButton = document.getElementById('deleteTeamBtn');
+    if (!deleteButton) {
+        deleteButton = document.createElement('button');
+        deleteButton.id = 'deleteTeamBtn';
+        deleteButton.textContent = 'x Delete Team';
+        
+        deleteButton.style.marginLeft = '100px';
+        deleteButton.style.color = '#AC415B'; // White text
+        deleteButton.style.border = 'none'; // No border
+        deleteButton.style.padding = '8px 18px'; // Padding matches the image
+        deleteButton.style.cursor = 'pointer'; // Pointer cursor on hover
+        deleteButton.style.borderRadius = '5px'; // Slightly rounded corners to match the image
+        deleteButton.style.fontSize = '16px'; // Adjust font size to match the text in the image
+        deleteButton.style.fontWeight = '500'; // Medium font weight for a clean look
+        deleteButton.style.fontFamily = 'Arial, sans-serif'; // A clean, sans-serif font similar to the one in the image
+        tableContainer.insertAdjacentElement('afterend', deleteButton);
     }
 
-    function updatePagination(totalItems) {
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
-        currentPage = Math.min(currentPage, totalPages || 1);
-        document.getElementById('pageInfo').textContent = `${currentPage} of ${totalPages || 1}`;
-        document.getElementById('prevPage').disabled = currentPage === 1;
-        document.getElementById('nextPage').disabled = currentPage === totalPages;
-    }
+    attachDeleteTeamListener();
+    updateButtonStates(); // Ensure button states are updated after rendering
+}
 
+function updatePagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    currentPage = Math.min(currentPage, totalPages || 1);
+    document.getElementById('pageInfo').textContent = `${currentPage} of ${totalPages || 1}`;
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = currentPage === totalPages;
+}
 
 async function deleteTeam() {
     // Show confirmation prompt
@@ -271,7 +269,6 @@ function attachDeleteTeamListener() {
     }
 }
 
-
 function addRemoveEventListeners() {
     document.querySelectorAll('.action-btn').forEach(button => {
         // Remove any existing listeners to prevent duplicates
@@ -296,8 +293,6 @@ async function handleRemoveClick(e) {
     await fetchFarmers(); // Refresh farmersList to include the removed farmer
     renderTable(document.getElementById('searchInput').value);
 }
-
-
 
 async function fetchFarmerByName(farmerName) {
     try {
@@ -388,7 +383,6 @@ async function fetchFarmerByName(farmerName) {
     }
 }
 
-
 async function updateTeamInFirestore() {
     const urlParams = new URLSearchParams(window.location.search);
     const teamId = urlParams.get('teamId');
@@ -435,7 +429,6 @@ function renderFarmerResults(searchValue = '') {
     });
 }
 
-
 function addFarmerToBox(farmer) {
     const farmerBox = document.getElementById('farmerBox');
     // Verify farmer is still in farmersList to prevent stale data
@@ -471,10 +464,6 @@ function addFarmerToBox(farmer) {
     }
 }
 
-
-
-
-
 document.getElementById('searchInput').addEventListener('input', (e) => {
     renderTable(e.target.value);
 });
@@ -501,8 +490,6 @@ document.getElementById('nextPage').addEventListener('click', () => {
     }
 });
 
-
-
 document.getElementById('closePopup').addEventListener('click', () => {
     document.getElementById('addFarmerPopup').style.display = 'none';
     document.getElementById('farmerBox').innerHTML = '';
@@ -513,11 +500,18 @@ document.getElementById('closePopup').addEventListener('click', () => {
 // Event listeners for the search bar
 const farmerSearch = document.getElementById('farmerSearch');
 const searchResults = document.getElementById('searchResults');
+let isSearchFocused = false;
 
 // Show all farmers when the search bar is focused
 farmerSearch.addEventListener('focus', () => {
+    isSearchFocused = true;
     renderFarmerResults(farmerSearch.value); // Show results based on current input
     searchResults.style.display = 'block'; // Ensure results are visible
+});
+
+// Clear focus flag when focus is lost
+farmerSearch.addEventListener('blur', () => {
+    isSearchFocused = false;
 });
 
 // Filter farmers as the user types
@@ -526,22 +520,12 @@ farmerSearch.addEventListener('input', (e) => {
     searchResults.style.display = 'block'; // Keep results visible while typing
 });
 
-
-
-
-// Hide results when clicking outside, but prevent hiding when clicking input or results
+// Hide results when clicking outside, but not when input is focused
 document.addEventListener('click', (e) => {
-    // Check if the click is outside both farmerSearch and searchResults
-    if (!farmerSearch.contains(e.target) && !searchResults.contains(e.target)) {
+    if (!isSearchFocused && !searchResults.contains(e.target) && !farmerSearch.contains(e.target)) {
         searchResults.style.display = 'none'; // Hide results
     }
-    // If clicking the input, ensure results are shown
-    if (farmerSearch.contains(e.target)) {
-        renderFarmerResults(farmerSearch.value);
-        searchResults.style.display = 'block';
-    }
 });
-
 
 // Open the popup
 document.getElementById('addFarmerBtn').addEventListener('click', (e) => {
@@ -560,8 +544,6 @@ document.getElementById('closePopup').addEventListener('click', () => {
     document.getElementById('searchResults').innerHTML = '';
     searchResults.style.display = 'none'; // Ensure results are hidden
 });
-
-
 
 // Save selected farmers
 document.getElementById('saveFarmerBtn').addEventListener('click', async () => {

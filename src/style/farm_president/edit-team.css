@@ -342,6 +342,8 @@ td {
     font-size: 20px;
     cursor: pointer;
     color: #333; /* Matches old table text color */
+    font-weight: 500;
+    color: #cacaca;
 }
 
 /* Popup heading */
