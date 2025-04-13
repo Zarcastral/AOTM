@@ -436,6 +436,17 @@ textarea {
     transition: opacity 0.4s ease-in-out;
     z-index: 1000;
 }
+.view-btn img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.view-btn {
+    background-color: transparent;
+    border: none;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
     
