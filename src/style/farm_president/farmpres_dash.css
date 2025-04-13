@@ -38,7 +38,7 @@ body {
 }
 
 .year-selector {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
@@ -46,17 +46,17 @@ body {
   outline: none;
   width: 200px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
 
 .main-content {
   flex: 1;
-  padding: 0px 40px; /* Reduced top padding from 20px to 10px to minimize white space */
+  padding: 0 40px;
   overflow-y: auto;
 }
 
@@ -64,7 +64,7 @@ body {
 .top-section {
   display: flex;
   gap: 20px;
-  margin-bottom: 40px; /* Increased margin to create more space below */
+  margin-bottom: 40px;
   position: relative;
 }
 
@@ -72,49 +72,46 @@ body {
 .system-stats-section {
   flex: 1;
   position: relative;
-  padding-top: 0; /* Removed padding-top to eliminate white space */
+  padding-top: 0;
 }
 
 .system-stats {
   display: flex;
-  flex-direction: row; /* Changed to row to match the image */
+  flex-direction: row;
   gap: 20px;
 }
 
 .stats-card {
   background-color: #fff;
-  border-radius: 15px; /* Increased border-radius for a softer look */
-  padding: 15px; /* Adjusted padding to match the image */
+  border-radius: 15px;
+  padding: 15px;
   display: flex;
   align-items: center;
-  gap: 10px; /* Reduced gap to match the image */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Softer shadow */
-  flex: 1; /* Ensure each card takes equal width */
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  flex: 1;
 }
 
 .stats-icon {
-  width: 60px; /* Adjusted to match the image */
-  height: 60px; /* Adjusted to match the image */
+  width: 60px;
+  height: 60px;
 }
 
-.farmers-icon {
-  /* No background image needed anymore */
-}
-
+.farmers-icon,
 .projects-icon {
-  /* No background image needed anymore */
+  /* No background image needed */
 }
 
 .stats-info {
   display: flex;
   align-items: center;
-  gap: 10px; /* Adjusted to match the image */
+  gap: 10px;
   flex: 1;
   justify-content: space-between;
 }
 
 .stats-info p {
-  font-size: 30px; /* Adjusted to match the image */
+  font-size: 30px;
   font-weight: 500;
   color: #333;
   margin: 0;
@@ -127,14 +124,14 @@ body {
 }
 
 .number-wrapper h3 {
-  font-size: 40px; /* Adjusted to match the image */
-  font-weight: 500; /* Bolder to match the image */
+  font-size: 40px;
+  font-weight: 500;
   margin: 0;
   color: #333;
 }
 
 .number-wrapper span {
-  font-size: 14px; /* Adjusted to match the image */
+  font-size: 14px;
   color: #888;
 }
 
@@ -163,8 +160,8 @@ body {
   font-size: 16px;
   font-weight: 600;
   color: #486581;
-  position: static; /* Remove absolute positioning */
-  margin-bottom: 5px; /* Reduced from 10px to minimize downward shift */
+  position: static;
+  margin-bottom: 5px;
 }
 
 .harvest-info h5 {
@@ -217,12 +214,12 @@ body {
 .year-selector-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* Space between label and select */
+  gap: 10px;
 }
 
 .year-selector-label {
   font-size: 14px;
-  color: #333; /* Adjust color to match your design */
+  color: #333;
   font-weight: 500;
 }
 
@@ -246,16 +243,15 @@ body {
   align-items: flex-end;
   position: relative;
   flex: 1;
-  overflow: hidden; /* Prevent scrolling */
+  overflow: hidden;
   min-height: 300px;
-  padding-bottom: 60px; /* Increased padding to make space for month labels */
+  padding-bottom: 60px;
 }
 
-/* Create a pseudo-element for the horizontal line separator */
 .bar-chart::after {
   content: '';
   position: absolute;
-  bottom: 30px; /* Position the line above the month labels */
+  bottom: 30px;
   left: 0;
   right: 0;
   height: 1px;
@@ -265,32 +261,32 @@ body {
 
 .bar {
   flex: 1;
-  width: 20px; /* Adjust as needed */
+  width: 20px;
   margin: 0 5px;
   background-color: #d3e8e1;
   border-radius: 5px 5px 0 0;
   position: relative;
   height: var(--bar-height);
   transition: background-color 0.2s ease, transform 0.1s ease;
-  z-index: 1; /* Ensure bars are above the horizontal line */
+  z-index: 1;
 }
 
 .bar.highlighted {
   background-color: #41A186;
   transition: background-color 0.2s ease;
-  box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2); /* Added shadow */
+  box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
 }
 
 .bar::after {
   content: attr(data-month);
   position: absolute;
-  top: calc(100% + 30px); /* Position below the bar and the horizontal line */
+  top: calc(100% + 30px);
   left: 50%;
   transform: translateX(-50%);
   font-size: 12px;
   color: #333;
   white-space: nowrap;
-  z-index: 2; /* Ensure labels are above the horizontal line */
+  z-index: 2;
 }
 
 .bar-chart::before {
@@ -299,22 +295,35 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 30px; /* Ensure grid lines stop at the horizontal line */
+  bottom: 30px;
   background: repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent calc((100% / 13) - 1px),
-      #e0e0e0 calc((100% / 13) - 1px),
-      #e0e0e0 calc(100% / 13)
+    to bottom,
+    transparent,
+    transparent calc((100% / 13) - 1px),
+    #e0e0e0 calc((100% / 13) - 1px),
+    #e0e0e0 calc(100% / 13)
   );
   z-index: -1;
 }
 
 /* Responsive Design */
 @media screen and (max-width: 1024px) {
+  .header {
+    padding: 0 15px;
+  }
+
+  .header-title {
+    font-size: clamp(24px, 5vw, 26px);
+  }
+
+  .main-content {
+    padding: 0 30px;
+  }
+
   .top-section {
     flex-direction: column;
     gap: 15px;
+    margin-bottom: 30px;
   }
 
   .system-stats-section {
@@ -323,25 +332,36 @@ body {
   }
 
   .system-stats {
-    flex-direction: column; /* Stack cards vertically on smaller screens */
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .stats-card {
+    padding: 12px;
   }
 
   .analytics-section {
     margin-top: 30px;
+    height: 350px;
+  }
+
+  .analytics {
+    padding: 15px;
   }
 
   .bar-chart {
-    height: 180px;
+    min-height: 250px;
+    padding-bottom: 50px;
   }
 
-  .bar-chart::before {
-    height: 180px;
-    background-size: 100% 18px;
+  .bar-chart::after {
+    bottom: 25px;
   }
 
   .y-axis {
-    height: 180px;
-    font-size: 10px;
+    width: 35px;
+    min-height: 250px;
+    font-size: 11px;
   }
 }
 
@@ -351,7 +371,7 @@ body {
   }
 
   .header-title {
-    font-size: 1.25rem;
+    font-size: clamp(20px, 4vw, 22px);
   }
 
   .header-icons img {
@@ -360,20 +380,24 @@ body {
   }
 
   .main-content {
-    padding: 5px 50px;
+    padding: 0 20px;
   }
 
-  .header {
-    padding-left: 50px;
+  .year-selector {
+    width: 160px;
+    font-size: 14px;
+    padding: 8px 25px 8px 8px;
+    background-size: 14px;
   }
 
   .top-section {
-    flex-direction: column;
-    margin-bottom: 30px;
+    gap: 10px;
+    margin-bottom: 20px;
   }
 
   .stats-card {
-    padding: 15px;
+    padding: 10px;
+    gap: 8px;
   }
 
   .stats-icon {
@@ -382,43 +406,82 @@ body {
   }
 
   .stats-info p {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .number-wrapper h3 {
-    font-size: 36px;
+    font-size: 34px;
   }
 
   .number-wrapper span {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .analytics-section {
     margin-top: 20px;
+    height: 300px;
+  }
+
+  .analytics {
+    padding: 12px;
+  }
+
+  .section-title {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .harvest-info h5 {
+    font-size: 13px;
+    margin-bottom: 15px;
   }
 
   .bar-chart {
-    height: 150px;
+    min-height: 200px;
+    padding-bottom: 45px;
   }
 
-  .bar-chart::before {
-    height: 150px;
-    background-size: 100% 15px;
+  .bar-chart::after {
+    bottom: 20px;
   }
 
-  .y-axis {
-    height: 150px;
-    font-size: 10px;
+  .bar {
+    width: 15px;
+    margin: 0 3px;
   }
 
   .bar::after {
     font-size: 10px;
+    top: calc(100% + 20px);
+  }
+
+  .y-axis {
+    width: 30px;
+    min-height: 200px;
+    font-size: 10px;
+  }
+
+  .year-selector-container {
+    gap: 8px;
+  }
+
+  .year-selector-label {
+    font-size: 13px;
+  }
+
+  .year-selector {
+    font-size: 13px;
+    padding: 4px;
   }
 }
 
 @media screen and (max-width: 480px) {
+  .header {
+    padding: 0 8px;
+  }
+
   .header-title {
-    font-size: 1.1rem;
+    font-size: clamp(18px, 3.5vw, 20px);
   }
 
   .header-icons img {
@@ -427,11 +490,24 @@ body {
   }
 
   .main-content {
-    padding: 5px 50px;
+    padding: 0 15px;
+  }
+
+  .year-selector {
+    width: 140px;
+    font-size: 13px;
+    padding: 6px 20px 6px 6px;
+    background-size: 12px;
+  }
+
+  .top-section {
+    gap: 8px;
+    margin-bottom: 15px;
   }
 
   .stats-card {
-    padding: 10px;
+    padding: 8px;
+    gap: 6px;
   }
 
   .stats-icon {
@@ -440,38 +516,181 @@ body {
   }
 
   .stats-info p {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .number-wrapper h3 {
-    font-size: 30px;
+    font-size: 28px;
   }
 
   .number-wrapper span {
     font-size: 12px;
   }
 
+  .analytics-section {
+    margin-top: 15px;
+    height: 250px;
+  }
+
   .analytics {
-    padding: 15px;
+    padding: 10px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .harvest-info h5 {
+    font-size: 12px;
+    margin-bottom: 12px;
   }
 
   .bar-chart {
-    height: 120px;
+    min-height: 180px;
+    padding-bottom: 40px;
   }
 
-  .bar-chart::before {
-    height: 120px;
-    background-size: 100% 12px;
+  .bar-chart::after {
+    bottom: 18px;
+  }
+
+  .bar {
+    width: 12px;
+    margin: 0 2px;
+  }
+
+  .bar::after {
+    font-size: 9px;
+    top: calc(100% + 18px);
   }
 
   .y-axis {
-    height: 120px;
-    font-size: 8px;
     width: 25px;
+    min-height: 180px;
+    font-size: 9px;
+  }
+
+  .year-selector-container {
+    gap: 6px;
+  }
+
+  .year-selector-label {
+    font-size: 12px;
+  }
+
+  .year-selector {
+    font-size: 12px;
+    padding: 3px;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .header {
+    padding: 0 6px;
+  }
+
+  .header-title {
+    font-size: clamp(16px, 3vw, 18px);
+  }
+
+  .header-icons img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .main-content {
+    padding: 0 10px;
+  }
+
+  .year-selector {
+    width: 120px;
+    font-size: 12px;
+    padding: 5px 15px 5px 5px;
+    background-size: 10px;
+  }
+
+  .top-section {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .stats-card {
+    padding: 6px;
+    gap: 5px;
+  }
+
+  .stats-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .stats-info p {
+    font-size: 20px;
+  }
+
+  .number-wrapper h3 {
+    font-size: 24px;
+  }
+
+  .number-wrapper span {
+    font-size: 11px;
+  }
+
+  .analytics-section {
+    margin-top: 12px;
+    height: 220px;
+  }
+
+  .analytics {
+    padding: 8px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .harvest-info h5 {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
+
+  .bar-chart {
+    min-height: 160px;
+    padding-bottom: 35px;
+  }
+
+  .bar-chart::after {
+    bottom: 16px;
+  }
+
+  .bar {
+    width: 10px;
+    margin: 0 1px;
   }
 
   .bar::after {
     font-size: 8px;
-    bottom: -20px;
+    top: calc(100% + 16px);
+  }
+
+  .y-axis {
+    width: 20px;
+    min-height: 160px;
+    font-size: 8px;
+  }
+
+  .year-selector-container {
+    gap: 5px;
+  }
+
+  .year-selector-label {
+    font-size: 11px;
+  }
+
+  .year-selector {
+    font-size: 11px;
+    padding: 2px;
   }
 }

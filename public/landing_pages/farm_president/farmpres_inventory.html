@@ -1,199 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script type="module" src="../../../src/js/farm_president/farmpres_inventory_crops.js "></script>
-  <script type="module" src="../../../src/js/farm_president/farmpres_inventory_fertilizer.js "></script>
-  <script type="module" src="../../../src/js/farm_president/farmpres_inventory_equipment.js "></script>
-
-  <title>Organic Baras Productivity</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../src/style/farm_president/farmpres_inventory.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="../../../src/js/farm_president/farmpres_inventory_crops.js"></script>
+    <script type="module" src="../../../src/js/farm_president/farmpres_inventory_fertilizer.js"></script>
+    <script type="module" src="../../../src/js/farm_president/farmpres_inventory_equipment.js"></script>
+    <title>Organic Baras Productivity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../src/style/farm_president/farmpres_inventory.css">
 </head>
-
 <body>
     <!-- Placeholder for Header -->
     <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
-  <div class="main-content">
-    <div class="panel">
-      <div class="table-wrapper">
-        <h2>Crops</h2>
-        <div class="crop-search-bar">
-          <input type="text" id="crop-search-bar" placeholder="Search">
-          <select class="project_select">
-            <option value="">Select Project </option>
-          </select>
-          <select class="crop_select">
-            <option value="">Select Crops </option>
-          </select>
+    <div class="main-content">
+        <div class="panel">
+            <div class="table-wrapper">
+                <h2>Crops</h2>
+                <div class="crop-search-bar">
+                    <input type="text" id="crop-search-bar" placeholder="Search">
+                    <select class="project_select">
+                        <option value="">Select Project</option>
+                    </select>
+                    <select class="crop_select">
+                        <option value="">Select Crops</option>
+                    </select>
+                </div>
+                <div class="crop_table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Project Name</th>
+                                <th>Crop Type</th>
+                                <th>Crops</th>
+                                <th>Date Added</th>
+                                <th>Current Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Crops will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="crops-pagination">
+                    <span id="crop-page-number">Page 1</span>
+                    <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
+                    <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
+                </div>
+            </div>
         </div>
-        <div class="crop_table">
-          <table>
-            <thead>
-              <tr> 
-                <th>#</th>
-                <th>Project Name</th>
-                <th>Crop Type</th>
-                <th>Crops</th>
-                <th>Date Added</th>
-                <th>Current Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Crops will be populated here -->
-          </tbody>
-        </table>
-      </div>
-      <div class="crops-pagination">
-        <span id="crop-page-number">Page 1</span>
-        <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
-        <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
-    </div>
-    </div>
-  </div>
 
-    <!-- Farmers Activity Panel -->
-    <div class="panel">
-      <div class="table-wrapper">
-      <h2>Fertilizer</h2>
-      <div class="fert-search-bar">
-        <input type="text" id="fert-search-bar" placeholder="Search">
-        <select class="fert_project_select">
-          <option value="">Select Project </option>
-        </select>
-        <select class="fertilizer_select">
-          <option value="">Select Fertilizer </option>
-        </select>
-      </div>
-      <div class="fertilizer_table">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Project Name</th>
-            <th>Fertilizer Name</th>
-            <th>Category</th>
-            <th>Date Added</th>
-            <th>Current Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- will be populated here -->
-        </tbody>
-      </table>
-    </div>
-        <div class="fertilizer-pagination">
-          <span id="fertilizer-page-number">Page 1</span>
-          <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
-          <button id="fertilizer-next-page" class="fertilizer-pagination-btn">&gt;</button>
-      </div>
-    </div>
-  </div>
-
-    <!-- Equipment Status Panel -->
-    <div class="panel">
-      <div class="table-wrapper">
-      <h2>Equipment </h2>
-      <div class="equip-search-bar">
-        <input type="text"  id="equip-search-bar"  placeholder="Search">
-        <select class="equip_project_select">
-          <option value="">Select Project </option>
-        </select>
-        <select class="equipment_select">
-          <option value="">Equipment Type</option>
-        </select>
-      </div>
-      <div class="equipment_table"> 
-        <table>
-          <thead>
-              <tr>
-                <th>#</th>
-                <th>Project Name</th>
-                <th>Equipment Name</th>
-                <th>Category</th>
-                <th>Date Added</th>
-                <th>Current Stock</th>
-              </tr>
-          </thead>
-          <tbody>
-            <!-- record will be put here -->
-          </tbody>    
-        </table>
-      </div>
-      </div>
-          <div class="equipment-pagination">
-            <span id="equipment-page-number">Page 1</span>
-            <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
-            <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
+        <!-- Farmers Activity Panel -->
+        <div class="panel">
+            <div class="table-wrapper">
+                <h2>Fertilizer</h2>
+                <div class="fert-search-bar">
+                    <input type="text" id="fert-search-bar" placeholder="Search">
+                    <select class="fert_project_select">
+                        <option value="">Select Project</option>
+                    </select>
+                    <select class="fertilizer_select">
+                        <option value="">Select Fertilizer</option>
+                    </select>
+                </div>
+                <div class="fertilizer_table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Project Name</th>
+                                <th>Fertilizer Name</th>
+                                <th>Category</th>
+                                <th>Date Added</th>
+                                <th>Current Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="fertilizer-pagination">
+                    <span id="fertilizer-page-number">Page 1</span>
+                    <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
+                    <button id="fertilizer-next-page" class="fertilizer-pagination-btn">&gt;</button>
+                </div>
+            </div>
         </div>
-      </div>
-  </div>
 
-  <!-- Account Panel with iframe to load external content -->
-  <div id="account-panel" class="account-panel">
-    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
-  </div>
+        <!-- Equipment Status Panel -->
+        <div class="panel">
+            <div class="table-wrapper">
+                <h2>Equipment</h2>
+                <div class="equip-search-bar">
+                    <input type="text" id="equip-search-bar" placeholder="Search">
+                    <select class="equip_project_select">
+                        <option value="">Select Project</option>
+                    </select>
+                    <select class="equipment_select">
+                        <option value="">Equipment Type</option>
+                    </select>
+                </div>
+                <div class="equipment_table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Project Name</th>
+                                <th>Equipment Name</th>
+                                <th>Category</th>
+                                <th>Date Added</th>
+                                <th>Current Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- record will be put here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="equipment-pagination">
+                    <span id="equipment-page-number">Page 1</span>
+                    <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
+                    <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const accountIcon = document.getElementById("account-icon");
-      const accountPanel = document.getElementById("account-panel");
-      const accountFrame = document.getElementById("account-frame");
-
-      accountIcon.addEventListener("click", () => {
-        console.log("Account icon clicked!");
-
-        accountPanel.classList.toggle("active");
-        console.log("Panel active status:", accountPanel.classList.contains("active"));
-
-        if (accountPanel.classList.contains("active")) {
-          accountFrame.src = "logout.html";
-          console.log("Iframe src set to logout.html");
-        } else {
-          accountFrame.src = "";
-          console.log("Iframe cleared");
-        }
-      });
-
-      // Close when clicking outside
-      document.addEventListener("click", (event) => {
-        if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-          closeAccountPanel();
-        }
-      });
-
-      // Handle messages from iframe (logout.html)
-      window.addEventListener("message", (event) => {
-        console.log("Message received from iframe:", event.data);
-
-        if (event.data === "closeAccountPanel") {
-          console.log("Closing account panel from iframe message...");
-          closeAccountPanel();
-        }
-
-        if (event.data === "closeIframe") {
-          console.log("Closing iframe and logging out...");
-          closeAccountPanel(); // Remove the iframe
-
-          // ✅ Redirect to login page after closing iframe
-          setTimeout(() => {
-            window.top.location.href = "../../index.html"; // Ensure full-page redirect
-          }, 500);
-        }
-      });
-
-      // Function to close the account panel
-      function closeAccountPanel() {
-        accountPanel.classList.remove("active");
-        accountFrame.src = "";
-      }
-    });
-  </script>
     <!-- Import the reusable script from src/auth -->
     <script type="module" src="../../../src/auth/header.js"></script>
 </body>
-
 </html>
