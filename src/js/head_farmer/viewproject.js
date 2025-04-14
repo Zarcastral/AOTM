@@ -58,7 +58,7 @@ function showErrorPanel(message) {
   }, 4000);
 }
 
-// New function for "No project assigned yet" with distinct design
+// Function for "No project assigned yet" with distinct design
 function showNoProjectPanel() {
   const noProjectMessage = document.createElement("div");
   noProjectMessage.className = "no-project-message";
@@ -172,16 +172,23 @@ async function fetchTeams() {
 
       const row = document.createElement("tr");
       row.innerHTML = `
-                <td>${teamName}</td>
-                <td>${leadFarmer}</td>
-                <td>${farmers.length}</td>
-                <td><img src="../../images/eye.png" class="action-btn" alt="View"></td>
-            `;
+        <td>${teamName}</td>
+        <td>${leadFarmer}</td>
+        <td>${farmers.length}</td>
+        <td><img src="../../images/eye.png" class="action-btn" alt="View"></td>
+      `;
 
       const viewButton = row.querySelector(".action-btn");
-      viewButton.addEventListener("click", () =>
-        openPopup(teamName, leadFarmer, farmers)
-      );
+      viewButton.addEventListener("click", () => {
+        // Store team data in sessionStorage
+        sessionStorage.setItem("selectedTeamName", teamName);
+        sessionStorage.setItem("selectedLeadFarmer", leadFarmer);
+        sessionStorage.setItem("selectedFarmers", JSON.stringify(farmers));
+
+        // Redirect to the target HTML page
+        window.location.href = "headfarm_farmer.html"; // Replace with your actual HTML file path
+      });
+
       teamsTableBody.appendChild(row);
     });
   } catch (error) {
@@ -190,37 +197,6 @@ async function fetchTeams() {
       "<tr><td colspan='6' style='text-align: center;'>Failed to load teams.</td></tr>";
   }
 }
-
-// Popup Functions
-/*window.openPopup = function (teamName, leadFarmer, farmers) {
-    const popup = document.getElementById("viewTeamPopup");
-    document.getElementById("popupTeamName").textContent = teamName;
-    document.getElementById("popupLeadFarmer").textContent = leadFarmer;
-
-    const farmerList = document.getElementById("popupFarmerList");
-    farmerList.innerHTML = "";
-    if (farmers.length > 0) {
-        farmers.forEach(farmer => {
-            const listItem = document.createElement("li");
-            listItem.textContent = farmer;
-            farmerList.appendChild(listItem);
-        });
-    } else {
-        farmerList.innerHTML = "<li>No farmers assigned</li>";
-    }
-
-    popup.style.display = "flex";
-};
-
-window.closePopup = function () {
-    document.getElementById("viewTeamPopup").style.display = "none";
-};
-
-document.getElementById("closePopup").addEventListener("click", closePopup);
-window.addEventListener("click", (event) => {
-    const popup = document.getElementById("viewTeamPopup");
-    if (event.target === popup) closePopup();
-})*/
 
 // Feedback Popup
 window.openFeedbackPopup = function () {
@@ -384,7 +360,7 @@ function addFeedbackToUI(feedback) {
         <img src="${
           feedback.submitted_by_picture || "default-profile.png"
         }" class="feedback-avatar" alt="User">
-        <div class="feedback-content"> <!-- Changed from feedback-content3 to feedback-content -->
+        <div class="feedback-content">
             <div class="feedback-header">
                 <span class="feedback-user">${feedback.submitted_by} • ${
     feedback.concern
