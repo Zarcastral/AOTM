@@ -240,8 +240,8 @@ window.fetchData = function(collectionName, listId, field) {
                 itemDiv.innerHTML = `
                     <span>${data[field] || 'Unnamed'}</span>
                     <div class="actions">
-                        <img src="../../images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('${collectionName}', '${doc.id}', '${data[field] || ''}')">
-                        <img src="../../images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('${collectionName}', '${doc.id}')">
+                        <img src="/public/images/Edit.png" alt="Edit" class="action-icon" onclick="editItem('${collectionName}', '${doc.id}', '${data[field] || ''}')">
+                        <img src="/public/images/Delete.png" alt="Delete" class="action-icon" onclick="deleteItem('${collectionName}', '${doc.id}')">
                     </div>
                 `;
                 listContainer.appendChild(itemDiv);

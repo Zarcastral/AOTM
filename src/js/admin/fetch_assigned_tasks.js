@@ -167,7 +167,7 @@ function addSubtaskToList(subtask, index) {
     subtaskItem.innerHTML = `
         <span class="subtask-text">${subtaskName}</span>
         <button class="remove-subtask-btn" onclick="removeSubtask(${index})">
-            <img src="../../images/Delete.png" alt="Remove">
+            <img src="/public/images/Delete.png" alt="Remove">
         </button>
     `;
     subtaskList.appendChild(subtaskItem);
@@ -464,10 +464,10 @@ function displayAssignedTasks(page) {
             <td>${task.assignedOn}</td>
             <td>
                 <button class="edit-btn" data-id="${task.taskId}" data-task="${task.taskName}" title="Edit">
-                    <img src="../../images/image 27.png" alt="Edit">
+                    <img src="/public/images/image 27.png" alt="Edit">
                 </button>
                 <button class="delete-btn" data-id="${task.taskId}" data-task="${task.taskName}" data-crop="${task.cropName}" data-crop-type="${task.cropTypeName}" title="Delete">
-                    <img src="../../images/Delete.png" alt="Delete">
+                    <img src="/public/images/Delete.png" alt="Delete">
                 </button>
             </td>
         `;

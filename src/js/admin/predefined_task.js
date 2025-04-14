@@ -170,7 +170,7 @@ addTaskBtn.addEventListener("click", async () => {
 
   tasks.push(taskName);
   const li = document.createElement("li");
-  li.innerHTML = `${taskName} <button class="delete-task-popup-btn"><img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon"></button>`;
+  li.innerHTML = `${taskName} <button class="delete-task-popup-btn"><img src="/public/images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon"></button>`;
   newTaskList.appendChild(li);
 
   newTaskInput.value = "";
@@ -285,8 +285,8 @@ async function fetchTasks(searchQuery = "") {
         row.innerHTML = `
           <td>${taskData.task_name}</td>
           <td>
-            <img src="../../images/image 27.png" alt="Edit" title="Edit Task" class="action-icon edit-task-icon" data-id="${filteredTasks[i].id}">
-            <img src="../../images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon" data-id="${filteredTasks[i].id}">
+            <img src="/public/images/image 27.png" alt="Edit" title="Edit Task" class="action-icon edit-task-icon" data-id="${filteredTasks[i].id}">
+            <img src="/public/images/Delete.png" alt="Delete" title="Delete Task" class="action-icon delete-task-icon" data-id="${filteredTasks[i].id}">
           </td>
         `;
         taskList.appendChild(row);
@@ -318,7 +318,7 @@ async function fetchTasks(searchQuery = "") {
               const subtaskName =
                 typeof subtask === "string" ? subtask : subtask.subtask_name;
               const li = document.createElement("li");
-              li.innerHTML = `${subtaskName} <img src="../../images/Delete.png" alt="Delete" class="delete-subtask-btn">`;
+              li.innerHTML = `${subtaskName} <img src="/public/images/Delete.png" alt="Delete" class="delete-subtask-btn">`;
               subtaskList.appendChild(li);
             });
 
@@ -387,7 +387,7 @@ addSubtaskBtn.addEventListener("click", () => {
   }
 
   const li = document.createElement("li");
-  li.innerHTML = `${subtaskName} <img src="../../images/Delete.png" alt="Delete" class="delete-subtask-btn">`;
+  li.innerHTML = `${subtaskName} <img src="/public/images/Delete.png" alt="Delete" class="delete-subtask-btn">`;
   subtaskList.appendChild(li);
   newSubtaskInput.value = "";
   checkSaveButtonState();
