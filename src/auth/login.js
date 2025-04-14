@@ -13,7 +13,7 @@ const auth = getAuth(app);
 const firestore = getFirestore(app);
 
 const userTypeRoutes = {
-  Admin: "../../public/landing_pages/admin/admin_navbar.html",
+  Admin: "/landing_pages/admin/admin_navbar.html",
   Supervisor: "../../public/landing_pages/supervisor/supervisor_navbar.html",
   "Farm President":
     "../../public/landing_pages/farm_president/farmpres_navbar.html",
