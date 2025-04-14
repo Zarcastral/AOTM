@@ -130,7 +130,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
         
         let deleteButton = '';
         if (userType === "Head Farmer") {
-          deleteButton = `<img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">`;
+          deleteButton = `<img src="/public/images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">`;
         }
 
         const row = `
@@ -140,7 +140,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
             <td>${startDate}</td>
             <td>${endDate}</td>
             <td class="action-icons">
-              <img src="../../images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}" data-subtask-name="${safeSubtaskName}">
+              <img src="/public/images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}" data-subtask-name="${safeSubtaskName}">
               ${deleteButton} <!-- Delete button is only shown for Head Farmer -->
             </td>
           </tr>

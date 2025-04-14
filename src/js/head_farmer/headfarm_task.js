@@ -9,7 +9,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import app from "../../../src/config/firebase_config.js";
+import app from "../../src/config/firebase_config.js";
 
 const db = getFirestore(app);
 
@@ -273,12 +273,12 @@ function renderTasks(allowEditDelete) {
 
       const actionIcons = allowEditDelete
         ? `
-            <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
-            <img src="../../images/Edit.png" alt="Edit" class="edit-icon" data-task-id="${taskId}">
-            <img src="../../images/Delete.png" alt="Delete" class="delete-icon" data-task-id="${taskId}">
+            <img src="/public/images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
+            <img src="/public/images/Edit.png" alt="Edit" class="edit-icon" data-task-id="${taskId}">
+            <img src="/public/images/Delete.png" alt="Delete" class="delete-icon" data-task-id="${taskId}">
           `
         : `
-            <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
+            <img src="/public/images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
           `;
 
       const taskRow = `

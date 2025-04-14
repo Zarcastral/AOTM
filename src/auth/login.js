@@ -16,7 +16,7 @@ const userTypeRoutes = {
   Admin: "/landing_pages/admin/admin_navbar.html",
   Supervisor: "../../public/landing_pages/supervisor/supervisor_navbar.html",
   "Farm President":
-    "../../public/landing_pages/farm_president/farmpres_navbar.html",
+    "/landing_pages/farm_president/farmpres_navbar.html",
   "Head Farmer": "../../public/landing_pages/head_farmer/headfarm_nav.html",
   Farmer: "../../public/landing_pages/farmers/farmers_nav.html",
 };
