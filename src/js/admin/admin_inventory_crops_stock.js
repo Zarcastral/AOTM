@@ -517,11 +517,11 @@ function displayCrops(cropsList) {
         <td>${owned_by}</td>
         <td class="crop-action-btn">
           <span class="add-crop-stock-btn" data-id="${crop.crop_type_id}">
-            <img src="../../../public/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
+            <img src="/public/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
             <span>Add Stock</span>
           </span>
           <span class="delete-crop-stock-btn" data-id="${crop.crop_type_id}">
-            <img src="../../../public/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
+            <img src="/public/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
             <span>Remove Stock</span>
           </span>
         </td>

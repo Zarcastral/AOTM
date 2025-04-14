@@ -262,13 +262,13 @@ function updateTable() {
             <td>${data.contact || "Contact Number not recorded"}</td>
             <td>
                 <button class="action-btn view-btn" data-id="${data.farmer_id}" title="View">
-                    <img src="../../images/eye.png" alt="View">
+                    <img src="/public/images/eye.png" alt="View">
                 </button>
                 <button class="action-btn edit-btn" data-id="${data.farmer_id}" title="Edit">
-                    <img src="../../images/edit.png" alt="Edit">
+                    <img src="/public/images/edit.png" alt="Edit">
                 </button>
                 <button class="action-btn delete-btn" data-id="${data.farmer_id}" title="Delete">
-                    <img src="../../images/Delete.png" alt="Delete">
+                    <img src="/public/images/Delete.png" alt="Delete">
                 </button>
             </td>
         `;
