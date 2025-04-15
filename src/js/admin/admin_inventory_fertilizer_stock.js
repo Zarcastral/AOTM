@@ -517,11 +517,11 @@ function displayFertilizers(fertilizersList) {
         <td>${owned_by}</td>
         <td class="fert-action-btn">
           <span class="add-fert-stock-btn" data-id="${fertilizer.fertilizer_id}">
-            <img src="../../../public/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
+            <img src="/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
             <span>Add Stock</span>
           </span>
           <span class="delete-fert-stock-btn" data-id="${fertilizer.fertilizer_id}">
-            <img src="../../../public/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
+            <img src="/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
             <span>Delete Stock</span>
           </span>
         </td>

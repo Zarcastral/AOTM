@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Attendance</title>
+    <link rel="stylesheet" href="/src/style/head_farmer/headfarm_attendance.css">
+</head>
+
+<body>
+    <!-- Notification Strip -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div>
+
+     <!-- Back Arrow -->
+     <div class="back-arrow">
+        <img src="/images/arrow-left.png" alt="Back Arrow">
+    </div>
+
+    <div class="container">
+       
+
+        <!-- Panel -->
+        <div class="panel">
+            <!-- Farmer Header -->
+            <div class="panel-header">Farmer</div>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input type="text" class="search-bar" placeholder="Search">
+   
+            </div>
+
+            <!-- Table -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ATTENDANCE</th>
+                        <th>FARMER NAME</th>
+                        <th>ROLE</th>
+                        <th>DATE</th>
+                        <th>REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamically populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Save Button in a new container -->
+    <div class="button-container">
+        <button class="save-btn">Save</button>
+    </div>
+
+    
+    <!-- Modal for Save Confirmation -->
+<div id="saveConfirmationModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2>Confirm Save</h2>
+        <p>Are you sure you want to save the attendance data?</p>
+        <div class="confirm-buttons">
+            <button id="cancelSaveBtn" class="cancel-btn">No</button>
+            <button id="confirmSaveBtn" class="confirm-btn">Yes</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Import the reusable script from src/auth -->
+    <script type="module" src="/src/auth/header.js"></script>
+    <!-- Import the attendance script -->
+    <script type="module" src="/src/js/head_farmer/headfarm_attendance.js"></script>
+</body>
+
+</html>

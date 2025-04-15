@@ -319,7 +319,7 @@ function updateProfilePicture(imageUrl, userName) {
   const profilePictureField = document.getElementById("profile-picture");
   if (!profilePictureField) return;
 
-  const defaultImage = "../../../images/default.jpg";
+  const defaultImage = "/images/default.jpg";
   profilePictureField.src = imageUrl || defaultImage;
   profilePictureField.alt = `${userName || "User"}'s Profile Picture`;
 
@@ -369,18 +369,18 @@ async function removeProfilePicture() {
     if (userSnapshot.exists()) {
       const userData = userSnapshot.data();
       const originalImage =
-        userData.user_picture || "../../../images/default.jpg";
+        userData.user_picture || "/images/default.jpg";
       imgElement.src = originalImage;
 
       if (fileInput.value === "" && imgElement.src === originalImage) {
         isFormDirty = false;
       }
     } else {
-      imgElement.src = "../../../images/default.jpg";
+      imgElement.src = "/images/default.jpg";
     }
   } catch (error) {
     console.error("Error refetching user picture:", error);
-    imgElement.src = "../../../images/default.jpg";
+    imgElement.src = "/images/default.jpg";
   }
 
   removeFileBtn.style.display = "none";

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="/src/js/admin/admin_users.js"></script>
+    <title>USER LIST</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style/admin/admin_users.css">
+</head>
+<body>
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+    <div class="main-content">
+        <!-- Button for New Project -->
+        <div class="btn-container">
+            <a href="create_account.html" class="add-user-btn">
+                <img src="/images/Plus.png" alt="Action Icon" class="action-icon-add">
+                <span>Add New User</span>
+            </a>
+        </div>
+        <div class="panel">
+            <div class="table-wrapper">
+                <div class="search-container">
+                    <input type="text" id="search-bar" placeholder="Search" />
+                    <select id="barangay-select">
+                        <option value="">Barangay</option>
+                        <!-- record will be dynamically added here -->
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-delete">
+                                <button id="bulk-delete"> <img src="/images/Delete.png" alt="DELETE"></button>
+                            </th>
+                            <th>ACCOUNT NAME</th>
+                            <th>USER'S NAME</th>
+                            <th>USER ROLE</th>
+                            <th>BARANGAY</th>
+                            <th>CONTACT</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+                        <!-- Rows will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-container">
+                <span id="page-number">Page 1</span>
+                <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
+                <button id="next-page" class="pagination-btn">&gt;</button>
+            </div>
+        </div>
+    </div>
+    <!-- Confirmation Message Panel -->
+    <div id="confirmation-panel" class="confirmation-panel">
+        <div class="confirmation-message">
+            <p>Are you sure you want to delete the record?</p>
+            <button id="cancel-delete" class="cancel-btn">Cancel</button>
+            <button id="confirm-delete" class="confirm-btn">Okay</button>
+        </div>
+    </div>
+
+    <!-- Success Message Panel -->
+    <div id="delete-message" class="delete-message">
+        <p>Record has been successfully deleted!</p>
+    </div>
+
+    <div id="bulk-delete-panel" class="bulk-delete-panel">
+        <div class="confirm-bulk-delete-message">
+            <p>Are you sure you want to delete the selected records?</p>
+            <button id="cancel-bulk-delete" class="bulk-cancel-btn">Cancel</button>
+            <button id="confirm-bulk-delete" class="bulk-confirm-btn">Confirm</button>
+        </div>
+    </div>
+
+    <!-- Bulk Delete Message Panel -->
+    <div id="bulk-delete-message" class="bulk-delete-message">
+        <p>All selected records has been successfully deleted!</p>
+    </div>
+
+    <!-- Import the reusable script from src/auth -->
+    <script type="module" src="/src/auth/header.js"></script>
+
+</body>
+
+</html>

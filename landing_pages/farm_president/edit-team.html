@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Team</title>
+    <link rel="stylesheet" href="/src/style/farm_president/edit-team.css">
+</head>
+<body>
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+    <div class="back">
+        <a href="farmpres_farmer.html" class="back-link">
+            <img src="/images/arrow-left.png" alt="Back" width="30" height="30">
+        </a>
+    </div>
+    <div class="container">
+        <div class="top-section">
+            <h1 id="teamNameHeader">Team Name</h1>
+            <a href="#" class="add-farmer" id="addFarmerBtn">+ Add Farmer</a>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search">
+        </div>
+        <table id="teamTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Farmer's Name</th>
+                    <th>User Role</th>
+                    <th>Contact</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="teamTableBody"></tbody>
+        </table>
+        <div class="pagination">
+            <button id="prevPage">&lt;</button>
+            <span id="pageInfo">1 of 1</span>
+            <button id="nextPage">&gt;</button>
+        </div>
+    </div>
+
+    <!-- Add Farmer Popup -->
+    <div class="popup" id="addFarmerPopup">
+        <div class="popup-content">
+            <span class="close-btn" id="closePopup">x</span>
+            <h2>Add Farmer</h2>
+            <div class="form-group">
+                <label for="farmerSearch">Search Farmer:</label>
+                <input type="text" id="farmerSearch" placeholder="Search for a farmer">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+            <div class="form-group">
+                <label>Selected Farmers:</label>
+                <div id="farmerBox" class="farmer-box"></div>
+            </div>
+            <button class="save-btn" id="saveFarmerBtn">Save</button>
+        </div>
+    </div>
+
+    <!-- Delete Team Confirmation Popup -->
+    <div class="popup" id="deleteTeamPopup">
+        <div class="popup-content">
+            <span class="close-btn" id="closeDeletePopup">x</span>
+            <h2>Confirm Delete</h2>
+            <p id="deleteTeamMessage"></p>
+            <div class="popup-actions">
+                <button class="cancel-btn" id="cancelDeleteBtn">Cancel</button>
+                <button class="confirm-btn" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/js/farm_president/edit-team.js"></script>
+    <!-- Import the reusable script from src/auth -->
+    <script type="module" src="/src/auth/header.js"></script>
+</body>
+</html>

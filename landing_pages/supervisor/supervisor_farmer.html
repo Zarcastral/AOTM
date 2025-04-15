@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmers Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="supervisor_farmer.css">
+</head>
+
+<body class="h-screen flex flex-col">
+  
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+  <!-- Main Content -->
+  <main class="flex-grow p-6 overflow-auto">
+    
+    <!-- Table Panel -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden p-4 table-wrapper">
+      
+      <!-- Search and Filter Section -->
+      <div class="flex items-center gap-4 mb-4">
+        <input type="text" placeholder="Search" class="border p-2 rounded-md flex-grow">
+        <select class="border p-2 rounded-md">
+          <option>Barangay</option>
+        </select>
+      </div>
+      
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-200 text-left">
+            <th class="p-3">#</th>
+            <th class="p-3">FARMER’S NAME</th>
+            <th class="p-3">USER ROLE</th>
+            <th class="p-3">BARANGAY</th>
+            <th class="p-3">CONTACT</th>
+            <th class="p-3">AREA (ha)</th>
+            <th class="p-3">ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b hover:bg-gray-100">
+            <td class="p-3">1</td>
+            <td class="p-3">Rhandy Gian Baradas</td>
+            <td class="p-3">Admin</td>
+            <td class="p-3">Concepcion</td>
+            <td class="p-3">09876543212</td>
+            <td class="p-3">2.1 hectares</td>
+            <td class="p-3 text-center">✏️ 👁️ 🗑️</td>
+          </tr>
+          <tr class="border-b hover:bg-gray-100">
+            <td class="p-3">2</td>
+            <td class="p-3">Adrian Bernal</td>
+            <td class="p-3">Head Farmer</td>
+            <td class="p-3">Concepcion</td>
+            <td class="p-3">09876543212</td>
+            <td class="p-3">2.1 hectares</td>
+            <td class="p-3 text-center">✏️ 👁️ 🗑️</td>
+          </tr>
+          <tr class="border-b hover:bg-gray-100">
+            <td class="p-3">3</td>
+            <td class="p-3">Maria Geenea Amonelo</td>
+            <td class="p-3">Farm President</td>
+            <td class="p-3">Concepcion</td>
+            <td class="p-3">09876543212</td>
+            <td class="p-3">2.1 hectares</td>
+            <td class="p-3 text-center">✏️ 👁️ 🗑️</td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3">4</td>
+            <td class="p-3">Ned Christian Ibanez</td>
+            <td class="p-3">Head Farmer</td>
+            <td class="p-3">Mabini</td>
+            <td class="p-3">09876543212</td>
+            <td class="p-3">2.1 hectares</td>
+            <td class="p-3 text-center">✏️ 👁️ 🗑️</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add Farmer Button Below the Panel -->
+    <div class="mt-4 text-right">
+      <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500">Download PDF</button>
+    </div>
+  </main>
+  <!-- Import the reusable script from src/auth -->
+  <script type="module" src="/src/auth/header.js"></script>
+</body>
+</html>

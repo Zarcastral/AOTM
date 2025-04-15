@@ -270,7 +270,7 @@ function displayHarvest(harvestList) {
       <td>${totalHarvest} ${unit}</td>
       <td>
         <button class="action-btn view-btn" data-id="${harvestId}" title="View">
-          <img src="../../images/eye.png" alt="View">
+          <img src="/images/eye.png" alt="View">
         </button>
       </td>
     `;

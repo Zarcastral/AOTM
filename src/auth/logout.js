@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profilePicture = document.querySelector(".profile-picture");
     const storedName = sessionStorage.getItem("userFullName") || "Guest";
     const storedPicture =
-      sessionStorage.getItem("userPicture") || "../../images/default.jpg";
+      sessionStorage.getItem("userPicture") || "/images/default.jpg";
 
     profileName.textContent = storedName;
     profilePicture.src = storedPicture;

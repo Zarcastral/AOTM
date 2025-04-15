@@ -207,7 +207,7 @@ async function fetchTeams() {
                         class="view-btn" 
                         onclick="storeProjectIdAndRedirect('${project.project_id}', '${teamId}')"
                     >
-                        <img src="../../images/eye.png" alt="View" class="view-icon">
+                        <img src="/images/eye.png" alt="View" class="view-icon">
                     </button>
                 </td>
             `;

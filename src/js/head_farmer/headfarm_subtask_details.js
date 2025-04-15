@@ -450,7 +450,7 @@ async function fetchAttendanceData(
         // Conditionally render the Delete button based on user_type
         let deleteButton = '';
         if (userType === "Head Farmer") {
-          deleteButton = `<img src="../../images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${doc.id}">`;
+          deleteButton = `<img src="/images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${doc.id}">`;
         }
 
         const row = `
@@ -458,7 +458,7 @@ async function fetchAttendanceData(
             <td>${dateCreated}</td>
             <td>${attendanceSummary}</td>
             <td class="action-icons">
-              <img src="../../images/eye.png" alt="View">
+              <img src="/images/eye.png" alt="View">
               ${deleteButton} <!-- Delete button only shows for Head Farmer -->
             </td>
           </tr>

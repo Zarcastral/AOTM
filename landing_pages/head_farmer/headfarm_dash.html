@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="/src/js/head_farmer/headfarm_dash.js"></script>
+  <title>Organic Baras Productivity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/head_farmer/headfarm_dash.css">
+</head>
+
+<body>
+
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+  <div class="main-content">
+    <!-- Top Section: System Stats -->
+    <div class="top-section">
+      <!-- System Stats Section -->
+      <div class="system-stats-section">
+        <h4 class="section-title">SYSTEM</h4>
+        <div class="system-stats">
+          <!-- Farmers Card with a unique wrapper -->
+          <div class="farmers-card-wrapper">
+            <div class="stats-card farmers-card">
+              <img src="/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
+              <div class="stats-info">
+                <p>Farmers</p>
+                <div class="number-wrapper">
+                  <h3 id="total-farmers">
+                    <!--Dynamically Updating Records-->
+                  </h3>
+                  <span>Your Team</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="analytics-section">
+      <h4 class="section-title">ANALYTICS</h4>
+      <div class="analytics">
+          <div class="harvest-info">
+              <div class="year-selector-wrapper">
+                <h5>Harvest Information (This Year)</h5>
+                <div class="year-selector-container">
+                  <label for="year-selector" class="year-selector-label">Select a Year:</label>
+                  <select id="year-selector" class="year-selector">
+                      <!-- Years will be populated dynamically -->
+                  </select>
+                </div>
+              </div>
+              <div class="chart-wrapper">
+                  <div class="y-axis">
+                  </div>
+                  <div class="bar-chart">
+                      <div class="bar" data-month="Jan"></div>
+                      <div class="bar" data-month="Feb"></div>
+                      <div class="bar" data-month="Mar"></div>
+                      <div class="bar" data-month="Apr"></div>
+                      <div class="bar" data-month="May"></div>
+                      <div class="bar" data-month="Jun"></div>
+                      <div class="bar" data-month="Jul"></div>
+                      <div class="bar" data-month="Aug"></div>
+                      <div class="bar" data-month="Sep"></div>
+                      <div class="bar" data-month="Oct"></div>
+                      <div class="bar" data-month="Nov"></div>
+                      <div class="bar" data-month="Dec"></div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import the reusable script from src/auth -->
+  <script type="module" src="/src/auth/header.js"></script>
+
+</body>
+
+</html>

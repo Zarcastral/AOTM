@@ -74,14 +74,14 @@ html, body {
 /* Individual Hover Effects */
 .pro a:hover img,
 .pro a.selected img {
-  content: url(../../../public/images/flashGreen.png);
+  content: url(/images/flashGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .harv a:hover img,
 .harv a.selected img {
-  content: url(../../../public/images/bagGreen.png);
+  content: url(/images/bagGreen.png);
   height: 20px;
   width: 20px;
 }

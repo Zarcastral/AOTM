@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module" src="/src/js/admin/admin_inventory_crops.js" defer></script>
+  <script type="module" src="/src/js/admin/admin_inventory_equipment.js" defer></script>
+  <script type="module" src="/src/js/admin/admin_inventory_fertilizer.js" defer></script>
+  <title>Organic Baras Productivity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/admin/admin_inventory.css">
+</head>
+
+
+<body>
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+  <div class="main-content">
+      <div class="stock-selector">
+        <span class="inventory-form"><a href="admin_inventory.html">Inventory List</a></span> <div class="rando-line">|</div>
+        <span class="stock-form" ><a href="admin_inventory_stock.html">Manage Inventory</a></span>
+      </div>
+    <div class="panel">
+      <div class="table-wrapper">
+        <h2>Crops</h2>
+        <div class="crop-search-bar">
+          <input type="text" id="crop-search-bar" placeholder="Search">
+          <select class="crop_select">
+            <option value=""> Crops </option>
+          </select>
+        </div>
+        <div class="crop_table">
+          <table>
+            <thead>
+              <tr> 
+                <th>#</th>
+                <th>Crop Type</th>
+                <th>Crops</th>
+                <th>Date Added</th>
+                <th>Stock</th>
+                <th>Added By</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Crops will be populated here -->
+          </tbody>
+        </table>
+      </div>
+      <div class="crops-pagination">
+        <span id="crop-page-number">Page 1</span>
+        <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
+        <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
+    </div>
+    </div>
+  </div>
+
+    <!-- Farmers Activity Panel -->
+    <div class="panel">
+      <div class="table-wrapper">
+      <h2>Fertilizer</h2>
+      <div class="fert-search-bar">
+        <input type="text" id="fert-search-bar" placeholder="Search">
+        <select class="fertilizer_select">
+          <option value="">Fertilizer </option>
+        </select>
+      </div>
+      <div class="fertilizer_table">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fertilizer Name</th>
+            <th>Category</th>
+            <th>Date Added</th>
+            <th>Stock</th>
+            <th>Added By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- will be populated here -->
+        </tbody>
+      </table>
+    </div>
+        <div class="fertilizer-pagination">
+          <span id="fertilizer-page-number">Page 1</span>
+          <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
+          <button id="fertilizer-next-page" class="fertilizer-pagination-btn">&gt;</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- Equipment Status Panel -->
+    <div class="panel">
+      <div class="table-wrapper">
+      <h2>Equipment </h2>
+      <div class="equip-search-bar">
+        <input type="text"  id="equip-search-bar"  placeholder="Search">
+        <select class="equipment_select">
+          <option value="">Equipment Type</option>
+        </select>
+      </div>
+      <div class="equipment_table"> 
+        <table>
+          <thead>
+              <tr>          
+                <th>#</th>
+                <th>Equipment Name</th>
+                <th>Category</th>
+                <th>Date Added</th>
+                <th>Stock</th>
+                <th>Added By</th>
+              </tr>
+          </thead>
+          <tbody>
+            <!-- record will be put here -->
+          </tbody>    
+        </table>
+      </div>
+      </div>
+          <div class="equipment-pagination">
+            <span id="equipment-page-number">Page 1</span>
+            <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
+            <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
+        </div>
+      </div>
+  </div>
+
+  <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          const stockLinks = document.querySelectorAll(".stock-selector a");
+
+          // Clear any active link state when the page is loaded
+          stockLinks.forEach(link => link.classList.remove("active"));
+
+          // Retrieve stored active link from localStorage
+          const activeLink = localStorage.getItem("activeStockLink");
+
+          // Debugging: log the active link in localStorage
+          console.log("Stored active link:", activeLink);
+
+          // If no active link is stored or the stored link is incorrect, set default to "Inventory List"
+          if (!activeLink || activeLink !== stockLinks[0].href) {
+              stockLinks[0].classList.add("active");
+              localStorage.setItem("activeStockLink", stockLinks[0].href);
+          } else {
+              // If the stored link is valid, reapply the active class
+              stockLinks.forEach(link => {
+                  if (link.href === activeLink) {
+                      link.classList.add("active");
+                  }
+              });
+          }
+
+          stockLinks.forEach(link => {
+              link.addEventListener("click", function () {
+                  // Remove active class from all links
+                  stockLinks.forEach(link => link.classList.remove("active"));
+
+                  // Add active class to clicked link
+                  this.classList.add("active");
+
+                  // Store the active link in localStorage
+                  localStorage.setItem("activeStockLink", this.href);
+              });
+          });
+      });
+  </script>
+   <!-- Import the reusable script from src/auth -->
+   <script type="module" src="/src/auth/header.js"></script>
+</body>
+
+</html>

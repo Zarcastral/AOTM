@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style/head_farmer/viewproject.css">
+</head>
+<body>
+     <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <div class="container">
+        <!-- Project Details Panel -->
+        <div class="panel project-details">
+            <h2>Project</h2>
+            <div class="details">
+                <p>PROJECT NAME<br><span id="projectName"></span></p>
+                <p>START DATE<br><span id="startDate"></span></p>
+                <p>END DATE<br><span id="endDate"></span></p>
+                <p>EXTENDED DATE<br><span id="extendedDate"></span></p>
+                <p>BARANGAY<br><span id="barangayName"></span></p>
+                <p>STATUS<br><span id="status"></span></p>
+                <p>CROPS<br><span id="cropName"></span></p>
+                <p>CROP TYPE<br><span id="cropType"></span></p>
+                <p>FARM PRESIDENT<br><span id="farmPresident"></span></p>
+            </div>
+        </div>
+
+        <!-- Teams Panel -->
+        <div class="panel">
+            <h2>Team</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>TEAM NAME</th>
+                        <th>LEAD FARMER</th>
+                        <th>NO. OF FARMERS</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="teamsTableBody">
+                    <tr><td colspan="6">Loading teams...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Feedback Panel -->
+        <div class="panel feedback-panel">
+            <div class="feedback-header">
+                <h2>Feedback</h2>
+                <button class="add-feedback-btn" onclick="openFeedbackPopup()">+ Add Feedback</button>
+            </div>
+            <div id="feedbackList"></div>
+        </div>
+
+        <!-- Feedback Popup -->
+        <div id="feedbackPopup" class="popup">
+            <div class="popup-content">
+                <span class="close-btn" onclick="closeFeedbackPopup()">×</span>
+                <h2>Submit Feedback</h2>
+                <label for="feedbackType"> Select Concern:</label>
+                <select id="feedbackType">
+                    <option value="Request">Request</option>
+                    <option value="Complaint">Complaint</option>
+                    <option value="Report">Report</option>
+                </select>
+                <label for="feedbackMessage">Feedback Message:</label>
+                <textarea id="feedbackMessage" rows="4" placeholder="Message here.."></textarea>
+                <button onclick="submitFeedback()">Submit Feedback</button>
+            </div>
+        </div>
+
+        <!-- View Team Details Popup -->
+        <div id="viewTeamPopup" class="popup">
+            <div class="popup-content">
+                <h2 id="popupTeamName">Team Details</h2>
+                <span class="close-btn" id="closePopup">×</span>
+                <h3><strong>Lead Farmer:</strong> <span id="popupLeadFarmer">-</span></h3>
+                <p><strong>Farmers:</strong></p>
+                <ul id="popupFarmerList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/js/head_farmer/viewproject.js"></script>
+    <!-- Import the reusable script from src/auth -->
+   <script type="module" src="/src/auth/header.js"></script>
+</body>
+</html>

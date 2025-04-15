@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/components/logout.css">
+</head>
+
+
+<body>
+  <div id="account-panel" class="account-panel">
+    <div class="panel-header">
+      <button id="close-panel" class="close-button">&times;</button>
+    </div>
+    <div class="panel-content">
+      <!-- Profile section -->
+      <div class="profile-section">
+        <img src="/images/profile.jpg" alt="Profile Picture" class="profile-picture" />
+        <p class="profile-name"></p>
+      </div>
+      <!-- Options (left-aligned) -->
+      <ul class="panel-options">
+        <!-- Profile link will navigate to profile.html in the top window -->
+        <li class="panel-item">Profile <section id="arr">></section></li>
+        <li class="panel-item" id="logout-button">Log out</li>
+      </ul>
+    </div>
+  </div>
+
+  <script type="module" src="/src/auth/logout.js"></script>
+</body>
+
+</html>

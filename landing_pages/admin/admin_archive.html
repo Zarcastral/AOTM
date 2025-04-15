@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="/src/js/admin/admin_archive.js"></script>
+  <title>Activity Log</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/admin/admin_archive.css">
+</head>
+
+<body>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+
+  <div class="table-selector">
+    <span class="activitylog-table"><a href="admin_activitylog.html">Go to Activity Log</a></span>
+  </div>
+  <div class="panel">
+    <div class="search-bar">
+      <input type="text" id="search-bar" placeholder="Search" /> 
+      <select id="user-type-select">
+        <option value="">Select User Type</option>
+        <!-- record will be dynamically added here -->
+      </select>
+      <select id="user-select">
+          <option value="">Select User</option>
+          <!-- record will be dynamically added here -->
+      </select>
+      <select id="document-type-select">
+        <option value="">Select Document Type</option>
+        <!-- record will be dynamically added here -->
+      </select>
+    </div>
+    <div class="table-container">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Archived Date</th>
+              <th>Time</th>
+              <th>Archived By</th>
+              <th>User's Role</th>
+              <th>Archived Document Id</th>
+              <th>Document Type</th>
+              <th>Document Name</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+              <!-- record will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+      <div class="pagination-container">
+        <span id="page-number">Page 1</span>
+        <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
+        <button id="next-page" class="pagination-btn">&gt;</button>
+      </div>
+  </div>
+
+    <div id="bulk-delete-panel" class="bulk-delete-panel">
+        <div class="confirm-bulk-delete-message">
+            <p>Are you sure you want to delete the selected records?</p>
+            <button id="cancel-bulk-delete" class="bulk-cancel-btn">Cancel</button>
+            <button id="confirm-bulk-delete" class="bulk-confirm-btn">Confirm</button>
+        </div>
+    </div>
+          
+      <!-- Bulk Delete Message Panel -->
+    <div id="delete-message" class="delete-message">
+        <p>Record has been successfully deleted!</p>
+    </div>
+
+    <div id="restore-panel" class="restore-panel">
+      <div class="confirm-restore-message">
+          <p>Are you sure you want to restore the record?</p>
+          <button id="cancel-restore" class="restore-cancel-btn">Cancel</button>
+          <button id="confirm-restore" class="restore-confirm-btn">Confirm</button>
+      </div>
+    </div>
+
+    <div id="restore-message" class="restore-message">
+        <p>Record has been successfully restored!</p>
+    </div>
+  <!-- Import the reusable script from src/auth -->
+  <script type="module" src="/src/auth/header.js"></script>
+</body>
+
+</html>

@@ -239,12 +239,12 @@ function updateTable() {
               <button class="action-btn edit-btn" data-id="${
                 data.project_id
               }" title="Edit">
-                <img src="../../images/edit.png" alt="Edit">
+                <img src="/images/Edit.png" alt="Edit">
               </button>
               <button class="action-btn view-btn" data-id="${
                 data.project_id
               }" title="View">
-                <img src="../../images/eye.png" alt="View">
+                <img src="/images/eye.png" alt="View">
               </button>
             </td>
           </tr>
@@ -694,7 +694,7 @@ async function fetchCropStockByOwner(project_created_by, crop_type_name) {
 function viewProject(projectId) {
   sessionStorage.setItem("selectedProjectId", parseInt(projectId, 10));
   window.location.href =
-    "../../../public/landing_pages/farm_president/viewproject.html";
+    "../../../landing_pages/farm_president/viewproject.html";
 }
 
 async function deleteUserAccount(project_id) {

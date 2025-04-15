@@ -413,7 +413,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const leftMargin = (pageWidth - totalTableWidth) / 2;
 
   const addHeader = (doc) => {
-    const headerImg = "../../../public/images/BarasHeader.png";
+    const headerImg = "/images/BarasHeader.png";
     const headerImgWidth = 60;
     const headerImgHeight = 40;
     try {
@@ -456,7 +456,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   };
 
   const addFooter = (doc, data) => {
-    const footerImg = "../../../public/images/BarasFooter.png";
+    const footerImg = "/images/BarasFooter.png";
     const footerImgWidth = 140;
     const footerImgHeight = 15;
     try {

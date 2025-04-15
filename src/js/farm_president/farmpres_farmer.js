@@ -99,7 +99,7 @@ async function loadTeamList() {
                 const editLink = document.createElement("a");
                 editLink.href = `edit-team.html?teamId=${teamData.team_id}`;
                 const editImg = document.createElement("img");
-                editImg.src = "../../images/image 27.png";
+                editImg.src = "/images/image 27.png";
                 editImg.alt = "Edit";
                 editImg.classList.add("edit-img");
                 editLink.appendChild(editImg);
@@ -375,7 +375,7 @@ function addFarmerToBox(farmer) {
     const removeBtn = document.createElement("button");
     removeBtn.classList.add("remove-btn");
     const removeImg = document.createElement("img");
-    removeImg.src = "../../images/Delete.png"; // Adjust path to your image
+    removeImg.src = "/images/Delete.png"; // Adjust path to your image
     removeImg.alt = "Remove Farmer";
     removeImg.classList.add("remove-icon");
     removeBtn.appendChild(removeImg);

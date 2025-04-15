@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organic Baras Productivity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/farm_president/farmpres_farmer.css">
+</head>
+
+<body>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <div class="main-content">
+    <div class="team-panel" id="team-panel">
+      <div class="panel-header">
+        <h2>Team List</h2>
+        <a href="#" class="add-team" id="addTeamBtn">+ New Team</a>
+      </div>
+      <table class="team-table">
+        <thead>
+          <tr>
+            <th>TEAM NAME</th>
+            <th>LEAD FARMER</th>
+            <th>MEMBERS</th>
+            <th>STATUS</th> <!-- New column -->
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="account-panel" class="account-panel">
+    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
+  </div>
+
+  <!-- Pop-up for Adding a Team -->
+  <div class="popup" id="popup">
+    <h2>Add Team</h2>
+    <label>Team Name</label>
+    <input type="text" id="teamName">
+
+    <label>Lead Farmer</label>
+    <select id="leadFarmer"></select>
+
+    <label>Search Farmers</label>
+    <input type="text" id="farmerSearch">
+
+    <label>Farmers</label>
+    <div id="farmerBox" class="farmer-box"></div>
+    
+    <div class="button-container">
+        <button id="closePopup" class="btn btn-cancel">Cancel</button>
+        <button id="saveTeamBtn" class="btn btn-save">Save</button>
+    </div>
+  </div>
+
+<script type="module" src="/src/js/farm_president/farmpres_farmer.js"></script>
+<!-- Import the reusable script from src/auth -->
+<script type="module" src="/src/auth/header.js"></script>
+</body>
+</html>

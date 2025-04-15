@@ -250,17 +250,17 @@ async function updateTable() {
                 <button class="action-btn view-btn" data-id="${
                   data.project_id
                 }" title="View">
-                    <img src="../../images/eye.png" alt="View">
+                    <img src="/images/eye.png" alt="View">
                 </button>
                 <button class="action-btn edit-btn" data-id="${
                   data.project_id
                 }" title="Edit">
-                    <img src="../../images/edit.png" alt="Edit">
+                    <img src="/images/Edit.png" alt="Edit">
                 </button>
                 <button class="action-btn delete-btn" data-id="${
                   data.project_id
                 }" title="Delete">
-                    <img src="../../images/delete.png" alt="Delete">
+                    <img src="/images/Delete.png" alt="Delete">
                 </button>
                 ${extendButton}
             </td>

@@ -74,35 +74,35 @@ html, body {
 /* Individual Hover Effects */
 .dash a:hover img,
 .dash a.selected img {
-  content: url(../../../public/images/dashGreen.png);
+  content: url(/images/dashGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .proj a:hover img,
 .proj a.selected img {
-  content: url(../../../public/images/graphGreen.png);
+  content: url(/images/graphGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .harv a:hover img,
 .harv a.selected img {
-  content: url(../../../public/images/bagGreen.png);
+  content: url(/images/bagGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .inv a:hover img,
 .inv a.selected img {
-  content: url(../../../public/images/boxGreen.png);
+  content: url(/images/boxGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .farm a:hover img,
 .farm a.selected img {
-  content: url(../../../public/images/profileGreen.png);
+  content: url(/images/profileGreen.png);
   height: 20px;
   width: 20px;
 }
@@ -110,14 +110,14 @@ html, body {
 
 .rep a:hover img,
 .rep a.selected img {
-  content: url(../../../public/images/folderGreen.png);
+  content: url(/images/folderGreen.png);
   height: 20px;
   width: 20px;
 }
 
 .task a:hover img,
 .task a.selected img {
-  content: url(../../../public/images/flashGreen.png);
+  content: url(/images/flashGreen.png);
   height: 20px;
   width: 20px;
 }

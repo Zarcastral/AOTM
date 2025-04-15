@@ -13,12 +13,12 @@ const auth = getAuth(app);
 const firestore = getFirestore(app);
 
 const userTypeRoutes = {
-  Admin: "../../public/landing_pages/admin/admin_navbar.html",
-  Supervisor: "../../public/landing_pages/supervisor/supervisor_navbar.html",
+  Admin: "../../landing_pages/admin/admin_navbar.html",
+  Supervisor: "../../landing_pages/supervisor/supervisor_navbar.html",
   "Farm President":
-    "../../public/landing_pages/farm_president/farmpres_navbar.html",
-  "Head Farmer": "../../public/landing_pages/head_farmer/headfarm_nav.html",
-  Farmer: "../../public/landing_pages/farmers/farmers_nav.html",
+    "../../landing_pages/farm_president/farmpres_navbar.html",
+  "Head Farmer": "../../landing_pages/head_farmer/headfarm_nav.html",
+  Farmer: "../../landing_pages/farmers/farmers_nav.html",
 };
 
 function redirectUser(userType) {

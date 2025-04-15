@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organic Baras Productivity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/farmer/farmers_product.css">
+</head>
+
+<body>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div>
+
+  <div class="main-content">
+    <div class="table-container">
+      <h2 class="text-xl font-bold mb-4" style="color: #41A186; font-size: 35px;">Task List</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>PROJECT NAME</th>
+            <th>TASK NAME</th>
+            <th>LEAD FARMER</th>
+            <th>BARANGAY</th>
+            <th>CROPS</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Table rows will be populated dynamically by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Account Panel with iframe to load external content -->
+  <div id="account-panel" class="account-panel">
+    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
+  </div>
+
+  <!-- Import the reusable header script -->
+  <script type="module" src="/src/auth/header.js"></script>
+  <!-- Import the JavaScript file for data fetching -->
+  <script type="module" src="/src/js/farmer/farmers_product.js"></script>
+</body>
+
+</html>

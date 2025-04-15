@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script type="module" src="/src/js/admin/admin_harvest.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organic Baras Productivity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/admin/admin_harvest.css">
+</head>
+
+<body>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div>
+
+  <div class="main-content">
+    <div class="harvest-selector">
+      <span class="harvest-form"><a href="admin_harvest.html">Harvest List</a></span>
+      <div class="rando-line">|</div>
+      <span class="harvest-history-form"><a href="admin_harvest_history.html">Harvest History</a></span>
+    </div> <!-- ✅ Closing harvest-selector -->
+
+    <div class="panel">
+      <div class="table-wrapper">
+        <h2>Harvest List</h2>
+        <div class="harvest-search-bar">
+          <input type="text" id="harvest-search-bar" placeholder="Search">
+          <select class="crop_select">
+            <option value="">Crops</option>
+          </select>
+          <select class="crop-type-select">
+            <option value="">Crop Type</option>
+          </select>
+          <select class="barangay_select">
+            <option value="">Barangay</option>
+          </select>
+        </div>
+
+        <div class="harvest_table">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>PROJECT NAME</th>
+                <th>HARVEST DATE</th>
+                <th>ASSIGNED TO</th>
+                <th>BARANGAY</th>
+                <th>CROPS</th>
+                <th>CROP TYPE</th>
+                <th>TOTAL HARVEST</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="table_body">
+              <!-- Harvests will be populated here -->
+            </tbody>
+          </table>
+
+          <div class="harvest-pagination">
+            <span id="harvest-page-number">Page 1</span>
+            <button id="harvest-prev-page" class="harvest-pagination-btn" disabled>&lt;</button>
+            <button id="harvest-next-page" class="harvest-pagination-btn">&gt;</button>
+          </div>
+        </div> <!-- ✅ Closing harvest_table -->
+      </div> <!-- ✅ Closing table-wrapper -->
+    </div> <!-- ✅ Closing panel -->
+
+    <div class="modal-overlay" id="harvest-report-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Harvest Report</h2>
+          <button class="modal-close-btn" id="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Project Name</label>
+            <input type="text" id="modal-project-name" readonly>
+          </div>
+          <div class="form-group total-harvest-group">
+            <div>
+              <label>Total Harvest</label>
+              <input type="text" id="modal-total-harvest" readonly>
+            </div>
+            <div>
+              <label>Unit</label>
+              <input type="text" id="modal-unit" value="kg" readonly>
+            </div>
+          </div>
+          <div class="form-group">
+            <h3>Harvest Details</h3>
+            <div class="details-row">
+              <div>
+                <label>Farm President</label>
+                <input type="text" id="modal-farm-president" readonly>
+              </div>
+              <div>
+                <label>Barangay</label>
+                <input type="text" id="modal-barangay" readonly>
+              </div>
+            </div>
+            <div class="details-row">
+              <div>
+                <label>Crop Type</label>
+                <input type="text" id="modal-crop-type" readonly>
+              </div>
+              <div>
+                <label>Crop</label>
+                <input type="text" id="modal-crop" readonly>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Farmers</label>
+              <textarea id="modal-farmers" readonly></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="close-btn" id="close-harvest-btn">Close</button>
+          </div>
+        </div> <!-- ✅ Closing modal-body -->
+      </div> <!-- ✅ Closing modal-content -->
+    </div> <!-- ✅ Closing modal-overlay -->
+  </div> <!-- ✅ Closing main-content -->
+
+  <!-- Highlight active navigation link -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const reportLinks = document.querySelectorAll(".harvest-form a");
+
+      reportLinks.forEach(link => link.classList.remove("active"));
+      const activeLink = localStorage.getItem("activeReportLink");
+
+      const normalizeUrl = (url) => {
+        try {
+          return new URL(url, window.location.origin).href;
+        } catch (e) {
+          return url;
+        }
+      };
+
+      const currentPageUrl = normalizeUrl(window.location.href);
+      let currentPageLink = null;
+
+      reportLinks.forEach(link => {
+        const normalizedLinkHref = normalizeUrl(link.href);
+        if (normalizedLinkHref === currentPageUrl) {
+          currentPageLink = link;
+        }
+      });
+
+      if (currentPageLink) {
+        currentPageLink.classList.add("active");
+        localStorage.setItem("activeReportLink", currentPageLink.href);
+      } else {
+        let isMatchFound = false;
+        if (activeLink) {
+          reportLinks.forEach(link => {
+            const normalizedLinkHref = normalizeUrl(link.href);
+            const normalizedActiveLink = normalizeUrl(activeLink);
+            if (normalizedLinkHref === normalizedActiveLink) {
+              link.classList.add("active");
+              isMatchFound = true;
+            }
+          });
+        }
+
+        if (!isMatchFound) {
+          const harvestLink = Array.from(reportLinks).find(link =>
+            normalizeUrl(link.href).includes("admin_harvest.html")
+          );
+          if (harvestLink) {
+            harvestLink.classList.add("active");
+            localStorage.setItem("activeReportLink", harvestLink.href);
+          }
+        }
+      }
+
+      reportLinks.forEach(link => {
+        link.addEventListener("click", function () {
+          reportLinks.forEach(link => link.classList.remove("active"));
+          this.classList.add("active");
+          localStorage.setItem("activeReportLink", this.href);
+        });
+      });
+    });
+  </script>
+
+  <!-- Reusable header script -->
+  <script type="module" src="/src/auth/header.js"></script>
+
+</body>
+
+</html>

@@ -175,7 +175,7 @@ async function fetchTeams() {
                 <td>${teamName}</td>
                 <td>${leadFarmer}</td>
                 <td>${farmers.length}</td>
-                <td><img src="../../images/eye.png" class="action-btn" alt="View"></td>
+                <td><img src="/images/eye.png" class="action-btn" alt="View"></td>
             `;
 
       const viewButton = row.querySelector(".action-btn");

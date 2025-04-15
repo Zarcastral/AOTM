@@ -10,7 +10,7 @@ import {
     where
 } from "firebase/firestore";
 
-import app from "../../../src/config/firebase_config.js";
+import app from "/src/config/firebase_config.js";
 const db = getFirestore(app);
 
 const urlParams = new URLSearchParams(window.location.search);

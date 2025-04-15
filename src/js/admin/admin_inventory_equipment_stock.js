@@ -518,13 +518,13 @@ function displayEquipments(equipmentsList) {
           <span class="add-equip-stock-btn" data-id="${
             equipment.equipment_id
           }">
-            <img src="../../../public/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
+            <img src="/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
             <span>Add Stock</span>
           </span>
           <span class="delete-equip-stock-btn" data-id="${
             equipment.equipment_id
           }">
-            <img src="../../../public/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
+            <img src="/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
             <span>Delete Stock</span>
           </span>
         </td>

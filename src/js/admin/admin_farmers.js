@@ -262,13 +262,13 @@ function updateTable() {
             <td>${data.contact || "Contact Number not recorded"}</td>
             <td>
                 <button class="action-btn view-btn" data-id="${data.farmer_id}" title="View">
-                    <img src="../../images/eye.png" alt="View">
+                    <img src="/images/eye.png" alt="View">
                 </button>
                 <button class="action-btn edit-btn" data-id="${data.farmer_id}" title="Edit">
-                    <img src="../../images/edit.png" alt="Edit">
+                    <img src="/images/Edit.png" alt="Edit">
                 </button>
                 <button class="action-btn delete-btn" data-id="${data.farmer_id}" title="Delete">
-                    <img src="../../images/Delete.png" alt="Delete">
+                    <img src="/images/Delete.png" alt="Delete">
                 </button>
             </td>
         `;
@@ -723,7 +723,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     const leftMargin = (pageWidth - totalTableWidth) / 2;
 
     const addHeader = (doc) => {
-        const headerImg = "../../../public/images/BarasHeader.png";
+        const headerImg = "/images/BarasHeader.png";
         const headerImgWidth = 60;
         const headerImgHeight = 40;
         try {
@@ -765,7 +765,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     };
 
     const addFooter = (doc, data) => {
-        const footerImg = "../../../public/images/BarasFooter.png";
+        const footerImg = "/images/BarasFooter.png";
         const footerImgWidth = 140;
         const footerImgHeight = 15;
         try {

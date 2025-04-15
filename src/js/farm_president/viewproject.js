@@ -141,7 +141,7 @@ async function fetchTeams() {
                         class="view-btn" 
                         onclick="storeProjectIdAndRedirect(sessionStorage.getItem('selectedProjectId'), '${teamId}')"
                     >
-                        <img src="../../images/eye.png" alt="View" class="view-icon">
+                        <img src="/images/eye.png" alt="View" class="view-icon">
                     </button>
                 </td>
             `;

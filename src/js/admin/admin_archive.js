@@ -301,7 +301,7 @@ function displayArchiveRecords() {
             <td>${archive.document_name}</td>
             <td>
                 <button class="action-btn restore-btn" data-id="${archive.archive_id}" title="Restore Document">
-                    <img src="../../images/restore.png" alt="restore">
+                    <img src="/images/restore.png" alt="restore">
                 </button>
             </td>
         `;

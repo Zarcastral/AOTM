@@ -419,7 +419,7 @@ font-weight: 500;
 }
 
 .restore-btn:hover img {
-  content: url(../../../public/images/restore-green.png);
+  content: url(/images/restore-green.png);
   width: 20px;
   height: 20px; 
 }

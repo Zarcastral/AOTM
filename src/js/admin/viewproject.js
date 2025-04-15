@@ -120,7 +120,7 @@ async function fetchProjectDetails() {
 
 function storeProjectIdAndRedirect(projectId, teamId) {
   sessionStorage.setItem("selected_project_id", projectId);
-  window.location.href = `../../../public/landing_pages/head_farmer/headfarm_task.html?team_id=${teamId}`;
+  window.location.href = `../../../landing_pages/head_farmer/headfarm_task.html?team_id=${teamId}`;
 }
 
 // Expose the function to the global scope
@@ -178,7 +178,7 @@ async function fetchTeams() {
             class="view-btn" 
             onclick="storeProjectIdAndRedirect(sessionStorage.getItem('selectedProjectId'), '${teamId}')"
           >
-            <img src="../../images/eye.png" alt="View" class="view-icon">
+            <img src="/images/eye.png" alt="View" class="view-icon">
           </button>
         </td>
       `;
@@ -354,7 +354,7 @@ function addFeedbackToUI(feedback) {
                       ? `<button class="acknowledge-btn" data-id="${
                           feedback.id || ""
                         }">
-                          <img src="../../images/check.png" alt="Acknowledge" class="acknowledge-icon">
+                          <img src="/images/check.png" alt="Acknowledge" class="acknowledge-icon">
                          </button>`
                       : ""
                   }
@@ -478,7 +478,7 @@ async function displayFeedbacks() {
                           ${
                             feedback.status === "Pending"
                               ? `<button class="acknowledge-btn" data-id="${feedback.id}">
-                                  <img src="../../images/check.png" alt="Acknowledge" class="acknowledge-icon">
+                                  <img src="/images/check.png" alt="Acknowledge" class="acknowledge-icon">
                                  </button>`
                               : ""
                           }

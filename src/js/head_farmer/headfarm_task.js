@@ -9,7 +9,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import app from "../../../src/config/firebase_config.js";
+import app from "/src/config/firebase_config.js";
 
 const db = getFirestore(app);
 
@@ -273,12 +273,12 @@ function renderTasks(allowEditDelete) {
 
       const actionIcons = allowEditDelete
         ? `
-            <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
-            <img src="../../images/Edit.png" alt="Edit" class="edit-icon" data-task-id="${taskId}">
-            <img src="../../images/Delete.png" alt="Delete" class="delete-icon" data-task-id="${taskId}">
+            <img src="/images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
+            <img src="/images/Edit.png" alt="Edit" class="edit-icon" data-task-id="${taskId}">
+            <img src="/images/Delete.png" alt="Delete" class="delete-icon" data-task-id="${taskId}">
           `
         : `
-            <img src="../../images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
+            <img src="/images/eye.png" alt="View" class="view-icon" data-task-id="${taskId}">
           `;
 
       const taskRow = `
@@ -1059,10 +1059,10 @@ async function configureBackButton() {
 
     // Define user types and their respective redirect paths
     const navigationPaths = {
-      Admin: "../../../../public/landing_pages/admin/viewproject.html",
-      Supervisor: "../../../../public/landing_pages/admin/viewproject.html",
+      Admin: "../../../../landing_pages/admin/viewproject.html",
+      Supervisor: "../../../../landing_pages/admin/viewproject.html",
       "Farm President":
-        "../../../public/landing_pages/farm_president/viewproject.html",
+        "../../../landing_pages/farm_president/viewproject.html",
     };
 
     const canNavigateBack = Object.keys(navigationPaths).includes(userType);
