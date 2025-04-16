@@ -6,63 +6,69 @@ body {
 html, body {
   height: 100%;
   margin: 0;
-  overflow: hidden;
 }
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
+  height: 100vh; /* Fill viewport height */
   border-radius: 0px 0px 30px;
   width: 250px;
   background-color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   z-index: 50;
   transition: transform 0.3s ease-in-out;
+  overflow-y: auto; /* Enable vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+  padding-bottom: 0; /* Remove padding-bottom since Settings is pinned */
+  display: flex;
+  flex-direction: column; /* Stack logo, nav, and settings vertically */
 }
 
 .logo-container {
   display: flex;
   align-items: center;
   justify-content: start;
-  height: 100px;
+  height: 80px;
+  padding: 0 15px;
 }
 
 .logo {
-  width: 90px;
+  width: 80px;
 }
 
 .logo-text {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
   color: #4a5568;
   margin-left: -10px;
+}
+
+.sidebar nav {
+  margin-bottom: 20px; /* Moderate gap before Settings */
 }
 
 .sidebar ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .sidebar a {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 20px;
+  gap: 10px;
+  padding: 6px 15px;
   text-decoration: none;
   color: #4a5568;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
-  margin-left: 20px;
+  margin-left: 15px;
 }
 
 .sidebar a img.icon {
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
 
 /* Hover and Selected Effects */
@@ -70,100 +76,102 @@ html, body {
 .sidebar a.selected {
   color: #41a186;
   margin-left: 0;
-  padding-left: 40px;
+  padding-left: 30px;
 }
 
 /* Individual Hover Effects */
 .dash a:hover img,
 .dash a.selected img {
   content: url(/images/dashGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
-
 .proj a:hover img,
 .proj a.selected img {
   content: url(/images/graphGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
-
 .harv a:hover img,
 .harv a.selected img {
   content: url(/images/bagGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
-
 .inv a:hover img,
 .inv a.selected img {
   content: url(/images/boxGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
-
 .farm a:hover img,
 .farm a.selected img {
   content: url(/images/profileGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
-
 .use a:hover img,
 .use a.selected img {
   content: url(/images/userGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
-
 .rep a:hover img,
 .rep a.selected img {
   content: url(/images/folderGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
-
 .act a:hover img,
 .act a.selected img {
   content: url(/images/archiveGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
 .task a:hover img,
 .task a.selected img {
   content: url(/images/flashGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
 .sett a:hover img,
 .sett a.selected img {
   content: url(/images/settingGreen.png);
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
 
 /* Tools Section */
 .tools-section {
-  padding: 12px 20px;
-  font-size: 18px;
+  padding: 8px 15px;
+  font-size: 16px;
   color: #41a186;
 }
 
-/* Settings Positioned at the Bottom */
+/* Settings Styling */
 .sett {
-  margin-top: auto;
-  padding-bottom: 20px;
+  margin-top: auto; /* Pin to bottom of sidebar */
+  margin-bottom: 20px; /* Small space above bottom edge */
+  min-height: 40px; /* Ensure settings is tappable */
 }
 
-.sett li {
-  list-style: none; /* Removes any unwanted marker */
+.sett a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 15px;
+  text-decoration: none;
+  color: #4a5568;
+  font-size: 18px;
+  font-weight: 500;
+  margin-left: 15px;
 }
 
 .sett a:hover,
 .sett a.selected {
   color: #41a186;
   margin-left: 0;
-  padding-left: 40px;
+  padding-left: 30px;
   border-radius: 0 25px 25px 0;
 }
 
@@ -198,15 +206,73 @@ iframe {
   margin-left: 10px;
 }
 
-/* Responsive Styles */
+/* Responsive Styles for Mobile (including iPhones) */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
     width: 100%;
+    height: 100vh; /* Fill viewport height */
+    overflow-y: auto; /* Reiterate scrolling for mobile */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+    padding-bottom: 0; /* Remove padding-bottom */
   }
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  .logo-container {
+    height: 60px;
+    padding: 0 10px;
+  }
+
+  .logo {
+    width: 70px;
+  }
+
+  .logo-text {
+    font-size: 16px;
+  }
+
+  .sidebar ul {
+    margin-top: 5px;
+  }
+
+  .sidebar a {
+    padding: 5px 10px;
+    font-size: 16px; /* Maintain readable size */
+    margin-left: 10px;
+  }
+
+  .sidebar a img.icon {
+    height: 16px;
+    width: 16px;
+  }
+
+  .sidebar a:hover,
+  .sidebar a.selected {
+    padding-left: 20px;
+  }
+
+  .tools-section {
+    padding: 6px 10px;
+    font-size: 14px; /* Slightly smaller but readable */
+  }
+
+  .sett {
+    margin-top: auto; /* Pin to bottom */
+    margin-bottom: 20px; /* Small space above bottom edge */
+  }
+
+  .sett a {
+    padding: 5px 10px;
+    font-size: 16px; /* Maintain readable size */
+    margin-left: 10px;
+  }
+
+  .sett a:hover,
+  .sett a.selected {
+    padding-left: 20px;
   }
 
   .content {
@@ -221,5 +287,51 @@ iframe {
 
   #mobile-menu-button {
     display: block;
+  }
+}
+
+/* Adjustments for Smaller iPhone Screens (e.g., iPhone SE, iPhone 8) */
+@media (max-height: 667px) {
+  .logo-container {
+    height: 50px; /* Reduce height to save space */
+    padding: 0 8px;
+  }
+
+  .logo {
+    width: 60px;
+  }
+
+  .logo-text {
+    font-size: 14px;
+  }
+
+  .sidebar ul {
+    margin-top: 3px;
+  }
+
+  .sidebar a {
+    padding: 4px 8px;
+    font-size: 14px; /* Slightly smaller but still readable */
+    margin-left: 8px;
+  }
+
+  .sidebar a img.icon {
+    height: 14px;
+    width: 14px;
+  }
+
+  .tools-section {
+    padding: 4px 8px;
+    font-size: 12px; /* Slightly smaller but readable */
+  }
+
+  .sidebar nav {
+    margin-bottom: 10px; /* Reduce gap to fit Settings in viewport */
+  }
+
+  .sett a {
+    padding: 4px 8px;
+    font-size: 14px; /* Slightly smaller but readable */
+    margin-left: 8px;
   }
 }
