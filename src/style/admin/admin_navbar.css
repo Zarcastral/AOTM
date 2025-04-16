@@ -6,13 +6,12 @@ body {
 html, body {
   height: 100%;
   margin: 0;
-  /* Removed overflow: hidden to avoid conflicts with sidebar scrolling */
 }
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  min-height: 100vh; /* Allow sidebar to expand with content */
+  height: 100vh; /* Fill viewport height */
   border-radius: 0px 0px 30px;
   width: 250px;
   background-color: white;
@@ -20,7 +19,7 @@ html, body {
   transition: transform 0.3s ease-in-out;
   overflow-y: auto; /* Enable vertical scrolling */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
-  padding-bottom: 60px; /* Increased padding for settings visibility */
+  padding-bottom: 0; /* Remove padding-bottom since Settings is pinned */
   display: flex;
   flex-direction: column; /* Stack logo, nav, and settings vertically */
 }
@@ -29,7 +28,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: start;
-  height: 80px; /* Compact height */
+  height: 80px;
   padding: 0 15px;
 }
 
@@ -45,7 +44,7 @@ html, body {
 }
 
 .sidebar nav {
-  flex-grow: 1; /* Allow nav to take available space */
+  margin-bottom: 20px; /* Moderate gap before Settings */
 }
 
 .sidebar ul {
@@ -151,9 +150,9 @@ html, body {
 
 /* Settings Styling */
 .sett {
-  margin-top: auto; /* Push to bottom of sidebar */
-  padding-bottom: 20px;
-  min-height: 50px; /* Ensure settings is tappable */
+  margin-top: auto; /* Pin to bottom of sidebar */
+  margin-bottom: 20px; /* Small space above bottom edge */
+  min-height: 40px; /* Ensure settings is tappable */
 }
 
 .sett a {
@@ -207,15 +206,15 @@ iframe {
   margin-left: 10px;
 }
 
-/* Responsive Styles */
+/* Responsive Styles for Mobile (including iPhones) */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
     width: 100%;
-    min-height: 100vh; /* Ensure full height with ability to expand */
+    height: 100vh; /* Fill viewport height */
     overflow-y: auto; /* Reiterate scrolling for mobile */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
-    padding-bottom: 80px; /* Extra padding for small screens */
+    padding-bottom: 0; /* Remove padding-bottom */
   }
 
   .sidebar.open {
@@ -223,7 +222,7 @@ iframe {
   }
 
   .logo-container {
-    height: 60px; /* More compact on mobile */
+    height: 60px;
     padding: 0 10px;
   }
 
@@ -241,7 +240,7 @@ iframe {
 
   .sidebar a {
     padding: 5px 10px;
-    font-size: 16px;
+    font-size: 16px; /* Maintain readable size */
     margin-left: 10px;
   }
 
@@ -257,12 +256,17 @@ iframe {
 
   .tools-section {
     padding: 6px 10px;
-    font-size: 14px;
+    font-size: 14px; /* Slightly smaller but readable */
+  }
+
+  .sett {
+    margin-top: auto; /* Pin to bottom */
+    margin-bottom: 20px; /* Small space above bottom edge */
   }
 
   .sett a {
     padding: 5px 10px;
-    font-size: 16px;
+    font-size: 16px; /* Maintain readable size */
     margin-left: 10px;
   }
 
@@ -286,14 +290,11 @@ iframe {
   }
 }
 
-/* Extra small screens (e.g., 320px height) */
-@media (max-height: 600px) {
-  .sidebar {
-    padding-bottom: 100px; /* Even more padding for very small screens */
-  }
-
+/* Adjustments for Smaller iPhone Screens (e.g., iPhone SE, iPhone 8) */
+@media (max-height: 667px) {
   .logo-container {
-    height: 50px;
+    height: 50px; /* Reduce height to save space */
+    padding: 0 8px;
   }
 
   .logo {
@@ -304,9 +305,13 @@ iframe {
     font-size: 14px;
   }
 
+  .sidebar ul {
+    margin-top: 3px;
+  }
+
   .sidebar a {
     padding: 4px 8px;
-    font-size: 14px;
+    font-size: 14px; /* Slightly smaller but still readable */
     margin-left: 8px;
   }
 
@@ -317,12 +322,16 @@ iframe {
 
   .tools-section {
     padding: 4px 8px;
-    font-size: 12px;
+    font-size: 12px; /* Slightly smaller but readable */
+  }
+
+  .sidebar nav {
+    margin-bottom: 10px; /* Reduce gap to fit Settings in viewport */
   }
 
   .sett a {
     padding: 4px 8px;
-    font-size: 14px;
+    font-size: 14px; /* Slightly smaller but readable */
     margin-left: 8px;
   }
 }
