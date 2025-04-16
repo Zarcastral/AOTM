@@ -2,150 +2,113 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Organic Baras Productivity</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/src/style/farm_president/farmpres_task.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organic Baras Productivity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style/head_farmer/headfarm_task.css">
 </head>
 
 <body>
-  <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <div id="header-container"></div>
 
-  <div class="main-content">
-    <div class="task-panel">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-800">Task</h2>
-            <button class="text-teal-600 font-semibold">+ Add Task</button>
+    <div class="main-content">
+        <div class="back">
+            <a href="viewproject.html" class="back-link">
+                <img src="/images/arrow-left.png" alt="Back" width="30" height="30">
+            </a>
         </div>
-        <div class="mb-4">
-            <input type="text" placeholder="Search tasks..." >
+        <div class="task-panel">
+            <div class="task-header">
+                <h2>Task</h2>
+                <button id="addTaskButton">+ Add Task</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="search-bar" placeholder="Search" />
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>No. of Subtask</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskTableBody">
+                        <!-- Dynamic task rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-controls">
+                <span id="pageInfo">Page 1</span>
+                <button id="prevPageBtn" disabled>&lt;</button>
+                <button id="nextPageBtn" disabled>&gt;</button>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left text-gray-500">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-100">
-                    <tr>
-                        <th scope="col" class="px-4 py-2">Task Name</th>
-                        <th scope="col" class="px-4 py-2">No. of Subtask</th>
-                        <th scope="col" class="px-4 py-2">Start Date</th>
-                        <th scope="col" class="px-4 py-2">End Date</th>
-                        <th scope="col" class="px-4 py-2">Status</th>
-                        <th scope="col" class="px-4 py-2 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="bg-white border-b">
-                        <td class="px-4 py-2 font-medium text-gray-900">Planting</td>
-                        <td class="px-4 py-2">10</td>
-                        <td class="px-4 py-2">10/20/2023</td>
-                        <td class="px-4 py-2">10/27/2023</td>
-                        <td class="px-4 py-2 text-green-600">Completed</td>
-                        <td class="px-4 py-2 text-center">
-                            <button class="text-gray-500 hover:text-gray-700">
-                                <img src="/images/eye.png" alt="View" class="w-4 h-4">
-                            </button>
-                            <button class="text-gray-500 hover:text-gray-700 mx-2">
-                                <img src="/images/Edit.png" alt="Edit" class="w-4 h-4">
-                            </button>
-                            <button class="text-red-500 hover:text-red-700">
-                                <img src="/images/Delete.png" alt="Delete" class="w-4 h-4">
-                            </button>
-                        </td>
-                    </tr>
-                    <tr class="bg-white border-b">
-                        <td class="px-4 py-2 font-medium text-gray-900">Fertilizer</td>
-                        <td class="px-4 py-2">10</td>
-                        <td class="px-4 py-2">10/29/2023</td>
-                        <td class="px-4 py-2">10/31/2023</td>
-                        <td class="px-4 py-2 text-purple-600">On going</td>
-                        <td class="px-4 py-2 text-center">
-                            <button class="text-gray-500 hover:text-gray-700">
-                                <img src="/images/eye.png" alt="View" class="w-4 h-4">
-                            </button>
-                            <button class="text-gray-500 hover:text-gray-700 mx-2">
-                                <img src="/images/Edit.png" alt="Edit" class="w-4 h-4">
-                            </button>
-                            <button class="text-red-500 hover:text-red-700">
-                                <img src="/images/Delete.png" alt="Delete" class="w-4 h-4">
-                            </button>
-                        </td>
-                    </tr>
-                    <tr class="bg-white border-b">
-                        <td class="px-4 py-2 font-medium text-gray-900">Pest Control</td>
-                        <td class="px-4 py-2">10</td>
-                        <td class="px-4 py-2">--</td>
-                        <td class="px-4 py-2">--</td>
-                        <td class="px-4 py-2 text-gray-600">Pending</td>
-                        <td class="px-4 py-2 text-center">
-                            <button class="text-gray-500 hover:text-gray-700">
-                                <img src="/images/eye.png" alt="View" class="w-4 h-4">
-                            </button>
-                            <button class="text-gray-500 hover:text-gray-700 mx-2">
-                                <img src="/images/Edit.png" alt="Edit" class="w-4 h-4">
-                            </button>
-                            <button class="text-red-500 hover:text-red-700">
-                                <img src="/images/Delete.png" alt="Delete" class="w-4 h-4">
-                            </button>
-                        </td>
-                    </tr>
-                    <tr class="bg-white border-b">
-                        <td class="px-4 py-2 font-medium text-gray-900">Fertilizer II</td>
-                        <td class="px-4 py-2">10</td>
-                        <td class="px-4 py-2">--</td>
-                        <td class="px-4 py-2">--</td>
-                        <td class="px-4 py-2 text-gray-600">Pending</td>
-                        <td class="px-4 py-2 text-center">
-                            <button class="text-gray-500 hover:text-gray-700">
-                                <img src="/images/eye.png" alt="View" class="w-4 h-4">
-                            </button>
-                            <button class="text-gray-500 hover:text-gray-700 mx-2">
-                                <img src="/images/Edit.png" alt="Edit" class="w-4 h-4">
-                            </button>
-                            <button class="text-red-500 hover:text-red-700">
-                                <img src="/images/Delete.png" alt="Delete" class="w-4 h-4">
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Add Finish Project button below the task panel -->
+        <div class="finish-project-container">
+            <button id="finishProjectButton" disabled> ✓ Task completed</button>
+            <button id="failProjectButton" disabled> ✗ Project Failed</button>
+        </div>
+
+        <!-- Add Failed Confirmation Modal -->
+        <div id="failProjectModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Confirm Project Failure</h2>
+                <p>Are you sure you want to mark this project as Failed? This action cannot be undone.</p>
+                <div class="modal-buttons">
+                    <button id="cancelFailBtn">Cancel</button>
+                    <button id="confirmFailBtn">Confirm</button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-  
 
-  <!-- Account Panel with iframe to load external content -->
-  <div id="account-panel" class="account-panel">
-    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
-  </div>
+    <div id="addTaskModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>New Task</h2>
+            <label>Task Name:</label>
+            <input type="text" id="taskNameInput" placeholder="" required>
+            <div class="modal-buttons">
+                <button id="cancelTaskBtn">Cancel</button>
+                <button id="saveTaskBtn">Save</button>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    const accountIcon = document.getElementById("account-icon");
-    const accountPanel = document.getElementById("account-panel");
-    const accountFrame = document.getElementById("account-frame");
+    <div id="deleteTaskModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this task?</p>
+            <div class="modal-buttons">
+                <button id="cancelDeleteBtn">Cancel</button>
+                <button id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
 
-    // Load content when account icon is clicked
-    accountIcon.addEventListener("click", () => {
-      accountPanel.classList.toggle("active");
+    <div id="editTaskModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-edit-modal">×</span>
+            <h2>Edit Task Name</h2>
+            <label>Task Name:</label>
+            <input type="text" id="editTaskNameInput" placeholder="Enter new task name">
+            <div class="modal-buttons">
+                <button id="cancelEditBtn">Cancel</button>
+                <button id="saveEditBtn">Save</button>
+            </div>
+        </div>
+    </div>
 
-      // Load external content in iframe
-      if (accountPanel.classList.contains("active")) {
-        accountFrame.src = "logout.html"; // Change to the URL of your content page
-      } else {
-        accountFrame.src = ""; // Clear iframe content when panel is closed
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-        accountPanel.classList.remove("active");
-        accountFrame.src = ""; // Clear iframe content when clicking outside
-      }
-    });
-  </script>
-  <!-- Import the reusable script from src/auth -->
-  <script type="module" src="/src/auth/header.js"></script>
+    <script type="module">
+        import { fetchProjectsForFarmer } from "/src/js/farm_president/farmpres_task.js";
+        fetchProjectsForFarmer();
+    </script>
+    <script type="module" src="/src/auth/header.js"></script>
 </body>
 
 </html>
