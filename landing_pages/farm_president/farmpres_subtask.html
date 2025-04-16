@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style/head_farmer/headfarm_subtask.css">
+    <title>Task Panel</title>
+</head>
+
+<body>
+    <div id="header-container"></div>
+    <div class="panel-container">
+        <button class="back-btn">
+            <img src="/images/arrow-left.png" alt="Back">
+        </button>
+
+        <div class="panel">
+            <div class="panel-top">
+                <h1 id="taskName">Planting</h1>
+                <a href="#" class="add-subtask">+ Add Subtask</a>
+            </div>
+
+            <table class="subtask-table">
+                <thead>
+                    <tr>
+                        <th>Subtask</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Subtasks will be populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <button id="completeTaskBtn" class="completed-btn" disabled>Completed</button>
+    </div>
+
+    <!-- New SUBTASK MODAL -->
+    <div id="subtaskModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Add New Subtask</h2>
+            <form id="subtaskForm">
+                <div class="form-group">
+                    <label for="subtaskName">Subtask Name:</label>
+                    <input type="text" id="subtaskName" required>
+                </div>
+                <div class="confirm-buttons">
+                    <button type="button" class="cancel-btn modal-cancel-btn">Cancel</button>
+                    <button type="submit" class="submit-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DELETE MODAL -->
+    <div id="deleteConfirmModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-delete-modal"></span>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this subtask?</p>
+            <div class="confirm-buttons">
+                <button class="cancel-btn">Cancel</button>
+                <button class="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/auth/header.js"></script>
+    <script type="module" src="/src/js/farm_president/farmpres_subtask.js"></script>
+</body>
+
+</html>
