@@ -7,8 +7,8 @@ body {
     display: flex;
     flex-direction: column;
     cursor: default;
-  }
-  
+}
+
 .header {
     min-height: 60px;
     height: 60px;
@@ -18,37 +18,35 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
-  }
-  
-  .header-title {
+}
+
+.header-title {
     font-size: 30px;
     font-weight: bold;
     color: #41A186;
-  }
-  
-  .header-icons {
+}
+
+.header-icons {
     display: flex;
     align-items: center;
     gap: 15px;
-  }
-  
-  .header-icons img {
+}
+
+.header-icons img {
     width: 24px;
     height: 24px;
     cursor: pointer;
-  }
-  
-  .main-content {
+}
+
+.main-content {
     display: flex;
     flex-direction: column;
     padding: 50px; /* Padding around the panels */
     overflow-y: auto; /* Enable vertical scrolling */
     overflow-x: hidden; /* Disable horizontal scrolling */
-  }
-
+}
 
 /* Panel container style */
-
 .panel {
     background-color: white;
     box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
@@ -59,7 +57,7 @@ body {
     display: flex;
     flex-direction: column; /* Stack children vertically */
 }
-  
+
 input[type="checkbox"] {
     width: 16px;
     height: 16px;
@@ -71,17 +69,17 @@ input[type="checkbox"] {
     -webkit-appearance: none; /* Removes default browser styling */
     -moz-appearance: none;
     appearance: none;
-  }
-  
-  /* Style when checkbox is checked */
-  input[type="checkbox"]:checked {
+}
+
+/* Style when checkbox is checked */
+input[type="checkbox"]:checked {
     background-color: #41A186; /* Green color */
     border-color: #41A186;
     position: relative;
-  }
-  
-  /* Create the checkmark */
-  input[type="checkbox"]:checked::after {
+}
+
+/* Create the checkmark */
+input[type="checkbox"]:checked::after {
     content: '';
     position: absolute;
     left: 5px;
@@ -140,7 +138,6 @@ th:nth-child(4), td:nth-child(4) {
     text-align: left; /* Center the content in the column for better appearance */
 }
 
-
 th:nth-child(5), td:nth-child(5) {
     width: 200px; /* Adjusted width for the action column */
     min-width: 100px; /* Minimum width to ensure usability */
@@ -161,20 +158,11 @@ tbody tr {
 tbody tr:hover {
     background-color: #F3F4F6;
 }
+
 /* Remove border from the last row */
 tbody tr:last-child td {
     border-bottom: none;
 }
-
-input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    border: 1px solid #D1D5DB; /* Thin border */
-    border-radius: 4px; /* Optional: Slightly rounded corners */
-    outline: none;
-    background-color: white;
-    cursor: pointer;
-  }
 
 .search-container {
     display: flex;
@@ -186,24 +174,27 @@ input[type="checkbox"] {
 #search-bar, #barangay-select {
     padding: 8px;
     font-size: 16px;
-    border: 1px solid lightgray; 
+    border: 1px solid lightgray;
     border-radius: 5px;
     outline: none;
 }
+
 #search-bar {
     width: 300px;
 }
 
 #search-bar:focus, #barangay-select:focus {
     border-color: #aaa;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
+
 .search-container input,
 .search-container select {
-  padding: 0.5rem;
-  border: 1px solid #dcdcdc;
-  border-radius: 5px;
+    padding: 0.5rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
 }
+
 .action-btn {
     border: none;
     background: none;
@@ -226,9 +217,9 @@ input[type="checkbox"] {
 }
 
 .btn-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
 }
 
 /* New User Button */
@@ -248,7 +239,7 @@ input[type="checkbox"] {
 }
 
 .add-user-btn:hover {
-    background-color: #318a71; 
+    background-color: #318a71;
     text-decoration: none;
     transition: background-color 0.3s ease;
 }
@@ -262,22 +253,23 @@ input[type="checkbox"] {
     width: 100%;
     gap: 10px;
     flex-shrink: 0; /* Prevents pagination from shrinking */
-  }
+}
+
 #page-number {
     font-size: 17px;
     color: #333;
-  }
+}
 
 .pagination-btn {
-  padding: 10px 10px;
-  margin: 0;
-  font-size: 25px;
-  border: none;
-  border-radius: 0;
-  cursor: pointer;
-  background: none;
-  transition: color 0.3s ease;
-  color: #333;
+    padding: 10px 10px;
+    margin: 0;
+    font-size: 25px;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    background: none;
+    transition: color 0.3s ease;
+    color: #333;
 }
 
 .pagination-btn:hover {
@@ -288,7 +280,6 @@ input[type="checkbox"] {
     color: #bbb;
     cursor: not-allowed;
 }
-
 
 /* Confirmation Panel Style */
 .confirmation-panel {
@@ -306,8 +297,8 @@ input[type="checkbox"] {
 
 .confirmation-panel.show {
     display: flex;
-
 }
+
 .confirmation-message {
     background-color: white;
     padding: 20px;
@@ -347,7 +338,6 @@ input[type="checkbox"] {
     background-color: #B0B7C0;
 }
 
-
 /* Success Message Style */
 .delete-message {
     position: fixed;
@@ -366,35 +356,6 @@ input[type="checkbox"] {
     transition: opacity 0.3s ease;
 }
 
-/* Basic styling for the search container */
-.search-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  #search-bar, #barangay-select {
-    padding: 8px;
-    font-size: 16px;
-    border: 1px solid lightgray; 
-    border-radius: 5px;
-    outline: none;
-  }
-  #search-bar {
-    width: 300px;
-  }
-  
-  #search-bar:focus, #barangay-select:focus {
-    border-color: #aaa;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
-  }
-  .search-container input,
-  .search-container select {
-  padding: 0.5rem;
-  border: 1px solid #dcdcdc;
-  border-radius: 5px;
-  }
-
 /* Styling for search input */
 #search-bar {
     padding: 10px;
@@ -406,24 +367,22 @@ input[type="checkbox"] {
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-
 /* Styling for the Barangay select dropdown */
 #barangay-select {
     padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-  font-size: 16px;
-  color: #243B53;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  outline: none;
-  width: 200px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-  background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
-  background-size: 16px;
-  cursor: pointer;
-
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
 }
 
 /* Optional: Style for the placeholder option */
@@ -433,11 +392,10 @@ input[type="checkbox"] {
 }
 
 .action-btn img {
-    width: 26px; 
+    width: 26px;
     height: 20px;
     object-fit: contain;
 }
-
 
 .action-btn {
     padding: 5px;
@@ -526,8 +484,8 @@ input[type="checkbox"] {
 }
 
 .bulk-cancel-btn:hover {
-    background-color:rgb(90, 101, 112);
-    transition: background-color 0.3s ease, opacity 0.3s ease; 
+    background-color: rgb(90, 101, 112);
+    transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 
 /* Bulk Delete Success Message Style */
@@ -546,6 +504,7 @@ input[type="checkbox"] {
     opacity: 0;
     transition: opacity 0.3s ease;
 }
+
 .modal {
     display: none; /* Hidden by default */
     position: fixed;
@@ -615,12 +574,19 @@ input[type="checkbox"] {
     }
 
     .pagination-container {
-        flex-direction: column;
+        display: flex; /* Keep it as flex, not column */
+        justify-content: flex-end;
+        align-items: center;
+        flex-wrap: nowrap; /* Prevent wrapping */
     }
 
     .pagination-btn {
-        width: 100%;
-        margin: 5px 0;
+        font-size: 20px; /* Slightly smaller font size for better fit */
+        padding: 8px; /* Adjust padding for smaller screens */
+    }
+
+    #page-number {
+        font-size: 15px; /* Slightly smaller font size */
     }
 }
 
@@ -628,11 +594,10 @@ input[type="checkbox"] {
 @media (max-width: 768px) {
     .search-container {
         flex-direction: column;
-        align-items: flex-start; 
+        align-items: flex-start;
     }
 
     #search-bar, #barangay-select {
-        width: 100%; 
+        width: 100%;
     }
 }
-
