@@ -21,7 +21,6 @@ html, body {
   justify-content: space-between;
   z-index: 50;
   transition: transform 0.3s ease-in-out;
-  box-sizing: border-box;
 }
 
 .logo-container {
@@ -47,7 +46,6 @@ html, body {
   padding: 0;
   margin: 0;
   margin-top: 20px;
-  flex: 1;
 }
 
 .sidebar a {
@@ -158,7 +156,7 @@ html, body {
 }
 
 .sett li {
-  list-style: none;
+  list-style: none; /* Removes any unwanted marker */
 }
 
 .sett a:hover,
@@ -172,19 +170,15 @@ html, body {
 /* Content area */
 .content {
   margin-left: 235px;
-  height: 100vh;
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling for iframe in Chrome iOS */
+  flex: 1;
+  overflow-y: auto;
   transition: margin-left 0.3s ease-in-out;
-  box-sizing: border-box;
-  -webkit-transform: translateZ(0); /* Force hardware acceleration */
 }
 
 iframe {
   width: 100%;
-  min-height: 100%;
+  height: 100vh;
   border: none;
-  display: block;
 }
 
 /* Mobile Menu Button */
@@ -221,156 +215,11 @@ iframe {
   }
 
   iframe {
-    min-height: 100%;
+    height: 100vh;
     width: 100%;
   }
 
   #mobile-menu-button {
     display: block;
-  }
-}
-
-@media (max-height: 700px) {
-  .sidebar ul {
-    margin-top: 5px;
-  }
-
-  .sidebar a {
-    padding: 4px 20px;
-    font-size: 16px;
-  }
-
-  .tools-section {
-    padding: 4px 20px;
-    font-size: 14px;
-  }
-
-  .sett {
-    padding-bottom: 5px;
-  }
-
-  .logo-container {
-    height: 70px;
-  }
-
-  .logo {
-    width: 70px;
-  }
-
-  .logo-text {
-    font-size: 16px;
-  }
-}
-
-@media (max-height: 600px) {
-  .sidebar ul {
-    margin-top: 2px;
-  }
-
-  .sidebar a {
-    padding: 2px 20px;
-    font-size: 14px;
-  }
-
-  .tools-section {
-    padding: 2px 20px;
-    font-size: 12px;
-  }
-
-  .sett {
-    padding-bottom: 2px;
-  }
-
-  .logo-container {
-    height: 60px;
-  }
-
-  .logo {
-    width: 60px;
-  }
-
-  .logo-text {
-    font-size: 14px;
-  }
-}
-
-@media (max-height: 500px) {
-  .sidebar ul {
-    margin-top: 0;
-  }
-
-  .sidebar a {
-    padding: 1px 20px;
-    font-size: 12px;
-  }
-
-  .tools-section {
-    padding: 1px 20px;
-    font-size: 10px;
-  }
-
-  .sett {
-    padding-bottom: 1px;
-  }
-
-  .logo-container {
-    height: 50px;
-  }
-
-  .logo {
-    width: 50px;
-  }
-
-  .logo-text {
-    font-size: 12px;
-  }
-}
-
-@media (max-height: 400px) {
-  .sidebar ul {
-    margin-top: 0;
-  }
-
-  .sidebar a {
-    padding: 0px 20px;
-    font-size: 10px;
-  }
-
-  .tools-section {
-    padding: 0px 20px;
-    font-size: 8px;
-  }
-
-  .sett {
-    padding-bottom: 0px;
-  }
-
-  .logo-container {
-    height: 40px;
-  }
-
-  .logo {
-    width: 40px;
-  }
-
-  .logo-text {
-    font-size: 10px;
-  }
-}
-
-/* Safe Area Support for Chrome iOS */
-@supports (padding: env(safe-area-inset)) {
-  .sidebar {
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  #mobile-menu-button {
-    margin-top: calc(5px + env(safe-area-inset-top));
-    margin-left: calc(10px + env(safe-area-inset-left));
-  }
-
-  .content {
-    padding-bottom: env(safe-area-inset-bottom);
   }
 }
