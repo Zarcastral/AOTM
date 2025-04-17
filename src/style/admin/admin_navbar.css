@@ -7,7 +7,7 @@ body {
   font-family: "Poppins", sans-serif;
   margin: 0;
   padding: 0;
-  height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for better mobile compatibility */
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -18,7 +18,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100%;
+  height: 100dvh; /* Ensure sidebar respects dynamic viewport height */
   width: clamp(200px, 20vw, 250px);
   background-color: white;
   display: flex;
@@ -161,13 +161,16 @@ body {
 .content {
   margin-left: clamp(200px, 20vw, 250px);
   flex: 1;
-  height: 100vh;
-  transition: margin-left 0.3s ease-in-out;
+  min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); /* Account for safe areas */
+  height: auto; /* Allow content to expand */
+  overflow-y: auto; /* Enable scrolling if content overflows */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 iframe {
   width: 100%;
-  height: 100%;
+  min-height: 100%; /* Ensure iframe fills content area */
+  height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); /* Dynamic height with safe areas */
   border: none;
   display: block;
 }
@@ -176,8 +179,8 @@ iframe {
 #mobile-menu-button {
   display: none;
   position: fixed;
-  top: clamp(10px, 2vh, 15px);
-  left: clamp(10px, 2vw, 15px);
+  top: calc(clamp(10px, 2vh, 15px) + env(safe-area-inset-top));
+  left: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-left));
   z-index: 60;
   background-color: #41a186;
   color: white;
@@ -225,6 +228,7 @@ iframe {
   }
   .sidebar.open {
     display: flex;
+    z-index: 100; /* Ensure sidebar is above content when open */
   }
   .content {
     margin-left: 0;
@@ -259,10 +263,6 @@ iframe {
     padding-right: env(safe-area-inset-right);
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
-  }
-  #mobile-menu-button {
-    top: calc(clamp(10px, 2vh, 15px) + env(safe-area-inset-top));
-    left: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-left));
   }
 }
 
