@@ -2,19 +2,19 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Organic Baras</title>
-  <link rel="icon" href="/images/weblogo.png" type="image/png" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/src/style/admin/admin_navbar.css" />
+  <link rel="icon" href="/images/weblogo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/admin/admin_navbar.css">
 </head>
 
 <body>
   <!-- Mobile Menu Button -->
   <button id="mobile-menu-button" aria-label="Toggle Sidebar">☰</button>
 
-  <!-- Sidebar -->
+  <!-- Sidebar navigation -->
   <div class="sidebar">
     <div class="logo-container">
       <img src="/images/Logo.png" class="logo" alt="Company Logo" />
@@ -24,43 +24,58 @@
     <nav>
       <ul>
         <div class="dash">
-          <li><a href="admin_dash.html"><img src="/images/element-1.png" class="icon" alt="Dashboard" />Dashboard</a></li>
+          <li><a href="admin_dash.html"><img src="/images/element-1.png" class="icon"
+                alt="Dashboard" />Dashboard</a>
+          </li>
         </div>
+
         <div class="proj">
-          <li><a href="admin_projects_list.html"><img src="/images/graph.png" class="icon" alt="Projects" />Projects</a></li>
+          <li><a href="admin_projects_list.html"><img src="/images/graph.png" class="icon"
+                alt="Projects" />Projects</a></li>
         </div>
         <div class="task">
-          <li><a href="predefined_task.html"><img src="/images/flash.png" class="icon" alt="Task" />Task</a></li>
+          <li><a href="predefined_task.html"><img src="/images/flash.png" class="icon" alt="Harvest" />Task</a>
+          </li>
         </div>
         <div class="harv">
           <li><a href="admin_harvest.html"><img src="/images/bag.png" class="icon" alt="Harvest" />Harvest</a></li>
         </div>
+
         <div class="inv">
-          <li><a href="admin_inventory.html"><img src="/images/box.png" class="icon" alt="Inventory" />Inventory</a></li>
+          <li><a href="admin_inventory.html"><img src="/images/box.png" class="icon"
+                alt="Inventory" />Inventory</a></li>
         </div>
+
         <div class="farm">
-          <li><a href="admin_farmers.html"><img src="/images/profile-2user.png" class="icon" alt="Farmers" />Farmers</a></li>
+          <li><a href="admin_farmers.html"><img src="/images/profile-2user.png" class="icon"
+                alt="Farmers" />Farmers</a></li>
         </div>
+
         <div class="use">
           <li><a href="admin_users.html"><img src="/images/user.png" class="icon" alt="User" />User</a></li>
         </div>
 
         <li class="tools-section">Tools</li>
         <div class="rep">
-          <li><a href="admin_reports_harvest.html"><img src="/images/folder-2.png" class="icon" alt="Reports" />Reports</a></li>
+          <li><a href="admin_reports_harvest.html"><img src="/images/folder-2.png" class="icon" alt="Reports" />Reports</a>
+          </li>
         </div>
+
         <div class="act">
-          <li><a href="admin_activitylog.html"><img src="/images/archive.png" class="icon" alt="Activity Log" />Activity Log</a></li>
+          <li><a href="admin_activitylog.html"><img src="/images/archive.png" class="icon"
+                alt="Activity Log" />Activity Log</a></li>
         </div>
       </ul>
     </nav>
 
+    <!-- Move settings to the bottom -->
     <div class="sett">
-      <a href="settings.html" class="settings-link"><img src="/images/setting-2.png" class="icon" alt="Settings" />Settings</a>
+      <a href="settings.html" class="settings-link"><img src="/images/setting-2.png" class="icon"
+            alt="Settings" />Settings</a>
     </div>
   </div>
 
-  <!-- Iframe Content -->
+  <!-- Iframe content area -->
   <div class="content">
     <iframe id="content-frame" src="admin_dash.html"></iframe>
   </div>
@@ -73,17 +88,19 @@
 
     // Function to set active link
     function setActiveLink(link) {
-      links.forEach((l) => l.classList.remove("selected"));
+      links.forEach((l) => {
+        l.classList.remove("selected");
+      });
       link.classList.add("selected");
     }
 
-    // Navigation handling
+    // Handle navigation
     links.forEach((link) => {
       link.addEventListener("click", (event) => {
         event.preventDefault();
         setActiveLink(link);
         iframe.src = link.getAttribute("href");
-        sidebar.classList.remove("open");
+        sidebar.classList.remove("open"); // Close sidebar on mobile
       });
     });
 
@@ -95,16 +112,12 @@
     // Set default active link on load
     document.addEventListener("DOMContentLoaded", () => {
       const defaultLink = document.querySelector('.sidebar a[href="admin_dash.html"]');
-      if (defaultLink) setActiveLink(defaultLink);
-
-      // Dynamic iframe height (fix mobile VH issue)
-      const setIframeHeight = () => {
-        iframe.style.height = `${window.innerHeight}px`;
-      };
-      setIframeHeight();
-      window.addEventListener("resize", setIframeHeight);
+      if (defaultLink) {
+        setActiveLink(defaultLink);
+      }
     });
   </script>
+
 </body>
 
 </html>
