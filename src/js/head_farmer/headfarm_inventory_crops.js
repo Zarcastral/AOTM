@@ -1,10 +1,13 @@
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
+  addDoc,
   collection,
+  doc,
   getDocs,
   getFirestore,
   onSnapshot,
   query,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
@@ -24,6 +27,7 @@ let currentPage = 1;
 const rowsPerPage = 5;
 let filteredCrops = [];
 
+// Sort crops by date (newest first)
 function sortCropsByDate() {
   filteredCrops.sort((a, b) => {
     const dateA = parseDate(a.stock_date || a.cropDate);
@@ -32,6 +36,7 @@ function sortCropsByDate() {
   });
 }
 
+// Parse Firestore timestamp or string to Date
 function parseDate(dateValue) {
   if (!dateValue) return new Date(0);
   if (typeof dateValue.toDate === "function") {
@@ -40,6 +45,7 @@ function parseDate(dateValue) {
   return new Date(dateValue);
 }
 
+// Fetch authenticated farmer's details
 async function getAuthenticatedFarmer() {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, async (user) => {
@@ -83,6 +89,7 @@ async function getAuthenticatedFarmer() {
   });
 }
 
+// Fetch crops data from tb_projects and tb_crop_stock
 async function fetchCrops() {
   try {
     await getAuthenticatedFarmer();
@@ -152,6 +159,7 @@ async function fetchCrops() {
   }
 }
 
+// Display crops in the table
 function displayCrops(cropsList) {
   const tableBody = document.querySelector(".crop_table table tbody");
   if (!tableBody) {
@@ -167,7 +175,7 @@ function displayCrops(cropsList) {
   if (paginatedCrops.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="5" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
+        <td colspan="6" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
       </tr>
     `;
     return;
@@ -188,18 +196,154 @@ function displayCrops(cropsList) {
       <td>${crop.crop_type_name}</td>
       <td>${formattedDate}</td>
       <td>${crop.current_stock || "0"} ${crop.unit || ""}</td>
+      <td><span class="use-resource-icon" data-project-id="${
+        crop.project_id
+      }" data-crop-type="${crop.crop_type_name}" data-stock="${
+      crop.current_stock || 0
+    }" data-unit="${crop.unit || ""}">📦</span></td>
     `;
     tableBody.appendChild(row);
   });
   updatePagination();
+
+  // Add event listeners to use resource icons
+  document.querySelectorAll(".use-resource-icon").forEach((icon) => {
+    icon.addEventListener("click", () => {
+      const projectId = icon.dataset.projectId;
+      const cropType = icon.dataset.cropType;
+      const currentStock = parseFloat(icon.dataset.stock) || 0;
+      const unit = icon.dataset.unit;
+      openResourcePanel(projectId, cropType, currentStock, unit);
+    });
+  });
 }
 
+// Open the Use Resource panel
+function openResourcePanel(projectId, cropType, currentStock, unit) {
+  const panel = document.getElementById("use-resource-panel");
+  const cropTypeDisplay = document.getElementById("crop-type-display");
+  const maxQuantityDisplay = document.getElementById("max-quantity");
+  const quantityInput = document.getElementById("quantity-input");
+  const quantityError = document.getElementById("quantity-error");
+  const usageTypeSelect = document.getElementById("usage-type");
+  const detailsContainer = document.getElementById("details-container");
+  const detailsInput = document.getElementById("usage-details");
+  const detailsError = document.getElementById("details-error");
+
+  // Reset panel
+  cropTypeDisplay.value = cropType;
+  maxQuantityDisplay.textContent = `${currentStock} ${unit}`;
+  quantityInput.value = "";
+  quantityInput.max = currentStock;
+  quantityInput.min = 0;
+  usageTypeSelect.value = "";
+  detailsInput.value = "";
+  detailsContainer.style.display = "none";
+  quantityError.style.display = "none";
+  detailsError.style.display = "none";
+
+  // Show panel
+  panel.classList.add("active");
+
+  // Handle usage type change
+  usageTypeSelect.addEventListener("change", () => {
+    detailsContainer.style.display =
+      usageTypeSelect.value === "Damaged" || usageTypeSelect.value === "Missing"
+        ? "block"
+        : "none";
+  });
+
+  // Quantity validation
+  quantityInput.addEventListener("input", () => {
+    const quantity = parseFloat(quantityInput.value);
+    if (quantity > currentStock || quantity <= 0) {
+      quantityError.style.display = "block";
+    } else {
+      quantityError.style.display = "none";
+    }
+  });
+
+  // Handle save
+  document.getElementById("save-resource").onclick = async () => {
+    const quantity = parseFloat(quantityInput.value);
+    const usageType = usageTypeSelect.value;
+    const details = detailsInput.value.trim();
+
+    // Validate inputs
+    if (!quantity || quantity > currentStock || quantity <= 0) {
+      quantityError.style.display = "block";
+      return;
+    }
+    if (!usageType) {
+      alert("Please select a usage type.");
+      return;
+    }
+    if ((usageType === "Damaged" || usageType === "Missing") && !details) {
+      detailsError.style.display = "block";
+      return;
+    }
+
+    try {
+      // Update stock in tb_crop_stock
+      const stockQuery = query(
+        collection(db, "tb_crop_stock"),
+        where("crop_type_name", "==", cropType)
+      );
+      const stockSnapshot = await getDocs(stockQuery);
+      if (!stockSnapshot.empty) {
+        const stockDoc = stockSnapshot.docs[0];
+        const stockData = stockDoc.data();
+        const stockEntry = stockData.stocks.find(
+          (stock) => stock.farmer_id === currentFarmerId
+        );
+        if (stockEntry) {
+          stockEntry.current_stock = (stockEntry.current_stock || 0) - quantity;
+          await updateDoc(doc(db, "tb_crop_stock", stockDoc.id), {
+            stocks: stockData.stocks,
+          });
+
+          // Log usage in tb_inventory_log
+          await addDoc(collection(db, "tb_inventory_log"), {
+            project_id: projectId,
+            crop_type_name: cropType,
+            quantity_used: quantity,
+            unit: unit,
+            usage_type: usageType,
+            details: details || "",
+            farmer_id: currentFarmerId,
+            timestamp: new Date(),
+          });
+
+          // Close panel and refresh crops
+          closeResourcePanel();
+          fetchCrops();
+        }
+      }
+    } catch (error) {
+      console.error("Error saving inventory log:", error);
+      alert("Failed to save inventory log.");
+    }
+  };
+
+  // Handle cancel and close
+  document.getElementById("cancel-resource").onclick = closeResourcePanel;
+  document.getElementById("close-resource-panel").onclick = closeResourcePanel;
+}
+
+// Close the Use Resource panel
+function closeResourcePanel() {
+  const panel = document.getElementById("use-resource-panel");
+  panel.classList.remove("active");
+}
+
+// Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
   fetchCropNames();
   fetchProjectNames();
   fetchCrops();
 });
 
+// Update pagination controls
 function updatePagination() {
   const totalPages = Math.ceil(filteredCrops.length / rowsPerPage) || 1;
   document.getElementById(
@@ -208,12 +352,14 @@ function updatePagination() {
   updatePaginationButtons();
 }
 
+// Enable/disable pagination buttons
 function updatePaginationButtons() {
   document.getElementById("crop-prev-page").disabled = currentPage === 1;
   document.getElementById("crop-next-page").disabled =
     currentPage >= Math.ceil(filteredCrops.length / rowsPerPage);
 }
 
+// Previous page button
 document.getElementById("crop-prev-page").addEventListener("click", () => {
   if (currentPage > 1) {
     currentPage--;
@@ -221,6 +367,7 @@ document.getElementById("crop-prev-page").addEventListener("click", () => {
   }
 });
 
+// Next page button
 document.getElementById("crop-next-page").addEventListener("click", () => {
   if (currentPage * rowsPerPage < filteredCrops.length) {
     currentPage++;
@@ -228,6 +375,7 @@ document.getElementById("crop-next-page").addEventListener("click", () => {
   }
 });
 
+// Fetch crop names for dropdown
 async function fetchCropNames() {
   const cropsCollection = collection(db, "tb_crops");
   const cropsSnapshot = await getDocs(cropsCollection);
@@ -235,6 +383,7 @@ async function fetchCropNames() {
   populateCropDropdown(cropNames);
 }
 
+// Populate crop dropdown
 function populateCropDropdown(cropNames) {
   const cropSelect = document.querySelector(".crop_select");
   if (!cropSelect) return;
@@ -248,6 +397,7 @@ function populateCropDropdown(cropNames) {
   });
 }
 
+// Fetch project names for dropdown
 async function fetchProjectNames() {
   const projectsQuery = query(
     collection(db, "tb_projects"),
@@ -261,6 +411,7 @@ async function fetchProjectNames() {
   populateProjectDropdown(projectNames);
 }
 
+// Populate project dropdown
 function populateProjectDropdown(projectNames) {
   const projectSelect = document.querySelector(".project_select");
   if (!projectSelect) return;
@@ -275,6 +426,7 @@ function populateProjectDropdown(projectNames) {
   });
 }
 
+// Filter by crop dropdown
 document.querySelector(".crop_select").addEventListener("change", function () {
   const selectedCrop = this.value.toLowerCase();
   const selectedProject = document
@@ -296,6 +448,7 @@ document.querySelector(".crop_select").addEventListener("change", function () {
   displayCrops(filteredCrops);
 });
 
+// Filter by project dropdown
 document
   .querySelector(".project_select")
   .addEventListener("change", function () {
@@ -319,6 +472,7 @@ document
     displayCrops(filteredCrops);
   });
 
+// Search bar input
 document
   .getElementById("crop-search-bar")
   .addEventListener("input", function () {
@@ -338,6 +492,7 @@ document
     displayCrops(filteredCrops);
   });
 
+// Get farmer's full name
 function getFarmerFullName() {
   const middleInitial = currentMiddleName
     ? `${currentMiddleName.charAt(0)}.`

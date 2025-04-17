@@ -14,13 +14,22 @@
 </head>
 
 <body>
-  <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <!-- Header with History Log Link -->
+  <div id="header-container">
+    <div class="header">
+
+      <div class="header-title">Organic Baras Productivity</div>
+      <div class="header-icons">
+        <img id="account-icon" src="/src/assets/account-icon.png" alt="Account">
+      </div>
+    </div>
+  </div>
 
   <div class="main-content">
     <div class="panel">
       <div class="table-wrapper">
         <h2>Crops</h2>
+        <a href="inventory_logs.html" class="history-log-link">History Log</a>
         <div class="crop-search-bar">
           <input type="text" id="crop-search-bar" placeholder="Search">
           <select class="project_select">
@@ -39,6 +48,7 @@
                 <th>Crops</th>
                 <th>Date Added</th>
                 <th>Current Stock</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -48,8 +58,9 @@
         </div>
         <div class="crops-pagination">
           <span id="crop-page-number">Page 1</span>
-          <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
-          <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
+          <button id="crop-prev-page" class="crop-pagination-btn" disabled>
+          </button>
+          <button id="crop-next-page" class="crop-pagination-btn">></button>
         </div>
       </div>
     </div>
@@ -85,8 +96,9 @@
         </div>
         <div class="fertilizer-pagination">
           <span id="fertilizer-page-number">Page 1</span>
-          <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
-          <button id="fertilizer-next-page" class="fertilizer-pagination-btn">&gt;</button>
+          <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>
+          </button>
+          <button id="fertilizer-next-page" class="fertilizer-pagination-btn">></button>
         </div>
       </div>
     </div>
@@ -123,13 +135,47 @@
       </div>
       <div class="equipment-pagination">
         <span id="equipment-page-number">Page 1</span>
-        <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
-        <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
+        <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>
+        </button>
+        <button id="equipment-next-page" class="equipment-pagination-btn">></button>
       </div>
     </div>
   </div>
 
-  <!-- Account Panel with iframe to load external content -->
+  <!-- Use Resource Panel -->
+  <div id="use-resource-panel" class="use-resource-panel">
+    <button class="close-btn" id="close-resource-panel">×</button>
+    <h3>Use Resource</h3>
+    <div>
+      <label>Crop Type</label>
+      <input type="text" id="crop-type-display" readonly>
+    </div>
+    <div>
+      <label>Quantity to Use (Max: <span id="max-quantity"></span>)</label>
+      <input type="number" id="quantity-input" min="0" placeholder="Enter quantity">
+      <div id="quantity-error" class="error-message">Quantity cannot exceed current stock or be zero.</div>
+    </div>
+    <div>
+      <label>Usage Type</label>
+      <select id="usage-type">
+        <option value="">Select Usage Type</option>
+        <option value="Task">Task</option>
+        <option value="Damaged">Damaged</option>
+        <option value="Missing">Missing</option>
+      </select>
+    </div>
+    <div id="details-container" style="display: none;">
+      <label>Details (Required for Damaged or Missing)</label>
+      <textarea id="usage-details" placeholder="Provide details"></textarea>
+      <div id="details-error" class="error-message">Details are required for Damaged or Missing.</div>
+    </div>
+    <div class="panel-buttons">
+      <button class="cancel-btn" id="cancel-resource">Cancel</button>
+      <button class="save-btn" id="save-resource">Save</button>
+    </div>
+  </div>
+
+  <!-- Account Panel -->
   <div id="account-panel" class="account-panel">
     <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
   </div>
@@ -142,7 +188,6 @@
 
       accountIcon.addEventListener("click", () => {
         console.log("Account icon clicked!");
-
         accountPanel.classList.toggle("active");
         console.log("Panel active status:", accountPanel.classList.contains("active"));
 
@@ -173,23 +218,19 @@
 
         if (event.data === "closeIframe") {
           console.log("Closing iframe and logging out...");
-          closeAccountPanel(); // Remove the iframe
-
-          // ✅ Redirect to login page after closing iframe
+          closeAccountPanel();
           setTimeout(() => {
-            window.top.location.href = "../../index.html"; // Ensure full-page redirect
+            window.top.location.href = "../../index.html";
           }, 500);
         }
       });
 
-      // Function to close the account panel
       function closeAccountPanel() {
         accountPanel.classList.remove("active");
         accountFrame.src = "";
       }
     });
   </script>
-  <!-- Import the reusable script from src/auth -->
   <script type="module" src="/src/auth/header.js"></script>
 </body>
 

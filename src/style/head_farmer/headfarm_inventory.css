@@ -1,8 +1,8 @@
 body {
   margin: 0;
   height: 100vh;
-  background-color: #F5F6FA;
-  font-family: 'Poppins';
+  background-color: #f5f6fa;
+  font-family: "Poppins";
   display: flex;
   flex-direction: column;
   cursor: default;
@@ -23,7 +23,7 @@ body {
 .header-title {
   font-size: 30px;
   font-weight: bold;
-  color: #41A186;
+  color: #41a186;
 }
 
 .header-icons {
@@ -65,7 +65,7 @@ body {
 .crop_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -82,7 +82,7 @@ body {
 .fertilizer_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -99,7 +99,7 @@ body {
 .equipment_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -116,7 +116,7 @@ body {
 .project_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -133,7 +133,7 @@ body {
 .fert_project_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -150,7 +150,7 @@ body {
 .equip_project_select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -192,12 +192,12 @@ th,
 td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 th {
-  background-color: #F9FAFB;
-  color: #6B7280;
+  background-color: #f9fafb;
+  color: #6b7280;
   font-weight: 600;
 }
 
@@ -231,7 +231,7 @@ td:first-child {
 }
 
 tbody tr:hover {
-  background-color: #F3F4F6;
+  background-color: #f3f4f6;
 }
 
 /* Account Panel Styles */
@@ -252,7 +252,7 @@ tbody tr:hover {
 .panel h2 {
   font-size: 30px;
   font-weight: bold;
-  color: #41A186;
+  color: #41a186;
   margin-bottom: 20px;
 }
 
@@ -268,12 +268,12 @@ tbody tr:hover {
 
 .account-panel ul li {
   padding: 10px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   cursor: pointer;
 }
 
 .account-panel ul li:hover {
-  background-color: #F7FAFC;
+  background-color: #f7fafc;
 }
 
 .account-panel ul li:last-child {
@@ -307,7 +307,7 @@ tbody tr:hover {
 .equip-search-bar input {
   width: 300px;
   padding: 8px 12px;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
 }
 
@@ -315,7 +315,7 @@ tbody tr:hover {
 .fert-search-bar select,
 .equip-search-bar select {
   padding: 8px 12px;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
 }
 
@@ -331,7 +331,7 @@ tbody tr:hover {
 }
 
 .btn-new-project {
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -365,7 +365,7 @@ tbody tr:hover {
 }
 
 .stock-selector a.active {
-  color: #41A186;
+  color: #41a186;
   font-weight: bold;
 }
 
@@ -405,7 +405,7 @@ tbody tr:hover {
 .crop-pagination-btn:hover,
 .fertilizer-pagination-btn:hover,
 .equipment-pagination-btn:hover {
-  color: #41A186;
+  color: #41a186;
 }
 
 .crop-pagination-btn:disabled,
@@ -457,6 +457,269 @@ tbody tr:hover {
     height: auto;
     top: 80px;
     padding: 20px;
+  }
+}
+
+/* Use Resource Icon */
+.use-resource-icon {
+  cursor: pointer;
+  color: #41a186;
+  font-size: 18px;
+  transition: color 0.3s ease;
+}
+.use-resource-icon:hover {
+  color: #318a71;
+}
+
+/* Use Resource Panel */
+.use-resource-panel {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 400px;
+  z-index: 1000;
+}
+.use-resource-panel.active {
+  display: block;
+}
+.use-resource-panel h3 {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #41a186;
+}
+.use-resource-panel label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: 500;
+  color: #243b53;
+}
+.use-resource-panel input,
+.use-resource-panel select,
+.use-resource-panel textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 14px;
+  outline: none;
+}
+.use-resource-panel input[readonly] {
+  background: #f9fafb;
+  color: #6b7280;
+}
+.use-resource-panel select {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  appearance: none;
+}
+.use-resource-panel textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+.panel-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+.panel-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+.cancel-btn {
+  background: #f44336;
+  color: white;
+}
+.cancel-btn:hover {
+  background: #d32f2f;
+}
+.save-btn {
+  background: #41a186;
+  color: white;
+}
+.save-btn:hover {
+  background: #318a71;
+}
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #6b7280;
+  cursor: pointer;
+}
+.close-btn:hover {
+  color: #243b53;
+}
+.error-message {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 5px;
+  display: none;
+}
+
+/* Responsive Design for Panel */
+@media screen and (max-width: 480px) {
+  .use-resource-panel {
+    width: 90%;
+    padding: 15px;
+  }
+  .use-resource-panel h3 {
+    font-size: 20px;
+  }
+} /* History Log Link */
+.history-log-link {
+  font-size: 16px;
+  font-weight: 500;
+  color: #41a186 !important;
+  text-decoration: none;
+  margin-right: 20px;
+  display: inline-block !important;
+  visibility: visible !important;
+}
+.history-log-link:hover {
+  color: #318a71;
+}
+
+/* Back Button */
+.back {
+  margin-bottom: 20px;
+  display: none; /* Hidden by default, shown via JS */
+}
+.back.visible {
+  display: block;
+}
+.back-link {
+  display: inline-block;
+  text-decoration: none;
+}
+.back-link img {
+  width: 30px;
+  height: 30px;
+}
+
+/* Log Search Bar */
+.log-search-bar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.log-search-bar input {
+  width: 300px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+/* Log Table */
+.log_table table th:nth-child(1),
+.log_table table td:nth-child(1) {
+  width: 100px;
+}
+.log_table table th:nth-child(2),
+.log_table table td:nth-child(2) {
+  width: 150px;
+}
+.log_table table th:nth-child(3),
+.log_table table td:nth-child(3) {
+  width: 100px;
+}
+.log_table table th:nth-child(4),
+.log_table table td:nth-child(4) {
+  width: 80px;
+}
+.log_table table th:nth-child(5),
+.log_table table td:nth-child(5) {
+  width: 100px;
+}
+.log_table table th:nth-child(6),
+.log_table table td:nth-child(6) {
+  width: 200px;
+}
+.log_table table th:nth-child(7),
+.log_table table td:nth-child(7) {
+  width: 120px;
+}
+
+/* Logs Pagination */
+.logs-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 20px;
+  width: 100%;
+  gap: 10px;
+}
+#log-page-number {
+  font-size: 17px;
+  color: #333;
+}
+.log-pagination-btn {
+  padding: 10px 10px;
+  font-size: 25px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+.log-pagination-btn:hover {
+  color: #41a186;
+}
+.log-pagination-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .history-log-link {
+    font-size: 14px;
+    margin-right: 10px;
+  }
+  .back-link img {
+    width: 25px;
+    height: 25px;
+  }
+  .log-search-bar input {
+    width: 100%;
+    max-width: 250px;
+  }
+  .log_table {
+    overflow-x: auto;
+  }
+  .log_table table {
+    min-width: 600px;
+  }
+}
+@media (max-width: 480px) {
+  .history-log-link {
+    font-size: 12px;
+  }
+  .back-link img {
+    width: 20px;
+    height: 20px;
+  }
+  .log-search-bar input {
+    max-width: 200px;
   }
 }
 
