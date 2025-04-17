@@ -43,10 +43,12 @@ body {
 }
 
 .logo-text {
-  font-size: clamp(20px, 1.8vw, 22px); /* Consistent font size */
+  font-size: clamp(16px, 1.6vw, 18px); /* Slightly smaller for better fit */
   font-weight: 500;
   color: #4a5568;
-  margin-left: -10px;
+  margin-left: -5px; /* Adjusted for tighter spacing */
+  white-space: nowrap; /* Prevent text wrapping */
+  line-height: 1.2; /* Ensure consistent vertical alignment */
 }
 
 .sidebar ul {
@@ -217,13 +219,15 @@ iframe {
   .logo {
     width: clamp(60px, 7vw, 80px);
   }
+  .logo-text {
+    font-size: clamp(14px, 1.5vw, 16px); /* Slightly smaller for tablets */
+  }
 }
 
 /* Mobile Devices (≤768px) */
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
-    max-width: 300px;
     display: none;
   }
   .sidebar.open {
@@ -240,19 +244,23 @@ iframe {
   .logo {
     width: clamp(50px, 10vw, 70px);
   }
+  .logo-text {
+    font-size: clamp(12px, 3vw, 14px); /* Smaller for mobile */
+  }
 }
 
 /* Small Mobile Devices (≤480px) */
 @media (max-width: 480px) {
-  .sidebar {
-    max-width: 250px;
-  }
   .logo {
     width: clamp(40px, 12vw, 60px);
   }
   .sidebar a {
     padding: 0.4rem 0.8rem;
     margin-left: 0.8rem;
+  }
+  .logo-text {
+    font-size: clamp(10px, 2.8vw, 12px); /* Even smaller for small mobiles */
+    margin-left: -3px; /* Tighter spacing */
   }
 }
 
