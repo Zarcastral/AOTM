@@ -26,14 +26,14 @@ body {
   justify-content: space-between;
   z-index: 50;
   border-radius: 0 0 30px 0;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); /* Removed safe-area-inset-top */
 }
 
 .logo-container {
   display: flex;
   align-items: center;
   justify-content: start;
-  height: clamp(80px, 10vh, 100px);
+  height: clamp(60px, 8vh, 80px); /* Reduced height to minimize vertical space */
   padding: 0 20px;
 }
 
@@ -43,7 +43,7 @@ body {
 }
 
 .logo-text {
-  font-size: clamp(16px, 1.6vw, 18px); /* Slightly smaller for better fit */
+  font-size: clamp(20px, 1.8vw, 22px); /* Original font size unchanged */
   font-weight: 500;
   color: #4a5568;
   margin-left: -5px; /* Adjusted for tighter spacing */
@@ -181,7 +181,7 @@ iframe {
 #mobile-menu-button {
   display: none;
   position: fixed;
-  top: calc(clamp(10px, 2vh, 15px) + env(safe-area-inset-top));
+  top: calc(clamp(7px, 2vh, 7px) + env(safe-area-inset-top));
   left: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-left));
   z-index: 60;
   background-color: #41a186;
@@ -219,9 +219,6 @@ iframe {
   .logo {
     width: clamp(60px, 7vw, 80px);
   }
-  .logo-text {
-    font-size: clamp(14px, 1.5vw, 16px); /* Slightly smaller for tablets */
-  }
 }
 
 /* Mobile Devices (≤768px) */
@@ -244,9 +241,6 @@ iframe {
   .logo {
     width: clamp(50px, 10vw, 70px);
   }
-  .logo-text {
-    font-size: clamp(12px, 3vw, 14px); /* Smaller for mobile */
-  }
 }
 
 /* Small Mobile Devices (≤480px) */
@@ -259,8 +253,7 @@ iframe {
     margin-left: 0.8rem;
   }
   .logo-text {
-    font-size: clamp(10px, 2.8vw, 12px); /* Even smaller for small mobiles */
-    margin-left: -3px; /* Tighter spacing */
+    margin-left: -3px; /* Tighter spacing for small screens */
   }
 }
 
@@ -269,8 +262,8 @@ iframe {
   .sidebar {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
-    padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
+    padding-top: 0; /* Explicitly remove top padding for safe areas */
   }
 }
 
