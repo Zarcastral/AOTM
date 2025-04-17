@@ -3,24 +3,29 @@ body {
   margin: 0;
   padding: 0;
 }
+
 html, body {
   height: 100%;
   margin: 0;
-  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
 }
+
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
-  border-radius: 0px 0px 30px;
-  width: 250px;
+  min-height: 100vh;
+  border-radius: 0 0 30px 0;
+  width: 250px; /* Restored original desktop width */
   background-color: white;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   z-index: 50;
   transition: transform 0.3s ease-in-out;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 30px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .logo-container {
@@ -65,82 +70,22 @@ html, body {
   width: 20px;
 }
 
-/* Hover and Selected Effects */
-.sidebar a:hover,
+/* Selected Effects (No Positional Changes) */
 .sidebar a.selected {
   color: #41a186;
-  margin-left: 0;
-  padding-left: 40px;
 }
 
-/* Individual Hover Effects */
-.dash a:hover img,
-.dash a.selected img {
-  content: url(/images/dashGreen.png);
-  height: 20px;
-  width: 20px;
-}
-
-.proj a:hover img,
-.proj a.selected img {
-  content: url(/images/graphGreen.png);
-  height: 20px;
-  width: 20px;
-}
-
-.harv a:hover img,
-.harv a.selected img {
-  content: url(/images/bagGreen.png);
-  height: 20px;
-  width: 20px;
-}
-
-.inv a:hover img,
-.inv a.selected img {
-  content: url(/images/boxGreen.png);
-  height: 20px;
-  width: 20px;
-}
-
-.farm a:hover img,
-.farm a.selected img {
-  content: url(/images/profileGreen.png);
-  height: 20px;
-  width: 20px;
-}
-
-.use a:hover img,
-.use a.selected img {
-  content: url(/images/userGreen.png);
-  height: 20px;
-  width: 20px;
-}
-
-.rep a:hover img,
-.rep a.selected img {
-  content: url(/images/folderGreen.png);
-  height: 20px;
-  width: 20px;
-}
-
-.act a:hover img,
-.act a.selected img {
-  content: url(/images/archiveGreen.png);
-  height: 20px;
-  width: 20px;
-}
-.task a:hover img,
-.task a.selected img {
-  content: url(/images/flashGreen.png);
-  height: 20px;
-  width: 20px;
-}
-.sett a:hover img,
-.sett a.selected img {
-  content: url(/images/settingGreen.png);
-  height: 20px;
-  width: 20px;
-}
+/* Individual Selected Effects */
+.dash a.selected img { content: url(/images/dashGreen.png); height: 20px; width: 20px; }
+.proj a.selected img { content: url(/images/graphGreen.png); height: 20px; width: 20px; }
+.harv a.selected img { content: url(/images/bagGreen.png); height: 20px; width: 20px; }
+.inv a.selected img { content: url(/images/boxGreen.png); height: 20px; width: 20px; }
+.farm a.selected img { content: url(/images/profileGreen.png); height: 20px; width: 20px; }
+.use a.selected img { content: url(/images/userGreen.png); height: 20px; width: 20px; }
+.rep a.selected img { content: url(/images/folderGreen.png); height: 20px; width: 20px; }
+.act a.selected img { content: url(/images/archiveGreen.png); height: 20px; width: 20px; }
+.task a.selected img { content: url(/images/flashGreen.png); height: 20px; width: 20px; }
+.sett a.selected img { content: url(/images/settingGreen.png); height: 20px; width: 20px; }
 
 /* Tools Section */
 .tools-section {
@@ -149,36 +94,43 @@ html, body {
   color: #41a186;
 }
 
-/* Settings Positioned at the Bottom */
+/* Settings Section */
 .sett {
   margin-top: auto;
   padding-bottom: 20px;
 }
 
-.sett li {
-  list-style: none; /* Removes any unwanted marker */
+.sett ul {
+  margin: 0;
+  padding: 0;
 }
 
-.sett a:hover,
+.sett a {
+  margin-left: 20px;
+}
+
 .sett a.selected {
   color: #41a186;
-  margin-left: 0;
-  padding-left: 40px;
-  border-radius: 0 25px 25px 0;
 }
 
 /* Content area */
 .content {
-  margin-left: 235px;
+  margin-left: 250px;
   flex: 1;
+  height: 100vh; /* Ensure full viewport height */
   overflow-y: auto;
   transition: margin-left 0.3s ease-in-out;
+  -webkit-overflow-scrolling: touch;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
 }
 
 iframe {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   border: none;
+  display: block;
+  box-sizing: border-box; /* Prevent padding issues */
 }
 
 /* Mobile Menu Button */
@@ -196,30 +148,117 @@ iframe {
   width: 50px;
   margin-top: 5px;
   margin-left: 10px;
+  touch-action: manipulation;
 }
 
 /* Responsive Styles */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 220px;
+  }
+  .content {
+    margin-left: 220px;
+  }
+  .sidebar a {
+    font-size: 18px;
+    padding: 8px 15px;
+  }
+  .logo-text {
+    font-size: 18px;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
-    width: 100%;
+    width: 80%;
+    max-width: 300px;
   }
-
   .sidebar.open {
     transform: translateX(0);
   }
-
   .content {
     margin-left: 0;
     width: 100%;
   }
-
   iframe {
-    height: 100vh;
     width: 100%;
+    height: 100%;
   }
-
   #mobile-menu-button {
     display: block;
+    margin-top: calc(env(safe-area-inset-top) + 5px);
+  }
+}
+
+@media (max-width: 576px) {
+  .sidebar {
+    width: 80%;
+    max-width: 250px;
+  }
+  .sidebar a {
+    font-size: 16px;
+    padding: 8px 10px;
+  }
+  .logo {
+    width: 80px;
+  }
+  .logo-text {
+    font-size: 16px;
+    margin-left: -5px;
+  }
+  .tools-section {
+    font-size: 16px;
+    padding: 10px 15px;
+  }
+  #mobile-menu-button {
+    height: 45px;
+    width: 45px;
+    margin-left: 5px;
+    margin-top: calc(env(safe-area-inset-top) + 10px);
+  }
+}
+
+@media (max-width: 375px) {
+  .sidebar {
+    width: 85%;
+    max-width: 220px;
+  }
+  .sidebar a {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+  .logo {
+    width: 70px;
+  }
+  .logo-text {
+    font-size: 14px;
+  }
+  .tools-section {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .sidebar {
+    width: 250px; /* Match base width for consistency */
+  }
+  .content {
+    margin-left: 250px;
+  }
+  .sidebar a {
+    font-size: 20px;
+    padding: 8px 20px;
+  }
+  .logo-text {
+    font-size: 20px;
+  }
+}
+
+/* iOS-Specific Fix for Selected State */
+@supports (-webkit-touch-callout: none) {
+  .sidebar a.selected {
+    color: #41a186;
   }
 }
