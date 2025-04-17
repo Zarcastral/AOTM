@@ -43,7 +43,7 @@ body {
 }
 
 .logo-text {
-  font-size: clamp(16px, 1.8vw, 20px);
+  font-size: clamp(20px, 1.8vw, 22px); /* Consistent font size */
   font-weight: 500;
   color: #4a5568;
   margin-left: -10px;
@@ -63,7 +63,7 @@ body {
   padding: 0.5rem 1.25rem;
   text-decoration: none;
   color: #4a5568;
-  font-size: clamp(16px, 1.6vw, 18px);
+  font-size: clamp(18px, 1.5vw, 20px); /* Consistent font size */
   font-weight: 500;
   margin-left: 1.25rem;
   touch-action: manipulation;
@@ -91,7 +91,7 @@ body {
 }
 
 .sidebar a img.icon {
-  height: clamp(18px, 2vw, 20px);
+  height: clamp(18px, 2vw, 20px); /* Consistent icon size */
   width: clamp(18px, 2vw, 20px);
 }
 
@@ -140,7 +140,7 @@ body {
 /* Tools Section */
 .tools-section {
   padding: 0.75rem 1.25rem;
-  font-size: clamp(14px, 1.5vw, 16px);
+  font-size: clamp(16px, 1.5vw, 16px); /* Consistent font size */
   color: #41a186;
   font-weight: 600;
 }
@@ -201,12 +201,6 @@ iframe {
   .content {
     margin-left: clamp(250px, 18vw, 280px);
   }
-  .sidebar a {
-    font-size: clamp(18px, 1.5vw, 20px);
-  }
-  .logo-text {
-    font-size: clamp(20px, 1.8vw, 22px);
-  }
 }
 
 /* Tablets and Small Laptops (769px - 1200px) */
@@ -219,17 +213,6 @@ iframe {
   }
   .logo {
     width: clamp(60px, 7vw, 80px);
-  }
-  .logo-text {
-    font-size: clamp(14px, 1.6vw, 18px);
-  }
-  .sidebar a {
-    font-size: clamp(14px, 1.5vw, 16px);
-    padding: 0.5rem 1rem;
-  }
-  .sidebar a img.icon {
-    height: clamp(16px, 1.8vw, 18px);
-    width: clamp(16px, 1.8vw, 18px);
   }
 }
 
@@ -253,18 +236,6 @@ iframe {
   .logo {
     width: clamp(50px, 10vw, 70px);
   }
-  .logo-text {
-    font-size: clamp(12px, 3vw, 16px);
-  }
-  .sidebar a {
-    font-size: clamp(12px, 2.5vw, 14px);
-    padding: 0.5rem 1rem;
-    margin-left: 1rem;
-  }
-  .sidebar a img.icon {
-    height: clamp(14px, 2.5vw, 16px);
-    width: clamp(14px, 2.5vw, 16px);
-  }
 }
 
 /* Small Mobile Devices (≤480px) */
@@ -275,17 +246,9 @@ iframe {
   .logo {
     width: clamp(40px, 12vw, 60px);
   }
-  .logo-text {
-    font-size: clamp(10px, 2.8vw, 14px);
-  }
   .sidebar a {
-    font-size: clamp(10px, 2.2vw, 12px);
     padding: 0.4rem 0.8rem;
     margin-left: 0.8rem;
-  }
-  .sidebar a img.icon {
-    height: clamp(12px, 2.2vw, 14px);
-    width: clamp(12px, 2.2vw, 14px);
   }
 }
 
