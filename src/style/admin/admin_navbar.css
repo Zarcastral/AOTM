@@ -21,6 +21,7 @@ html, body {
   justify-content: space-between;
   z-index: 50;
   transition: transform 0.3s ease-in-out;
+  box-sizing: border-box;
 }
 
 .logo-container {
@@ -172,7 +173,8 @@ html, body {
 .content {
   margin-left: 235px;
   height: 100vh;
-  overflow-y: auto;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   transition: margin-left 0.3s ease-in-out;
 }
 
@@ -228,48 +230,16 @@ iframe {
 
 @media (max-height: 700px) {
   .sidebar ul {
-    margin-top: 10px;
-  }
-
-  .sidebar a {
-    padding: 6px 20px;
-    font-size: 18px;
-  }
-
-  .tools-section {
-    padding: 8px 20px;
-    font-size: 16px;
-  }
-
-  .sett {
-    padding-bottom: 10px;
-  }
-
-  .logo-container {
-    height: 80px;
-  }
-
-  .logo {
-    width: 80px;
-  }
-
-  .logo-text {
-    font-size: 18px;
-  }
-}
-
-@media (max-height: 600px) {
-  .sidebar ul {
     margin-top: 5px;
   }
 
   .sidebar a {
-    padding: 4px 20px;
+    padding: 5px 20px;
     font-size: 16px;
   }
 
   .tools-section {
-    padding: 6px 20px;
+    padding: 5px 20px;
     font-size: 14px;
   }
 
@@ -287,6 +257,70 @@ iframe {
 
   .logo-text {
     font-size: 16px;
+  }
+}
+
+@media (max-height: 600px) {
+  .sidebar ul {
+    margin-top: 2px;
+  }
+
+  .sidebar a {
+    padding: 3px 20px;
+    font-size: 14px;
+  }
+
+  .tools-section {
+    padding: 3px 20px;
+    font-size: 12px;
+  }
+
+  .sett {
+    padding-bottom: 3px;
+  }
+
+  .logo-container {
+    height: 60px;
+  }
+
+  .logo {
+    width: 60px;
+  }
+
+  .logo-text {
+    font-size: 14px;
+  }
+}
+
+@media (max-height: 500px) {
+  .sidebar ul {
+    margin-top: 0;
+  }
+
+  .sidebar a {
+    padding: 2px 20px;
+    font-size: 12px;
+  }
+
+  .tools-section {
+    padding: 2px 20px;
+    font-size: 10px;
+  }
+
+  .sett {
+    padding-bottom: 2px;
+  }
+
+  .logo-container {
+    height: 50px;
+  }
+
+  .logo {
+    width: 50px;
+  }
+
+  .logo-text {
+    font-size: 12px;
   }
 }
 
