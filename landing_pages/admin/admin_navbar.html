@@ -63,9 +63,11 @@
     </div>
   </div>
 
-  <!-- Iframe content area -->
+  <!-- Content area with iframe wrapper -->
   <div class="content">
-    <iframe id="content-frame" src="admin_dash.html"></iframe>
+    <div class="iframe-wrapper">
+      <iframe id="content-frame" src="admin_dash.html" scrolling="yes"></iframe>
+    </div>
   </div>
 
   <script>
@@ -74,33 +76,28 @@
     const sidebar = document.querySelector(".sidebar");
     const mobileMenuButton = document.getElementById("mobile-menu-button");
 
-    // Function to set active link
     function setActiveLink(link) {
       links.forEach((l) => l.classList.remove("selected"));
       link.classList.add("selected");
     }
 
-    // Handle navigation
     links.forEach((link) => {
       link.addEventListener("click", (event) => {
         event.preventDefault();
         setActiveLink(link);
         iframe.src = link.getAttribute("href");
-        sidebar.classList.remove("open"); // Close sidebar on mobile
+        sidebar.classList.remove("open");
       });
     });
 
-    // Mobile Menu Toggle
     mobileMenuButton.addEventListener("click", () => {
       sidebar.classList.toggle("open");
     });
 
-    // Set default active link on load
     document.addEventListener("DOMContentLoaded", () => {
       const defaultLink = document.querySelector('.sidebar a[href="admin_dash.html"]');
       if (defaultLink) setActiveLink(defaultLink);
     });
   </script>
 </body>
-
 </html>

@@ -97,45 +97,25 @@ body {
 
 /* Individual Icon Hover Effects */
 .dash a:hover img,
-.dash a.selected img {
-  content: url(/images/dashGreen.png);
-}
+.dash a.selected img { content: url(/images/dashGreen.png); }
 .proj a:hover img,
-.proj a.selected img {
-  content: url(/images/graphGreen.png);
-}
+.proj a.selected img { content: url(/images/graphGreen.png); }
 .harv a:hover img,
-.harv a.selected img {
-  content: url(/images/bagGreen.png);
-}
+.harv a.selected img { content: url(/images/bagGreen.png); }
 .inv a:hover img,
-.inv a.selected img {
-  content: url(/images/boxGreen.png);
-}
+.inv a.selected img { content: url(/images/boxGreen.png); }
 .farm a:hover img,
-.farm a.selected img {
-  content: url(/images/profileGreen.png);
-}
+.farm a.selected img { content: url(/images/profileGreen.png); }
 .use a:hover img,
-.use a.selected img {
-  content: url(/images/userGreen.png);
-}
+.use a.selected img { content: url(/images/userGreen.png); }
 .rep a:hover img,
-.rep a.selected img {
-  content: url(/images/folderGreen.png);
-}
+.rep a.selected img { content: url(/images/folderGreen.png); }
 .act a:hover img,
-.act a.selected img {
-  content: url(/images/archiveGreen.png);
-}
+.act a.selected img { content: url(/images/archiveGreen.png); }
 .task a:hover img,
-.task a.selected img {
-  content: url(/images/flashGreen.png);
-}
+.task a.selected img { content: url(/images/flashGreen.png); }
 .sett a:hover img,
-.sett a.selected img {
-  content: url(/images/settingGreen.png);
-}
+.sett a.selected img { content: url(/images/settingGreen.png); }
 
 /* Tools Section */
 .tools-section {
@@ -160,16 +140,29 @@ body {
 /* Content Area */
 .content {
   margin-left: clamp(200px, 20vw, 250px);
-  flex: 1;
   height: 100vh;
-  transition: margin-left 0.3s ease-in-out;
+  flex: 1;
+  overflow-y: auto; /* Allow scrolling if iframe wrapper overflows */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
+/* Iframe Wrapper */
+.iframe-wrapper {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden; /* Prevent wrapper from adding scrollbars */
+}
+
+/* Iframe */
 iframe {
   width: 100%;
   height: 100%;
+  min-height: 100%;
   border: none;
   display: block;
+  overflow-y: auto; /* Allow iframe content to scroll */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Mobile Menu Button */
@@ -187,6 +180,7 @@ iframe {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   height: clamp(40px, 5vw, 50px);
   width: clamp(40px, 5vw, 50px);
+  font-size: clamp(20px, 2.5vw, 24px);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -195,42 +189,20 @@ iframe {
 
 /* Large Screens (Desktops, >1200px) */
 @media (min-width: 1201px) {
-  .sidebar {
-    width: clamp(250px, 18vw, 280px);
-  }
-  .content {
-    margin-left: clamp(250px, 18vw, 280px);
-  }
-  .sidebar a {
-    font-size: clamp(18px, 1.5vw, 20px);
-  }
-  .logo-text {
-    font-size: clamp(20px, 1.8vw, 22px);
-  }
+  .sidebar { width: clamp(250px, 18vw, 280px); }
+  .content { margin-left: clamp(250px, 18vw, 280px); }
+  .sidebar a { font-size: clamp(18px, 1.5vw, 20px); }
+  .logo-text { font-size: clamp(20px, 1.8vw, 22px); }
 }
 
 /* Tablets and Small Laptops (769px - 1200px) */
 @media (min-width: 769px) and (max-width: 1200px) {
-  .sidebar {
-    width: clamp(180px, 20vw, 220px);
-  }
-  .content {
-    margin-left: clamp(180px, 20vw, 220px);
-  }
-  .logo {
-    width: clamp(60px, 7vw, 80px);
-  }
-  .logo-text {
-    font-size: clamp(14px, 1.6vw, 18px);
-  }
-  .sidebar a {
-    font-size: clamp(14px, 1.5vw, 16px);
-    padding: 0.5rem 1rem;
-  }
-  .sidebar a img.icon {
-    height: clamp(16px, 1.8vw, 18px);
-    width: clamp(16px, 1.8vw, 18px);
-  }
+  .sidebar { width: clamp(180px, 20vw, 220px); }
+  .content { margin-left: clamp(180px, 20vw, 220px); }
+  .logo { width: clamp(60px, 7vw, 80px); }
+  .logo-text { font-size: clamp(14px, 1.6vw, 18px); }
+  .sidebar a { font-size: clamp(14px, 1.5vw, 16px); padding: 0.5rem 1rem; }
+  .sidebar a img.icon { height: clamp(16px, 1.8vw, 18px); width: clamp(16px, 1.8vw, 18px); }
 }
 
 /* Mobile Devices (≤768px) */
@@ -269,24 +241,12 @@ iframe {
 
 /* Small Mobile Devices (≤480px) */
 @media (max-width: 480px) {
-  .sidebar {
-    max-width: 250px;
-  }
-  .logo {
-    width: clamp(40px, 12vw, 60px);
-  }
-  .logo-text {
-    font-size: clamp(10px, 2.8vw, 14px);
-  }
-  .sidebar a {
-    font-size: clamp(10px, 2.2vw, 12px);
-    padding: 0.4rem 0.8rem;
-    margin-left: 0.8rem;
-  }
-  .sidebar a img.icon {
-    height: clamp(12px, 2.2vw, 14px);
-    width: clamp(12px, 2.2vw, 14px);
-  }
+  .sidebar { max-width: 250px; }
+  .logo { width: clamp(40px, 12vw, 60px); }
+  .logo-text { font-size: clamp(10px, 2.8vw, 14px); }
+  .sidebar a { font-size: clamp(10px, 2.2vw, 12px); padding: 0.4rem 0.8rem; margin-left: 0.8rem; }
+  .sidebar a img.icon { height: clamp(12px, 2.2vw, 14px); width: clamp(12px, 2.2vw, 14px); }
+  #mobile-menu-button { height: clamp(35px, 4.5vw, 40px); width: clamp(35px, 4.5vw, 40px); font-size: clamp(16px, 2vw, 20px); }
 }
 
 /* Handle iOS Safe Areas and Notch */
