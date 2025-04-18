@@ -1,198 +1,264 @@
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: 'Poppins';
+  font-family: "Poppins", sans-serif;
   margin: 0;
   padding: 0;
-}
-html, body {
-  height: 100%;
-  margin: 0;
+  height: 100dvh; /* Dynamic viewport height for mobile compatibility */
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Sidebar */
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
-  width: 250px;
-  border-radius: 0px 0px 30px;
+  height: 100dvh; /* Respect dynamic viewport height */
+  width: clamp(200px, 20vw, 250px);
   background-color: white;
   display: flex;
   flex-direction: column;
   z-index: 50;
-  transition: transform 0.3s ease-in-out;
+  border-radius: 0 0 30px 0;
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); /* Respect safe areas */
 }
+
+/* Sidebar open state for mobile */
+.sidebar.open {
+  display: flex;
+}
+
 .logo-container {
   display: flex;
   align-items: center;
   justify-content: start;
-  height: 100px;
+  height: clamp(60px, 8vh, 80px); /* Reduced height for better spacing */
+  padding: 0 20px;
 }
 
 .logo {
-  width: 90px;
+  width: clamp(70px, 8vw, 90px);
+  height: auto;
 }
 
 .logo-text {
-  font-size: 20px;
+  font-size: clamp(20px, 1.8vw, 22px);
   font-weight: 500;
   color: #4a5568;
-  margin-left: -10px;
+  margin-left: -5px; /* Tighter spacing */
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .sidebar ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  margin-top: 20px;
+  margin-top: 1.5rem;
 }
 
 .sidebar a {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 20px;
+  padding: 0.5rem 1.25rem;
   text-decoration: none;
   color: #4a5568;
-  font-size: 20px;
+  font-size: clamp(18px, 1.5vw, 20px);
   font-weight: 500;
-  margin-left: 20px;
+  margin-left: 1.25rem;
+  touch-action: manipulation;
+}
+
+/* Default Hover and Selected Effects (for larger screens) */
+@media (min-width: 769px) {
+  .sidebar a:hover,
+  .sidebar a.selected {
+    color: #41a186;
+    margin-left: 0;
+    padding-left: 2.5rem;
+    border-radius: 0 25px 25px 0;
+    transition: all 0.2s ease;
+  }
+}
+
+/* Hover and Selected Effects for Smaller Screens (no movement) */
+@media (max-width: 768px) {
+  .sidebar a:hover,
+  .sidebar a.selected {
+    color: #41a186;
+    border-radius: 0 25px 25px 0;
+  }
 }
 
 .sidebar a img.icon {
-  height: 20px;
-  width: 20px;
+  height: clamp(18px, 2vw, 20px);
+  width: clamp(18px, 2vw, 20px);
 }
 
-/* Hover and Selected Effects */
-.sidebar a:hover,
-.sidebar a.selected {
-  color: #41a186;
-  margin-left: 0;
-  padding-left: 40px;
-}
-
-/* Individual Hover Effects */
+/* Individual Icon Hover Effects */
 .dash a:hover img,
 .dash a.selected img {
   content: url(/images/dashGreen.png);
-  height: 20px;
-  width: 20px;
 }
-
 .proj a:hover img,
 .proj a.selected img {
   content: url(/images/graphGreen.png);
-  height: 20px;
-  width: 20px;
 }
-
 .harv a:hover img,
 .harv a.selected img {
   content: url(/images/bagGreen.png);
-  height: 20px;
-  width: 20px;
 }
-
 .inv a:hover img,
 .inv a.selected img {
   content: url(/images/boxGreen.png);
-  height: 20px;
-  width: 20px;
 }
-
 .farm a:hover img,
 .farm a.selected img {
   content: url(/images/profileGreen.png);
-  height: 20px;
-  width: 20px;
 }
-
-
 .rep a:hover img,
 .rep a.selected img {
   content: url(/images/folderGreen.png);
-  height: 20px;
-  width: 20px;
 }
-
 .task a:hover img,
 .task a.selected img {
   content: url(/images/flashGreen.png);
-  height: 20px;
-  width: 20px;
 }
-
-
 
 /* Tools Section */
 .tools-section {
-  padding: 12px 20px;
-  font-size: 18px;
-  color: #41A186;
-}
-
-
-.sett a:hover,
-.sett a.selected {
+  padding: 0.75rem 1.25rem;
+  font-size: clamp(16px, 1.5vw, 16px);
   color: #41a186;
-  margin-left: 0;
-  padding-left: 40px;
-  border-radius: 0 25px 25px 0;
+  font-weight: 600;
 }
 
-/* Content area */
+/* Content Area */
 .content {
-  margin-left: 235px;
+  margin-left: clamp(200px, 20vw, 250px);
   flex: 1;
-  overflow-y: auto;
-  transition: margin-left 0.3s ease-in-out;
+  min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); /* Account for safe areas */
+  height: auto; /* Allow content to expand */
+  overflow-y: auto; /* Enable scrolling if content overflows */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 iframe {
   width: 100%;
-  height: 100vh;
+  min-height: 100%; /* Ensure iframe fills content area */
+  height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); /* Dynamic height with safe areas */
   border: none;
+  display: block;
 }
 
-/* Mobile Menu Button */
+/* Mobile Menu Button (Hamburger) */
 #mobile-menu-button {
   display: none;
   position: fixed;
-  top: 5px;
-  left: 10px;
+  top: calc(clamp(7px, 2vh, 7px) + env(safe-area-inset-top));
+  left: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-left)); /* Default position: left */
+  right: auto; /* Ensure right is reset */
   z-index: 60;
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 0.75rem;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  height: 50px;
-  width: 40px;
+  height: clamp(40px, 5vw, 50px);
+  width: clamp(40px, 5vw, 50px);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: left 0.3s ease, right 0.3s ease; /* Smooth transition for position change */
+}
+
+/* Move Hamburger to Right When Sidebar is Open */
+.sidebar.open ~ #mobile-menu-button {
+  margin-top: 3px;
+  left: auto;
+  right: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-right)); /* Move to right when sidebar is open */
 }
 
 /* Responsive Styles */
+
+/* Large Screens (Desktops, >1200px) */
+@media (min-width: 1201px) {
+  .sidebar {
+    width: clamp(250px, 18vw, 280px);
+  }
+  .content {
+    margin-left: clamp(250px, 18vw, 280px);
+  }
+}
+
+/* Tablets and Small Laptops (769px - 1200px) */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .sidebar {
+    width: clamp(180px, 20vw, 220px);
+  }
+  .content {
+    margin-left: clamp(180px, 20vw, 220px);
+  }
+  .logo {
+    width: clamp(60px, 7vw, 80px);
+  }
+}
+
+/* Mobile Devices (≤768px) */
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%);
     width: 100%;
+    display: none;
   }
-
   .sidebar.open {
-    transform: translateX(0);
+    display: flex;
   }
-
   .content {
     margin-left: 0;
     width: 100%;
   }
-
-  iframe {
-    height: 100vh;
-    width: 100%;
-  }
-
   #mobile-menu-button {
     display: block;
+  }
+  .logo {
+    width: clamp(50px, 10vw, 70px);
+  }
+}
+
+/* Small Mobile Devices (≤480px) */
+@media (max-width: 480px) {
+  .logo {
+    width: clamp(40px, 12vw, 60px);
+  }
+  .sidebar a {
+    padding: 0.4rem 0.8rem;
+    margin-left: 0.8rem;
+  }
+  .logo-text {
+    margin-left: -3px; /* Tighter spacing for small screens */
+  }
+}
+
+/* Handle iOS Safe Areas and Notch */
+@supports (padding: env(safe-area-inset-left)) {
+  .sidebar {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: 0; /* Explicitly remove top padding for safe areas */
+  }
+}
+
+/* High Pixel Density Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .logo,
+  .sidebar a img.icon {
+    image-rendering: -webkit-optimize-contrast;
   }
 }
