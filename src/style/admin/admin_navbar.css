@@ -200,7 +200,7 @@ iframe {
 
 /* Move Hamburger to Right When Sidebar is Open */
 .sidebar.open ~ #mobile-menu-button {
-  margin-top: 5px;
+  margin-top: 3px;
   left: auto;
   right: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-right)); /* Move to right when sidebar is open */
 }
