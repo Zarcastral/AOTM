@@ -182,7 +182,8 @@ iframe {
   display: none;
   position: fixed;
   top: calc(clamp(7px, 2vh, 7px) + env(safe-area-inset-top));
-  left: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-left));
+  left: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-left)); /* Default position: left */
+  right: auto; /* Ensure right is reset */
   z-index: 60;
   background-color: #41a186;
   color: white;
@@ -194,6 +195,14 @@ iframe {
   width: clamp(40px, 5vw, 50px);
   cursor: pointer;
   touch-action: manipulation;
+  transition: left 0.3s ease, right 0.3s ease; /* Smooth transition for position change */
+}
+
+/* Move Hamburger to Right When Sidebar is Open */
+.sidebar.open ~ #mobile-menu-button {
+  margin-top: 5px;
+  left: auto;
+  right: calc(clamp(10px, 2vw, 15px) + env(safe-area-inset-right)); /* Move to right when sidebar is open */
 }
 
 /* Responsive Styles */
@@ -229,7 +238,6 @@ iframe {
   }
   .sidebar.open {
     display: flex;
-    z-index: 100; /* Ensure sidebar is above content when open */
   }
   .content {
     margin-left: 0;

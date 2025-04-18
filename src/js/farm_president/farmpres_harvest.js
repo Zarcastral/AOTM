@@ -833,7 +833,7 @@ function displayHarvest(harvestList) {
           <img src="/images/editBig.png" alt="Edit">
         </button>
         <button class="action-btn view-btn" data-id="${harvestId}" title="View">
-          <img src="/images/Eye.png" alt="View">
+          <img src="/images/eye.png" alt="View">
         </button>
       </td>
     `;
