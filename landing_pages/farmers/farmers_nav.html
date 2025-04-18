@@ -3,16 +3,18 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Organic Baras</title>
   <link rel="icon" href="/images/weblogo.png" type="image/png">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="apple-touch-icon" href="/images/weblogo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style/farmer/farmer_nav.css">
 </head>
 
 <body>
-  <!-- Mobile Menu Button -->
-  <button id="mobile-menu-button" aria-label="Toggle Sidebar">☰</button>
+  
 
   <!-- Sidebar navigation -->
   <div class="sidebar">
@@ -22,18 +24,18 @@
     </div>
     <nav>
       <ul>
-        <div class="pro"> 
-          <li><a href="farmers_product.html"><img src="/images/flash.png" class="icon" alt="Dashboard" />Productivity</a></li>
+        <div class="pro">
+          <li><a href="farmers_product.html"><img src="/images/flash.png" class="icon" alt="Productivity" />Productivity</a></li>
         </div>
-
         <div class="harv">
-          <li><a href="farmers_harvest.html"><img src="/images/bag.png" class="icon" alt="Projects" />My Harvest</a></li>
+          <li><a href="farmers_harvest.html"><img src="/images/bag.png" class="icon" alt="My Harvest" />My Harvest</a></li>
         </div>
-
-        
       </ul>
     </nav>
   </div>
+  
+ <!-- Mobile Menu Button -->
+ <button id="mobile-menu-button" aria-label="Toggle Sidebar">☰</button>
 
   <!-- Iframe content area -->
   <div class="content">
@@ -48,9 +50,7 @@
 
     // Function to set active link
     function setActiveLink(link) {
-      links.forEach((l) => {
-        l.classList.remove("selected");
-      });
+      links.forEach((l) => l.classList.remove("selected"));
       link.classList.add("selected");
     }
 
@@ -71,12 +71,10 @@
 
     // Set default active link on load
     document.addEventListener("DOMContentLoaded", () => {
-  const defaultLink = document.querySelector('.sidebar a[href="farmers_product.html"]');
-  if (defaultLink) {
-    setActiveLink(defaultLink);
-  }
-});
+      const defaultLink = document.querySelector('.sidebar a[href="farmers_product.html"]');
+      if (defaultLink) setActiveLink(defaultLink);
+    });
   </script>
-
 </body>
+
 </html>
