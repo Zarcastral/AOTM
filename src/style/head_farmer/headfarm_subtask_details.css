@@ -1,19 +1,19 @@
- body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f9ff;
-            margin: 0;
-            padding-top: 1px;
-            cursor: default;
-        }
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f9ff;
+    margin: 0;
+    padding-top: 1px;
+    cursor: default;
+    min-height: 100vh; /* Ensure body takes full viewport height */
+}
 
-        .panel-container {
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            margin-top: 100px;
-            position: relative;
-        }
-
+.panel-container {
+    max-width: 800px;
+    width: 90%; /* Flexible width for smaller screens */
+    margin: 100px auto 20px; /* Consistent margin */
+    position: relative;
+    box-sizing: border-box; /* Prevent padding issues */
+}
 
 .back-btn {
     background: none;
@@ -23,299 +23,318 @@
     display: flex;
     align-items: center;
     position: relative;
-    left: 10px;
+    left: 10px; /* Fixed size as original */
     margin-bottom: 20px;
-    margin-top: -50px;
+    margin-top: -50px; /* Fixed size as original */
     margin-left: -10px;
 }
 
 .back-btn img {
-    width: 30px;
+    width: 30px; /* Fixed size as original */
     height: 30px;
-    
 }
 
-        .panel {
-            background-color: #fff;
-            border-radius: 10px;
-            padding: 40px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e0e0e0;
-        }
+.panel {
+    background-color: #fff;
+    border-radius: 10px; /* Fixed size as original */
+    padding: 40px; /* Fixed size as original */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+    box-sizing: border-box;
+}
 
-        .panel-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .panel-top h1 {
-            font-size: 24px;
-            color: #333;
-            margin: 0;
-        }
-        
-        .add-day-btn {
-            color: #41A186; /* Green color */
-            font-size: 14px;
-            background: none; /* Remove default button background */
-            border: none; /* Remove default button border */
-            padding: 0; /* Reset padding if needed */
-            cursor: pointer;
-            margin-top: -10px;
-        }
-        
-        /* Hover state */
-        .add-day-btn:hover {
-            opacity: 0.8; /* Fade effect on hover */
-            text-decoration: none !important;
-        }
+.panel-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Fixed size as original */
+}
 
-        .subtask-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
+.panel-top h1 {
+    font-size: 24px; /* Fixed size as original */
+    color: #333;
+    margin: 0;
+}
 
-        .subtask-table th,
-        .subtask-table td {
-            padding: 10px;
-            text-align: center;
-            border-bottom: 1px solid #e0e0e0;
-        }
+.add-day-btn {
+    color: #41A186;
+    font-size: 14px; /* Fixed size as original */
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-top: -10px; /* Fixed size as original */
+}
 
-        .subtask-table th {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-        }
+.add-day-btn:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
 
-        .subtask-table td {
-            font-size: 14px;
-            color: #333;
-        }
+.subtask-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px; /* Fixed size as original */
+}
 
-        .action-icons img {
-            width: 16px;
-            height: 16px;
-            margin-left: 10px;
-            cursor: pointer;
-            opacity: 0.5;
-        }
+.subtask-table th,
+.subtask-table td {
+    padding: 10px; /* Fixed size as original */
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+}
 
-        .action-icons img:hover {
-            opacity: 1;
-        }
+.subtask-table th {
+    font-size: 12px; /* Fixed size as original */
+    color: #666;
+    text-transform: uppercase;
+}
 
-        .completed-btn {
-            display: block;
-            width: 100px;
-            margin: 20px 0 0 auto;
-            /* Updated: Top: 20px, Right: 0, Bottom: 0, Left: auto */
-            padding: 10px;
-            background-color: #41A186;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+.subtask-table td {
+    font-size: 14px; /* Fixed size as original */
+    color: #333;
+}
 
-        .completed-btn:hover {
-            opacity: 0.8;
-        }
+.action-icons img {
+    width: 16px; /* Fixed size as original */
+    height: 16px;
+    margin-left: 10px; /* Fixed size as original */
+    cursor: pointer;
+    opacity: 0.5;
+}
 
-        /* MODAL DESIGN */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
+.action-icons img:hover {
+    opacity: 1;
+}
 
-        .modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            width: 400px;
-            max-width: 90%;
-            position: relative;
-        }
+.completed-btn {
+    display: block;
+    width: 100px; /* Fixed size as original */
+    margin: 20px 0 0 auto; /* Fixed size as original */
+    padding: 10px; /* Fixed size as original */
+    background-color: #41A186;
+    color: #fff;
+    border: none;
+    border-radius: 5px; /* Fixed size as original */
+    cursor: pointer;
+    font-size: 14px; /* Fixed size as original */
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
 
-        .close-modal {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
+.completed-btn:hover {
+    opacity: 0.8;
+}
 
-        .close-modal:hover {
-            color: #333;
-        }
+.completed-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+/* Modal Design */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
 
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
+.modal-content {
+    background-color: #fff;
+    padding: 20px; /* Fixed size as original */
+    border-radius: 5px; /* Fixed size as original */
+    width: 400px; /* Fixed size as original */
+    max-width: 90%; /* Ensure it fits smaller screens */
+    box-sizing: border-box;
+}
 
-        .form-group input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            font-size: 14px;
-        }
+.close-modal {
+    position: absolute;
+    top: 10px; /* Fixed size as original */
+    right: 10px;
+    font-size: 24px; /* Fixed size as original */
+    cursor: pointer;
+    color: #666;
+}
 
-        .submit-btn {
-            background-color: #41A186;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+.close-modal:hover {
+    color: #333;
+}
 
-        .submit-btn:hover {
-            background-color: #359171;
-        }
+.form-group {
+    margin-bottom: 15px; /* Fixed size as original */
+}
 
-        /* DELETE MODAL */
-        .confirm-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
+.form-group label {
+    display: block;
+    margin-bottom: 5px; /* Fixed size as original */
+    font-size: 14px; /* Fixed size as original */
+}
 
-        .cancel-btn {
-            background-color: #e0e0e0;
-            color: #333;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+.form-group input {
+    width: 100%;
+    padding: 8px; /* Fixed size as original */
+    border: 1px solid #e0e0e0;
+    border-radius: 4px; /* Fixed size as original */
+    font-size: 14px; /* Fixed size as original */
+    box-sizing: border-box;
+}
 
-        .cancel-btn:hover {
-            background-color: #d0d0d0;
-        }
+.submit-btn {
+    background-color: #41A186;
+    color: #fff;
+    border: none;
+    padding: 10px 20px; /* Fixed size as original */
+    border-radius: 5px; /* Fixed size as original */
+    cursor: pointer;
+    font-size: 14px; /* Fixed size as original */
+}
 
-        .confirm-delete-btn {
-            background-color: #41A186;
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+.submit-btn:hover {
+    background-color: #359171;
+}
 
-        .confirm-delete-btn:hover {
-            background-color: #41A186;
-        }
-        .confirm-complete-btn {
-            background-color: #41A186;
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+/* Delete and Complete Modal */
+.confirm-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px; /* Fixed size as original */
+    margin-top: 20px; /* Fixed size as original */
+}
 
-        .modal-content p {
-            margin: 15px 0;
-            color: #666;
-        }   
+.cancel-btn {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 8px 16px; /* Fixed size as original */
+    border-radius: 5px; /* Fixed size as original */
+    cursor: pointer;
+    font-size: 14px; /* Fixed size as original */
+}
 
-        .add-day-btn {
-            color: #41A186;
-            font-size: 14px;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
+.cancel-btn:hover {
+    background-color: #d0d0d0;
+}
 
-        .add-day-btn:hover {
-            text-decoration: underline;
-        }
+.confirm-delete-btn,
+.confirm-complete-btn {
+    background-color: #41A186;
+    color: #fff;
+    border: none;
+    padding: 8px 16px; /* Fixed size as original */
+    border-radius: 5px; /* Fixed size as original */
+    cursor: pointer;
+    font-size: 14px; /* Fixed size as original */
+}
 
-        .completed-btn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        .success-message {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #41a186;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            display: none;
-            font-size: 18px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1001;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+.confirm-delete-btn:hover,
+.confirm-complete-btn:hover {
+    background-color: #359171;
+}
 
-        .error-message {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #AC415B;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            display: none;
-            font-size: 18px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1001;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        @media screen and (max-width: 768px) {
-            .header {
-                padding: 0 10px;
-            }
-        
-            .panel-container {
-                margin-top: 50px;
-                padding: 20px;
-            }
-          
-            .header-title {
-                font-size: 1.25rem;
-            }
-          
-            .header-icons img {
-                width: 20px;
-                height: 20px;
-            }
-          
-            .main-content {
-                padding: 10px;
-            }
-          }
+.modal-content p {
+    margin: 15px 0; /* Fixed size as original */
+    color: #666;
+}
+
+/* Success and Error Messages */
+.success-message {
+    position: fixed;
+    top: 20px; /* Fixed size as original */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #41a186;
+    color: white;
+    padding: 10px 20px; /* Fixed size as original */
+    border-radius: 20px; /* Fixed size as original */
+    display: none;
+    font-size: 18px; /* Fixed size as original */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.error-message {
+    position: fixed;
+    top: 20px; /* Fixed size as original */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #AC415B;
+    color: white;
+    padding: 10px 20px; /* Fixed size as original */
+    border-radius: 20px; /* Fixed size as original */
+    display: none;
+    font-size: 18px; /* Fixed size as original */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Media Queries for Responsiveness */
+@media screen and (max-width: 768px) {
+    .panel-container {
+        width: 95%; /* Slightly tighter fit to maximize space */
+        margin-top: 80px; /* Slightly reduced to fit header */
+    }
+
+    .subtask-table {
+        overflow-x: auto;
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+
+    .modal-content {
+        width: 400px; /* Same size as original */
+        max-width: 85%; /* Ensure it fits smaller screens */
+    }
+
+    .confirm-buttons {
+        flex-wrap: wrap; /* Allow buttons to wrap if needed */
+        gap: 10px; /* Maintain original spacing */
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .panel-container {
+        width: 95%; /* Maximize space on very small screens */
+        margin-top: 60px; /* Further reduced to fit header */
+    }
+
+    .subtask-table {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .modal-content {
+        width: 400px; /* Same size as original */
+        max-width: 90%; /* Fit very small screens */
+    }
+
+    .confirm-buttons {
+        flex-direction: column; /* Stack buttons vertically to avoid squeezing */
+        gap: 10px; /* Maintain original spacing */
+    }
+
+    .cancel-btn,
+    .confirm-delete-btn,
+    .confirm-complete-btn {
+        width: 100%; /* Full width for better tap targets */
+        padding: 8px 16px; /* Same size as original */
+        font-size: 14px; /* Same size as original */
+    }
+
+    .success-message,
+    .error-message {
+        width: 90%; /* Ensure it fits screen */
+        text-align: center;
+        padding: 10px 20px; /* Same size as original */
+        font-size: 18px; /* Same size as original */
+    }
+}
