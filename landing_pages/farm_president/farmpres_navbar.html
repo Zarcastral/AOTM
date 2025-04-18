@@ -3,17 +3,17 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Organic Baras</title>
   <link rel="icon" href="/images/weblogo.png" type="image/png">
-  <link rel="apple-touch-icon" href="/images/weblogo.png">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style/farm_president/farmpres_navbar.css">
 </head>
 
 <body>
+  <!-- Mobile Menu Button -->
+  <button id="mobile-menu-button" aria-label="Toggle Sidebar">☰</button>
+
   <!-- Sidebar navigation -->
   <div class="sidebar">
     <div class="logo-container">
@@ -24,33 +24,43 @@
     <nav>
       <ul>
         <div class="dash">
-          <li><a href="farmpres_dash.html"><img src="/images/element-1.png" class="icon" alt="Dashboard" />Dashboard</a></li>
+          <li><a href="farmpres_dash.html"><img src="/images/element-1.png" class="icon" alt="Dashboard" />Dashboard</a>
+          </li>
         </div>
+
         <div class="proj">
-          <li><a href="farmpres_project.html"><img src="/images/graph.png" class="icon" alt="Projects" />Projects</a></li>
+          <li><a href="farmpres_project.html"><img src="/images/graph.png" class="icon" alt="Projects" />Projects</a>
+          </li>
         </div>
+
         <div class="task">
-          <li><a href="farmpres_task.html"><img src="/images/flash.png" class="icon" alt="Task" />Task</a></li>
+          <li><a href="farmpres_task.html"><img src="/images/flash.png" class="icon" alt="Projects" />Task</a></li>
         </div>
+
         <div class="harv">
           <li><a href="farmpres_harvest.html"><img src="/images/bag.png" class="icon" alt="Harvest" />Harvest</a></li>
         </div>
+
         <div class="inv">
-          <li><a href="farmpres_inventory.html"><img src="/images/box.png" class="icon" alt="Inventory" />Inventory</a></li>
+          <li><a href="farmpres_inventory.html"><img src="/images/box.png" class="icon" alt="Inventory" />Inventory</a>
+          </li>
         </div>
+
         <div class="farm">
-          <li><a href="farmpres_farmer.html"><img src="/images/profile-2user.png" class="icon" alt="Farmers" />Farmers</a></li>
+          <li><a href="farmpres_farmer.html"><img src="/images/profile-2user.png" class="icon"
+                alt="Farmers" />Farmers</a></li>
         </div>
         <li class="tools-section">Tools</li>
         <div class="rep">
-          <li><a href="farmpres_reports.html"><img src="/images/folder-2.png" class="icon" alt="Reports" />Reports</a></li>
+          <li><a href="farmpres_reports.html"><img src="/images/folder-2.png" class="icon" alt="Reports" />Reports</a>
+          </li>
         </div>
+
+
       </ul>
     </nav>
-  </div>
 
-  <!-- Mobile Menu Button -->
-  <button id="mobile-menu-button" aria-label="Toggle Sidebar">☰</button>
+  </div>
 
   <!-- Iframe content area -->
   <div class="content">
@@ -88,12 +98,13 @@
 
     // Set default active link on load
     document.addEventListener("DOMContentLoaded", () => {
-      const defaultLink = document.querySelector('.sidebar a[href="farmpres_dash.html"]');
+      const defaultLink = document.querySelector('.sidebar a[href="admin_dash.html"]');
       if (defaultLink) {
         setActiveLink(defaultLink);
       }
     });
   </script>
+
 </body>
 
 </html>
