@@ -1,13 +1,19 @@
+/* Ensure box-sizing is applied globally to prevent padding/margin overflow */
+* {
+    box-sizing: border-box;
+}
+
 body {
     background-color: #F5F6FA;
     font-family: 'Poppins';
     margin: 0;
+    padding: 0; /* Ensure no extra padding on body */
     cursor: default;
+    overflow-x: hidden; /* Prevent horizontal scrolling on body */
 }
 
-
 #feedbackType {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    padding: 10px 30px 10px 10px;
     font-size: 16px;
     color: #243B53;
     border: 1px solid #ccc;
@@ -15,10 +21,10 @@ body {
     outline: none;
     width: 250px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
     background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
+    background-position: right 10px center;
     background-size: 16px;
     cursor: pointer;
 }
@@ -30,28 +36,27 @@ body {
     justify-content: center;
     width: 100%;
     max-width: 1200px;
-    margin-bottom: 20px;
-    margin-top: 30px;
-  }
-  
-  .project-selector a {
+    margin: 30px auto 20px; /* Center with auto margins */
+    padding: 0 10px; /* Add slight padding to prevent edge overflow */
+}
+
+.project-selector a {
     color: #848A9C;
     transition: color 0.3s ease;
-  }
-  
-  .project-selector a.active {
+}
+
+.project-selector a.active {
     color: #41a186;
     font-weight: 500;
-  }
-  
-  .project-selector:hover a {
-    color: #41a186;
-  }
+}
 
-  .rando-line {
+.project-selector:hover a {
+    color: #41a186;
+}
+
+.rando-line {
     color: #848A9C;
-  }
-  
+}
 
 .container {
     width: 100%;
@@ -59,31 +64,27 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: 20px;
+    padding: 20px 10px; /* Reduced padding to fit viewport */
     margin: 0 auto;
 }
 
 .panel {
     background-color: white;
     border-radius: 10px;
-    padding: 30px 30px;
+    padding: 30px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Ensure panel doesn't exceed container */
 }
-
 
 /* Project Details Panel */
 .project-details h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
     font-size: 30px;
+    font-weight: 700;
     color: black;
     margin-bottom: 20px;
     margin-top: 5px;
-    
 }
 
-
-/* Project Details */
 .project-details .details {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -108,6 +109,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed; /* Prevent table from expanding beyond container */
 }
 
 th, td {
@@ -115,6 +117,7 @@ th, td {
     text-align: left;
     font-size: 14px;
     border-bottom: 1px solid #e0e0e0;
+    word-wrap: break-word; /* Ensure long text wraps */
 }
 
 th {
@@ -126,7 +129,6 @@ td {
     color: #4b5563;
 }
 
-/* Action Button */
 .action-btn {
     width: 24px;
     height: 24px;
@@ -140,47 +142,38 @@ td {
     opacity: 0.8;
 }
 
-/* Feedback Panel */
-.feedback-header {
-    display: flex;
-    justify-content: space-between; /* Pushes the button to the right */
-    align-items: center; /* Vertically centers the text and button */
-    margin-bottom: 20px; /* Space below the header */
-    margin-top: 20px;
-}
-
-.feedback-header1 {
-    display: flex;
-    justify-content: space-between; /* Pushes the button to the right */
-    align-items: center; /* Vertically centers the text and button */
-}
+.feedback-header,
+.feedback-header1,
 .feedback-header3 {
     display: flex;
-    justify-content: space-between; /* Pushes the button to the right */
-    align-items: center; /* Vertically centers the text and button */
-    margin-bottom: 20px; /* Space below the header */
-    
-    
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 10px; /* Ensure header fits within panel */
 }
+
+.feedback-header3 {
+    margin-bottom: 20px;
+}
+
 .feedback-panel h2 {
     font-size: 24px;
     font-weight: bold;
     color: #1a3c34;
-    margin: 0; /* Remove default margin to align with button */
-    margin-left: 30px;
-    
+    margin: 0;
+    padding-left: 20px; /* Reduced padding */
 }
 
 .add-feedback-btn {
     background: none;
     border: none;
-    color: #41A186;;
+    color: #41A186;
     font-weight: bold;
     font-size: 14px;
     cursor: pointer;
-    padding: 0; /* Remove padding for natural alignment */
-    line-height: 1; /* Matches h2 text alignment */
-    margin-right: 30px;
+    padding: 0;
+    line-height: 1;
+    margin-right: 20px; /* Reduced margin */
     margin-top: -10px;
 }
 
@@ -188,23 +181,20 @@ td {
     display: flex;
     align-items: flex-start;
     gap: 15px;
-    padding: 15px 20px;  /* Keep vertical padding, restore horizontal padding */
-    border-top: 2px solid #EFF1F2;  /* Top border */
-    border-left: none;  /* No left border */
-    border-right: none;  /* No right border */
-    border-radius: 0;  /* No rounding */
+    padding: 15px 20px;
+    border-top: 2px solid #EFF1F2;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
     box-shadow: none;
-    
-    
 }
 
 .feedback-panel {
     background-color: white;
     border-radius: 10px;
-    padding: 20px;
+    padding: 20px 10px; /* Reduced padding */
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding-left: 0;  /* Remove left padding */
-    padding-right: 0;  /* Remove right padding */
+    width: 100%; /* Ensure panel fits container */
 }
 
 .feedback-list-empty {
@@ -215,6 +205,7 @@ td {
     color: #777;
     text-align: center;
 }
+
 .feedback-avatar {
     width: 70px;
     height: 70px;
@@ -228,7 +219,6 @@ td {
     margin-top: 10px;
     flex: 1;
 }
-
 
 .feedback-user {
     font-weight: 600;
@@ -249,18 +239,16 @@ td {
 }
 
 label[for="feedbackType"] {
-    font-weight: 500; /* Example style */
+    font-weight: 500;
     margin-left: -12px;
 }
 
 label[for="feedbackMessage"] {
-    font-weight: 500; /* Example style */
-
+    font-weight: 500;
 }
 
-
-#feedbackMessage{
-     font-family: 'Poppins';
+#feedbackMessage {
+    font-family: 'Poppins';
 }
 
 .feedback-text {
@@ -288,8 +276,6 @@ label[for="feedbackMessage"] {
     font-size: 15px;
 }
 
-
-/* Popup */
 .popup {
     display: none;
     position: fixed;
@@ -304,8 +290,9 @@ label[for="feedbackMessage"] {
 
 .popup-content {
     background: white;
-    padding: 40px 35px;
-    width: 400px;
+    padding: 40px 20px; /* Reduced padding */
+    width: 100%;
+    max-width: 400px; /* Constrain width */
     border-radius: 8px;
     text-align: center;
     position: relative;
@@ -314,7 +301,7 @@ label[for="feedbackMessage"] {
 .popup-content h2 {
     font-size: 28px;
     margin-bottom: 15px;
-    margin-left: -150px;
+    margin-left: 0; /* Remove negative margin */
     margin-top: -10px;
     color: #444;
 }
@@ -325,7 +312,7 @@ label[for="feedbackMessage"] {
     font-weight: 500;
     margin-top: 10px;
     color: #444;
-    margin-left: -100px;
+    margin-left: 0; /* Remove negative margin */
 }
 
 .popup-content p {
@@ -334,7 +321,7 @@ label[for="feedbackMessage"] {
     font-weight: 500;
     margin-top: 10px;
     color: #444;
-    margin-left: -320px;
+    margin-left: 0; /* Remove negative margin */
 }
 
 .close-btn {
@@ -344,14 +331,14 @@ label[for="feedbackMessage"] {
     font-size: 30px;
     cursor: pointer;
     color: #c3c3c3;
-    margin-right:5px;
+    margin-right: 5px;
 }
 
 .close-btn:hover {
     opacity: 0.8;
 }
 
-select{
+select {
     width: 100%;
     padding: 8px;
     margin: 15px 0 30px 0;
@@ -361,14 +348,12 @@ select{
 }
 
 textarea {
-    width: 95%;
+    width: 100%; /* Ensure textarea fits container */
     padding: 8px;
     margin: 8px 0;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
-}
-textarea {
     resize: none;
 }
 
@@ -381,17 +366,21 @@ textarea {
     border-radius: 5px;
     cursor: pointer;
     margin-top: 10px;
+    width: 100%; /* Ensure button fits container */
 }
 
 .popup-content button:hover {
     background: #36886d;
 }
-.success-message {
+
+.success-message,
+.error-message,
+.no-project-message {
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #41a186;
+    background-color: #41a186; /* Adjust for error/no-project */
     color: white;
     padding: 10px 20px;
     border-radius: 20px;
@@ -401,41 +390,18 @@ textarea {
     z-index: 1001;
     opacity: 0;
     transition: opacity 0.3s ease;
+    max-width: 90%; /* Prevent messages from overflowing */
 }
 
 .error-message {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
     background-color: #AC415B;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    display: none;
-    font-size: 18px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1001;
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
+
 .no-project-message {
-    position: fixed;
     top: 13%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     background-color: #AC415B;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.4s ease-in-out;
-    z-index: 1000;
 }
+
 .view-btn img {
     width: 24px;
     height: 24px;
@@ -443,78 +409,278 @@ textarea {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
 .view-btn {
     background-color: transparent;
     border: none;
 }
+
 /* Responsive Design */
-@media (max-width: 768px) {
-    
+@media (max-width: 1024px) {
+    .container {
+        padding: 15px 5px; /* Reduced padding */
+    }
+
     .panel {
-      padding: 10px 20px;
-      margin: 5px;
+        padding: 20px;
+    }
+
+    .project-selector {
+        gap: 20px;
+        font-size: 18px;
+        margin-top: 20px;
+        padding: 0 5px;
+    }
+
+    .project-details h2 {
+        font-size: 26px;
+    }
+
+    .project-details .details {
+        grid-template-columns: repeat(3, 1fr);
+        margin-left: 20px;
+        font-size: 14px;
     }
 
     .feedback-panel h2 {
-        margin-left: 10px;
+        font-size: 22px;
+        padding-left: 10px;
     }
-  
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-left: 540px;
-      
+
+    .add-feedback-btn {
+        margin-right: 10px;
     }
-    .project-details h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        font-size: 25px;
-        color: #1a3c34;
-        margin-bottom: 20px;
-        margin-top: 8px;
+
+    th, td {
+        font-size: 13px;
+        padding: 8px;
     }
-    
-    .details {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 15px;
-        text-align: left;
-        margin-bottom: 30px;
-        margin-left: 10px;
-        font-size: 10px;
+
+    .popup-content {
+        padding: 30px 15px;
+        max-width: 90%;
     }
-  }
-  
-  @media (max-width: 480px) {
-  
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px 5px;
+    }
+
     .panel {
-      padding: 10px 20px;
-      margin: 10px;
+        padding: 15px;
+        margin: 0;
     }
-   
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-left: 540px;
-      
+
+    .project-selector {
+        gap: 15px;
+        font-size: 16px;
+        flex-wrap: wrap;
+        padding: 0 5px;
     }
 
     .project-details h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        font-size: 25px;
-        color: #1a3c34;
-        margin-bottom: 20px;
-        margin-top: 8px;
+        font-size: 24px;
     }
-    
-    .details {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 15px;
-        text-align: left;
-        margin-bottom: 30px;
+
+    .project-details .details {
         margin-left: 10px;
-        font-size: 10px;
+        font-size: 13px;
+        gap: 10px;
     }
-  }
+
+    .feedback-panel h2 {
+        font-size: 20px;
+        padding-left: 5px;
+    }
+
+    .add-feedback-btn {
+        font-size: 14px;
+        margin-right: 5px;
+    }
+
+    .popup-content {
+        padding: 30px 15px;
+        max-width: 90%;
+    }
+
+    .popup-content h2,
+    .popup-content h3,
+    .popup-content p {
+        margin-left: 0; /* Remove negative margins */
+    }
+
+    th, td {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    #feedbackType {
+        font-size: 14px;
+        width: 100%;
+        max-width: 200px;
+    }
+
+    textarea {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+
+    .panel {
+        padding: 10px;
+        margin: 0;
+    }
+
+    .project-selector {
+        gap: 10px;
+        font-size: 14px;
+        align-items: center;
+        padding: 0 5px;
+    }
+
+    .project-details h2 {
+        font-size: 20px;
+    }
+
+    .project-details .details {
+        grid-template-columns: repeat(2, 1fr);
+        margin-left: 0;
+        font-size: 12px;
+        gap: 8px;
+    }
+
+    .feedback-panel h2 {
+        font-size: 18px;
+        padding-left: 5px;
+    }
+
+    .add-feedback-btn {
+        font-size: 13px;
+        margin-right: 5px;
+    }
+
+    .popup-content {
+        padding: 20px 10px;
+        max-width: 95%;
+    }
+
+    .popup-content h2,
+    .popup-content h3,
+    .popup-content p {
+        margin-left: 0;
+    }
+
+    .success-message,
+    .error-message,
+    .no-project-message {
+        font-size: 14px;
+        padding: 8px 15px;
+        max-width: 90%;
+    }
+
+    th, td {
+        font-size: 11px;
+        padding: 5px;
+    }
+
+    #feedbackType {
+        font-size: 13px;
+        max-width: 180px;
+    }
+
+    textarea {
+        font-size: 12px;
+    }
+
+    .feedback-panel .feedback-list {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .feedback-item,
+    .feedback-list-empty {
+        display: block;
+        white-space: normal;
+    }
+
+    .feedback-avatar {
+        display: block; /* Ensure avatar is a block element */
+        margin-left: auto; /* Center horizontally */
+        margin-right: auto; /* Center horizontally */
+    }
+}
+
+@media (max-width: 300px) {
+    .container {
+        padding: 3px;
+    }
+
+    .panel {
+        padding: 8px;
+        margin: 0;
+    }
+
+    .project-selector {
+        gap: 8px;
+        font-size: 12px;
+        padding: 0 3px;
+    }
+
+    .project-details h2 {
+        font-size: 18px;
+    }
+
+    .project-details .details {
+        grid-template-columns: 1fr;
+        font-size: 11px;
+        gap: 6px;
+    }
+
+    .feedback-panel h2 {
+        font-size: 16px;
+        padding-left: 3px;
+    }
+
+    .add-feedback-btn {
+        font-size: 12px;
+        margin-right: 3px;
+    }
+
+    .popup-content {
+        padding: 15px 10px;
+        max-width: 98%;
+    }
+
+    .popup-content h2,
+    .popup-content h3,
+    .popup-content p {
+        margin-left: 0;
+    }
+
+    .success-message,
+    .error-message,
+    .no-project-message {
+        font-size: 12px;
+        padding: 6px 12px;
+        max-width: 90%;
+    }
+
+    th, td {
+        font-size: 10px;
+        padding: 4px;
+    }
+
+    #feedbackType {
+        font-size: 12px;
+        max-width: 160px;
+    }
+
+    textarea {
+        font-size: 11px;
+    }
+}

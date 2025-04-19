@@ -344,6 +344,12 @@ body {
       height: 180px;
       font-size: 10px;
     }
+    .year-selector {
+      width: 160px;
+      font-size: 14px;
+      padding: 8px 25px 8px 8px;
+      background-size: 14px;
+    }
   }
   
   @media screen and (max-width: 768px) {
@@ -415,6 +421,24 @@ body {
     .bar::after {
       font-size: 10px;
     }
+    .year-selector {
+      width: 160px;
+      font-size: 14px;
+      padding: 8px 25px 8px 8px;
+      background-size: 14px;
+    }
+    .year-selector-container {
+      gap: 8px;
+    }
+  
+    .year-selector-label {
+      font-size: 13px;
+    }
+  
+    .year-selector {
+      font-size: 13px;
+      padding: 4px;
+    }
   }
   
   @media screen and (max-width: 480px) {
@@ -475,4 +499,44 @@ body {
       font-size: 8px;
       bottom: -20px;
     }
+    .year-selector {
+      width: 130px;
+      font-size: 13px;
+      padding: 6px 20px 6px 6px;
+      background-size: 12px;
+    }.year-selector-container {
+      gap: 6px;
+    }
+  
+    .year-selector-label {
+      font-size: 12px;
+    }
+  
+    .year-selector {
+      font-size: 12px;
+      padding: 3px;
+    }
+  }
+
+  @media screen and (max-width: 360px) {
+
+    .year-selector {
+      width: 80px;
+      font-size: 12px;
+      padding: 5px 15px 5px 5px;
+      background-size: 10px;
+    }
+    .year-selector-container {
+      gap: 5px;
+    }
+  
+    .year-selector-label {
+      font-size: 11px;
+    }
+  
+    .year-selector {
+      font-size: 11px;
+      padding: 2px;
+    }
+
   }

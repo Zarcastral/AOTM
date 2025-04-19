@@ -1,35 +1,39 @@
 body {
-  background-color: #f9fbfd; /* Background color to match the image */
+  background-color: #f9fbfd;
   margin: 0;
   font-family: 'Poppins', sans-serif;
   cursor: default;
+  overflow-x: hidden;
 }
 
 .container {
-  display: flex;
-  align-items: flex-start;
-  position: relative;
-  max-width: 1000px; /* Adjusted to match the image width */
+  width: 100%;
+  max-width: 1000px;
   margin: 20px auto;
+  padding: 0 15px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column; /* Stack back-arrow and panel vertically */
+  align-items: flex-start;
+  position: relative; /* Context for back-arrow */
   margin-top: 50px;
 }
 
 .back-arrow {
+  position: absolute;
+  top: 0; /* Place at top of container, just above panel */
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
-  position: relative;
-  left: 10px;
-  margin-top: 30px;
-  left: 180px;
+  z-index: 10;
 }
 
 .back-arrow img {
-  width: 30px; /* Adjust size as needed */
-  height: 30px; /* Adjust size as needed */
+  width: 30px;
+  height: 30px;
 }
 
 .panel {
@@ -37,10 +41,10 @@ body {
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%; /* Takes the max-width of the container */
-  box-sizing: border-box; /* Ensures padding doesn't increase the width */
-  margin-top: -30px;
-  margin-left: 50px; /* Space between the back button and the panel */
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 40px; /* Space for back button */
+  margin-left: 0;
 }
 
 .panel-header {
@@ -59,20 +63,26 @@ body {
   border: 1px solid #d3d3d3;
   border-radius: 20px;
   font-size: 16px;
-  background: url("https://via.placeholder.com/15/000/fff?text=🔍") no-repeat
-    10px center;
+  background: url("https://via.placeholder.com/15/000/fff?text=🔍") no-repeat 10px center;
   padding-left: 35px;
   box-sizing: border-box;
+  width: 100%;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 20px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-bottom: 0;
+  min-width: 500px;
 }
 
-th,
-td {
+th, td {
   padding: 10px;
   text-align: left;
   font-size: 14px;
@@ -85,37 +95,34 @@ th {
 
 td {
   color: #666;
-  border-bottom: 1px solid #e0e0e0; /* Bottom line for table rows */
+  border-bottom: 1px solid #e0e0e0;
 }
 
 th:first-child, td:first-child {
-  width: 150px; /* Adjusted width for the action column */
-  min-width: 100px; /* Minimum width to ensure usability */
-  text-align: center; /* Centered text for action column */
-  
+  width: 150px;
+  min-width: 100px;
+  text-align: center;
 }
 
 input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  border: 1px solid #D1D5DB; /* Thin border */
-  border-radius: 4px; /* Optional: Slightly rounded corners */
+  border: 1px solid #D1D5DB;
+  border-radius: 4px;
   outline: none;
   background-color: white;
   cursor: pointer;
-  -webkit-appearance: none; /* Removes default browser styling */
+  -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
 }
 
-/* Style when checkbox is checked */
 input[type="checkbox"]:checked {
-  background-color: #41A186; /* Green color */
+  background-color: #41A186;
   border-color: #41A186;
   position: relative;
 }
 
-/* Create the checkmark */
 input[type="checkbox"]:checked::after {
   content: '';
   position: absolute;
@@ -128,7 +135,6 @@ input[type="checkbox"]:checked::after {
   transform: rotate(45deg);
 }
 
-/* Style the container (assuming it wraps the search bar) */
 .search-container {
   display: flex;
   gap: 1rem;
@@ -136,38 +142,37 @@ input[type="checkbox"]:checked::after {
   margin-top: 30px;
 }
 
-/* Style the search bar input */
 .search-bar {
-  width: 400px;
-  padding: 8px; /* Specific padding from your .search-bar */
+  padding: 8px;
   font-size: 16px;
-  border: 1px solid lightgray; /* More specific than the general rule */
+  border: 1px solid lightgray;
   border-radius: 10px;
   outline: none;
 }
 
-/* Focus state for search bar  */
 .search-bar:focus {
   border-color: #aaa;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
-/* General styling for inputs and selects in the container */
 .search-container input,
 .search-container select {
-  padding: 10px; /* This will apply to all inputs/selects unless overridden */
+  padding: 10px;
   border: 1px solid #dcdcdc;
   border-radius: 10px;
 }
 
 .button-container {
-  max-width: 1000px; /* Matches the container's max-width */
-  margin: 0 auto; /* Centers the button container */
-  text-align: right; /* Aligns the button to the right within this container */
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 15px;
+  text-align: right;
+  box-sizing: border-box;
 }
 
 .remarks-select {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: none;
@@ -175,10 +180,10 @@ input[type="checkbox"]:checked::after {
   outline: none;
   width: 200px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
@@ -186,7 +191,7 @@ input[type="checkbox"]:checked::after {
 .save-btn {
   display: block;
   width: 100px;
-  margin: 20px 0 0 auto; /* Updated: Top: 20px, Right: 0, Bottom: 0, Left: auto */
+  margin: 20px 0 0 auto;
   padding: 10px;
   background-color: #41a186;
   color: #fff;
@@ -213,19 +218,21 @@ input[type="checkbox"]:checked::after {
   z-index: 1000;
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .notification.success {
-  background-color: #28a745; /* Green */
+  background-color: #28a745;
 }
 
 .notification.error {
-  background-color: #dc3545; /* Red */
+  background-color: #dc3545;
 }
 
 .notification.warning {
-  background-color: #ffc107; /* Yellow */
-  color: #333; /* Darker text for better contrast */
+  background-color: #ffc107;
+  color: #333;
 }
 
 .notification.show {
@@ -233,11 +240,11 @@ input[type="checkbox"]:checked::after {
 }
 
 .save-btn:disabled {
-  background-color: gray; /* Gray when disabled */
-  cursor: not-allowed; /* Change cursor to indicate it’s not clickable */
-  opacity: 0.6; /* Optional: Slightly transparent to emphasize disabled state */
+  background-color: gray;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
-/* Modal Design */
+
 .modal {
   position: fixed;
   top: 0;
@@ -248,7 +255,8 @@ input[type="checkbox"]:checked::after {
   display: none;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Ensure it stays on top */
+  z-index: 1000;
+  box-sizing: border-box;
 }
 
 .modal-content {
@@ -260,6 +268,7 @@ input[type="checkbox"]:checked::after {
   position: relative;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
+  box-sizing: border-box;
 }
 
 .modal-content h2 {
@@ -284,7 +293,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .cancel-btn {
-  background-color: #cacaca; /* Light gray color */
+  background-color: #cacaca;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -298,7 +307,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .confirm-btn {
-  background-color: #41a186; /* Matching your save button color */
+  background-color: #41a186;
   color: #fff;
   border: none;
   padding: 8px 16px;
@@ -310,12 +319,13 @@ input[type="checkbox"]:checked::after {
 .confirm-btn:hover {
   opacity: 0.8;
 }
+
 .success-message {
   position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #41a186; /* Green, matching your save button */
+  background-color: #41a186;
   color: white;
   padding: 10px 20px;
   border-radius: 20px;
@@ -325,6 +335,8 @@ input[type="checkbox"]:checked::after {
   z-index: 1001;
   opacity: 0;
   transition: opacity 0.3s ease;
+  max-width: 90%;
+  box-sizing: border-box;
 }
 
 .error-message {
@@ -332,7 +344,7 @@ input[type="checkbox"]:checked::after {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #dc3545; /* Red, matching your error notification */
+  background-color: #dc3545;
   color: white;
   padding: 10px 20px;
   border-radius: 20px;
@@ -342,56 +354,79 @@ input[type="checkbox"]:checked::after {
   z-index: 1001;
   opacity: 0;
   transition: opacity 0.3s ease;
+  max-width: 90%;
+  box-sizing: border-box;
 }
 
 @media screen and (max-width: 768px) {
   .header {
-      padding: 0 10px;
+    padding: 0 10px;
+  }
+
+  .table-wrapper {
+    -webkit-overflow-scrolling: touch;
   }
 
   .remarks-select {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-    font-size: 10px;
+    padding: 10px 30px 10px 10px;
+    font-size: 12px;
     color: #243B53;
     border: none;
     border-radius: 10px;
     outline: none;
     width: 100px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
     background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
+    background-position: right 10px center;
     background-size: 16px;
     cursor: pointer;
   }
 
-  .back-arrow{
-      left: 35px; /* Adjusted for smaller screens */
-      margin-top: 20px; /* Adjusted for smaller screens */
-      margin-bottom: 50px;
+  .back-arrow {
+    top: 0; /* Keep above panel */
+    left: 3px; /* Slightly closer for smaller screens */
   }
 
   .container {
-      flex-direction: column;
-      align-items: center;
-      margin: 10px;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px 0;
+    padding: 0 10px;
   }
 
   .panel {
-      padding: 20px;
+    padding: 15px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 40px; /* Space for back button */
   }
 
   .header-title {
-      font-size: 1.25rem;
+    font-size: 1.25rem;
   }
 
   .header-icons img {
-      width: 20px;
-      height: 20px;
+    width: 20px;
+    height: 20px;
   }
 
   .main-content {
-      padding: 10px;
+    padding: 10px;
+  }
+
+
+  .button-container {
+    padding: 0 10px;
+  }
+
+  th, td {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  table {
+    min-width: 400px;
   }
 }

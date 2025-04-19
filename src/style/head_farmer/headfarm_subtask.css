@@ -71,6 +71,7 @@ body {
     overflow-x: auto;
     width: 100%;
     margin-bottom: clamp(10px, 2vh, 20px);
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .subtask-table {
@@ -297,8 +298,6 @@ body {
 }
 
 @media screen and (max-width: 480px) {
-
-
     .add-subtask {
         margin-top: 0;
     }

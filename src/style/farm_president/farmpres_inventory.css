@@ -1,361 +1,363 @@
 body {
-    margin: 0;
-    height: 100vh;
-    background-color: #F5F6FA;
-    font-family: 'Poppins';
-    display: flex;
-    flex-direction: column;
-  }
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Poppins';
+  display: flex;
+  flex-direction: column;
+}
 
+.header {
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
 
-  .header {
-    min-height: 60px;
-    height: 60px;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    position: relative;
-  }
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
 
-  .header-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-  }
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
 
-  .header-icons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
 
-  .header-icons img {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-  }
+#crop-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
 
-  #crop-search-bar {
-    padding: 9px;
-    font-size: 15px;
-    border: 1px solid lightgray; 
-    border-radius: px;
-    outline: none;
-  }
+#fert-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
 
-  
-  #fert-search-bar {
-    padding: 9px;
-    font-size: 15px;
-    border: 1px solid lightgray; 
-    border-radius: px;
-    outline: none;
-  }
+#equip-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
 
+.crop_select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 150px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
 
-  #equip-search-bar {
-    padding: 9px;
-    font-size: 15px;
-    border: 1px solid lightgray; 
-    border-radius: px;
-    outline: none;
-  }
+.fertilizer_select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 150px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
 
-  .crop_select{
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-      font-size: 16px;
-      color: #243B53;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      outline: none;
-      width: 150px;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-      appearance: none; /* Removes default dropdown styling */
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-      background-repeat: no-repeat;
-      background-position: right 10px center; /* Moves the arrow closer */
-      background-size: 16px;
-      cursor: pointer;
-    }
+.equipment_select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 190px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
 
+.project_select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
 
-    .fertilizer_select{
-      padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-        font-size: 16px;
-        color: #243B53;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        outline: none;
-        width: 150px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        appearance: none; /* Removes default dropdown styling */
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-        background-repeat: no-repeat;
-        background-position: right 10px center; /* Moves the arrow closer */
-        background-size: 16px;
-        cursor: pointer;
-      }
+.fert_project_select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
 
-      .equipment_select{
-        padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-          font-size: 16px;
-          color: #243B53;
-          border: 1px solid #ccc;
-          border-radius: 10px;
-          outline: none;
-          width: 190px;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease;
-          appearance: none; /* Removes default dropdown styling */
-          background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-          background-repeat: no-repeat;
-          background-position: right 10px center; /* Moves the arrow closer */
-          background-size: 16px;
-          cursor: pointer;
-        }
+.equip_project_select {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
 
-        .project_select{
-          padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-            font-size: 16px;
-            color: #243B53;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            outline: none;
-            width: 200px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            appearance: none; /* Removes default dropdown styling */
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-            background-repeat: no-repeat;
-            background-position: right 10px center; /* Moves the arrow closer */
-            background-size: 16px;
-            cursor: pointer;
-          }
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Space between panels */
+  padding: 20px; /* Padding around the panels */
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
+}
 
-          .fert_project_select{
-            padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-              font-size: 16px;
-              color: #243B53;
-              border: 1px solid #ccc;
-              border-radius: 10px;
-              outline: none;
-              width: 200px;
-              transition: border-color 0.3s ease, box-shadow 0.3s ease;
-              appearance: none; /* Removes default dropdown styling */
-              background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-              background-repeat: no-repeat;
-              background-position: right 10px center; /* Moves the arrow closer */
-              background-size: 16px;
-              cursor: pointer;
-            }
+.panel table th, .panel table td {
+  text-align: left; /* This centers the text */
+  vertical-align: middle;
+}
 
-            .equip_project_select{
-              padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-                font-size: 16px;
-                color: #243B53;
-                border: 1px solid #ccc;
-                border-radius: 10px;
-                outline: none;
-                width: 200px;
-                transition: border-color 0.3s ease, box-shadow 0.3s ease;
-                appearance: none; /* Removes default dropdown styling */
-                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-                background-repeat: no-repeat;
-                background-position: right 10px center; /* Moves the arrow closer */
-                background-size: 16px;
-                cursor: pointer;
-              }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
 
-  .main-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px; /* Space between panels */
-    padding: 20px; /* Padding around the panels */
-    overflow-y: auto; /* Enable vertical scrolling */
-    max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
-  }
-  .panel table th, .panel table td {
-    text-align: left; /* This centers the text */
-    vertical-align: middle;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-  }
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #E5E7EB;
+}
 
-  th,
-  td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #E5E7EB;
-  }
+th {
+  background-color: #F9FAFB;
+  color: #6B7280;
+  font-weight: 600;
+}
 
-  th {
-    background-color: #F9FAFB;
-    color: #6B7280;
-    font-weight: 600;
-  }
-  th:first-child, td:first-child{
-    width: 50px;
-  }
-  .panel table th:nth-child(2),.panel table td:nth-child(2){
-    width: 250px;
-    text-align: left;
-  }
-  .panel table th:nth-child(3),.panel table td:nth-child(3){
-    width: 250px;
-    text-align: left;
-  }
-  .panel table th:nth-child(4),.panel table td:nth-child(4){
-    width: 250px;
-    text-align: left;
-  }
-  .panel table th:nth-child(6),.panel table td:nth-child(6){
-    width: 150px;
-    text-align: center;
-  }
-  tbody tr:hover {
-    background-color: #F3F4F6;
-  }
-  /* Account Panel Styles */
-  .account-panel {
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    width: 300px;
-    height: 400px; /* Set a fixed height here */
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    padding: 10px;
-    display: none;
-    z-index: 10;
-  }
-  .panel h2 {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-    margin-bottom: 20px;
-  }
-  .account-panel.active {
-    display: block;
-  }
+th:first-child, td:first-child {
+  width: 50px;
+}
 
-  .account-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
+.panel table th:nth-child(2), .panel table td:nth-child(2) {
+  width: 250px;
+  text-align: left;
+}
 
-  .account-panel ul li {
-    padding: 10px;
-    border-bottom: 1px solid #E2E8F0;
-    cursor: pointer;
-  }
+.panel table th:nth-child(3), .panel table td:nth-child(3) {
+  width: 250px;
+  text-align: left;
+}
 
-  .account-panel ul li:hover {
-    background-color: #F7FAFC;
-  }
+.panel table th:nth-child(4), .panel table td:nth-child(4) {
+  width: 250px;
+  text-align: left;
+}
 
-  .account-panel ul li:last-child {
-    border-bottom: none;
-  }
+.panel table th:nth-child(6), .panel table td:nth-child(6) {
+  width: 150px;
+  text-align: center;
+}
+
+tbody tr:hover {
+  background-color: #F3F4F6;
+}
+
+/* Account Panel Styles */
+.account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px; /* Set a fixed height here */
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+
+.panel h2 {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+  margin-bottom: 20px;
+}
+
+.account-panel.active {
+  display: block;
+}
+
+.account-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.account-panel ul li {
+  padding: 10px;
+  border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+}
+
+.account-panel ul li:hover {
+  background-color: #F7FAFC;
+}
+
+.account-panel ul li:last-child {
+  border-bottom: none;
+}
+
 .panel {
-    background-color: white;
-    width: 90%;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-top: 20px;
-  }
+  background-color: white;
+  width: 90%;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+}
 
-  .crop-search-bar, .fert-search-bar
-  .equip-search-bar {
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
+.crop-search-bar, .fert-search-bar, .equip-search-bar {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
-  
-  .image-header img {
-    display: block; /* Makes the image block-level for better alignment */
-    margin: 0 auto; /* Centers the image horizontally */
-  }
-  .crop-search-bar input, .fert-search-bar input,
-  .equip-search-bar input {
-    width: 300px;
-    padding: 8px 12px;
-    border: 1px solid #D1D5DB;
-    border-radius: 6px;
-  }
+.image-header img {
+  display: block; /* Makes the image block-level for better alignment */
+  margin: 0 auto; /* Centers the image horizontally */
+}
 
-  .crop-search-bar select, .fert-search-bar select,
-  .equip-search-bar select  {
-    padding: 8px 12px;
-    border: 1px solid #D1D5DB;
-    border-radius: 6px;
-  }
+.crop-search-bar input, .fert-search-bar input, .equip-search-bar input {
+  width: 300px;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+}
 
-  .checkbox {
-    justify-content: center;
-    align-items: center;
-  }
+.crop-search-bar select, .fert-search-bar select, .equip-search-bar select {
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+}
 
-  .checkbox input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
+.checkbox {
+  justify-content: center;
+  align-items: center;
+}
 
-  .btn-new-project {
-    background-color: #41A186;;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    text-decoration: none;
-    display: inline-block;
-    margin-bottom: 10px;
-  }
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
 
-  .btn-new-project:hover {
-    background-color: #318a71;
-  }
+.btn-new-project {
+  background-color: #41A186;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 10px;
+}
 
-  .button-container {
-    width: 90%;
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
-  }
+.btn-new-project:hover {
+  background-color: #318a71;
+}
 
-  .stock-selector {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .stock-selector a {
-    color: slategray;
+.button-container {
+  width: 90%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
 
-    transition: color 0.3s ease;
+.stock-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.stock-selector a {
+  color: slategray;
+  transition: color 0.3s ease;
 }
 
 .stock-selector a.active {
-    color: #41A186;
-    font-weight: bold;
+  color: #41A186;
+  font-weight: bold;
 }
 
 /* Pagination styles */
-.crops-pagination,
-.fertilizer-pagination,
-.equipment-pagination {
+.crops-pagination, .fertilizer-pagination, .equipment-pagination {
   display: flex;
   justify-content: flex-end;
   align-items: center; /* Aligns vertically */
@@ -369,8 +371,7 @@ body {
   color: #333;
 }
 
-.crop-pagination-btn, .fertilizer-pagination-btn,
-.equipment-pagination-btn {
+.crop-pagination-btn, .fertilizer-pagination-btn, .equipment-pagination-btn {
   padding: 10px 10px;
   margin: 0;
   font-size: 25px;
@@ -382,65 +383,72 @@ body {
   color: #333;
 }
 
-.crop-pagination-btn:hover, .fertilizer-pagination-btn:hover,
-.equipment-pagination-btn:hover {
+.crop-pagination-btn:hover, .fertilizer-pagination-btn:hover, .equipment-pagination-btn:hover {
   color: #41A186;
 }
 
-.crop-pagination-btn:disabled, .fertilizer-pagination-btn:disabled,
-.equipment-pagination-btn:disabled {
+.crop-pagination-btn:disabled, .fertilizer-pagination-btn:disabled, .equipment-pagination-btn:disabled {
   color: #bbb;
   cursor: not-allowed;
 }
 
-  /* Responsive Design */
-  @media screen and (max-width: 768px) {
-    .header {
+/* Make tables scrollable on smaller screens */
+.crop_table, .fertilizer_table, .equipment_table {
+  overflow-x: auto;
+}
+
+.crop_table table, .fertilizer_table table, .equipment_table table {
+  min-width: 600px; /* Ensure tables are wide enough to trigger scrolling */
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .header {
       padding: 0 10px;
-    }
+  }
 
-    .header-title {
+  .header-title {
       font-size: 1.25rem;
-    }
+  }
 
-    .header-icons img {
+  .header-icons img {
       width: 20px;
       height: 20px;
-    }
+  }
 
-    .main-content {
+  .main-content {
       padding: 10px;
-    }
+  }
 
-    .header {
+  .header {
       padding-left: 50px;
-    }
+  }
 
-    .account-panel {
+  .account-panel {
       width: 100%;
       height: auto;
       top: 80px;
       padding: 20px;
-    }
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .header-title {
+      font-size: 1.1rem;
   }
 
-  @media screen and (max-width: 480px) {
-    .header-title {
-      font-size: 1.1rem;
-    }
-
-    .header-icons img {
+  .header-icons img {
       width: 18px;
       height: 18px;
-    }
+  }
 
-    .main-content {
-      padding: 5px;
-    }
+  .main-content {
+      padding: 15px;
+  }
 
-    .account-panel {
+  .account-panel {
       width: 100%;
       height: 60%;
       padding: 15px;
-    }
   }
+}

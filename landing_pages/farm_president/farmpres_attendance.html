@@ -15,14 +15,13 @@
     <!-- Placeholder for Header -->
     <div id="header-container"></div>
 
-    <!-- Back Arrow -->
+   
+
+    <div class="container">
+         <!-- Back Arrow -->
     <div class="back-arrow">
         <img src="/images/arrow-left.png" alt="Back Arrow">
     </div>
-
-    <div class="container">
-
-
         <!-- Panel -->
         <div class="panel">
             <!-- Farmer Header -->
@@ -31,24 +30,25 @@
             <!-- Search Bar -->
             <div class="search-container">
                 <input type="text" class="search-bar" placeholder="Search">
-
             </div>
 
-            <!-- Table -->
-            <table>
-                <thead>
-                    <tr>
-                        <th>ATTENDANCE</th>
-                        <th>FARMER NAME</th>
-                        <th>ROLE</th>
-                        <th>DATE</th>
-                        <th>REMARKS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dynamically populated by JS -->
-                </tbody>
-            </table>
+            <!-- Table Wrapper for Scrollable Table -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ATTENDANCE</th>
+                            <th>FARMER NAME</th>
+                            <th>ROLE</th>
+                            <th>DATE</th>
+                            <th>REMARKS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamically populated by JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -56,7 +56,6 @@
     <div class="button-container">
         <button class="save-btn">Save</button>
     </div>
-
 
     <!-- Modal for Save Confirmation -->
     <div id="saveConfirmationModal" class="modal" style="display: none;">
