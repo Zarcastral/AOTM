@@ -291,6 +291,7 @@ select {
   width: 24px;
   height: 24px;
   display: none;
+  filter: grayscale(100%) brightness(20%) contrast(110%); /* Darker, more distinct gray */
 }
 
 .eye-icon.show {

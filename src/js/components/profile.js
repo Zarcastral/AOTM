@@ -368,8 +368,7 @@ async function removeProfilePicture() {
 
     if (userSnapshot.exists()) {
       const userData = userSnapshot.data();
-      const originalImage =
-        userData.user_picture || "/images/default.jpg";
+      const originalImage = userData.user_picture || "/images/default.jpg";
       imgElement.src = originalImage;
 
       if (fileInput.value === "" && imgElement.src === originalImage) {
