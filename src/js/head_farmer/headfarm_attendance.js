@@ -84,6 +84,15 @@ function filterFarmers(farmerNames, farmerIds, attendanceData, searchTerm) {
   return filteredResults;
 }
 
+
+// Utility function to check if user is the lead farmer
+function isLeadFarmer() {
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
+  return farmerId && leadFarmerId && farmerId === leadFarmerId;
+}
+
+
 // Function to render the table
 function renderTable(filteredFarmers, selectedDate) {
   const tbody = document.querySelector("tbody");
@@ -95,7 +104,8 @@ function renderTable(filteredFarmers, selectedDate) {
   }
 
   const sessionedDate = sessionStorage.getItem("selected_date");
-  const userType = sessionStorage.getItem("user_type"); // Get user_type
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
 
   filteredFarmers.forEach((farmer, index) => {
     const isChecked = farmer.attendance.present === "Yes";
@@ -111,16 +121,16 @@ function renderTable(filteredFarmers, selectedDate) {
       ? remarkValue.charAt(0).toUpperCase() + remarkValue.slice(1).toLowerCase()
       : "";
 
-    // Conditionally render checkbox and remarks select
+    // Conditionally render checkbox and remarks select for Head Farmer or lead Farm President
     const checkboxCell =
-      userType === "Head Farmer"
+      userType === "Head Farmer" || isUserLeadFarmer
         ? `<input type="checkbox" class="attendance-checkbox" data-index="${index}" ${
             isChecked ? "checked" : ""
           }>`
         : `<span>—</span>`;
 
     const remarksCell =
-      userType === "Head Farmer"
+      userType === "Head Farmer" || isUserLeadFarmer
         ? `
         <select class="remarks-select" data-index="${index}" required>
           <option value="" ${!remarkValue ? "selected" : ""}>Select remark</option>
@@ -129,7 +139,7 @@ function renderTable(filteredFarmers, selectedDate) {
           } style="color: #41a186;">Productive</option>
           <option value="average" ${
             capitalizedRemark === "Average" ? "selected" : ""
-          }style="color: #9854cb;">Average</option>
+          } style="color: #9854cb;">Average</option>
           <option value="needs-improvement" ${
             capitalizedRemark === "Needs-improvement" ? "selected" : ""
           } style="color: #ac415b;">Needs improvement</option>
@@ -330,7 +340,9 @@ function confirmSaveAttendance() {
 // Function to save attendance data with modal confirmation
 async function saveAttendance(projectId) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
     showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
@@ -407,7 +419,7 @@ async function saveAttendance(projectId) {
     let hasChanges = false;
 
     checkboxes.forEach((checkbox, index) => {
-      const row = checkbox.closest("tr"); // Fixed typo: changed 'rowDistance' to 'row'
+      const row = checkbox.closest("tr");
       const farmerName = row.querySelector("td:nth-child(2)").textContent;
       const farmerId = row.querySelector("td:nth-child(6)").textContent;
       const remarkValue = remarks[index].value;
@@ -586,6 +598,8 @@ export function initializeAttendancePage() {
   document.addEventListener("DOMContentLoaded", async () => {
     const projectId = sessionStorage.getItem("selected_project_id");
     const endDate = sessionStorage.getItem("selected_project_end_date");
+    const userType = sessionStorage.getItem("user_type");
+    const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
 
     if (!projectId) {
       console.error("No selected_project_id found in sessionStorage.");
@@ -595,7 +609,7 @@ export function initializeAttendancePage() {
       return;
     }
 
-    console.log(`Fetched end_date on attendance page: ${endDate}`); // Log end_date
+    console.log(`Fetched end_date on attendance page: ${endDate}`);
 
     const backArrow = document.querySelector(".back-arrow");
     if (backArrow) {
@@ -611,16 +625,28 @@ export function initializeAttendancePage() {
       const subtaskStatus = sessionStorage.getItem("subtask_status");
       console.log(`Subtask status from sessionStorage: ${subtaskStatus}`);
 
-      if (subtaskStatus === "Completed") {
+      // Disable save button for unauthorized users or completed subtask
+      if (
+        (userType !== "Head Farmer" && !isUserLeadFarmer) ||
+        subtaskStatus === "Completed"
+      ) {
         saveBtn.disabled = true;
-        console.log("Save button disabled because subtask_status is Completed");
+        saveBtn.style.opacity = "0.5";
+        saveBtn.style.cursor = "not-allowed";
+        console.log(
+          `Save button disabled: ${
+            userType !== "Head Farmer" && !isUserLeadFarmer
+              ? "User is not Head Farmer or lead Farm President"
+              : "Subtask is Completed"
+          }`
+        );
       } else {
         saveBtn.disabled = false;
         console.log("Save button enabled");
       }
 
       saveBtn.addEventListener("click", async () => {
-        if (endDate && isPastEndDate(endDate)) {
+        if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
           showErrorPanel("Project is way past the deadline, request extension of project");
           return;
         }
