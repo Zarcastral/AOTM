@@ -196,11 +196,13 @@ function displayCrops(cropsList) {
       <td>${crop.crop_type_name}</td>
       <td>${formattedDate}</td>
       <td>${crop.current_stock || "0"} ${crop.unit || ""}</td>
-      <td><span class="use-resource-icon" data-project-id="${
-        crop.project_id
-      }" data-crop-type="${crop.crop_type_name}" data-stock="${
-      crop.current_stock || 0
-    }" data-unit="${crop.unit || ""}">📦</span></td>
+      <td>
+        <img src="/images/use.png" alt="Use Resource" class="use-resource-icon" 
+             data-project-id="${crop.project_id}" 
+             data-crop-type="${crop.crop_type_name}" 
+             data-stock="${crop.current_stock || 0}" 
+             data-unit="${crop.unit || ""}">
+      </td>
     `;
     tableBody.appendChild(row);
   });

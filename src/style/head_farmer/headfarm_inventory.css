@@ -462,13 +462,16 @@ tbody tr:hover {
 
 /* Use Resource Icon */
 .use-resource-icon {
+  width: 24px;
+  height: 24px;
   cursor: pointer;
-  color: #41a186;
-  font-size: 18px;
-  transition: color 0.3s ease;
+  vertical-align: middle;
+  opacity: 0.6;
+  filter: grayscale(100%) brightness(60%) contrast(110%);
+  transition: opacity 0.3s ease;
 }
 .use-resource-icon:hover {
-  color: #318a71;
+  opacity: 0.8;
 }
 
 /* Use Resource Panel */
