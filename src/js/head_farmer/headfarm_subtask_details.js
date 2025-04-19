@@ -88,6 +88,15 @@ function confirmCompleteSubtask() {
   });
 }
 
+// Utility function to check if user is the lead farmer
+function isLeadFarmer() {
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
+  return farmerId && leadFarmerId && farmerId === leadFarmerId;
+}
+
+
+
 // Function to initialize the subtask details page
 export function initializeSubtaskDetailsPage() {
   document.addEventListener("DOMContentLoaded", async () => {
@@ -169,17 +178,18 @@ export function initializeSubtaskDetailsPage() {
     const addDayBtn = document.querySelector(".add-day-btn");
     const completeBtn = document.querySelector(".completed-btn");
     const userType = sessionStorage.getItem("user_type");
-    
-    // Disable the addDayBtn if the user is not Head Farmer
-    if (userType !== "Head Farmer" && addDayBtn) {
+    const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+
+    // Control access to addDayBtn
+    if (userType !== "Head Farmer" && !isUserLeadFarmer && addDayBtn) {
       addDayBtn.disabled = true;
       addDayBtn.style.opacity = "0.5";
       addDayBtn.style.cursor = "not-allowed";
     }
-    
+
     if (addDayBtn) {
       addDayBtn.addEventListener("click", async () => {
-        if (endDate && isPastEndDate(endDate)) {
+        if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
           showErrorPanel("Project is way past the deadline, request extension of project");
           return;
         }
@@ -192,11 +202,16 @@ export function initializeSubtaskDetailsPage() {
         );
       });
     }
-    
 
     if (completeBtn) {
+      // Disable completeBtn for unauthorized users
+      if (userType !== "Head Farmer" && !isUserLeadFarmer) {
+        completeBtn.disabled = true;
+        completeBtn.style.opacity = "0.5";
+        completeBtn.style.cursor = "not-allowed";
+      }
       completeBtn.addEventListener("click", async () => {
-        if (endDate && isPastEndDate(endDate)) {
+        if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
           showErrorPanel("Project is way past the deadline, request extension of project");
           return;
         }
@@ -301,7 +316,7 @@ export function initializeSubtaskDetailsPage() {
         sessionStorage.setItem("selected_date", dateCreated);
         window.location.href = "headfarm_attendance.html";
       } else if (event.target.matches(".action-icons img[alt='Delete']")) {
-        if (endDate && isPastEndDate(endDate)) {
+        if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
           showErrorPanel("Project is way past the deadline, request extension of project");
           return;
         }
@@ -428,7 +443,8 @@ async function fetchAttendanceData(
       const selectedDate = sessionStorage.getItem("selected_date");
       let latestAttendanceData = null;
 
-      const userType = sessionStorage.getItem("user_type"); // Get the user type from sessionStorage
+      const userType = sessionStorage.getItem("user_type");
+      const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
 
       attendanceSnapshot.forEach((doc) => {
         const data = doc.data();
@@ -447,9 +463,9 @@ async function fetchAttendanceData(
 
         console.log(`Date Created: ${dateCreated}, Farmers:`, farmers);
 
-        // Conditionally render the Delete button based on user_type
+        // Conditionally render the Delete button for Head Farmer or lead Farm President
         let deleteButton = '';
-        if (userType === "Head Farmer") {
+        if (userType === "Head Farmer" || isUserLeadFarmer) {
           deleteButton = `<img src="/images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${doc.id}">`;
         }
 
@@ -459,7 +475,7 @@ async function fetchAttendanceData(
             <td>${attendanceSummary}</td>
             <td class="action-icons">
               <img src="/images/eye.png" alt="View">
-              ${deleteButton} <!-- Delete button only shows for Head Farmer -->
+              ${deleteButton}
             </td>
           </tr>
         `;
@@ -509,7 +525,9 @@ async function addNewDay(
   subtaskName
 ) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
     showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
@@ -662,7 +680,9 @@ async function deleteAttendanceRecord(
   dateCreated
 ) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
     showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
