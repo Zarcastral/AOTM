@@ -140,13 +140,13 @@ async function fetchProjectDetails() {
 async function fetchTeams() {
   const teamsTableBody = document.getElementById("teamsTableBody");
   teamsTableBody.innerHTML =
-    "<tr><td colspan='6' style='text-align: center;'>Loading...</td></tr>";
+    "<tr><td colspan='3' style='text-align: center;'>Loading...</td></tr>";
 
   try {
     let farmerId = sessionStorage.getItem("farmer_id");
     if (!farmerId) {
       teamsTableBody.innerHTML =
-        "<tr><td colspan='6' style='text-align: center;'>User not logged in.</td></tr>";
+        "<tr><td colspan='3' style='text-align: center;'>User not logged in.</td></tr>";
       return;
     }
 
@@ -157,7 +157,7 @@ async function fetchTeams() {
     teamsTableBody.innerHTML = "";
     if (querySnapshot.empty) {
       teamsTableBody.innerHTML =
-        "<tr><td colspan='6' style='text-align: center;'>No teams found.</td></tr>";
+        "<tr><td colspan='3' style='text-align: center;'>No teams found.</td></tr>";
       return;
     }
 
@@ -175,19 +175,13 @@ async function fetchTeams() {
                 <td>${teamName}</td>
                 <td>${leadFarmer}</td>
                 <td>${farmers.length}</td>
-                <td><img src="/images/eye.png" class="action-btn" alt="View"></td>
             `;
-
-      const viewButton = row.querySelector(".action-btn");
-      viewButton.addEventListener("click", () =>
-        openPopup(teamName, leadFarmer, farmers)
-      );
       teamsTableBody.appendChild(row);
     });
   } catch (error) {
     console.error("🔥 Error fetching teams:", error);
     teamsTableBody.innerHTML =
-      "<tr><td colspan='6' style='text-align: center;'>Failed to load teams.</td></tr>";
+      "<tr><td colspan='3' style='text-align: center;'>Failed to load teams.</td></tr>";
   }
 }
 

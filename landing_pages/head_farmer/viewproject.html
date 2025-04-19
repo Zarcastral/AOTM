@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="/src/style/head_farmer/viewproject.css">
 </head>
 <body>
-     <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
     <div class="container">
         <!-- Project Details Panel -->
         <div class="panel project-details">
@@ -36,11 +36,10 @@
                         <th>TEAM NAME</th>
                         <th>LEAD FARMER</th>
                         <th>NO. OF FARMERS</th>
-                        <th>ACTION</th>
                     </tr>
                 </thead>
                 <tbody id="teamsTableBody">
-                    <tr><td colspan="6">Loading teams...</td></tr>
+                    <tr><td colspan="3">Loading teams...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -70,21 +69,10 @@
                 <button onclick="submitFeedback()">Submit Feedback</button>
             </div>
         </div>
-
-        <!-- View Team Details Popup -->
-        <div id="viewTeamPopup" class="popup">
-            <div class="popup-content">
-                <h2 id="popupTeamName">Team Details</h2>
-                <span class="close-btn" id="closePopup">×</span>
-                <h3><strong>Lead Farmer:</strong> <span id="popupLeadFarmer">-</span></h3>
-                <p><strong>Farmers:</strong></p>
-                <ul id="popupFarmerList"></ul>
-            </div>
-        </div>
     </div>
 
     <script type="module" src="/src/js/head_farmer/viewproject.js"></script>
     <!-- Import the reusable script from src/auth -->
-   <script type="module" src="/src/auth/header.js"></script>
+    <script type="module" src="/src/auth/header.js"></script>
 </body>
 </html>
