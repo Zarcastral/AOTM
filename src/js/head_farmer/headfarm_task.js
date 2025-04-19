@@ -94,7 +94,6 @@ export async function fetchProjectsForFarmer() {
       displayNoTasksMessage();
       return;
     }
-    // Existing logic for Admin/Supervisor/Farm President
     try {
       const projectsRef = collection(db, "tb_projects");
       const q = query(projectsRef, where("project_id", "==", parseInt(projectId, 10)));
@@ -106,11 +105,12 @@ export async function fetchProjectsForFarmer() {
       }
       querySnapshot.forEach((doc) => {
         const project = doc.data();
+        sessionStorage.setItem("selected_project_id", String(project.project_id));
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         sessionStorage.setItem("selected_project_end_date", project.end_date);
         sessionStorage.setItem("selected_project_status", project.status);
-        sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id));
+        sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Ensure stored
         if (project.extend_date) {
           sessionStorage.setItem("selected_project_extend_date", project.extend_date);
         } else {
@@ -146,14 +146,13 @@ export async function fetchProjectsForFarmer() {
           sessionStorage.setItem("selected_crop_name", project.crop_name);
           sessionStorage.setItem("selected_project_end_date", project.end_date);
           sessionStorage.setItem("selected_project_status", project.status);
-          sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id));
+          sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Ensure stored
           fetchProjectTasks(project.crop_type_name, project.project_id);
         });
         return;
       }
-      // Fallback: Check if farmer is associated with any project (requires a new field or collection)
+      // Fallback: Check associated projects
       console.log("No lead project found, checking associated projects...");
-      // Example: Assume a collection tb_project_members with farmer_id
       const membersRef = collection(db, "tb_project_members");
       q = query(membersRef, where("farmer_id", "==", farmerId));
       const memberQuerySnapshot = await getDocs(q);
@@ -162,7 +161,6 @@ export async function fetchProjectsForFarmer() {
         displayNoTasksMessage();
         return;
       }
-      // Get the first associated project (adjust as needed)
       const projectId = memberQuerySnapshot.docs[0].data().project_id;
       q = query(projectsRef, where("project_id", "==", parseInt(projectId, 10)));
       const projectQuerySnapshot = await getDocs(q);
@@ -174,7 +172,7 @@ export async function fetchProjectsForFarmer() {
           sessionStorage.setItem("selected_crop_name", project.crop_name);
           sessionStorage.setItem("selected_project_end_date", project.end_date);
           sessionStorage.setItem("selected_project_status", project.status);
-          sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id));
+          sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Ensure stored
           fetchProjectTasks(project.crop_type_name, project.project_id);
         });
       } else {

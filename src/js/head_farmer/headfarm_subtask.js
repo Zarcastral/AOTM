@@ -71,6 +71,14 @@ function isPastEndDate(endDate) {
   return currentDate > projectEndDate;
 }
 
+// Utility function to check if user is the lead farmer
+function isLeadFarmer() {
+  const farmerId = sessionStorage.getItem("farmer_id");
+  const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
+  return farmerId && leadFarmerId && farmerId === leadFarmerId;
+}
+
+
 // Function to fetch subtasks and populate the table
 async function fetchSubtasks(projectTaskId, source = "unknown") {
   if (isFetching) {
@@ -117,6 +125,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
       let allCompleted = true;
 
       const userType = sessionStorage.getItem("user_type");
+      const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
 
       subtasks.forEach((subtask, index) => {
         const status = subtask.status || "Pending";
@@ -129,7 +138,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
           : "Unnamed Subtask";
         
         let deleteButton = '';
-        if (userType === "Head Farmer") {
+        if (userType === "Head Farmer" || isUserLeadFarmer) {
           deleteButton = `<img src="/images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">`;
         }
 
@@ -141,7 +150,7 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
             <td>${endDate}</td>
             <td class="action-icons">
               <img src="/images/eye.png" alt="View" class="w-4 h-4 view-icon" data-index="${index}" data-subtask-name="${safeSubtaskName}">
-              ${deleteButton} <!-- Delete button is only shown for Head Farmer -->
+              ${deleteButton}
             </td>
           </tr>
         `;
@@ -207,33 +216,37 @@ function attachEventListeners(projectTaskId) {
     icon.addEventListener("click", handleViewClick);
   });
 
-  async function handleDeleteClick(event) {
-    if (isPastEnd) {
-      showErrorPanel("Project is way past the deadline, request extension of project");
+// Function to handle delete click
+async function handleDeleteClick(event) {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
+    showErrorPanel("Project is way past the deadline, request extension of project");
+    return;
+  }
+  subtaskIndexToDelete = event.target.dataset.index;
+  const tasksRef = collection(db, "tb_project_task");
+  const q = query(
+    tasksRef,
+    where("project_task_id", "==", Number(projectTaskId))
+  );
+  const querySnapshot = await getDocs(q);
+
+  if (!querySnapshot.empty) {
+    const subtasks = querySnapshot.docs[0].data().subtasks || [];
+    const subtask = subtasks[subtaskIndexToDelete];
+    if (subtask.status === "Completed") {
+      showErrorPanel(`"${subtask.subtask_name}" is completed and cannot be deleted.`);
+      console.log(
+        `Attempted to delete completed subtask: ${subtask.subtask_name}`
+      );
+      subtaskIndexToDelete = null;
       return;
     }
-    subtaskIndexToDelete = event.target.dataset.index;
-    const tasksRef = collection(db, "tb_project_task");
-    const q = query(
-      tasksRef,
-      where("project_task_id", "==", Number(projectTaskId))
-    );
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const subtasks = querySnapshot.docs[0].data().subtasks || [];
-      const subtask = subtasks[subtaskIndexToDelete];
-      if (subtask.status === "Completed") {
-        showErrorPanel(`"${subtask.subtask_name}" is completed and cannot be deleted.`);
-        console.log(
-          `Attempted to delete completed subtask: ${subtask.subtask_name}`
-        );
-        subtaskIndexToDelete = null;
-        return;
-      }
-    }
-    deleteModal.style.display = "flex";
   }
+  deleteModal.style.display = "flex";
+}
 
   function closeModalHandler() {
     deleteModal.style.display = "none";
@@ -252,18 +265,22 @@ function attachEventListeners(projectTaskId) {
     }
   }
 
-  async function confirmDeleteHandler() {
-    if (isPastEnd) {
-      showErrorPanel("Project is way past the deadline, request extension of project");
-      deleteModal.style.display = "none";
-      return;
-    }
-    if (subtaskIndexToDelete !== null) {
-      await deleteSubtask(projectTaskId, subtaskIndexToDelete);
-      deleteModal.style.display = "none";
-      subtaskIndexToDelete = null;
-    }
+// Function to handle confirm delete
+async function confirmDeleteHandler() {
+  const endDate = sessionStorage.getItem("selected_project_end_date");
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
+    showErrorPanel("Project is way past the deadline, request extension of project");
+    deleteModal.style.display = "none";
+    return;
   }
+  if (subtaskIndexToDelete !== null) {
+    await deleteSubtask(projectTaskId, subtaskIndexToDelete);
+    deleteModal.style.display = "none";
+    subtaskIndexToDelete = null;
+  }
+}
 
   function handleViewClick(event) {
     const index = event.target.dataset.index;
@@ -283,7 +300,9 @@ function attachEventListeners(projectTaskId) {
 // Function to delete subtask and associated attendance records from Firestore
 async function deleteSubtask(projectTaskId, subtaskIndex) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
     showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
@@ -384,7 +403,9 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
 // Function to add new subtask
 async function addSubtask(projectTaskId, newSubtaskName) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
     showErrorPanel("Project is way past the deadline, request extension of project");
     return false;
   }
@@ -464,7 +485,9 @@ async function updateCompleteButtonState(projectTaskId) {
 // Function to complete the task
 async function completeTask(projectTaskId) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
     showErrorPanel("Project is way past the deadline, request extension of project");
     return;
   }
@@ -522,6 +545,7 @@ function handleBackClick() {
   window.location.href = "headfarm_task.html";
 }
 
+// Function to handle add subtask click
 async function handleAddSubtaskClick(e) {
   e.preventDefault();
   if (isAddingSubtask) {
@@ -534,9 +558,11 @@ async function handleAddSubtaskClick(e) {
   const projectTaskId = sessionStorage.getItem("project_task_id");
   const modal = document.getElementById("subtaskModal");
   const endDate = sessionStorage.getItem("selected_project_end_date");
+  const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
 
   try {
-    if (endDate && isPastEndDate(endDate)) {
+    if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
       showErrorPanel("Project is way past the deadline, request extension of project");
       return;
     }
@@ -688,11 +714,11 @@ export function initializeSubtaskPage() {
 
       const completeBtn = document.getElementById("completeTaskBtn");
       const userType = sessionStorage.getItem("user_type");
+      const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
       
       if (completeBtn) {
-        // Disable the button if user is not Head Farmer
-        const isNotHeadFarmer = userType !== "Head Farmer";
-        if (isNotHeadFarmer) {
+        const isNotAuthorized = userType !== "Head Farmer" && !isUserLeadFarmer;
+        if (isNotAuthorized) {
           completeBtn.disabled = true;
           completeBtn.classList.add("disabled");
           completeBtn.style.cursor = "not-allowed";
@@ -700,8 +726,7 @@ export function initializeSubtaskPage() {
       
         completeBtn.onclick = null;
         completeBtn.onclick = async () => {
-          // Only allow click if not disabled and user is Head Farmer
-          if (!completeBtn.disabled && !isNotHeadFarmer) {
+          if (!completeBtn.disabled && !isNotAuthorized) {
             showSuccessPanel("All subtasks are completed! Marking task as Completed...");
             console.log("All subtasks are completed! Marking task as Completed...");
             await completeTask(projectTaskId);
@@ -718,9 +743,10 @@ export function initializeSubtaskPage() {
 
   const addSubtaskBtn = document.querySelector(".add-subtask");
   const userType = sessionStorage.getItem("user_type");
+  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
   
   if (addSubtaskBtn) {
-    if (userType !== "Head Farmer") {
+    if (userType !== "Head Farmer" && !isUserLeadFarmer) {
       addSubtaskBtn.disabled = true;
       addSubtaskBtn.style.opacity = "0.5";
       addSubtaskBtn.style.cursor = "not-allowed";
@@ -731,7 +757,6 @@ export function initializeSubtaskPage() {
     }
   }
   
-
   const closeModal = document.querySelector(".close-modal");
   if (closeModal) {
     closeModal.removeEventListener("click", handleCloseModal);
