@@ -12,11 +12,6 @@ import app from "../../config/firebase_config.js";
 
 const db = getFirestore(app);
 
-const link = document.createElement("link");
-link.rel = "stylesheet";
-link.href = "/src/style/admin/fetch.css";
-document.head.appendChild(link);
-
 function capitalizeFirstLetter(str) {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
 }
