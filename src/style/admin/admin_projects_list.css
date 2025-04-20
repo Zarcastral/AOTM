@@ -563,7 +563,6 @@ input[type="checkbox"] {
   font-size: 20px;
   justify-content: center;
   width: 100%;
-  max-width: 1200px;
 }
 
 .project-selector a {
@@ -576,7 +575,7 @@ input[type="checkbox"] {
   font-weight: 500;
 }
 
-.project-selector:hover a {
+.project-history a:hover {
   color: #41a186;
 }
 

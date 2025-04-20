@@ -48,15 +48,14 @@ body {
   outline: none;
 }
 
-
 .crop_select{
-padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
-  width: 100px;
+  width: 200px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   appearance: none; /* Removes default dropdown styling */
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
@@ -73,7 +72,7 @@ padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
     border: 1px solid #ccc;
     border-radius: 10px;
     outline: none;
-    width: 120px;
+    width: 150px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
     appearance: none; /* Removes default dropdown styling */
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
@@ -84,13 +83,13 @@ padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
 }
 
   .barangay_select{
-      padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+     padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
       font-size: 16px;
       color: #243B53;
       border: 1px solid #ccc;
       border-radius: 10px;
       outline: none;
-      width: 130px;
+      width: 150px;
       transition: border-color 0.3s ease, box-shadow 0.3s ease;
       appearance: none; /* Removes default dropdown styling */
       background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
@@ -98,7 +97,7 @@ padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
       background-position: right 10px center; /* Moves the arrow closer */
       background-size: 16px;
       cursor: pointer;
-}
+  }
     
 .main-content {
   display: flex;
