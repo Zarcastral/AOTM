@@ -83,19 +83,7 @@ body {
   }
 }
 
-@media (max-width: 768px) {
-  .project-selector {
-    gap: 10px;
-    font-size: 16px;
-  }
-}
-
 @media (max-width: 480px) {
-  .project-selector {
-    flex-direction: column;
-    gap: 8px;
-    font-size: 14px;
-  }
   .rando-line {
     display: none;
   }
@@ -414,8 +402,6 @@ tbody tr:hover {
   cursor: not-allowed;
 }
 
-/* ... (all other styles remain unchanged) */
-
 /* Use Resource Panel */
 .use-resource-panel {
   display: none;
@@ -544,8 +530,6 @@ tbody tr:hover {
   margin-top: 5px;
   display: none;
 }
-
-/* ... (all other styles remain unchanged) */
 
 /* History Log Link */
 .history-log-link {
@@ -749,6 +733,17 @@ tbody tr:hover {
     min-width: 600px;
   }
 
+  /* Make crops and fertilizer tables scrollable */
+  .crop_table,
+  .fertilizer_table {
+    overflow-x: auto;
+  }
+
+  .crop_table table,
+  .fertilizer_table table {
+    min-width: 600px;
+  }
+
   .crop-search-bar,
   .fert-search-bar,
   .equip-search-bar {
@@ -804,8 +799,7 @@ tbody tr:hover {
   }
 
   .panel {
-    width: 100%;
-    padding: 10px;
+    padding: 6px;
   }
 
   .equipment_table table {
@@ -817,11 +811,6 @@ tbody tr:hover {
     padding: 6px;
   }
 
-  .crops-pagination,
-  .fertilizer-pagination,
-  .equipment-pagination {
-    justify-content: center;
-  }
 
   .account-panel {
     width: 100%;
@@ -868,8 +857,7 @@ tbody tr:hover {
   .crop-search-bar select,
   .fert-search-bar select,
   .equip-search-bar select {
-    min-width: 100%;
-    max-width: 100%;
+    min-width: 50%;
     font-size: 14px;
     padding: 8px 24px 8px 8px;
   }

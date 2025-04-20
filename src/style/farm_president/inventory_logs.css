@@ -49,7 +49,6 @@ body {
   align-items: center;
   gap: 20px;
   padding: 20px;
-  overflow-y: auto;
   max-height: calc(100vh - 60px);
 }
 
@@ -212,11 +211,7 @@ body {
 }
 
 @media (max-width: 768px) {
-  .project-selector {
-    gap: 10px;
-    font-size: 16px;
-  }
-
+  
   .main-content {
     padding: 10px;
   }
@@ -247,18 +242,12 @@ body {
 }
 
 @media (max-width: 480px) {
-  .project-selector {
-    flex-direction: column;
-    gap: 8px;
-    font-size: 14px;
-  }
 
   .rando-line {
     display: none;
   }
 
   .panel {
-    width: 100%;
     padding: 10px;
   }
 
@@ -278,7 +267,4 @@ body {
     font-size: 12px;
   }
 
-  .logs-pagination {
-    justify-content: center;
-  }
 }

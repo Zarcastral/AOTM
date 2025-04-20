@@ -1,3 +1,4 @@
+/* Existing styles from the second CSS code remain unchanged */
 body {
     background-color: #F5F6FA;
     font-family: 'Poppins';
@@ -5,9 +6,8 @@ body {
     cursor: default;
 }
 
-
 #feedbackType {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    padding: 10px 30px 10px 10px;
     font-size: 16px;
     color: #243B53;
     border: 1px solid #ccc;
@@ -15,16 +15,15 @@ body {
     outline: none;
     width: 250px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
     background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
+    background-position: right 10px center;
     background-size: 16px;
     cursor: pointer;
 }
 
 .container {
-
     max-width: 1000px;
     display: flex;
     flex-direction: column;
@@ -40,7 +39,6 @@ body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-
 /* Project Details Panel */
 .project-details h2 {
     font-size: 1.5rem;
@@ -49,9 +47,7 @@ body {
     color: black;
     margin-bottom: 20px;
     margin-top: 5px;
-    
 }
-
 
 /* Project Details */
 .project-details .details {
@@ -113,30 +109,30 @@ td {
 /* Feedback Panel */
 .feedback-header {
     display: flex;
-    justify-content: space-between; /* Pushes the button to the right */
-    align-items: center; /* Vertically centers the text and button */
-    margin-bottom: 20px; /* Space below the header */
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
     margin-top: 10px;
 }
 
 .feedback-header1 {
     display: flex;
-    justify-content: space-between; /* Pushes the button to the right */
-    align-items: center; /* Vertically centers the text and button */
+    justify-content: space-between;
+    align-items: center;
 }
+
 .feedback-header3 {
     display: flex;
-    justify-content: space-between; /* Pushes the button to the right */
-    align-items: center; /* Vertically centers the text and button */
-    margin-bottom: 10px; /* Space below the header */
-    
-    
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
 }
+
 .feedback-panel h2 {
     font-size: 24px;
     font-weight: bold;
     color: #1a3c34;
-    margin: 0; /* Remove default margin to align with button */
+    margin: 0;
     margin-left: 30px;
     margin-bottom: 20px;
     margin-top: 20px;
@@ -145,12 +141,12 @@ td {
 .add-feedback-btn {
     background: none;
     border: none;
-    color: #41A186;;
+    color: #41A186;
     font-weight: bold;
     font-size: 14px;
     cursor: pointer;
-    padding: 0; /* Remove padding for natural alignment */
-    line-height: 1; /* Matches h2 text alignment */
+    padding: 0;
+    line-height: 1;
     margin-right: 30px;
     margin-top: -10px;
 }
@@ -159,14 +155,12 @@ td {
     display: flex;
     align-items: flex-start;
     gap: 15px;
-    padding: 15px 20px;  /* Keep vertical padding, restore horizontal padding */
-    border-top: 2px solid #EFF1F2;  /* Top border */
-    border-left: none;  /* No left border */
-    border-right: none;  /* No right border */
-    border-radius: 0;  /* No rounding */
+    padding: 15px 20px;
+    border-top: 2px solid #EFF1F2;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
     box-shadow: none;
-    
-    
 }
 
 .feedback-panel {
@@ -174,8 +168,8 @@ td {
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding-left: 0;  /* Remove left padding */
-    padding-right: 0;  /* Remove right padding */
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .feedback-list-empty {
@@ -186,6 +180,7 @@ td {
     color: #777;
     text-align: center;
 }
+
 .feedback-avatar {
     width: 70px;
     height: 70px;
@@ -199,7 +194,6 @@ td {
     margin-top: 10px;
     flex: 1;
 }
-
 
 .feedback-user {
     font-weight: 600;
@@ -220,18 +214,16 @@ td {
 }
 
 label[for="feedbackType"] {
-    font-weight: 500; /* Example style */
+    font-weight: 500;
     margin-left: -12px;
 }
 
 label[for="feedbackMessage"] {
-    font-weight: 500; /* Example style */
-
+    font-weight: 500;
 }
 
-
-#feedbackMessage{
-     font-family: 'Poppins';
+#feedbackMessage {
+    font-family: 'Poppins';
 }
 
 .feedback-text {
@@ -259,7 +251,7 @@ label[for="feedbackMessage"] {
     font-size: 15px;
 }
 
-.view-btn{
+.view-btn {
     background-color: transparent;
     border: none;
 }
@@ -285,14 +277,14 @@ label[for="feedbackMessage"] {
 }
 
 .acknowledge-icon {
-    width: 10px; /* Adjust size as needed */
-    height: 10px; /* Adjust size as needed */
+    width: 10px;
+    height: 10px;
     vertical-align: middle;
-    transition: opacity 0.3s; /* Optional hover effect */
+    transition: opacity 0.3s;
 }
 
 .acknowledge-btn:hover .acknowledge-icon {
-    opacity: 0.7; /* Dim image on hover */
+    opacity: 0.7;
 }
 
 /* Popup */
@@ -350,14 +342,14 @@ label[for="feedbackMessage"] {
     font-size: 30px;
     cursor: pointer;
     color: #c3c3c3;
-    margin-right:5px;
+    margin-right: 5px;
 }
 
 .close-btn:hover {
     opacity: 0.8;
 }
 
-select{
+select {
     width: 100%;
     padding: 8px;
     margin: 15px 0 30px 0;
@@ -373,8 +365,6 @@ textarea {
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
-}
-textarea {
     resize: none;
 }
 
@@ -392,6 +382,7 @@ textarea {
 .popup-content button:hover {
     background: #36886d;
 }
+
 .success-message {
     position: fixed;
     top: 20px;
@@ -425,6 +416,7 @@ textarea {
     opacity: 0;
     transition: opacity 0.3s ease;
 }
+
 .no-project-message {
     position: fixed;
     top: 13%;
@@ -442,80 +434,265 @@ textarea {
     transition: opacity 0.4s ease-in-out;
     z-index: 1000;
 }
+
 .table-empty-message {
     text-align: center;
     color: #777;
     font-size: 16px;
     padding: 20px;
-  }
-/* Responsive Design */
-@media (max-width: 768px) {
-    
+}
+
+/* Responsive Design (Copied and Adapted from First CSS Code) */
+@media (max-width: 1024px) {
+    .container {
+        padding: 15px 5px;
+    }
+
     .panel {
-      padding: 10px 20px;
-      margin: 5px;
+        padding: 20px;
+    }
+
+    .project-details h2 {
+        font-size: 26px;
+    }
+
+    .project-details .details {
+        grid-template-columns: repeat(3, 1fr);
+        margin-left: 20px;
+        font-size: 14px;
     }
 
     .feedback-panel h2 {
+        font-size: 22px;
         margin-left: 10px;
     }
-  
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-left: 540px;
-      
+
+    .add-feedback-btn {
+        margin-right: 10px;
     }
-    .project-details h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        font-size: 25px;
-        color: #1a3c34;
-        margin-bottom: 20px;
-        margin-top: 8px;
+
+    th, td {
+        font-size: 13px;
+        padding: 8px;
     }
-    
-    .details {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 15px;
-        text-align: left;
-        margin-bottom: 30px;
-        margin-left: 10px;
-        font-size: 10px;
+
+    .popup-content {
+        padding: 30px 15px;
+        max-width: 90%;
     }
-  }
-  
-  @media (max-width: 480px) {
-  
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px 5px;
+    }
+
     .panel {
-      padding: 10px 20px;
-      margin: 10px;
-    }
-   
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-left: 540px;
-      
+        padding: 15px;
+        margin: 0;
     }
 
     .project-details h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        font-size: 25px;
-        color: #1a3c34;
-        margin-bottom: 20px;
-        margin-top: 8px;
+        font-size: 24px;
     }
-    
-    .details {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 15px;
-        text-align: left;
-        margin-bottom: 30px;
+
+    .project-details .details {
         margin-left: 10px;
-        font-size: 10px;
+        font-size: 13px;
+        gap: 10px;
     }
-  }
+
+    .feedback-panel h2 {
+        font-size: 20px;
+        margin-left: 5px;
+    }
+
+    .add-feedback-btn {
+        font-size: 14px;
+        margin-right: 5px;
+    }
+
+    .popup-content {
+        padding: 30px 15px;
+        max-width: 90%;
+    }
+
+    .popup-content h2,
+    .popup-content h3,
+    .popup-content p {
+        margin-left: 0; /* Remove negative margins */
+    }
+
+    th, td {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    #feedbackType {
+        font-size: 14px;
+        width: 100%;
+        max-width: 200px;
+    }
+
+    textarea {
+        font-size: 13px;
+    }
+
+    /* Remove problematic button-group positioning */
+    .button-group {
+        margin-left: 0;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+
+    .panel {
+        padding: 10px;
+        margin: 0;
+    }
+
+    .project-details h2 {
+        font-size: 20px;
+    }
+
+    .project-details .details {
+        grid-template-columns: repeat(2, 1fr);
+        margin-left: 0;
+        font-size: 12px;
+        gap: 8px;
+    }
+
+    .feedback-panel h2 {
+        font-size: 18px;
+        margin-left: 5px;
+    }
+
+    .add-feedback-btn {
+        font-size: 13px;
+        margin-right: 5px;
+    }
+
+    .popup-content {
+        padding: 20px 10px;
+        max-width: 95%;
+    }
+
+    .popup-content h2,
+    .popup-content h3,
+    .popup-content p {
+        margin-left: 0;
+    }
+
+    .success-message,
+    .error-message,
+    .no-project-message {
+        font-size: 14px;
+        padding: 8px 15px;
+        max-width: 90%;
+    }
+
+    th, td {
+        font-size: 11px;
+        padding: 5px;
+    }
+
+    #feedbackType {
+        font-size: 13px;
+        max-width: 180px;
+    }
+
+    textarea {
+        font-size: 12px;
+    }
+
+    .feedback-panel .feedback-list {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .feedback-item,
+    .feedback-list-empty {
+        display: block;
+        white-space: normal;
+    }
+
+    .feedback-avatar {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Remove problematic button-group positioning */
+    .button-group {
+        margin-left: 0;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 300px) {
+    .container {
+        padding: 3px;
+    }
+
+    .panel {
+        padding: 8px;
+        margin: 0;
+    }
+
+    .project-details h2 {
+        font-size: 18px;
+    }
+
+    .project-details .details {
+        grid-template-columns: 1fr;
+        font-size: 11px;
+        gap: 6px;
+    }
+
+    .feedback-panel h2 {
+        font-size: 16px;
+        margin-left: 3px;
+    }
+
+    .add-feedback-btn {
+        font-size: 12px;
+        margin-right: 3px;
+    }
+
+    .popup-content {
+        padding: 15px 10px;
+        max-width: 98%;
+    }
+
+    .popup-content h2,
+    .popup-content h3,
+    .popup-content p {
+        margin-left: 0;
+    }
+
+    .success-message,
+    .error-message,
+    .no-project-message {
+        font-size: 12px;
+        padding: 6px 12px;
+        max-width: 90%;
+    }
+
+    th, td {
+        font-size: 10px;
+        padding: 4px;
+    }
+
+    #feedbackType {
+        font-size: 12px;
+        max-width: 160px;
+    }
+
+    textarea {
+        font-size: 11px;
+    }
+}

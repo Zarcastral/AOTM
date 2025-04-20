@@ -74,17 +74,19 @@ body {
   border-radius: 10px;
   padding: 45px 20px 60px 20px;
   position: relative;
-  
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto; /* Enables horizontal scrolling for the table */
+  max-height: 500px; /* Optional: Set a max height for vertical scrolling */
+  overflow-y: auto; /* Optional: Enables vertical scrolling if content exceeds max-height */
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-}
-
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
+  min-width: 600px; /* Ensures table is wide enough to require scrolling on smaller screens */
 }
 
 th,

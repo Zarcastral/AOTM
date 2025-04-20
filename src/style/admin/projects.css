@@ -36,18 +36,16 @@ body {
   height: 24px;
   cursor: pointer;
 }
+
 .container {
   max-width: 600px;
   margin: auto;
-  
 }
-
 
 .back {
   margin-top: 20px;
   margin-left: -50px;
   margin-bottom: 5px;
-
 }
 
 .panel {
@@ -56,7 +54,6 @@ body {
   margin-bottom: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 800px;
-  margin-left: -50px;
   margin-left: -50px;
   border-radius: 10px;
 }
@@ -70,30 +67,28 @@ body {
   width: 800px;
   margin-left: -50px;
 }
+
 .panel h2 {
   margin-bottom: 20px;
   margin-top: 30px;
-
 }
+
 .form-group {
   margin-bottom: 15px;
-
 }
 
 .form-group label {
   display: block;
   margin-bottom: 5px;
-  
 }
 
 .form-group1 label {
   display: block;
   margin-bottom: 10px;
-  
 }
 
 .form-group3 select {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
@@ -101,32 +96,30 @@ body {
   outline: none;
   width: 200px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
 
-
 .form-group1 select {
   width: 92.5%;
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
   border-radius: 5px;
   outline: none;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
-
 
 .form-group1 input,
 .form-group input,
@@ -137,33 +130,31 @@ body {
   border-radius: 4px;
   font-size: 14px;
   font-family: "Poppins", sans-serif;
-
-
 }
 
 .form-group2 select {
   width: 87%;
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
   border-radius: 5px;
   outline: none;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
 }
+
 .form-group2 input {
   width: 156%;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
- 
 }
 
 .form-group select:disabled,
@@ -176,15 +167,13 @@ body {
   gap: 199px;
   margin-left: 50px;
   margin-top: 10px;
-
 }
 
 .inline-group4 {
   gap: 210px;
   margin-left: 50px;
-
-
 }
+
 .inline-group2 {
   display: flex;
   gap: 10px;
@@ -195,43 +184,37 @@ body {
 .inline-group3 {
   display: flex;
   gap: 10px;
-  align-items: center; /* Ensures everything aligns in one line */
-  flex-wrap: nowrap; /* Prevents elements from moving to the next line */
+  align-items: center;
+  flex-wrap: nowrap;
   width: 100%;
   margin-left: 50px;
- 
- 
 }
 
 .form-group3 {
-  flex: 1.5; /* Gives Crop Type & Fertilizer Type more space */
-  
+  flex: 1.5;
 }
 
 .form-group4 {
-  flex: 1; /* Ensures Quantity & Unit stay aligned */
+  flex: 1;
   display: flex;
-  flex-direction: column; /* Keeps label above input */
+  flex-direction: column;
   margin-left: 10px;
-
 }
 
 .form-group5 {
-  flex: 1; /* Ensures Quantity & Unit stay aligned */
+  flex: 1;
   display: flex;
-  flex-direction: column; /* Keeps label above input */
+  flex-direction: column;
   margin-left: -80px;
-  
 }
 
 .form-group3 select {
-  width: 100%; /* Prevents it from overflowing */
+  width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
   margin-top: 10px;
   font-size: 14px;
-
 }
 
 .form-group4 input {
@@ -241,7 +224,6 @@ body {
   border-radius: 4px;
   font-size: 14px;
   margin-top: 10px;
-
 }
 
 .form-group5 input {
@@ -251,21 +233,17 @@ body {
   border-radius: 4px;
   font-size: 14px;
   margin-top: 10px;
-
 }
 
 .inline-group .form-group {
   flex: 1;
-  
 }
 
 .button-group {
   display: flex;
   gap: 10px;
   margin-left: 473px;
-  
 }
-
 
 .cancel {
   background-color: #C3C3C3;
@@ -276,7 +254,6 @@ body {
   border-radius: 12px;
   cursor: pointer;
 }
-
 
 .save {
   background-color: #41A186;
@@ -291,7 +268,6 @@ body {
 /* Equipment Form Styling */
 .equipment-form-group {
   margin-bottom: 10px;
-
 }
 
 #equipment-textarea {
@@ -356,7 +332,7 @@ body {
 .popup-button {
   margin-top: 12px;
   padding: 8px 15px;
-  background-color: #dc3545;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -364,7 +340,7 @@ body {
 }
 
 .popup-button:hover {
-  background-color: #c82333;
+  background-color: #45a049;
 }
 
 .equipment-input-container {
@@ -377,22 +353,6 @@ body {
 .popup-input {
   padding: 8px;
   font-size: 14px;
-  
-}
-
-.popup-button {
-  margin-top: 10px;
-  padding: 8px 15px;
-  font-size: 14px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.popup-button:hover {
-  background-color: #45a049;
 }
 
 .inline-group6 {
@@ -402,34 +362,30 @@ body {
 
 .fertilizer__group,
 .equipment__group {
-  display: flex;
   gap: 10px;
-  align-items: center; /* Align all inputs/selects horizontally */
+  align-items: center;
   margin-bottom: 15px;
-  margin-left: 50px; /* Match the margin-left of other inline groups */
-  position: relative; /* Allow positioning of the remove button */
-  flex-wrap: wrap; /* Allow wrapping if necessary */
-  
+  margin-left: 50px;
+  position: relative;
+  flex-wrap: wrap;
 }
 
 .form__group {
-  flex: 1; /* Ensure equal distribution of space */
+  flex: 1;
   display: flex;
   flex-direction: column;
-
 }
 
 .quantity__group {
   flex: 1;
   display: flex;
-  flex-direction: column; /* Stack quantity input and remove button vertically */
-  position: relative; /* Position the remove button relative to this */
-
+  flex-direction: column;
+  position: relative;
 }
 
-.form__select
- {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+.form__select,
+.form__select1 {
+  padding: 10px 30px 10px 10px;
   font-size: 16px;
   color: #243B53;
   border: 1px solid #ccc;
@@ -437,71 +393,48 @@ body {
   outline: none;
   width: 700px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
   background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
+  background-position: right 10px center;
   background-size: 16px;
   cursor: pointer;
   margin-top: 5px;
-
 }
-.form__select1
- {
-  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-  font-size: 16px;
-  color: #243B53;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  outline: none;
-  width: 700px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  appearance: none; /* Removes default dropdown styling */
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-  background-repeat: no-repeat;
-  background-position: right 10px center; /* Moves the arrow closer */
-  background-size: 16px;
-  cursor: pointer;
-  margin-top: 5px;
 
-}
 .form__input {
-  width: 91%;/* Full width like other inputs/selects */
-  padding: 10px; /* Consistent padding */
-  border: 1px solid #ddd; /* Consistent border */
-  border-radius: 4px; /* Consistent border radius */
-  font-size: 14px; /* Consistent font size */
-  font-family: "Poppins", sans-serif; /* Match font family */
+  width: 91%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: "Poppins", sans-serif;
   margin-top: 5px;
-
 }
 
 .form__select:disabled,
 .form__input:disabled {
-  background-color: #f0f0f0; /* Match disabled state */
+  background-color: #f0f0f0;
 }
 
 .btn--remove {
   color: #AC415B;
   border: none;
-  padding: 10px 15px; /* Slightly smaller padding for a compact look */
+  padding: 10px 15px;
   background-color: white;
   cursor: pointer;
   font-size: 14px;
   font-family: "Poppins", sans-serif;
-  margin-top: 5px; /* Space between the quantity input and the button */
-  align-self: flex-start; /* Align to the left under the quantity input */
-  position: absolute; /* Position it below the quantity input */
-  top: 100%; /* Place it directly below the parent form__group */
+  margin-top: 5px;
+  align-self: flex-start;
+  position: absolute;
+  top: 100%;
   right: 50px;
 }
 
-
-
-
 .btn--add {
   width: 200px;
-  background-color: white; /* Match save button color */
+  background-color: white;
   color: #41a186;
   border: none;
   padding: 10px 20px;
@@ -510,17 +443,16 @@ body {
   font-size: 14px;
   font-family: "Poppins", sans-serif;
   margin-top: 20px;
-  margin-left: 590px; /* Align with other elements */
+  margin-left: 590px;
 }
-
-
 
 .form__label {
   display: block;
   margin-top: 10px;
-  margin-bottom: 5px; /* Match the label styling */
+  margin-bottom: 5px;
   font-family: "Poppins";
 }
+
 /* Added Success and Error Message Styles */
 .success-message {
   position: fixed;
@@ -538,6 +470,7 @@ body {
   opacity: 0;
   transition: opacity 0.3s ease;
 }
+
 .error-message {
   position: fixed;
   top: 20px;
@@ -555,53 +488,217 @@ body {
   transition: opacity 0.3s ease;
 }
 
-@media (max-width: 768px) {
-  .back {
-    margin-left: 10px;
-    margin-bottom: 5px;
-    margin-top: 50px;
-  }
-  
-  
-  .panel {
-    padding: 30px;
-    margin: 10px;
+/* Responsive Styles for Laptop Screens */
+@media (max-width: 1024px) {
+  .container {
+    max-width: 90%;
+    padding: 0 10px;
   }
 
+  .back {
+    margin-left: 0;
+  }
+
+  .panel,
   .panel2 {
-    padding: 30px;
-    margin: 10px;
+    width: 95%;
+    margin-left: 0;
+    padding: 15px 20px;
+  }
+
+  .inline-group {
+    gap: clamp(20px, 5vw, 50px);
+    margin-left: 20px;
+  }
+
+  .inline-group4 {
+    gap: clamp(20px, 5vw, 50px);
+    margin-left: 20px;
+  }
+
+  .inline-group2,
+  .inline-group3,
+  .fertilizer__group,
+  .equipment__group {
+    margin-left: 20px;
+  }
+
+  .form-group3,
+  .form-group4,
+  .form-group5 {
+    margin-left: 0;
+  }
+
+  .form-group1 input,
+  .form-group input,
+  .form-group select,
+  .form-group1 select,
+  .form-group2 select,
+  .form-group3 select,
+  .form-group4 input,
+  .form__select,
+  .form__select1,
+  .form__input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .form-group5 input{
+    width: 89%;
+    max-width: 100%;
+    box-sizing: border-box;
+
+  }
+  .form-group2 input {
+    width: 92%;
   }
 
   .button-group {
-    display: flex;
-    gap: 10px;
-    margin-left: 540px;
-    
+    margin-left: auto;
+    margin-right: -10px;
+    flex-direction: row-reverse;
+  }
+
+  .btn--add {
+    margin-left: auto;
+    margin-right: -20px;
+  }
+
+  .btn--remove {
+    right: 20px;
   }
 }
 
-@media (max-width: 480px) {
+/* Responsive Styles for Tablet Screens */
+@media (max-width: 768px) {
+  .container {
+    max-width: 95%;
+    padding: 0 5px;
+  }
+
   .back {
     margin-left: 10px;
     margin-bottom: 5px;
-    margin-top: 50px;
+    margin-top: 20px;
   }
 
-  .panel {
-    padding: 30px;
-    margin: 10px;
-  }
-
+  .panel,
   .panel2 {
-    padding: 30px;
-    margin: 10px;
+    padding: 15px;
+    margin: 10px 0;
+  }
+
+  .panel h2 {
+    font-size: clamp(18px, 4vw, 20px);
+  }
+
+  .form-group,
+  .form-group1,
+  .form-group2,
+  .form-group3,
+  .form-group4,
+  .form-group5 {
+    width: 100%;
+  }
+
+  .inline-group,
+  .inline-group3,
+  .inline-group4,
+  .inline-group6,
+  .fertilizer__group,
+  .equipment__group {
+    flex-direction: column;
+    gap: 15px;
+    margin-left: 0;
+  }
+
+  .inline-group2 {
+    margin-left: 0;
+  }
+
+  .form-group3,
+  .form-group4,
+  .form-group5 {
+    flex: none;
+    margin-left: 0;
+  }
+
+  .form-group4 input,
+  .form-group5 input {
+    width: 100%;
   }
 
   .button-group {
-    display: flex;
-    gap: 10px;
-    margin-left: 540px;
-    
+    justify-content: center;
+    margin-left: 0;
+    margin-top: 20px;
+  }
+
+  .btn--add {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .btn--remove {
+    position: static;
+    margin-top: 10px;
+  }
+
+  .form__select,
+  .form__select1 {
+    width: 100%;
+  }
+
+  .popup-box {
+    width: 90%;
+    max-width: 300px;
+    padding: 15px;
+  }
+
+  .popup-title {
+    font-size: clamp(16px, 4vw, 18px);
+  }
+
+  .success-message,
+  .error-message {
+    font-size: clamp(14px, 3vw, 16px);
+  }
+}
+
+/* Responsive Styles for Mobile Screens */
+@media (max-width: 480px) {
+  .header {
+    padding: 0 10px;
+  }
+
+  .header-title {
+    font-size: clamp(20px, 6vw, 24px);
+  }
+
+  .panel,
+  .panel2 {
+    padding: 10px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group1 input,
+  .form-group1 select,
+  .form-group2 input,
+  .form-group2 select,
+  .form-group3 select,
+  .form-group4 input,
+  .form-group5 input,
+  .form__select,
+  .form__select1,
+  .form__input {
+    font-size: clamp(12px, 3vw, 13px);
+  }
+
+  .cancel,
+  .save {
+    padding: 8px 20px;
+    font-size: clamp(12px, 3vw, 14px);
   }
 }
