@@ -427,7 +427,7 @@ async function fetchAttendanceData(
     }
 
     if (attendanceSnapshot.empty) {
-      tbody.innerHTML = `<tr><td colspan="3">No attendance records found for subtask: ${subtaskName}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3">No attendance records subtask: ${subtaskName}.</td></tr>`;
       sessionStorage.setItem("totalAttendanceRecords", "0");
       completedBtn.disabled = true;
       if (subtask_status !== "Completed") {

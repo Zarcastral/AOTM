@@ -94,6 +94,13 @@ body {
     color: #333;
 }
 
+.subtask-table td[colspan="3"] {
+    padding: 10px; /* Match original td padding */
+    text-align: center;
+    font-size: 14px; /* Match original td font-size */
+    color: #333; /* Match original td color */
+}
+
 .action-icons img {
     width: 16px; /* Fixed size as original */
     height: 16px;
@@ -286,8 +293,24 @@ body {
     }
 
     .subtask-table {
-        overflow-x: auto;
+        display: block; /* Enable scrolling */
+        overflow-x: auto; /* Enable horizontal scrolling */
         white-space: nowrap; /* Prevent text wrapping */
+    }
+
+    .subtask-table thead,
+    .subtask-table tbody {
+        display: table; /* Maintain table structure */
+        width: 100%;
+    }
+
+    .subtask-table td[colspan="3"] {
+        min-width: 300px; /* Ensure message is wide enough to trigger scroll */
+        white-space: nowrap; /* Prevent wrapping */
+        padding: 10px; /* Match original td padding */
+        text-align: center;
+        font-size: 14px; /* Match original td font-size */
+        color: #333; /* Match original td color */
     }
 
     .modal-content {
@@ -308,8 +331,24 @@ body {
     }
 
     .subtask-table {
-        overflow-x: auto;
-        white-space: nowrap;
+        display: block; /* Enable scrolling */
+        overflow-x: auto; /* Enable horizontal scrolling */
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+
+    .subtask-table thead,
+    .subtask-table tbody {
+        display: table; /* Maintain table structure */
+        width: 100%;
+    }
+
+    .subtask-table td[colspan="3"] {
+        min-width: 300px; /* Ensure message is wide enough to trigger scroll */
+        white-space: nowrap; /* Prevent wrapping */
+        padding: 10px; /* Match original td padding */
+        text-align: center;
+        font-size: 14px; /* Match original td font-size */
+        color: #333; /* Match original td color */
     }
 
     .modal-content {
