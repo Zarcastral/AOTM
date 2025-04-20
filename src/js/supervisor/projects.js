@@ -1268,7 +1268,7 @@ window.saveProject = async function () {
     await processFertilizerStockAfterUse(projectID);
     await processEquipmentStockAfterUse(projectID);
 
-    window.location.href = "admin_projects_list.html";
+    window.location.href = "supervisor_projects_list.html";
 
     // Add notification for successful project creation
     const notificationData = {
@@ -1423,7 +1423,7 @@ document.getElementById("crops")?.addEventListener("change", function () {
 document
   .getElementById("cancel-button")
   ?.addEventListener("click", function () {
-    window.location.href = "admin_projects_list.html";
+    window.location.href = "supervisor_projects_list.html";
   });
 
 window.onload = function () {
