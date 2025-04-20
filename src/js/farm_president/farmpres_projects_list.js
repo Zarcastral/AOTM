@@ -357,8 +357,13 @@ async function teamAssign(project_id) {
       where("barangay_name", "==", userBarangay)
     );
     const projectSnapshot = await getDocs(projectQuery);
+    // Only include team_ids from projects that are NOT "Completed" or "Failed"
     const assignedTeamIds = new Set(
       projectSnapshot.docs
+        .filter((doc) => {
+          const status = (doc.data().status || "").toLowerCase();
+          return !["completed", "failed"].includes(status);
+        })
         .map((doc) => parseInt(doc.data().team_id, 10))
         .filter(Boolean)
     );
@@ -370,28 +375,33 @@ async function teamAssign(project_id) {
     const teamSnapshot = await getDocs(teamQuery);
 
     let teamListHtml = `<div class="team-assign-box"><h4 style="font-weight: normal;">Available Teams:</h4><div class="team-list-container">`;
-    teamSnapshot.forEach((doc) => {
-      const teamData = doc.data();
-      const teamId = parseInt(teamData.team_id, 10);
-      if (assignedTeamIds.has(teamId)) return;
+    if (teamSnapshot.empty) {
+      teamListHtml = `<div class="team-assign-box"><h4 style="font-weight: normal;">No available teams found.</h4></div>`;
+    } else {
+      teamSnapshot.forEach((doc) => {
+        const teamData = doc.data();
+        const teamId = parseInt(teamData.team_id, 10);
+        if (assignedTeamIds.has(teamId)) return;
 
-      teamListHtml += `
-        <div class="team-item" 
-             data-team-id="${teamId}" 
-             data-team-name="${teamData.team_name}" 
-             data-lead-farmer="${teamData.lead_farmer}" 
-             data-lead-farmer-id="${teamData.lead_farmer_id}"  
-             data-farmers='${JSON.stringify(teamData.farmer_name || [])}'>
-          <strong>${teamData.team_name}</strong><br>
-          Lead: ${teamData.lead_farmer}<br>
-          Total Farmers: ${teamData.farmer_name?.length || 0}
-        </div>
-      `;
-    });
-    teamListHtml += "</div></div>";
+        teamListHtml += `
+          <div class="team-item" 
+               data-team-id="${teamId}" 
+               data-team-name="${teamData.team_name}" 
+               data-lead-farmer="${teamData.lead_farmer}" 
+               data-lead-farmer-id="${teamData.lead_farmer_id}"  
+               data-farmers='${JSON.stringify(teamData.farmer_name || [])}'>
+            <strong>${teamData.team_name}</strong><br>
+            Lead: ${teamData.lead_farmer}<br>
+            Total Farmers: ${teamData.farmer_name?.length || 0}
+          </div>
+        `;
+      });
+      teamListHtml += "</div></div>";
+    }
     document.getElementById("team-assign-list").innerHTML = teamListHtml;
   } catch (error) {
     console.error("Error fetching team data:", error);
+    showDeleteMessage("Error loading teams. Please try again.");
   }
 
   let selectedTeam = null;
@@ -497,7 +507,7 @@ async function teamAssign(project_id) {
                   )
                 );
             })(),
-            ...notificationPromises, // Include all notification creations
+            ...notificationPromises,
           ]);
 
           showDeleteMessage(
