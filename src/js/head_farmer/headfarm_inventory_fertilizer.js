@@ -1,10 +1,13 @@
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
+  addDoc,
   collection,
+  doc,
   getDocs,
   getFirestore,
   onSnapshot,
   query,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
@@ -13,7 +16,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Global variables for authenticated user
-let currentFarmerId = "";
+let currentFarmerId = sessionStorage.getItem("farmer_id") || "";
 let currentUserType = "";
 let currentFirstName = "";
 let currentMiddleName = "";
@@ -45,6 +48,7 @@ async function getAuthenticatedFarmer() {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
+          console.log("Authenticated user email:", user.email);
           const farmerQuery = query(
             collection(db, "tb_farmers"),
             where("email", "==", user.email)
@@ -53,12 +57,14 @@ async function getAuthenticatedFarmer() {
 
           if (!farmerSnapshot.empty) {
             const farmerData = farmerSnapshot.docs[0].data();
-            // Store farmer details in global variables
-            currentFarmerId = farmerData.farmer_id;
-            currentUserType = farmerData.user_type;
-            currentFirstName = farmerData.first_name;
-            currentMiddleName = farmerData.middle_name;
-            currentLastName = farmerData.last_name;
+            console.log("Farmer data:", farmerData);
+            sessionStorage.setItem("farmer_id", String(farmerData.farmer_id));
+            currentFarmerId = String(farmerData.farmer_id);
+            currentUserType = farmerData.user_type || "";
+            currentFirstName = farmerData.first_name || "";
+            currentMiddleName = farmerData.middle_name || "";
+            currentLastName = farmerData.last_name || "";
+            console.log("Set currentFarmerId:", currentFarmerId);
 
             resolve({
               farmer_id: currentFarmerId,
@@ -68,8 +74,8 @@ async function getAuthenticatedFarmer() {
               last_name: currentLastName,
             });
           } else {
-            console.error("Farmer record not found.");
-            reject("Farmer record not found.");
+            console.error("Farmer record not found for email:", user.email);
+            reject(new Error("Farmer record not found."));
           }
         } catch (error) {
           console.error("Error fetching farmer data:", error);
@@ -77,7 +83,7 @@ async function getAuthenticatedFarmer() {
         }
       } else {
         console.error("User not authenticated.");
-        reject("User not authenticated.");
+        reject(new Error("User not authenticated."));
       }
     });
   });
@@ -85,9 +91,15 @@ async function getAuthenticatedFarmer() {
 
 async function fetchFertilizers() {
   try {
-    await getAuthenticatedFarmer();
+    if (!currentFarmerId) {
+      console.log("No farmer_id in sessionStorage, fetching from Firestore");
+      await getAuthenticatedFarmer();
+    }
+    if (!currentFarmerId) {
+      throw new Error("currentFarmerId is not set.");
+    }
+    console.log("Fetching projects for currentFarmerId:", currentFarmerId);
 
-    // Fetch Ongoing projects where lead_farmer_id matches current user's farmer_id
     const projectsCollection = collection(db, "tb_projects");
     const projectsQuery = query(
       projectsCollection,
@@ -98,28 +110,48 @@ async function fetchFertilizers() {
     onSnapshot(
       projectsQuery,
       async (snapshot) => {
-        const stockCollection = collection(db, "tb_fertilizer_stocks");
+        console.log("Projects snapshot size:", snapshot.size);
+        const stockCollection = collection(db, "tb_fertilizer_stock");
 
         const fertilizersData = await Promise.all(
           snapshot.docs.map(async (doc) => {
             const project = doc.data();
+            console.log(
+              "Processing project:",
+              project.project_id,
+              project.project_name
+            );
             const fertilizerArray = project.fertilizer || [];
 
-            // Process each fertilizer in the project
             const fertilizerPromises = fertilizerArray.map(async (fert) => {
               let stockData = {};
+              const fertilizerName =
+                fert.fertilizer_name?.trim() || "Unknown Fertilizer";
+              console.log(
+                "Querying stock for fertilizer_name:",
+                fertilizerName
+              );
 
-              // Fetch stock data from tb_fertilizer_stocks based on fertilizer_name
               const stockQuery = query(
                 stockCollection,
-                where("fertilizer_name", "==", fert.fertilizer_name)
+                where("fertilizer_name", "==", fertilizerName)
               );
               const stockSnapshot = await getDocs(stockQuery);
+              console.log(
+                "Stock docs for",
+                fertilizerName,
+                stockSnapshot.docs.map((doc) => doc.data())
+              );
 
               if (!stockSnapshot.empty) {
                 const stockDoc = stockSnapshot.docs[0].data();
                 const stockEntry = stockDoc.stocks.find(
                   (stock) => stock.farmer_id === currentFarmerId
+                );
+                console.log(
+                  "Found stockEntry for farmer_id",
+                  currentFarmerId,
+                  stockEntry
                 );
                 if (stockEntry) {
                   stockData = {
@@ -127,14 +159,22 @@ async function fetchFertilizers() {
                     current_stock: stockEntry.current_stock,
                     unit: stockEntry.unit,
                   };
+                } else {
+                  console.warn(
+                    `No stock entry found for farmer_id: ${currentFarmerId} in fertilizer: ${fertilizerName}`
+                  );
                 }
+              } else {
+                console.warn(
+                  `No stock document found for fertilizer_name: ${fertilizerName}`
+                );
               }
 
               return {
                 project_id: project.project_id,
                 project_name: project.project_name,
-                fertilizer_type: fert.fertilizer_type,
-                fertilizer_name: fert.fertilizer_name,
+                fertilizer_type: fert.fertilizer_type || "Unknown Type",
+                fertilizer_name: fertilizerName,
                 fertilizerDate: project.fertilizer_date || null,
                 ...stockData,
                 owned_by: currentUserType,
@@ -145,7 +185,6 @@ async function fetchFertilizers() {
           })
         );
 
-        // Flatten the array of arrays into a single array
         fertilizersList = fertilizersData.flat();
         filteredFertilizers = [...fertilizersList];
         sortFertilizersByDate();
@@ -174,51 +213,326 @@ function displayFertilizers(fertilizersList) {
 
   if (paginatedFertilizers.length === 0) {
     tableBody.innerHTML = `
-      <tr class="no-records-message">
-        <td colspan="5" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
-      </tr>
-    `;
+        <tr class="no-records-message">
+          <td colspan="6" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
+        </tr>
+      `;
+    updatePagination();
     return;
   }
 
   paginatedFertilizers.forEach((fertilizer) => {
     const row = document.createElement("tr");
     const date = fertilizer.stock_date || fertilizer.fertilizerDate;
-    const dateAdded = date
+    const formattedDate = date
       ? date.toDate
         ? date.toDate().toLocaleDateString()
         : new Date(date).toLocaleDateString()
       : "Not recorded";
+    const currentStock = parseFloat(fertilizer.current_stock) || 0;
+    const isDisabled = currentStock === 0 ? "disabled" : "";
+    const fertilizerName = fertilizer.fertilizer_name || "Unknown Fertilizer";
 
     row.innerHTML = `
-      <td>${fertilizer.project_id}</td>
-      <td>${fertilizer.fertilizer_name}</td>
-      <td>${fertilizer.fertilizer_type}</td>
-      <td>${dateAdded}</td>
-      <td>${fertilizer.current_stock || "0"} ${fertilizer.unit || "units"}</td>
-    `;
+        <td>${fertilizer.project_id}</td>
+        <td>${fertilizerName}</td>
+        <td>${fertilizer.fertilizer_type}</td>
+        <td>${formattedDate}</td>
+        <td>${currentStock} ${fertilizer.unit || "units"}</td>
+        <td>
+          <span class="use-resource-wrapper ${isDisabled}" 
+                data-project-id="${fertilizer.project_id}" 
+                data-fertilizer-name="${encodeURIComponent(fertilizerName)}" 
+                data-stock="${currentStock}" 
+                data-unit="${fertilizer.unit || ""}">
+            <img src="/images/use.png" alt="Use Resource" 
+                class="use-resource-icon ${isDisabled}" 
+                ${
+                  isDisabled
+                    ? 'aria-disabled="true" title="Resource unavailable (zero stock)"'
+                    : ""
+                }>
+          </span>
+        </td>
+      `;
     tableBody.appendChild(row);
   });
   updatePagination();
+
+  const icons = document.querySelectorAll(
+    ".fertilizer_table .use-resource-icon:not(.disabled)"
+  );
+  icons.forEach((icon) => {
+    icon.removeEventListener("click", handleFertilizerIconClick);
+    icon.addEventListener("click", handleFertilizerIconClick);
+  });
+}
+
+function handleFertilizerIconClick(event) {
+  const wrapper = event.target.closest(".use-resource-wrapper");
+  const projectId = wrapper.dataset.projectId;
+  const fertilizerName = decodeURIComponent(wrapper.dataset.fertilizerName);
+  const currentStock = parseFloat(wrapper.dataset.stock) || 0;
+  const unit = wrapper.dataset.unit;
+  console.log("Fertilizer icon clicked:", {
+    projectId,
+    fertilizerName,
+    currentStock,
+    unit,
+  });
+  if (currentStock > 0) {
+    openResourcePanel(projectId, fertilizerName, currentStock, unit);
+  }
+}
+
+function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
+  const panel = document.getElementById("use-resource-panel");
+  const resourceNameDisplay = document.getElementById("resource-type-display");
+  const maxQuantityDisplay = document.getElementById("max-quantity");
+  const quantityInput = document.getElementById("quantity-input");
+  const quantityError = document.getElementById("quantity-error");
+  const usageTypeSelect = document.getElementById("usage-type");
+  const detailsContainer = document.getElementById("details-container");
+  const detailsInput = document.getElementById("usage-details");
+  const detailsError = document.getElementById("details-error");
+  const saveButton = document.getElementById("save-resource");
+
+  console.log("Opening fertilizer resource panel with:", {
+    fertilizerName,
+    currentStock,
+    unit,
+  });
+
+  if (
+    !panel ||
+    !resourceNameDisplay ||
+    !maxQuantityDisplay ||
+    !quantityInput ||
+    !usageTypeSelect ||
+    !detailsContainer ||
+    !detailsInput ||
+    !detailsError ||
+    !saveButton
+  ) {
+    console.error(
+      "One or more required DOM elements for use-resource-panel not found."
+    );
+    alert("Error: Resource panel elements not found. Please check the HTML.");
+    return;
+  }
+
+  const displayName = fertilizerName || "Unknown Fertilizer";
+  console.log("Setting resource-type-display to:", displayName);
+
+  try {
+    resourceNameDisplay.value = displayName;
+    resourceNameDisplay.dispatchEvent(new Event("input"));
+    console.log(
+      "resource-type-display value after setting:",
+      resourceNameDisplay.value
+    );
+  } catch (error) {
+    console.error("Error setting resource-type-display:", error);
+    alert("Error setting resource name. Please check the console for details.");
+    return;
+  }
+
+  maxQuantityDisplay.textContent = `${currentStock} ${unit || "units"}`;
+  quantityInput.value = "";
+  quantityInput.max = currentStock;
+  quantityInput.min = 0;
+  usageTypeSelect.innerHTML = `
+    <option value="">Select Usage Type</option>
+    <option value="Used">Used</option>
+    <option value="Damaged">Damaged</option>
+    <option value="Missing">Missing</option>
+  `;
+  usageTypeSelect.value = "";
+  detailsInput.value = "";
+  detailsContainer.style.display = "none";
+  quantityError.style.display = "none";
+  detailsError.style.display = "none";
+
+  panel.classList.add("active");
+
+  // Clone inputs to reset event listeners (keep for quantity and usage type)
+  const newQuantityInput = quantityInput.cloneNode(true);
+  quantityInput.parentNode.replaceChild(newQuantityInput, quantityInput);
+  const newUsageTypeSelect = usageTypeSelect.cloneNode(true);
+  usageTypeSelect.parentNode.replaceChild(newUsageTypeSelect, usageTypeSelect);
+
+  newUsageTypeSelect.addEventListener("change", () => {
+    detailsContainer.style.display =
+      newUsageTypeSelect.value === "Damaged" ||
+      newUsageTypeSelect.value === "Missing"
+        ? "block"
+        : "none";
+  });
+
+  newQuantityInput.addEventListener("input", () => {
+    const quantity = parseFloat(newQuantityInput.value);
+    if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
+      quantityError.style.display = "block";
+    } else {
+      quantityError.style.display = "none";
+    }
+  });
+
+  // One-click prevention for save button
+  let isSaving = false;
+  saveButton.disabled = false; // Ensure button starts enabled
+  const handleSaveClick = async () => {
+    if (isSaving) {
+      console.log("Save operation already in progress, ignoring click");
+      return;
+    }
+    isSaving = true;
+    saveButton.disabled = true;
+    console.log("Save button clicked, processing...");
+
+    try {
+      const quantity = parseFloat(newQuantityInput.value);
+      const usageType = newUsageTypeSelect.value;
+      const details = detailsInput.value.trim();
+
+      if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
+        quantityError.style.display = "block";
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+      if (!usageType) {
+        alert("Please select a usage type.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+      if ((usageType === "Damaged" || usageType === "Missing") && !details) {
+        detailsError.style.display = "block";
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+
+      const stockQuery = query(
+        collection(db, "tb_fertilizer_stock"),
+        where("fertilizer_name", "==", fertilizerName)
+      );
+      const stockSnapshot = await getDocs(stockQuery);
+      if (stockSnapshot.empty) {
+        console.error("No stock found for fertilizer:", fertilizerName);
+        alert("No stock found for this fertilizer.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+
+      const stockDoc = stockSnapshot.docs[0];
+      const stockData = stockDoc.data();
+      const stockEntry = stockData.stocks.find(
+        (stock) => stock.farmer_id === currentFarmerId
+      );
+      if (!stockEntry) {
+        console.error("No stock entry found for farmer:", currentFarmerId);
+        alert("No stock entry found for this farmer.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+
+      stockEntry.current_stock = (stockEntry.current_stock || 0) - quantity;
+      await updateDoc(doc(db, "tb_fertilizer_stock", stockDoc.id), {
+        stocks: stockData.stocks,
+      });
+
+      await addDoc(collection(db, "tb_inventory_log"), {
+        project_id: projectId,
+        resource_name: fertilizerName,
+        quantity_used: quantity,
+        unit: unit || "units",
+        resource_type: "Fertilizer",
+        usage_type: usageType,
+        details: details || "",
+        farmer_id: currentFarmerId,
+        timestamp: new Date(),
+      });
+
+      console.log("Fertilizer usage saved successfully");
+      alert("Fertilizer usage saved successfully!");
+      closeResourcePanel();
+      fetchFertilizers();
+    } catch (error) {
+      console.error("Error saving inventory log:", error);
+      alert("Failed to save inventory log.");
+      isSaving = false;
+      saveButton.disabled = false;
+    }
+  };
+
+  // Remove existing listeners and add new one
+  saveButton.removeEventListener("click", handleSaveClick);
+  saveButton.addEventListener("click", handleSaveClick);
+
+  // Handle cancel and close buttons
+  const cancelButton = document.getElementById("cancel-resource");
+  const newCancelButton = cancelButton.cloneNode(true);
+  cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
+  newCancelButton.addEventListener("click", closeResourcePanel);
+
+  const closeButton = document.getElementById("close-resource-panel");
+  const newCloseButton = closeButton.cloneNode(true);
+  closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+  newCloseButton.addEventListener("click", closeResourcePanel);
+}
+
+function closeResourcePanel() {
+  const panel = document.getElementById("use-resource-panel");
+  const resourceNameDisplay = document.getElementById("resource-type-display");
+  if (panel) {
+    panel.classList.remove("active");
+  }
+  if (resourceNameDisplay) {
+    resourceNameDisplay.value = "";
+    resourceNameDisplay.dispatchEvent(new Event("input"));
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("Initial currentFarmerId from session:", currentFarmerId);
   fetchFertilizerNames();
   fetchFertilizers();
 });
 
 function updatePagination() {
   const totalPages = Math.ceil(filteredFertilizers.length / rowsPerPage) || 1;
-  document.getElementById(
-    "fertilizer-page-number"
-  ).textContent = `${currentPage} of ${totalPages}`;
+  const pageNumberElement = document.getElementById("fertilizer-page-number");
+  if (pageNumberElement) {
+    pageNumberElement.textContent = `${currentPage} of ${totalPages}`;
+  } else {
+    console.error("Page number element (#fertilizer-page-number) not found");
+  }
   updatePaginationButtons();
 }
 
 function updatePaginationButtons() {
-  document.getElementById("fertilizer-prev-page").disabled = currentPage === 1;
-  document.getElementById("fertilizer-next-page").disabled =
+  const prevButton = document.getElementById("fertilizer-prev-page");
+  const nextButton = document.getElementById("fertilizer-next-page");
+  if (!prevButton) {
+    console.error("Previous button (#fertilizer-prev-page) not found");
+    return;
+  }
+  if (!nextButton) {
+    console.error("Next button (#fertilizer-next-page) not found");
+    return;
+  }
+  prevButton.disabled = currentPage === 1;
+  nextButton.disabled =
     currentPage >= Math.ceil(filteredFertilizers.length / rowsPerPage);
+  console.log(
+    `Pagination updated: currentPage=${currentPage}, totalPages=${Math.ceil(
+      filteredFertilizers.length / rowsPerPage
+    )}`
+  );
 }
 
 document
@@ -240,23 +554,33 @@ document
   });
 
 async function fetchFertilizerNames() {
-  const fertilizersCollection = collection(db, "tb_fertilizer_types");
-  const fertilizersSnapshot = await getDocs(fertilizersCollection);
-  const fertilizerNames = fertilizersSnapshot.docs.map(
-    (doc) => doc.data().fertilizer_type_name
-  );
-  populateFertilizerDropdown(fertilizerNames);
+  try {
+    const fertilizersCollection = collection(db, "tb_fertilizer_types");
+    const fertilizersSnapshot = await getDocs(fertilizersCollection);
+    const fertilizerNames = fertilizersSnapshot.docs.map(
+      (doc) => doc.data().fertilizer_type_name
+    );
+    populateFertilizerDropdown(fertilizerNames);
+  } catch (error) {
+    console.error("Error fetching fertilizer names:", error);
+  }
 }
 
 function populateFertilizerDropdown(fertilizerNames) {
   const fertilizerSelect = document.querySelector(".fertilizer_select");
-  if (!fertilizerSelect) return;
-  const firstOption = fertilizerSelect.querySelector("option")?.outerHTML || "";
+  if (!fertilizerSelect) {
+    console.warn("Fertilizer select dropdown (.fertilizer_select) not found");
+    return;
+  }
+  const firstOption =
+    fertilizerSelect.querySelector("option")?.outerHTML ||
+    '<option value="">Fertilizer Type</option>';
   fertilizerSelect.innerHTML = firstOption;
 
   fertilizerNames.forEach((fertilizerName) => {
     const option = document.createElement("option");
     option.textContent = fertilizerName;
+    option.value = fertilizerName;
     fertilizerSelect.appendChild(option);
   });
 }

@@ -1,10 +1,13 @@
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
+  addDoc,
   collection,
+  doc,
   getDocs,
   getFirestore,
   onSnapshot,
   query,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import app from "../../config/firebase_config.js";
@@ -13,7 +16,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Global variables for authenticated user
-let currentFarmerId = "";
+let currentFarmerId = sessionStorage.getItem("farmer_id") || "";
 let currentUserType = "";
 let currentFirstName = "";
 let currentMiddleName = "";
@@ -23,22 +26,6 @@ let equipmentsList = [];
 let filteredEquipments = [];
 let currentPage = 1;
 const rowsPerPage = 5;
-
-function sortEquipmentsByDate() {
-  filteredEquipments.sort((a, b) => {
-    const dateA = parseDate(a.stock_date || a.equipmentDate);
-    const dateB = parseDate(b.stock_date || b.equipmentDate);
-    return dateB - dateA; // Sort latest to oldest
-  });
-}
-
-function parseDate(dateValue) {
-  if (!dateValue) return new Date(0);
-  if (typeof dateValue.toDate === "function") {
-    return dateValue.toDate();
-  }
-  return new Date(dateValue);
-}
 
 async function getAuthenticatedFarmer() {
   return new Promise((resolve, reject) => {
@@ -53,12 +40,12 @@ async function getAuthenticatedFarmer() {
 
           if (!farmerSnapshot.empty) {
             const farmerData = farmerSnapshot.docs[0].data();
-            // Store farmer details in global variables
             currentFarmerId = farmerData.farmer_id;
-            currentUserType = farmerData.user_type;
-            currentFirstName = farmerData.first_name;
-            currentMiddleName = farmerData.middle_name;
-            currentLastName = farmerData.last_name;
+            sessionStorage.setItem("farmer_id", String(farmerData.farmer_id));
+            currentUserType = farmerData.user_type || "";
+            currentFirstName = farmerData.first_name || "";
+            currentMiddleName = farmerData.middle_name || "";
+            currentLastName = farmerData.last_name || "";
 
             resolve({
               farmer_id: currentFarmerId,
@@ -87,72 +74,50 @@ async function fetchEquipments() {
   try {
     await getAuthenticatedFarmer();
 
-    // Fetch Ongoing projects where lead_farmer_id matches current user's farmer_id
-    const projectsCollection = collection(db, "tb_projects");
-    const projectsQuery = query(
-      projectsCollection,
-      where("lead_farmer_id", "==", currentFarmerId),
-      where("status", "==", "Ongoing")
-    );
+    const stockCollection = collection(db, "tb_equipment_stock");
 
+    // Listen to tb_equipment_stock changes
     onSnapshot(
-      projectsQuery,
+      stockCollection,
       async (snapshot) => {
-        const stockCollection = collection(db, "tb_equipment_stocks");
+        const equipmentsData = [];
 
-        const equipmentsData = await Promise.all(
-          snapshot.docs.map(async (doc) => {
-            const project = doc.data();
-            const equipmentArray = project.equipment || [];
+        for (const doc of snapshot.docs) {
+          const stockData = doc.data();
+          const equipmentName =
+            stockData.equipment_name?.trim() || "Unknown Equipment";
+          const equipmentType =
+            stockData.equipment_type?.trim() || "Unknown Type";
+          const stocks = stockData.stocks || [];
 
-            // Process each equipment in the project
-            const equipmentPromises = equipmentArray.map(async (equip) => {
-              let stockData = {};
+          // Find stock entry for currentFarmerId
+          const stockEntry = stocks.find(
+            (stock) => stock.farmer_id === currentFarmerId
+          );
 
-              // Fetch stock data from tb_equipment_stocks based on equipment_name
-              const stockQuery = query(
-                stockCollection,
-                where("equipment_name", "==", equip.equipment_name)
+          if (stockEntry) {
+            if (equipmentType === "Unknown Type") {
+              console.warn(
+                `Missing equipment_type for equipment_name: "${equipmentName}" in tb_equipment_stock`
               );
-              const stockSnapshot = await getDocs(stockQuery);
+            }
 
-              if (!stockSnapshot.empty) {
-                const stockDoc = stockSnapshot.docs[0].data();
-                const stockEntry = stockDoc.stocks.find(
-                  (stock) => stock.farmer_id === currentFarmerId
-                );
-                if (stockEntry) {
-                  stockData = {
-                    stock_date: stockEntry.stock_date,
-                    current_stock: stockEntry.current_stock,
-                    unit: stockEntry.unit,
-                  };
-                }
-              }
-
-              return {
-                project_id: project.project_id,
-                project_name: project.project_name,
-                equipment_type: equip.equipment_type,
-                equipment_name: equip.equipment_name,
-                equipmentDate: project.equipment_date || null,
-                ...stockData,
-                owned_by: currentUserType,
-              };
+            equipmentsData.push({
+              equipment_name: equipmentName,
+              equipment_type: equipmentType,
+              current_stock: stockEntry.current_stock ?? 0,
+              unit: stockEntry.unit ?? "Units",
+              owned_by: currentUserType,
             });
+          }
+        }
 
-            return Promise.all(equipmentPromises);
-          })
-        );
-
-        // Flatten the array of arrays into a single array
-        equipmentsList = equipmentsData.flat();
+        equipmentsList = equipmentsData;
         filteredEquipments = [...equipmentsList];
-        sortEquipmentsByDate();
         displayEquipments(filteredEquipments);
       },
       (error) => {
-        console.error("Error listening to projects:", error);
+        console.error("Error listening to equipment stock:", error);
       }
     );
   } catch (error) {
@@ -175,7 +140,7 @@ function displayEquipments(equipmentsList) {
   if (paginatedEquipments.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="5" style="text-align: center;">You are not the Farm Leader for any Ongoing Projects</td>
+        <td colspan="4" style="text-align: center;">No equipment stock found for this farmer</td>
       </tr>
     `;
     return;
@@ -183,28 +148,244 @@ function displayEquipments(equipmentsList) {
 
   paginatedEquipments.forEach((equipment) => {
     const row = document.createElement("tr");
-    const date = equipment.stock_date || equipment.equipmentDate;
-    const dateAdded = date
-      ? date.toDate
-        ? date.toDate().toLocaleDateString()
-        : new Date(date).toLocaleDateString()
-      : "Not recorded";
+    const currentStock = parseFloat(equipment.current_stock) || 0;
+    const unit = equipment.unit || "Units";
+    const isDisabled = currentStock === 0 ? "disabled" : "";
 
     row.innerHTML = `
-      <td>${equipment.project_id}</td>
       <td>${equipment.equipment_name}</td>
       <td>${equipment.equipment_type}</td>
-      <td>${dateAdded}</td>
-      <td>${equipment.current_stock || "0"} ${equipment.unit || "Units"}</td>
+      <td>${currentStock} ${unit}</td>
+      <td>
+        <span class="use-resource-wrapper ${isDisabled}" 
+              data-equipment-name="${encodeURIComponent(
+                equipment.equipment_name
+              )}" 
+              data-stock="${currentStock}" 
+              data-unit="${unit}">
+          <img src="/images/use.png" alt="Use Resource" 
+               class="use-resource-icon ${isDisabled}" 
+               ${
+                 isDisabled
+                   ? 'aria-disabled="true" title="Resource unavailable (zero stock)"'
+                   : ""
+               }>
+        </span>
+      </td>
     `;
     tableBody.appendChild(row);
   });
   updatePagination();
+
+  // Add event listeners to non-disabled icons
+  const icons = document.querySelectorAll(
+    ".equipment_table .use-resource-icon:not(.disabled)"
+  );
+  icons.forEach((icon) => {
+    icon.removeEventListener("click", handleEquipmentIconClick); // Prevent duplicates
+    icon.addEventListener("click", handleEquipmentIconClick);
+  });
+}
+
+function handleEquipmentIconClick(event) {
+  const wrapper = event.target.closest(".use-resource-wrapper");
+  const equipmentName = decodeURIComponent(wrapper.dataset.equipmentName);
+  const currentStock = parseFloat(wrapper.dataset.stock) || 0;
+  const unit = wrapper.dataset.unit;
+  console.log("Equipment icon clicked:", {
+    equipmentName,
+    currentStock,
+    unit,
+  });
+  if (currentStock > 0) {
+    openResourcePanel(equipmentName, currentStock, unit);
+  }
+}
+
+function openResourcePanel(equipmentName, currentStock, unit) {
+  const panel = document.getElementById("use-resource-panel");
+  const resourceNameDisplay = document.getElementById("resource-type-display");
+  const maxQuantityDisplay = document.getElementById("max-quantity");
+  const quantityInput = document.getElementById("quantity-input");
+  const quantityError = document.getElementById("quantity-error");
+  const usageTypeSelect = document.getElementById("usage-type");
+  const detailsContainer = document.getElementById("details-container");
+  const detailsInput = document.getElementById("usage-details");
+  const detailsError = document.getElementById("details-error");
+
+  console.log("Opening equipment resource panel with:", {
+    equipmentName,
+    currentStock,
+    unit,
+  });
+
+  if (
+    !panel ||
+    !resourceNameDisplay ||
+    !maxQuantityDisplay ||
+    !quantityInput ||
+    !usageTypeSelect ||
+    !detailsContainer ||
+    !detailsInput ||
+    !detailsError
+  ) {
+    console.error("Required DOM elements for use-resource-panel not found.");
+    alert("Error: Resource panel elements not found. Please check the HTML.");
+    return;
+  }
+
+  const displayName = equipmentName || "Unknown Equipment";
+  console.log("Setting resource-type-display to:", displayName);
+
+  try {
+    resourceNameDisplay.value = displayName;
+    resourceNameDisplay.dispatchEvent(new Event("input"));
+    console.log(
+      "resource-type-display value after setting:",
+      resourceNameDisplay.value
+    );
+  } catch (error) {
+    console.error("Error setting resource-type-display:", error);
+    alert("Error setting resource name. Please check the console for details.");
+    return;
+  }
+
+  maxQuantityDisplay.textContent = `${currentStock} ${unit}`;
+  quantityInput.value = "";
+  quantityInput.max = currentStock;
+  quantityInput.min = 0;
+  usageTypeSelect.innerHTML = `
+    <option value="">Select Usage Type</option>
+    <option value="Damaged">Damaged</option>
+    <option value="Missing">Missing</option>
+  `;
+  detailsInput.value = "";
+  detailsContainer.style.display = "block";
+  quantityError.style.display = "none";
+  detailsError.style.display = "none";
+
+  panel.classList.add("active");
+
+  // Clone inputs to reset event listeners
+  const newQuantityInput = quantityInput.cloneNode(true);
+  quantityInput.parentNode.replaceChild(newQuantityInput, quantityInput);
+  const newUsageTypeSelect = usageTypeSelect.cloneNode(true);
+  usageTypeSelect.parentNode.replaceChild(newUsageTypeSelect, usageTypeSelect);
+
+  newQuantityInput.addEventListener("input", () => {
+    const quantity = parseFloat(newQuantityInput.value);
+    if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
+      quantityError.style.display = "block";
+    } else {
+      quantityError.style.display = "none";
+    }
+  });
+
+  const saveButton = document.getElementById("save-resource");
+  const newSaveButton = saveButton.cloneNode(true);
+  saveButton.parentNode.replaceChild(newSaveButton, saveButton);
+  newSaveButton.addEventListener("click", async () => {
+    // Disable button to prevent multiple clicks
+    newSaveButton.disabled = true;
+
+    const quantity = parseFloat(newQuantityInput.value);
+    const usageType = newUsageTypeSelect.value;
+    const details = detailsInput.value.trim();
+
+    if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
+      quantityError.style.display = "block";
+      newSaveButton.disabled = false;
+      return;
+    }
+    if (!usageType) {
+      alert("Please select a usage type.");
+      newSaveButton.disabled = false;
+      return;
+    }
+    if (!details) {
+      detailsError.style.display = "block";
+      newSaveButton.disabled = false;
+      return;
+    }
+
+    try {
+      const stockQuery = query(
+        collection(db, "tb_equipment_stock"),
+        where("equipment_name", "==", equipmentName)
+      );
+      const stockSnapshot = await getDocs(stockQuery);
+      if (stockSnapshot.empty) {
+        console.error("No stock found for equipment:", equipmentName);
+        alert("No stock found for this equipment.");
+        newSaveButton.disabled = false;
+        return;
+      }
+
+      const stockDoc = stockSnapshot.docs[0];
+      const stockData = stockDoc.data();
+      const stockEntry = stockData.stocks.find(
+        (stock) => stock.farmer_id === currentFarmerId
+      );
+      if (!stockEntry) {
+        console.error("No stock entry found for farmer:", currentFarmerId);
+        alert("No stock entry found for this farmer.");
+        newSaveButton.disabled = false;
+        return;
+      }
+
+      stockEntry.current_stock = (stockEntry.current_stock || 0) - quantity;
+      await updateDoc(doc(db, "tb_equipment_stock", stockDoc.id), {
+        stocks: stockData.stocks,
+      });
+
+      await addDoc(collection(db, "tb_inventory_log"), {
+        project_id: "General",
+        resource_name: equipmentName,
+        quantity_used: quantity,
+        unit: unit,
+        resource_type: "Equipment",
+        usage_type: usageType,
+        details: details,
+        farmer_id: currentFarmerId,
+        timestamp: new Date(),
+      });
+
+      alert("Equipment usage saved successfully!");
+      closeResourcePanel();
+      fetchEquipments();
+    } catch (error) {
+      console.error("Error saving inventory log:", error);
+      alert("Failed to save inventory log.");
+      newSaveButton.disabled = false;
+    }
+  });
+
+  const cancelButton = document.getElementById("cancel-resource");
+  const newCancelButton = cancelButton.cloneNode(true);
+  cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
+  newCancelButton.addEventListener("click", closeResourcePanel);
+
+  const closeButton = document.getElementById("close-resource-panel");
+  const newCloseButton = closeButton.cloneNode(true);
+  closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+  newCloseButton.addEventListener("click", closeResourcePanel);
+}
+
+function closeResourcePanel() {
+  const panel = document.getElementById("use-resource-panel");
+  const resourceNameDisplay = document.getElementById("resource-type-display");
+  if (panel) {
+    panel.classList.remove("active");
+  }
+  if (resourceNameDisplay) {
+    resourceNameDisplay.value = "";
+    resourceNameDisplay.dispatchEvent(new Event("input"));
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("Initial currentFarmerId from session:", currentFarmerId);
   fetchEquipmentNames();
-  fetchProjectNames();
   fetchEquipments();
 });
 
@@ -237,51 +418,46 @@ document.getElementById("equipment-next-page").addEventListener("click", () => {
 });
 
 async function fetchEquipmentNames() {
-  const equipmentsCollection = collection(db, "tb_equipment_types");
-  const equipmentsSnapshot = await getDocs(equipmentsCollection);
-  const equipmentNames = equipmentsSnapshot.docs.map(
-    (doc) => doc.data().equipment_type_name
-  );
-  populateEquipmentDropdown(equipmentNames);
+  try {
+    await getAuthenticatedFarmer();
+    const stockCollection = collection(db, "tb_equipment_stock");
+    const stockSnapshot = await getDocs(stockCollection);
+
+    const equipmentTypes = new Set();
+    stockSnapshot.docs.forEach((doc) => {
+      const stockData = doc.data();
+      const stocks = stockData.stocks || [];
+      const hasFarmer = stocks.some(
+        (stock) => stock.farmer_id === currentFarmerId
+      );
+      if (hasFarmer) {
+        const equipmentType = stockData.equipment_type?.trim();
+        if (equipmentType && equipmentType !== "Unknown Type") {
+          equipmentTypes.add(equipmentType);
+        }
+      }
+    });
+
+    const equipmentTypeArray = [...equipmentTypes].sort();
+    populateEquipmentDropdown(equipmentTypeArray);
+  } catch (error) {
+    console.error("Error fetching equipment types:", error);
+  }
 }
 
-function populateEquipmentDropdown(equipmentNames) {
+function populateEquipmentDropdown(equipmentTypes) {
   const equipmentSelect = document.querySelector(".equipment_select");
   if (!equipmentSelect) return;
-  const firstOption = equipmentSelect.querySelector("option")?.outerHTML || "";
+  const firstOption =
+    equipmentSelect.querySelector("option")?.outerHTML ||
+    '<option value="">Equipment Type</option>';
   equipmentSelect.innerHTML = firstOption;
 
-  equipmentNames.forEach((equipmentName) => {
+  equipmentTypes.forEach((equipmentType) => {
     const option = document.createElement("option");
-    option.textContent = equipmentName;
+    option.textContent = equipmentType;
+    option.value = equipmentType;
     equipmentSelect.appendChild(option);
-  });
-}
-
-async function fetchProjectNames() {
-  const projectsQuery = query(
-    collection(db, "tb_projects"),
-    where("lead_farmer_id", "==", currentFarmerId),
-    where("status", "==", "Ongoing")
-  );
-  const projectsSnapshot = await getDocs(projectsQuery);
-  const projectNames = projectsSnapshot.docs.map(
-    (doc) => doc.data().project_name
-  );
-  populateProjectDropdown(projectNames);
-}
-
-function populateProjectDropdown(projectNames) {
-  const projectSelect = document.querySelector(".equip_project_select");
-  if (!projectSelect) return;
-  const firstOption = projectSelect.querySelector("option")?.outerHTML || "";
-  projectSelect.innerHTML = firstOption;
-
-  const uniqueProjectNames = [...new Set(projectNames)].sort();
-  uniqueProjectNames.forEach((projectName) => {
-    const option = document.createElement("option");
-    option.textContent = projectName;
-    projectSelect.appendChild(option);
   });
 }
 
@@ -297,23 +473,6 @@ document
     });
 
     currentPage = 1;
-    sortEquipmentsByDate();
-    displayEquipments(filteredEquipments);
-  });
-
-document
-  .querySelector(".equip_project_select")
-  .addEventListener("change", function () {
-    const selectedProject = this.value.toLowerCase();
-
-    filteredEquipments = equipmentsList.filter((equipment) => {
-      return selectedProject
-        ? equipment.project_name?.toLowerCase() === selectedProject
-        : true;
-    });
-
-    currentPage = 1;
-    sortEquipmentsByDate();
     displayEquipments(filteredEquipments);
   });
 
@@ -324,14 +483,12 @@ document
 
     filteredEquipments = equipmentsList.filter((equipment) => {
       return (
-        equipment.project_id?.toString().toLowerCase().includes(searchQuery) ||
         equipment.equipment_name?.toLowerCase().includes(searchQuery) ||
         equipment.equipment_type?.toLowerCase().includes(searchQuery)
       );
     });
 
     currentPage = 1;
-    sortEquipmentsByDate();
     displayEquipments(filteredEquipments);
   });
 

@@ -117,7 +117,7 @@ function displayLogs(logs) {
 
     row.innerHTML = `
       <td>${log.project_id}</td>
-      <td>${log.crop_type_name}</td>
+      <td>${log.resource_type}</td>
       <td>${log.quantity_used}</td>
       <td>${log.unit}</td>
       <td>${log.usage_type}</td>

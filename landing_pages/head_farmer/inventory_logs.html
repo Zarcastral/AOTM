@@ -6,41 +6,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Inventory Logs</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/src/style/head_farmer/headfarm_inventory.css">
+  <link rel="stylesheet" href="/src/style/head_farmer/inventory_logs.css">
   <script type="module" src="/src/js/head_farmer/inventory_logs.js"></script>
 </head>
 
 <body>
-  <!-- Header -->
-  <div id="header-container">
-    <div class="header">
-      <a href="headfarm_inventory.html" class="history-log-link">Back to Inventory</a>
-      <div class="header-title">Inventory Logs</div>
-      <div class="header-icons">
-        <img id="account-icon" src="/src/assets/account-icon.png" alt="Account">
-      </div>
-    </div>
-  </div>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div>
 
   <div class="main-content">
-    <!-- Back Button -->
-    <div class="back">
-      <a href="#" class="back-link">
-        <img src="/images/arrow-left.png" alt="Back" width="30" height="30">
-      </a>
+    <!-- Project Selector Navigation -->
+    <div class="project-selector">
+      <span class="inventory-list"><a href="headfarm_inventory.html">Inventory List</a></span>
+      <div class="rando-line">|</div>
+      <span class="inventory-logs"><a class="active" href="inventory_logs.html">Inventory Logs</a></span>
     </div>
+
     <div class="panel">
       <div class="table-wrapper">
         <h2>Inventory Logs</h2>
         <div class="log-search-bar">
           <input type="text" id="log-search-bar" placeholder="Search">
+          <select class="resource_select">
+            <option value="">Select Resource Type</option>
+            <option value="Crops">Crops</option>
+            <option value="Fertilizer">Fertilizer</option>
+            <option value="Equipment">Equipment</option>
+          </select>
         </div>
         <div class="log_table">
           <table>
             <thead>
               <tr>
                 <th>Project ID</th>
-                <th>Crop Type</th>
+                <th>Resource Name</th>
                 <th>Quantity Used</th>
                 <th>Unit</th>
                 <th>Usage Type</th>
@@ -55,69 +54,14 @@
         </div>
         <div class="logs-pagination">
           <span id="log-page-number">Page 1</span>
-          <button id="log-prev-page" class="log-pagination-btn" disabled>&lt;</button>
-          <button id="log-next-page" class="log-pagination-btn">&gt;</button>
+          <button id="log-prev-page" class="log-pagination-btn" disabled>
+          </button>
+          <button id="log-next-page" class="log-pagination-btn">></button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Account Panel -->
-  <div id="account-panel" class="account-panel">
-    <iframe id="account-frame" src="" width="100%" height="100%" style="border: none;"></iframe>
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const accountIcon = document.getElementById("account-icon");
-      const accountPanel = document.getElementById("account-panel");
-      const accountFrame = document.getElementById("account-frame");
-
-      accountIcon.addEventListener("click", () => {
-        console.log("Account icon clicked!");
-        accountPanel.classList.toggle("active");
-        console.log("Panel active status:", accountPanel.classList.contains("active"));
-
-        if (accountPanel.classList.contains("active")) {
-          accountFrame.src = "logout.html";
-          console.log("Iframe src set to logout.html");
-        } else {
-          accountFrame.src = "";
-          console.log("Iframe cleared");
-        }
-      });
-
-      // Close when clicking outside
-      document.addEventListener("click", (event) => {
-        if (!accountPanel.contains(event.target) && !accountIcon.contains(event.target)) {
-          closeAccountPanel();
-        }
-      });
-
-      // Handle messages from iframe (logout.html)
-      window.addEventListener("message", (event) => {
-        console.log("Message received from iframe:", event.data);
-
-        if (event.data === "closeAccountPanel") {
-          console.log("Closing account panel from iframe message...");
-          closeAccountPanel();
-        }
-
-        if (event.data === "closeIframe") {
-          console.log("Closing iframe and logging out...");
-          closeAccountPanel();
-          setTimeout(() => {
-            window.top.location.href = "../../index.html";
-          }, 500);
-        }
-      });
-
-      function closeAccountPanel() {
-        accountPanel.classList.remove("active");
-        accountFrame.src = "";
-      }
-    });
-  </script>
   <script type="module" src="/src/auth/header.js"></script>
 </body>
 
