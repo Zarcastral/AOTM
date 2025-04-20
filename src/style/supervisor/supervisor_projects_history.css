@@ -1,0 +1,664 @@
+/* Basic reset */
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: #F5F6FA;
+    font-family: 'Poppins';
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+.header {
+    min-height: 60px;
+    height: 60px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+#title {
+    color: #486581;
+    font-size: 17px;
+    font-weight: 500;
+    margin: 10px 0;
+}
+
+.header-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #41A186;
+}
+
+.header-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+/* Main content */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Panel styles */
+.panel {
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    border-radius: 10px;
+    padding: 45px 20px 20px 20px;
+}
+
+/* Table styles */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 12px;
+}
+
+th {
+    background-color: white;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+th:first-child {
+    width: 120px;
+    min-width: 120px;
+    text-align: left;
+}
+
+th:nth-child(2), td:nth-child(2),
+th:nth-child(3), td:nth-child(3) {
+    width: 120px;
+    min-width: 120px;
+    text-align: left;
+}
+
+th:nth-child(6), td:nth-child(6),
+th:nth-child(7), td:nth-child(7) {
+    width: 100px;
+    min-width: 100px;
+    text-align: left;
+}
+
+th:last-child, td:last-child {
+    width: 100px;
+    min-width: 100px;
+    text-align: center;
+}
+
+tbody tr {
+    background-color: white;
+    border-bottom: 3px solid #f0f0f0;
+}
+
+tbody tr:hover {
+    background-color: #F3F4F6;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Checkbox */
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #D1D5DB;
+    border-radius: 4px;
+    outline: none;
+    background-color: white;
+    cursor: pointer;
+}
+
+/* Search container */
+.search-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+#search-bar, #barangay-select {
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+}
+
+#search-bar {
+    width: 400px;
+    max-width: 100%;
+}
+
+#barangay-select {
+    width: 200px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    cursor: pointer;
+    appearance: none;
+}
+
+#search-bar:focus, #barangay-select:focus {
+    border-color: #aaa;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Action buttons */
+.action-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0 5px;
+}
+
+.action-btn img {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+}
+
+.action-btn:hover {
+    opacity: 0.7;
+}
+
+/* Add project button */
+.btn-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.add-project-btn {
+    background-color: #41A186;
+    color: white;
+    padding: 8px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 20px;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    margin-bottom: -20px;
+}
+
+.add-project-btn:hover {
+    background-color: #318a71;
+}
+
+/* Confirmation panel */
+.confirmation-panel, .bulk-delete-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.confirmation-panel.show, .bulk-delete-panel.show {
+    display: flex;
+}
+
+.confirmation-message, .confirm-bulk-delete-message {
+    background-color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+.confirm-btn, .cancel-btn, .bulk-confirm-btn, .bulk-cancel-btn {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 25px;
+    cursor: pointer;
+    border: none;
+}
+
+.confirm-btn, .bulk-confirm-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.confirm-btn:hover, .bulk-confirm-btn:hover {
+    background-color: #38853c;
+}
+
+.cancel-btn, .bulk-cancel-btn {
+    background-color: slategrey;
+    color: white;
+}
+
+.cancel-btn:hover, .bulk-cancel-btn:hover {
+    background-color: rgb(90, 101, 112);
+}
+
+/* Success messages */
+.delete-message, .bulk-delete-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: none;
+    font-size: 18px;
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Bulk delete button */
+#bulk-delete {
+    color: white;
+    padding: 10px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#bulk-delete:disabled {
+    cursor: not-allowed;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    max-width: 600px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.modify-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* Project selector */
+.project-selector {
+    display: flex;
+    gap: 30px;
+    font-size: 20px;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.project-selector a {
+    color: slategray;
+    transition: color 0.3s ease;
+}
+
+.project-selector a.active {
+    color: #41A186;
+    font-weight: 500;
+}
+
+/* Pagination styles (unchanged as per request) */
+.pagination-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 20px;
+    width: 100%;
+    gap: 10px;
+}
+
+#page-number {
+    font-size: 17px;
+    color: #333;
+}
+
+.pagination-btn {
+    padding: 10px 10px;
+    margin: 0;
+    font-size: 25px;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    background: none;
+    transition: color 0.3s ease;
+    color: #333;
+}
+
+.pagination-btn:hover {
+    color: #41A186;
+}
+
+.pagination-btn:disabled {
+    color: #bbb;
+    cursor: not-allowed;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 1024px) {
+    .header {
+        padding: 0 15px;
+    }
+
+    .header-title {
+        font-size: 24px;
+    }
+
+    .header-icons {
+        gap: 10px;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+
+    .panel {
+        padding: 30px 15px;
+    }
+
+    #search-bar {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    #barangay-select {
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .search-container {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    th, td {
+        padding: 0.8rem;
+        font-size: 11px;
+    }
+
+    th {
+        font-size: 13px;
+    }
+
+    .add-project-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    .project-selector {
+        gap: 20px;
+        font-size: 18px;
+        flex-wrap: nowrap; /* Ensure side-by-side */
+    }
+
+    .modal {
+        width: 80%;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 10px 15px;
+    }
+
+    .header-title {
+        font-size: 20px;
+    }
+
+    .header-icons img {
+        width: 20px;
+        height: 20px;
+    }
+
+    #title {
+        font-size: 14px;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+
+    .panel {
+        padding: 20px 10px;
+        margin-bottom: 15px;
+    }
+
+    .search-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #search-bar, #barangay-select {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    .table-wrapper {
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 0.6rem;
+        font-size: 10px;
+    }
+
+    th {
+        font-size: 12px;
+    }
+
+    .action-btn img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .add-project-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .confirm-btn, .cancel-btn, .bulk-confirm-btn, .bulk-cancel-btn {
+        width: 45%;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .confirmation-message, .confirm-bulk-delete-message {
+        padding: 15px;
+        width: 95%;
+        max-width: 350px;
+    }
+
+    .project-selector {
+        gap: 15px;
+        font-size: 16px;
+        flex-wrap: nowrap; /* Keep side-by-side */
+        justify-content: center;
+    }
+
+    .modal {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .close-btn {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 8px 10px;
+    }
+
+    .header-title {
+        font-size: 18px;
+    }
+
+    .header-icons {
+        gap: 8px;
+    }
+
+    .header-icons img {
+        width: 18px;
+        height: 18px;
+    }
+
+    #title {
+        font-size: 12px;
+        margin: 5px 0;
+    }
+
+    .main-content {
+        padding: 10px;
+    }
+
+    .panel {
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    .search-container {
+        gap: 8px;
+    }
+
+    #search-bar, #barangay-select {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    .table-wrapper {
+        font-size: 10px;
+    }
+
+    th, td {
+        padding: 0.5rem;
+        font-size: 9px;
+    }
+
+    th {
+        font-size: 11px;
+    }
+
+    th:first-child,
+    th:nth-child(2), td:nth-child(2),
+    th:nth-child(3), td:nth-child(3),
+    th:nth-child(6), td:nth-child(6),
+    th:nth-child(7), td:nth-child(7),
+    th:last-child, td:last-child {
+        min-width: 80px;
+    }
+
+    .action-btn img {
+        width: 18px;
+        height: 18px;
+    }
+
+    .add-project-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .confirm-btn, .cancel-btn, .bulk-confirm-btn, .bulk-cancel-btn {
+        width: 48%;
+        font-size: 13px;
+        padding: 7px;
+    }
+
+    .confirmation-message, .confirm-bulk-delete-message {
+        padding: 12px;
+        max-width: 300px;
+    }
+
+    .delete-message, .bulk-delete-message {
+        font-size: 16px;
+        padding: 8px 15px;
+    }
+
+    .project-selector {
+        gap: 10px;
+        font-size: 14px;
+        flex-wrap: nowrap; /* Keep side-by-side */
+        justify-content: center;
+        padding: 0 5px; /* Prevent overflow */
+    }
+
+    .project-selector a {
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+
+    .modal {
+        width: 95%;
+        padding: 10px;
+    }
+
+    .close-btn {
+        font-size: 16px;
+        top: 8px;
+        right: 10px;
+    }
+
+    #bulk-delete {
+        padding: 8px;
+        font-size: 9px;
+    }
+}

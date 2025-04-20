@@ -1,0 +1,598 @@
+body {
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Poppins';
+  display: flex;
+  flex-direction: column;
+}
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+.header {
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+#harvest-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
+
+
+.crop_select{
+padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 100px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
+
+.crop-type-select{
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 120px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
+  .barangay_select{
+      padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+      font-size: 16px;
+      color: #243B53;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+      width: 130px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      appearance: none; /* Removes default dropdown styling */
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+      background-repeat: no-repeat;
+      background-position: right 10px center; /* Moves the arrow closer */
+      background-size: 16px;
+      cursor: pointer;
+}
+    
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Space between panels */
+  padding: 20px; /* Padding around the panels */
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
+}
+
+/* Account Panel Styles */
+.account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px; /* Set a fixed height here */
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+.panel h2 {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+  margin-bottom: 20px;
+}
+.account-panel.active {
+  display: block;
+}
+
+.account-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.account-panel ul li {
+  padding: 10px;
+  border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+}
+
+.account-panel ul li:hover {
+  background-color: #F7FAFC;
+}
+
+.account-panel ul li:last-child {
+  border-bottom: none;
+}
+.panel {
+  background-color: white;
+  width: 90%;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 0px;
+  position: relative; /* Establish positioning context */
+  padding-bottom: 60px; /* Add padding to prevent content overlap with pagination */
+}
+
+.harvest-search-bar{
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.panel table th, .panel table td {
+  text-align: center;
+  vertical-align: middle; /* Ensures vertical alignment */
+}
+
+.image-header img {
+  display: block; /* Makes the image block-level for better alignment */
+  margin: 0 auto; /* Centers the image horizontally */
+}
+.harvest-search-bar input{
+  width: 300px;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+}
+
+.harvest-search-bar select{
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+}
+.panel table th, .panel table td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+th {
+  background-color: white;
+  color: #333;
+  font-weight: 600;
+}
+th:first-child{
+  padding-left: 12px;
+}
+
+td:first-child{
+  width: 50px; /* Adjusted width for the action column */
+  min-width: 50px; /* Minimum width to ensure usability */
+  text-align: middle; /* Center the content in the column for better appearance */
+}
+
+th:nth-child(2), td:nth-child(2) {
+  width: 120px; /* Adjusted width for the action column */
+  min-width: 130px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
+}
+
+th:nth-child(6), td:nth-child(6) {
+  width: 170px; /* Adjusted width for the action column */
+  min-width: 170px; /* Minimum width to ensure usability */
+  text-align: left; /* Center the content in the column for better appearance */
+}
+
+.panel table th:nth-child(8), .panel table td:nth-child(8) {
+  width: 120px; /* Adjusted width for the action column */
+  min-width: 120px; /* Minimum width to ensure usability */
+  text-align: center; /* Center the content in the column for better appearance */
+}
+
+.panel table th:last-child, .panel table td:last-child {
+  width: 100px; /* Fixed width for the action column; adjust as needed */
+  min-width: 100px; /* Minimum width to ensure usability */
+  text-align: center;
+}
+
+tbody tr:hover {
+  background-color: #F3F4F6;
+}
+
+.checkbox {
+  justify-content: center;
+  align-items: center;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.btn-new-project {
+  background-color: #41A186;;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.btn-new-project:hover {
+  background-color: #318a71;
+}
+
+.button-container {
+  width: 90%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.harvest-selector {
+  display: flex;
+  margin-top: 20px;
+  gap: 30px;
+  font-size: 20px;
+}
+
+.harvest-selector a {
+  color: slategray;
+  transition: color 0.3s ease;
+}
+
+.harvest-selector a.active {
+  color: #41A186;
+  font-weight: 500;
+}
+
+.rando-line {
+color: slategray;
+transition: color 0.3s ease;
+}
+
+/* Pagination styles */
+.harvest-pagination,
+.fertilizer-pagination,
+.equipment-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: absolute;
+  bottom: 20px; /* Distance from bottom */
+  right: 20px; /* Distance from right */
+  margin-top: 0; /* Remove previous margin */
+  gap: 10px;
+}
+
+#harvest-page-number{
+font-size: 17px;
+color: #333;
+}
+
+.harvest-pagination-btn{
+padding: 10px 10px;
+margin: 0;
+font-size: 25px;
+border: none;
+border-radius: 0;
+cursor: pointer;
+background: none;
+transition: color 0.3s ease;
+color: #333;
+}
+
+.harvest-pagination-btn:hover{
+color: #41A186;
+}
+
+.harvest-pagination-btn:disabled{
+color: #bbb;
+cursor: not-allowed;
+}
+
+.action-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 0 5px;
+}
+.action-btn img {
+  width: 25px; 
+  height: 25px;
+  object-fit: contain;
+}
+.action-btn:hover {
+  opacity: 0.7;
+}
+
+/* Modal Overlay (Background) */
+.modal-overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 1000; /* Ensure it’s above other content */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Content */
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 600px;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  padding: 25px;
+  position: relative;
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+}
+
+.modal-header h2 {
+  font-size: 40px;
+  font-weight: 600;
+  color: #243B53;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #333;
+}
+
+.modal-close-btn:hover {
+  color: #41A186;
+  transition: color 0.3s ease;
+}
+
+/* Modal Body */
+.modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #333333;
+  background-color: #FFFFFF;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  height: 150px;
+  resize: none;
+}
+
+.form-group h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Details Row (Farm President/Barangay, Crop Type/Crop) */
+.details-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.details-row > div {
+  flex: 1;
+}
+
+/* Total Harvest Group (Total Harvest/Unit) */
+.total-harvest-group {
+  display: flex;
+  gap: 15px; /* Gap between Total Harvest and Unit */
+  margin-bottom: 25px;
+}
+
+.total-harvest-group > div {
+  flex: none; /* Remove equal flex distribution */
+}
+
+.total-harvest-group > div:first-child {
+  flex-grow: 3; /* Total Harvest takes up more space */
+  min-width: 0; /* Prevent overflow */
+}
+
+.total-harvest-group > div:last-child {
+  width: 80px; /* Fixed width for Unit field to match the image */
+}
+
+.total-harvest-group > div:last-child input {
+  background-color: #E2E8F0;
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end; /* Aligns buttons to the right */
+  padding-top: 15px;
+  border-top: 1px solid #E2E8F0;
+  gap: 10px; /* Space between buttons */
+}
+
+/* Close Button */
+.close-btn {
+  background-color: #C4C4C4; /* Gray background for a neutral look */
+  color: white;
+  padding: 10px 30px;
+  border: none;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Close Button Hover */
+.close-btn:hover {
+  background-color: #B0B7C0; /* Slightly darker gray on hover */
+}
+
+/* Submit Button */
+.submit-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 10px 30px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Submit Button Hover */
+.submit-btn:hover {
+  background-color: #318a71;
+}
+
+/* Show Modal */
+.modal-overlay.active {
+  display: flex;
+}
+
+@media screen and (max-width: 768px) {
+  .header {
+    padding: 0 10px;
+  }
+
+  .header-title {
+    font-size: 1.25rem;
+  }
+
+  .header-icons img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .header {
+    padding-left: 50px;
+  }
+
+  .account-panel {
+    width: 100%;
+    height: auto;
+    left: 0;
+    top: 80px;
+    padding: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .header-title {
+    font-size: 1.1rem;
+  }
+
+  .header-icons img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .main-content {
+    padding: 5px;
+  }
+
+  .account-panel {
+    width: 100%;
+    height: 60%;
+    padding: 15px;
+  }
+}

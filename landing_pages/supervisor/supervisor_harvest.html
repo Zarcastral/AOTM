@@ -2,103 +2,192 @@
 <html lang="en">
 
 <head>
+  <script type="module" src="/src/js/supervisor/supervisor_harvest.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Organic Baras Productivity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="supervisor_harvest.css">
+  <link rel="stylesheet" href="/src/style/supervisor/supervisor_harvest.css">
 </head>
 
-<body class="h-screen flex flex-col">
-
-  <!-- Header -->
+<body>
   <!-- Placeholder for Header -->
-  <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <div id="header-container"></div>
 
-  <!-- Main Content -->
-  <main class="flex-grow p-6 overflow-auto">
-    
-    <!-- Button & Title Section -->
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Current Projects</h2>
-      <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500">+ New Project</button>
-    </div>
+  <div class="main-content">
+    <div class="harvest-selector">
+      <span class="harvest-form"><a href="supervisor_harvest.html">Harvest List</a></span>
+      <div class="rando-line">|</div>
+      <span class="harvest-history-form"><a href="supervisor_harvest_history.html">Harvest History</a></span>
+    </div> <!-- ✅ Closing harvest-selector -->
 
-    <!-- Table Panel -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden p-4">
-      
-      <!-- Search and Filters (Moved Crops & Barangay Next to Search) -->
-      <div class="flex flex-wrap items-center gap-2 mb-4">
-        <input type="text" placeholder="Search" class="border p-2 rounded-md w-full md:w-1/3">
-        <select class="border p-2 rounded-md">
-          <option>Crops</option>
-        </select>
-        <select class="border p-2 rounded-md">
-          <option>Barangay</option>
-        </select>
-      </div>
+    <div class="panel">
+      <div class="table-wrapper">
+        <h2>Harvest List</h2>
+        <div class="harvest-search-bar">
+          <input type="text" id="harvest-search-bar" placeholder="Search">
+          <select class="crop_select">
+            <option value="">Crops</option>
+          </select>
+          <select class="crop-type-select">
+            <option value="">Crop Type</option>
+          </select>
+          <select class="barangay_select">
+            <option value="">Barangay</option>
+          </select>
+        </div>
 
-      <!-- Table -->
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="bg-gray-200 text-left">
-            <th class="p-3"></th>
-            <th class="p-3">#</th>
-            <th class="p-3">Project Name</th>
-            <th class="p-3">Harvest Date</th>
-            <th class="p-3">Assigned To</th>
-            <th class="p-3">Barangay</th>
-            <th class="p-3">Crops</th>
-            <th class="p-3">Crop Type</th>
-            <th class="p-3">Total Harvest (m³)</th>
-            <th class="p-3">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="border-b hover:bg-gray-100">
-            <td class="p-3"><input type="checkbox"></td>
-            <td class="p-3">1</td>
-            <td class="p-3">Go Green</td>
-            <td class="p-3">10-21-2024</td>
-            <td class="p-3">Charles Lawton</td>
-            <td class="p-3">Mabini</td>
-            <td class="p-3">Highland Vegetables</td>
-            <td class="p-3">Ampalaya</td>
-            <td class="p-3">2.8</td>
-            <td class="p-3 text-center">👁️</td>
-          </tr>
-          <tr class="border-b hover:bg-gray-100">
-            <td class="p-3"><input type="checkbox"></td>
-            <td class="p-3">2</td>
-            <td class="p-3">Green Vile</td>
-            <td class="p-3">10-21-2024</td>
-            <td class="p-3">Caroline James</td>
-            <td class="p-3">Rizal</td>
-            <td class="p-3">Low Vegetables</td>
-            <td class="p-3">Cabbage</td>
-            <td class="p-3">2.8</td>
-            <td class="p-3 text-center">👁️</td>
-          </tr>
-          <tr class="hover:bg-gray-100">
-            <td class="p-3"><input type="checkbox"></td>
-            <td class="p-3">3</td>
-            <td class="p-3">Cornflius</td>
-            <td class="p-3">10-21-2024</td>
-            <td class="p-3">Adrian Bernal</td>
-            <td class="p-3">Conception</td>
-            <td class="p-3">Corn</td>
-            <td class="p-3">Corn A</td>
-            <td class="p-3">2.8</td>
-            <td class="p-3 text-center">👁️</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+        <div class="harvest_table">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>PROJECT NAME</th>
+                <th>HARVEST DATE</th>
+                <th>ASSIGNED TO</th>
+                <th>BARANGAY</th>
+                <th>CROPS</th>
+                <th>CROP TYPE</th>
+                <th>TOTAL HARVEST</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="table_body">
+              <!-- Harvests will be populated here -->
+            </tbody>
+          </table>
 
-  </main>
-   <!-- Import the reusable script from src/auth -->
+          <div class="harvest-pagination">
+            <span id="harvest-page-number">Page 1</span>
+            <button id="harvest-prev-page" class="harvest-pagination-btn" disabled>&lt;</button>
+            <button id="harvest-next-page" class="harvest-pagination-btn">&gt;</button>
+          </div>
+        </div> <!-- ✅ Closing harvest_table -->
+      </div> <!-- ✅ Closing table-wrapper -->
+    </div> <!-- ✅ Closing panel -->
+
+    <div class="modal-overlay" id="harvest-report-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Harvest Report</h2>
+          <button class="modal-close-btn" id="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Project Name</label>
+            <input type="text" id="modal-project-name" readonly>
+          </div>
+          <div class="form-group total-harvest-group">
+            <div>
+              <label>Total Harvest</label>
+              <input type="text" id="modal-total-harvest" readonly>
+            </div>
+            <div>
+              <label>Unit</label>
+              <input type="text" id="modal-unit" value="kg" readonly>
+            </div>
+          </div>
+          <div class="form-group">
+            <h3>Harvest Details</h3>
+            <div class="details-row">
+              <div>
+                <label>Farm President</label>
+                <input type="text" id="modal-farm-president" readonly>
+              </div>
+              <div>
+                <label>Barangay</label>
+                <input type="text" id="modal-barangay" readonly>
+              </div>
+            </div>
+            <div class="details-row">
+              <div>
+                <label>Crop Type</label>
+                <input type="text" id="modal-crop-type" readonly>
+              </div>
+              <div>
+                <label>Crop</label>
+                <input type="text" id="modal-crop" readonly>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Farmers</label>
+              <textarea id="modal-farmers" readonly></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="close-btn" id="close-harvest-btn">Close</button>
+          </div>
+        </div> <!-- ✅ Closing modal-body -->
+      </div> <!-- ✅ Closing modal-content -->
+    </div> <!-- ✅ Closing modal-overlay -->
+  </div> <!-- ✅ Closing main-content -->
+
+  <!-- Highlight active navigation link -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const reportLinks = document.querySelectorAll(".harvest-form a");
+
+      reportLinks.forEach(link => link.classList.remove("active"));
+      const activeLink = localStorage.getItem("activeReportLink");
+
+      const normalizeUrl = (url) => {
+        try {
+          return new URL(url, window.location.origin).href;
+        } catch (e) {
+          return url;
+        }
+      };
+
+      const currentPageUrl = normalizeUrl(window.location.href);
+      let currentPageLink = null;
+
+      reportLinks.forEach(link => {
+        const normalizedLinkHref = normalizeUrl(link.href);
+        if (normalizedLinkHref === currentPageUrl) {
+          currentPageLink = link;
+        }
+      });
+
+      if (currentPageLink) {
+        currentPageLink.classList.add("active");
+        localStorage.setItem("activeReportLink", currentPageLink.href);
+      } else {
+        let isMatchFound = false;
+        if (activeLink) {
+          reportLinks.forEach(link => {
+            const normalizedLinkHref = normalizeUrl(link.href);
+            const normalizedActiveLink = normalizeUrl(activeLink);
+            if (normalizedLinkHref === normalizedActiveLink) {
+              link.classList.add("active");
+              isMatchFound = true;
+            }
+          });
+        }
+
+        if (!isMatchFound) {
+          const harvestLink = Array.from(reportLinks).find(link =>
+            normalizeUrl(link.href).includes("supervisor_harvest.html")
+          );
+          if (harvestLink) {
+            harvestLink.classList.add("active");
+            localStorage.setItem("activeReportLink", harvestLink.href);
+          }
+        }
+      }
+
+      reportLinks.forEach(link => {
+        link.addEventListener("click", function () {
+          reportLinks.forEach(link => link.classList.remove("active"));
+          this.classList.add("active");
+          localStorage.setItem("activeReportLink", this.href);
+        });
+      });
+    });
+  </script>
+
+  <!-- Reusable header script -->
   <script type="module" src="/src/auth/header.js"></script>
+
 </body>
 
 </html>

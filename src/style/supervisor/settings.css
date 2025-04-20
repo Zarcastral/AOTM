@@ -1,0 +1,856 @@
+/* Basic reset */
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: #848A9C;
+    font-family: 'Poppins';
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    padding: 0px;
+}
+
+#barangay-select {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
+/* General button styling */
+button {
+    margin: 2px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Add button specific styling */
+button.add-button {
+    background-color: #41A186;
+    color: #FFFFFF;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+button.add-button:hover {
+    background-color: #358e70;
+}
+
+/* Panel styling */
+.panel {
+    margin: 20px;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+}
+
+.panel h2 {
+    margin-top: 0;
+}
+
+/* Flex container for panel header */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-weight: 450;
+}
+
+/* Modal and popup styling */
+.popup {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+}
+
+.popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    color: #333333;
+}
+
+.popup button {
+    padding: 9px 40px;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    margin-top: 10px;
+    margin-left: 5px;
+    float: right;
+}
+
+.btn-primary {
+    background-color: #41A186;
+    color: white;
+    padding: 8px 25px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.btn-primary:hover {
+    background-color: #358e70;
+    transition: background-color 0.3s ease;
+}
+
+.btn-secondary {
+    background-color: #C3C3C3;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.btn-secondary:hover {
+    background-color: #999898;
+    transition: background-color 0.3s ease;
+}
+
+.popup .cancel-button {
+    padding: 8px 30px;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    margin: 10px;
+    float: right;
+}
+
+.popup .cancel-button:hover {
+    background-color: #999898;
+    transition: background-color 0.3s ease;
+}
+
+/* Ensure item-list displays items in a row */
+.item-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* Adjust individual items to stay side by side */
+.item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.item .actions {
+    display: flex;
+}
+
+/* Styling the action buttons (Edit, Delete) */
+.action-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.action-icon:hover {
+    opacity: 0.7;
+}
+
+/* Barangay Modal Styling */
+.barangay-modal {
+    max-width: 400px;
+    width: 100%;
+    padding: 20px 40px;
+    border-radius: 20px;
+    background-color: white;
+}
+
+.barangay-modal h3 {
+    font-size: 35px;
+    font-weight: bold;
+    color: #333333;
+}
+
+.barangay-modal .form-group {
+    display: flex;
+    gap: 35px;
+    margin-bottom: 15px;
+}
+
+.barangay-modal .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.barangay-modal label {
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.barangay-modal input,
+.barangay-modal select {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    width: 100%;
+}
+
+.barangay-modal h4 {
+    font-weight: 500;
+}
+
+.barangay-modal hr {
+    border: none;
+    border-top: 3px solid #E5E5E5;
+    margin: 20px 0;
+}
+
+.barangay-modal .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+}
+
+.barangay-modal .cancel-button,
+.cancel-button {
+    background-color: #C3C3C3;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.barangay-modal .cancel-button:hover {
+    background-color: #999898;
+    transition: background-color 0.3s ease;
+}
+
+.barangay-modal .save-button {
+    background-color: #41A186;
+    color: white;
+    padding: 5px 35px;
+    height: 38px;
+    border-radius: 10px;
+    border: none;
+    margin-left: -12px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.barangay-modal .save-button:hover {
+    background-color: #358e70;
+    transition: background-color 0.3s ease;
+}
+
+.area-group .area-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.area-group .unit {
+    font-size: 12px;
+    color: #555;
+}
+
+/* Fertilizer Modal Styling */
+.fertilizer-modal {
+    max-width: 450px;
+    width: 100%;
+    padding: 20px 30px;
+    border-radius: 20px;
+    background-color: white;
+    color: #333333;
+}
+
+.fertilizer-modal h3 {
+    font-size: 35px;
+    font-weight: bold;
+}
+
+.fertilizer-modal .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-bottom: 35px;
+}
+
+.fertilizer-modal .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.fertilizer-modal label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.fertilizer-modal input,
+.fertilizer-modal select {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.fertilizer-modal hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 20px 0;
+}
+
+.fertilizer-modal .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.fertilizer-modal .cancel-button {
+    background-color: #C3C3C3;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.fertilizer-modal .cancel-button:hover {
+    background-color: #999898;
+    transition: background-color 0.3s ease;
+}
+
+.fertilizer-modal .save-button {
+    background-color: #41A186;
+    color: white;
+    padding: 5px 35px;
+    height: 38px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    margin-left: -12px;
+    font-size: 15px;
+}
+
+.fertilizer-modal .save-button:hover {
+    background-color: #358e70;
+    transition: background-color 0.3s ease;
+}
+
+/* Header */
+.header {
+    height: 60px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+}
+
+.header-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: #41A186;
+    margin: 0;
+}
+
+.header-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #f0f0f0;
+}
+
+#crop-name {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    width: 450px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
+#equipment-category {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    width: 450px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
+.form-input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 300px;
+    margin-bottom: 30px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Account Panel Styles */
+.account-panel {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    width: 300px;
+    height: 400px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    display: none;
+    z-index: 10;
+}
+
+.account-panel.active {
+    display: block;
+}
+
+.account-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-panel ul li {
+    padding: 10px;
+    border-bottom: 1px solid #E2E8F0;
+    cursor: pointer;
+}
+
+.account-panel ul li:hover {
+    background-color: #F7FAFC;
+}
+
+.account-panel ul li:last-child {
+    border-bottom: none;
+}
+
+/* Farmland Panel specific styles */
+#barangay-select {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-right: 15px;
+}
+
+#add-farmland-button {
+    vertical-align: middle;
+}
+
+/* Custom Message Styling */
+.custom-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #41A186;
+    color: white;
+    padding: 20px 5px;
+    border-radius: 20px;
+    display: none;
+    font-size: 18px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive Adjustments for Buttons, Dropdowns, and Popups */
+@media (max-width: 768px) {
+    /* Buttons */
+    button.add-button {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        padding: 6px 20px;
+        font-size: 14px;
+    }
+
+    .btn-secondary {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    .cancel-button {
+        padding: 6px 20px;
+        font-size: 14px;
+    }
+
+    .barangay-modal .save-button,
+    .fertilizer-modal .save-button {
+        padding: 5px 25px;
+        font-size: 14px;
+        height: 38px;
+        margin-left: -12px;
+    }
+
+    .barangay-modal .cancel-button,
+    .fertilizer-modal .cancel-button {
+        padding: 8px 20px;
+        font-size: 14px;
+    }
+
+    /* Dropdowns */
+    #barangay-select {
+        width: 100%;
+        max-width: 100%;
+        padding: 8px 20px 8px 8px;
+        font-size: 14px;
+        background-size: 14px;
+    }
+
+    #crop-name,
+    #equipment-category,
+    #fertilizer-category {
+        width: 100%;
+        max-width: 100%;
+        padding: 8px 20px 8px 8px;
+        font-size: 14px;
+        background-size: 14px;
+    }
+
+    .form-input {
+        width: 100%;
+        max-width: 250px;
+        padding: 8px;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    /* Popups */
+    .popup {
+        padding: 15px;
+    }
+
+    .popup-content {
+        width: 90%;
+        max-width: 350px;
+        padding: 15px;
+    }
+
+    .barangay-modal {
+        padding: 15px 30px;
+    }
+
+    .barangay-modal h3 {
+        font-size: 30px;
+    }
+
+    .barangay-modal .form-group {
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 10px;
+    }
+
+    .barangay-modal input,
+    .barangay-modal select {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    .barangay-modal .button-group {
+        gap: 8px;
+        padding-top: 15px;
+    }
+
+    .fertilizer-modal {
+        padding: 15px 20px;
+    }
+
+    .fertilizer-modal h3 {
+        font-size: 30px;
+    }
+
+    .fertilizer-modal .form-group {
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .fertilizer-modal input,
+    .fertilizer-modal select {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    .fertilizer-modal .button-group {
+        gap: 8px;
+    }
+
+    /* Edit Modal */
+    #edit-item-popup .popup-content {
+        padding: 15px;
+    }
+
+    #edit-item-popup h2 {
+        font-size: 22px;
+    }
+
+    /* Delete Confirmation Modal */
+    #delete-confirm-popup .popup-content {
+        padding: 15px;
+    }
+
+    #delete-confirm-popup h3 {
+        font-size: 20px;
+    }
+
+    #delete-confirm-popup p {
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    #delete-confirm-popup button {
+        padding: 6px 20px;
+        font-size: 13px;
+    }
+
+    /* Stack barangay select and add farmland button under Farmland text */
+    .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .panel-header > div {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    #barangay-select {
+        width: 100%;
+        max-width: 200px;
+        margin-right: 0;
+        margin-top: 10px;
+    }
+
+    #add-farmland-button {
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Buttons */
+    button.add-button {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .btn-primary {
+        padding: 5px 15px;
+        font-size: 12px;
+    }
+
+    .btn-secondary {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .cancel-button {
+        padding: 5px 15px;
+        font-size: 12px;
+    }
+
+    .barangay-modal .save-button,
+    .fertilizer-modal .save-button {
+        padding: 5px 20px;
+        font-size: 12px;
+    }
+
+    .barangay-modal .cancel-button,
+    .fertilizer-modal .cancel-button {
+        padding: 5px 15px;
+        font-size: 12px;
+    }
+
+    /* Dropdowns */
+    #barangay-select {
+        padding: 6px 15px 6px 6px;
+        font-size: 12px;
+        background-size: 12px;
+    }
+
+    #crop-name,
+    #equipment-category,
+    #fertilizer-category {
+        padding: 6px 15px 6px 6px;
+        font-size: 12px;
+        background-size: 12px;
+    }
+
+    .form-input {
+        max-width: 200px;
+        padding: 6px;
+        font-size: 12px;
+        margin-bottom: 15px;
+    }
+
+    /* Popups */
+    .popup {
+        padding: 10px;
+    }
+
+    .popup-content {
+        width: 80%;
+        max-width: 300px;
+        padding: 10px;
+    }
+
+    .barangay-modal {
+        padding: 10px 20px;
+    }
+
+    .barangay-modal h3 {
+        font-size: 25px;
+    }
+
+    .barangay-modal .form-group {
+        gap: 15px;
+    }
+
+    .barangay-modal input,
+    .barangay-modal select {
+        padding: 6px;
+        font-size: 12px;
+    }
+
+    .fertilizer-modal {
+        padding: 10px 15px;
+    }
+
+    .fertilizer-modal h3 {
+        font-size: 25px;
+    }
+
+    .fertilizer-modal .form-group {
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .fertilizer-modal input,
+    .fertilizer-modal select {
+        padding: 6px;
+        font-size: 12px;
+    }
+
+    /* Edit Modal */
+    #edit-item-popup .popup-content {
+        padding: 10px;
+    }
+
+    #edit-item-popup h2 {
+        font-size: 20px;
+    }
+
+    /* Delete Confirmation Modal */
+    #delete-confirm-popup .popup-content {
+        padding: 10px;
+    }
+
+    #delete-confirm-popup h3 {
+        font-size: 18px;
+    }
+
+    #delete-confirm-popup p {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    #delete-confirm-popup button {
+        padding: 5px 15px;
+        font-size: 12px;
+    }
+}

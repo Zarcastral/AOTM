@@ -1,0 +1,738 @@
+/* Basic reset */
+body {
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Poppins';
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+  overflow-x: hidden;
+}
+
+/* Header */
+.header {
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-title {
+  font-size: clamp(24px, 5vw, 30px);
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: clamp(20px, 4vw, 24px);
+  height: clamp(20px, 4vw, 24px);
+  cursor: pointer;
+}
+
+/* Dropdown */
+#barangay-select {
+  padding: 10px 30px 10px 10px;
+  font-size: clamp(14px, 3vw, 16px);
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: clamp(100px, 30vw, 180px); /* Shortened width */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+/* Main content */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(20px, 5vw, 50px);
+  overflow-y: auto;
+  flex-grow: 1;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Panel */
+.panel {
+  background-color: white;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  border-radius: 10px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(20px, 5vw, 45px) clamp(10px, 3vw, 20px);
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+/* Table styles */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  flex-grow: 1;
+  min-height: 0;
+  margin-bottom: 60px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  min-width: 600px;
+}
+
+th, td {
+  padding: clamp(8px, 2vw, 12px);
+  text-align: left;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+th {
+  background-color: white;
+  font-weight: 600;
+  color: #333;
+  font-size: clamp(12px, 2.5vw, 14px);
+}
+
+th:first-child, td:first-child {
+  text-align: center;
+}
+
+th:nth-child(3), td:nth-child(3) {
+  width: clamp(100px, 20vw, 200px);
+  min-width: 100px;
+  text-align: left;
+}
+
+th:last-child, td:last-child {
+  width: clamp(100px, 15vw, 170px);
+  min-width: 100px;
+  text-align: center;
+}
+
+tbody tr {
+  background-color: white;
+  border-bottom: 4px solid #f0f0f0;
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #D1D5DB;
+  border-radius: 4px;
+  outline: none;
+  background-color: white;
+  cursor: pointer;
+  appearance: none;
+  margin-top: 10px;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #41A186;
+  border-color: #41A186;
+  position: relative;
+}
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 3px;
+  height: 7px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+tbody tr:hover {
+  background-color: #F3F4F6;
+}
+
+/* Search container */
+.search-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+#search-bar {
+  padding: 10px;
+  font-size: clamp(14px, 3vw, 16px);
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: clamp(150px, 40vw, 250px); /* Shortened width */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#search-bar:focus, #barangay-select:focus {
+  border-color: #aaa;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Action buttons */
+.action-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 0 5px;
+  padding: 8px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-btn:hover {
+  opacity: 0.7;
+}
+
+.action-btn img {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+
+/* Button container */
+.btn-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+/* New User Button */
+.add-user-btn {
+  background-color: #41A186;
+  color: white;
+  padding: clamp(10px, 2vw, 12px) clamp(15px, 3vw, 20px);
+  font-size: clamp(14px, 3vw, 18px);
+  font-weight: bold;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.add-user-btn:hover {
+  background-color: #318a71;
+  text-decoration: none;
+}
+
+/* Pagination */
+.pagination-container {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+#page-number {
+  font-size: clamp(14px, 3vw, 17px);
+  color: #333;
+}
+
+.pagination-btn {
+  padding: clamp(6px, 2vw, 10px);
+  font-size: clamp(18px, 4vw, 25px);
+  border: none;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.pagination-btn:hover {
+  color: #41A186;
+}
+
+.pagination-btn:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+/* Confirmation Panel */
+.confirmation-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  font-size: 20px;
+  align-items: center;
+  z-index: 1000;
+}
+
+.confirmation-panel.show {
+  display: flex;
+}
+
+.confirmation-message {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.confirm-btn, .cancel-btn {
+  margin: 10px;
+  width: 30%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#cancel-delete {
+  margin: 10px;
+  width: 30%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #C3C3C3;
+  color: white;
+  border: none;
+}
+
+#cancel-delete:hover {
+  background-color: #B0B7C0;
+}
+
+.confirm-btn {
+  background-color: #41A186;
+  color: white;
+  border: none;
+}
+
+.confirm-btn:hover {
+  background-color: #318a71;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-btn {
+  background-color: #C3C3C3;
+  color: white;
+  border: none;
+}
+
+.cancel-btn:hover {
+  background-color: #B0B7C0;
+  transition: background-color 0.3s ease;
+}
+
+/* Button container */
+.button-container {
+  width: 90%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  margin-left: 100px;
+}
+
+/* Download button */
+.download-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 20px;
+  font-weight: 700;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.download-btn:hover {
+  background-color: #318a71;
+}
+
+.download-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-top: -5px;
+  margin-left: 10px;
+  margin-right: 5px;
+}
+
+/* Success Message */
+.delete-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Bulk Delete Button */
+#bulk-delete {
+  color: white;
+  padding: 10px 10px;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#bulk-delete:focus {
+  outline: none;
+}
+
+#bulk-delete:disabled {
+  cursor: not-allowed;
+}
+
+/* Bulk Delete Panel */
+.bulk-delete-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.bulk-delete-panel.show {
+  display: flex;
+}
+
+.confirm-bulk-delete-message {
+  background-color: white;
+  padding: 20px;
+  font-size: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.bulk-confirm-btn, .bulk-cancel-btn {
+  margin: 10px;
+  padding: 10px 35px;
+  font-size: 16px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.bulk-confirm-btn {
+  background-color: #41A186;
+  color: white;
+  border: none;
+}
+
+.bulk-confirm-btn:hover {
+  background-color: #318a71;
+  transition: background-color 0.3s ease;
+}
+
+.bulk-cancel-btn {
+  background-color: #C3C3C3;
+  color: white;
+  border: none;
+}
+
+.bulk-cancel-btn:hover {
+  background-color: #B0B7C0;
+}
+
+/* Bulk Delete Success Message */
+.bulk-delete-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #41A186;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* PDF Preview Panel */
+.pdf-preview-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 0;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+#pdf-preview-container {
+  flex: 1;
+  overflow-y: auto;
+  border: none;
+  padding: 20px;
+}
+
+#pdf-preview-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.preview-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px;
+  background-color: #f5f6fa;
+  border-top: 1px solid #D1D5DB;
+}
+
+.preview-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn {
+  background-color: #C3C3C3;
+  color: #FFFFFF;
+  padding: 10px 10px;
+  font-weight: 600;
+  width: 100px;
+  height: 40px;
+  text-align: center;
+  margin-top: 0px;
+  margin-right: -2px;
+}
+
+.cancel-btn:hover {
+  background-color: #CBD5E0;
+}
+
+.done-btn {
+  background-color: #41A186;
+  color: white;
+  width: 100px;
+  height: 40px;
+  font-weight: 600;
+}
+
+.done-btn:hover {
+  background-color: #318a71;
+}
+
+/* Overlay for preview */
+body.preview-active::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 10px;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .panel {
+    padding: 15px;
+    min-height: 300px;
+  }
+
+  .search-container {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  #search-bar {
+    width: clamp(150px, 50vw, 220px);
+  }
+
+  #barangay-select {
+    width: clamp(105px, 40vw, 160px);
+  }
+
+  table {
+    font-size: 14px;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  .pagination-container {
+    bottom: 10px;
+    right: 15px;
+  }
+
+  .pagination-btn {
+    font-size: 20px;
+    padding: 8px;
+  }
+
+  #page-number {
+    font-size: 16px;
+  }
+
+  .add-user-btn {
+    width: clamp(150px, 50vw, 200px);
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .button-container {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .confirm-btn, .cancel-btn, #cancel-delete {
+    width: 40%;
+    font-size: 14px;
+  }
+
+  .bulk-confirm-btn, .bulk-cancel-btn {
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title {
+    font-size: 20px;
+  }
+
+  .header-icons img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .panel {
+    padding: 10px;
+    min-height: 250px;
+  }
+
+  #search-bar {
+    width: clamp(120px, 60vw, 200px);
+  }
+
+  #barangay-select {
+    width: clamp(80px, 50vw, 140px);
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 6px;
+  }
+
+  .pagination-container {
+    bottom: 8px;
+    right: 10px;
+  }
+
+  .pagination-btn {
+    font-size: 18px;
+    padding: 6px;
+  }
+
+  #page-number {
+    font-size: 14px;
+  }
+
+  .add-user-btn {
+    width: clamp(120px, 60vw, 180px);
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .confirm-btn, .cancel-btn, #cancel-delete {
+    width: 40%;
+    font-size: 14px;
+  }
+
+  .bulk-confirm-btn, .bulk-cancel-btn {
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+}

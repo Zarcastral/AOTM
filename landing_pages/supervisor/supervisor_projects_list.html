@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="/src/js/supervisor/supervisor_projects_list.js"></script>
+    <title>PROJECTS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style/supervisor/supervisor_projects_list.css">
+
+</head>
+
+<body>
+    <!-- Placeholder for Header -->
+    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+
+    <div class="main-content">
+        <div class="project-selector">
+            <span class="project-list"><a href="../supervisor/supervisor_projects_list.html">Project List</a></span>
+            <div class="rando-line">|</div>
+            <span class="project-history"><a href="../supervisor/supervisor_projects_history.html">Project History</a></span>
+        </div>
+        <!-- Button for New Project -->
+        <div class="btn-container">
+            <a href="projects.html" class="add-project-btn">+ New Project</a>
+        </div>
+
+        <section id="title">CURRENT PROJECTS</section>
+
+        <div class="panel">
+            <div class="table-wrapper">
+                <div class="search-container">
+                    <input type="text" id="search-bar" placeholder="Search" />
+                    <select id="status_select">
+                        <option value="">Status</option>
+                        <!-- record will be dynamically added here -->
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PROJECT NAME</th>
+                            <th>FARM PRESIDENT</th>
+                            <th>START DATE</th>
+                            <th>END DATE</th>
+                            <th>CROP</th>
+                            <th>PROGRESS</th>
+                            <th>STATUS</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+                        <!-- Rows will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-container">
+                <span id="page-number">Page 1</span>
+                <button id="prev-page" class="pagination-btn" disabled>&lt;</button>
+                <button id="next-page" class="pagination-btn">&gt;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Message Panel -->
+    <div id="confirmation-panel" class="confirmation-panel">
+        <div class="confirmation-message">
+            <p>Are you sure you want to delete the project record?</p>
+            <button id="cancel-delete" class="cancel-btn">Cancel</button>
+            <button id="confirm-delete" class="confirm-btn">Confirm</button>
+        </div>
+    </div>
+    <!-- Success Message Panel -->
+    <div id="delete-message" class="delete-message">
+        <p>Project Record has been successfully deleted and stock has been restored!</p>
+    </div>
+    <!-- Overlay for Extend Date Panel -->
+    <div id="extend-date-overlay" class="extend-date-overlay" style="display: none;"></div>
+    <!-- Extend Date Panel -->
+    <div id="extend-date-panel" class="extend-date-panel" style="display: none;">
+        <!-- Case 1: Project not yet extended -->
+        <div id="extend-date-form" class="extend-date-form" style="display: none;">
+            <h3>Extend Date</h3>
+            <p id="start-date">Start Date: <!-- Populated by JS --></p>
+            <p id="current-end-date">Current End Date: <!-- Populated by JS --></p>
+            <label for="extend-date-input">New Extension Date:</label>
+            <input type="date" id="extend-date-input" class="extend-date-input">
+            <div id="extend-error" class="extend-error" style="color: red; display: none;"></div>
+            <div class="button-container">
+                <button id="cancel-extend" class="cancel-extend">Cancel</button>
+                <button id="confirm-extend" class="confirm-extend">Save</button>
+            </div>
+        </div>
+        <!-- Case 2: Project already extended -->
+        <div id="extended-message" class="extended-message" style="display: none;">
+            <h3>Extend Date</h3>
+            <p id="start-date-extended">Start Date: <!-- Populated by JS --></p>
+            <p id="current-end-date-extended">Current End Date: <!-- Populated by JS --></p>
+            <p id="extended-date">Extended Date: <!-- Populated by JS --></p>
+            <p style="color: red;">This project has already been extended <br> once. No further extensions allowed.</p>
+            <div class="button-container">
+                <button id="close-extend" class="close-extend">Close</button>
+            </div>
+        </div>
+    </div>
+    <!-- Import the reusable script from src/auth -->
+    <script type="module" src="/src/auth/header.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const reportLinks = document.querySelectorAll(".project-list a");
+
+            // Clear any active link state when the page is loaded
+            reportLinks.forEach(link => link.classList.remove("active"));
+
+            // Retrieve stored active link from localStorage
+            const activeLink = localStorage.getItem("activeReportLink");
+
+            // Normalize URLs for comparison (remove trailing slashes, etc.)
+            const normalizeUrl = (url) => {
+                try {
+                    return new URL(url, window.location.origin).href;
+                } catch (e) {
+                    return url;
+                }
+            };
+
+            // Get the current page URL
+            const currentPageUrl = normalizeUrl(window.location.href);
+
+            // Find the link that matches the current page
+            let currentPageLink = null;
+            reportLinks.forEach(link => {
+                const normalizedLinkHref = normalizeUrl(link.href);
+                if (normalizedLinkHref === currentPageUrl) {
+                    currentPageLink = link;
+                }
+            });
+
+            // If the current page matches a link, set it as active and update localStorage
+            if (currentPageLink) {
+                currentPageLink.classList.add("active");
+                localStorage.setItem("activeReportLink", currentPageLink.href);
+            } else {
+                // If no match for the current page, fall back to the stored active link
+                let isMatchFound = false;
+                if (activeLink) {
+                    reportLinks.forEach(link => {
+                        const normalizedLinkHref = normalizeUrl(link.href);
+                        const normalizedActiveLink = normalizeUrl(activeLink);
+                        if (normalizedLinkHref === normalizedActiveLink) {
+                            link.classList.add("active");
+                            isMatchFound = true;
+                        }
+                    });
+                }
+
+                // If no match for the stored active link, reset to Harvest
+                if (!isMatchFound) {
+                    const harvestLink = Array.from(reportLinks).find(link =>
+                        normalizeUrl(link.href).includes("supervisor_projects_list.html")
+                    );
+                    if (harvestLink) {
+                        harvestLink.classList.add("active");
+                        localStorage.setItem("activeReportLink", harvestLink.href);
+                    }
+                }
+            }
+
+            // Add click event listeners to update the active link
+            reportLinks.forEach(link => {
+                link.addEventListener("click", function () {
+                    // Remove active class from all links
+                    reportLinks.forEach(link => link.classList.remove("active"));
+
+                    // Add active class to clicked link
+                    this.classList.add("active");
+
+                    // Store the active link in localStorage
+                    localStorage.setItem("activeReportLink", this.href);
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

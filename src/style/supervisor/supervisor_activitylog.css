@@ -1,0 +1,408 @@
+body {
+  margin: 0;
+  font-family: 'Poppins';
+  background-color: #F5F6FA;
+  height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+}
+ 
+
+  .header-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #41A186;
+  }
+
+  .header-icons {
+    display: flex;
+    gap: 15px;
+  }
+
+  .header-icons img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+
+  #user-select {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+      font-size: 16px;
+      color: #243B53;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+      width: 150px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      appearance: none; /* Removes default dropdown styling */
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+      background-repeat: no-repeat;
+      background-position: right 10px center; /* Moves the arrow closer */
+      background-size: 16px;
+      cursor: pointer;
+  }
+
+  #activity-select {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+      font-size: 16px;
+      color: #243B53;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+      width: 150px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      appearance: none; /* Removes default dropdown styling */
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+      background-repeat: no-repeat;
+      background-position: right 10px center; /* Moves the arrow closer */
+      background-size: 16px;
+      cursor: pointer;
+  }
+
+  .search-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    margin-top: 30px;
+  }
+  
+  #search-bar {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid lightgray; 
+    border-radius: 8px;
+    outline: none;
+  }
+  #search-bar {
+    width: 300px;
+  }
+  
+  #search-bar:focus {
+    border-color: #aaa;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+  }
+  .search-container input,
+  .search-container select {
+  padding: 0.5rem;
+  border: 1px solid #dcdcdc;
+  border-radius: 5px;
+  }
+
+  .panel {
+    background-color: white;
+    width: 90%;
+    max-width: 1200px; /* Limit max width for large screens */
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto; /* Center the panel horizontally */
+}
+
+.search-bar input, .search-bar select {
+  box-sizing: border-box;
+}
+
+  .search-bar {
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .search-bar input {
+    width: 300px;
+    padding: 8px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+  }
+
+  .search-bar select {
+    padding: 8px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+  }
+
+/* Updated table styles */
+
+/* New table container for responsiveness */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+th {
+  background-color: #F9FAFB;
+  color: #6B7280;
+  font-weight: 600;
+}
+
+th:nth-child(5), td:nth-child(5) {
+  width: 950px; /* Adjusted width for the action column */
+  min-width: 100px; /* Minimum width to ensure usability */
+  text-align: Left; /* Center the content in the column for better appearance */
+}
+
+th:last-child, td:last-child {
+  width: 100px; /* Fixed width for the action column; adjust as needed */
+  min-width: 100px; /* Minimum width to ensure usability */
+}
+
+tbody tr:hover {
+  background-color: #F3F4F6;
+}
+
+/* Centering Text in Table Cells */
+.panel table th, .panel table td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* Checkbox Styles */
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #D1D5DB; /* Thin border */
+  border-radius: 4px; /* Optional: Slightly rounded corners */
+  outline: none;
+  background-color: white;
+  cursor: pointer;
+  -webkit-appearance: none; /* Removes default browser styling */
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Style when checkbox is checked */
+input[type="checkbox"]:checked {
+  background-color: #41A186; /* Green color */
+  border-color: #41A186;
+  position: relative;
+}
+
+/* Create the checkmark */
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 3px;
+  height: 7px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+
+.table-selector {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 23px;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    max-width: 100%;
+    width: 100%; /* Ensure it stays within the table's width */
+    padding-right: 80px; /* Optional: add padding for a neater look */
+    box-sizing: border-box; /* Prevents overflow due to padding */
+}
+
+.table-selector a {
+    color: slategray;
+    transition: color 0.3s ease;
+}
+.table-selector a:hover {
+  color: #41A186;
+  transition: color 0.3s ease;
+}
+.table-selector  a.active {
+  color: #41A186;
+  font-weight: 500;
+}
+
+/* Pagination styles */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; /* Aligns vertically */
+  margin-top: 20px;
+  width: 100%;
+  gap: 10px; /* Adds spacing between elements */
+
+}
+#page-number {
+    font-size: 17px;
+    color: #333;
+  }
+
+.pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.pagination-btn:hover {
+    color: #41A186;
+}
+
+.pagination-btn:disabled {
+    color: #bbb;
+    cursor: not-allowed;
+}
+
+
+/* Bulk Delete Button Style */
+#bulk-delete {
+  color: white;
+  padding: 10px 10px;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#bulk-delete:focus {
+  outline: none;
+}
+
+#bulk-delete:disabled {
+  cursor: not-allowed;
+}
+
+/* Bulk Delete Panel Style */
+.bulk-delete-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.bulk-delete-panel.show {
+  display: flex;
+}
+
+/* Confirmation Message Style for Bulk Delete */
+.confirm-bulk-delete-message {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Bulk Confirm and Cancel Button Styles */
+.bulk-confirm-btn, .bulk-cancel-btn {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.bulk-confirm-btn {
+  background-color: #41A186;
+  color: white;
+  border: none;
+}
+
+.bulk-confirm-btn:hover {
+  background-color: #318a71;
+  transition: background-color 0.3s ease;
+}
+
+.bulk-cancel-btn {
+  background-color: slategrey;
+  color: white;
+  border: none;
+}
+
+.bulk-cancel-btn:hover {
+  background-color:rgb(90, 101, 112);
+  transition: background-color 0.3s ease, opacity 0.3s ease; 
+}
+
+/* Bulk Delete Success Message Style */
+.bulk-delete-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Success Message Style */
+.delete-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: transparent; /* Remove the default green */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .panel {
+      padding: 15px;
+  }
+
+  .search-bar input, .search-bar select {
+      width: 100%;
+      margin-bottom: 10px; /* Stack inputs on small screens */
+  }
+
+  th, td {
+      padding: 8px;
+  }
+}

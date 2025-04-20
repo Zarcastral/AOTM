@@ -1,0 +1,856 @@
+/* Basic reset */
+body {
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Poppins';
+  display: flex;
+  flex-direction: column;
+}
+
+.title{
+  font-size: 15px;
+  font-weight: 500;
+  color: #486581;
+  margin-bottom: 8px;
+  margin-top: -20px;
+}
+
+
+#addadd {
+  font-size: 25px;
+  font-weight: 600;
+  margin-bottom: 20px;
+ margin-top: 20px;
+}
+
+#add {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 20px;
+ margin-top: 20px;
+}
+
+#taskselect{
+  margin-top: 40px;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+#edit-task-name-display {
+  margin-top: -12px;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+
+#border {
+  border-bottom: 2px solid #f0f0f0;
+  margin: 40px 0 40px 0;
+}
+
+.header {
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  padding: 45px;
+  overflow-y: auto;
+}
+
+.panel {
+  background-color: white;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 50px;
+}
+
+.btn-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.add-user-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 12px 20px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.dell-user-btn {
+  background-color: #e0e0e0;
+  color: white;
+  padding: 9px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.dell1-user-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 9px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.add-user-btn:hover {
+  background-color: #318a71;
+}
+
+/* Modal Styling */
+/* Modal Styling */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Transparent overlay */
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  position: relative;
+  width: 500px;
+  margin-top: 10px;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: white; /* Solid content background */
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+  position: absolute;
+  right: 10px;
+  margin-top: -10px;
+  margin-right: 10px;
+  font-size: 30px;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.close-btn:hover {
+  opacity: 0.8;
+}
+
+.popup-content h2 {
+margin-left: -200px;
+}
+
+.modal-content h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Style the checkbox */
+#task-checkboxes {
+  font-size: 5px; /* Increase font size for the text (previously 2px) */
+  display: flex;
+  flex-direction: column; /* Stack the checkboxes vertically */
+  
+}
+
+
+#task-checkboxes input[type="checkbox"] {
+  width: 20px; /* Increase the checkbox size */
+  height: 20px; /* Increase the checkbox size */
+  margin-right: 10px; /* Add space between the checkbox and the text */
+  vertical-align: middle; /* Align the checkbox with the text */
+}
+
+/* Optional: Style the labels for better alignment */
+#task-checkboxes label {
+  display: flex;
+  align-items: center; /* Vertically center the checkbox and text */
+  cursor: pointer; /* Make the label clickable */
+}
+
+
+/* Task List Styling - ADD, EDIT */
+.task-list {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 10px;
+  margin: 0 0 50px 0;
+  overflow-y: auto;
+  row-gap: 10px;
+  column-gap: 15px;
+  cursor: default;
+  max-height: 250px;
+    overflow-y: auto;
+}
+
+.task-list li {
+  width: 500px; /* Adjusted from 2000px, which seems excessive */
+  background: white;
+  padding: 10px 15px;
+  border-radius: 12px;
+  border: 1px solid rgb(221, 221, 221);
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px;
+  display: flex; /* Use Flexbox to control layout */
+  justify-content: space-between; /* Space out the text and button */
+  align-items: center; /* Vertically center the content */
+}
+
+.task-list li button {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 16px;
+  cursor: pointer;
+  margin-left: 10px; /* Add space between the text and the button */
+}
+
+.task-list li button img.action-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  transition: opacity 0.3s ease;
+}
+
+/* Input and Add Task Button Container */
+.task-input-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+
+#new-task-input,
+#new-subtask-input,
+#new-subtask-input-subtasks {
+  flex: 1;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+}
+
+.add-task-btn {
+  background: none;
+  border: none;
+  color: #41A186;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  
+}
+
+.add-task-btn:hover {
+  color: #318a71;
+}
+
+/* Container for the buttons */
+.button-container {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 10px; /* Space between the buttons */
+  margin-top: 40px; /* Space above the buttons */
+}
+
+/* Save Button Styling */
+.save-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  margin-top: 20px;
+  margin-left: 340px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 120px;
+  /* Remove display: block and margin, as they’re handled by the container */
+}
+
+.save-btn:disabled {
+  background-color: #C4C4C4;
+  cursor: not-allowed;
+}
+
+.save-btn:hover:not(:disabled) {
+  background-color: #318a71;
+}
+
+/* Close Button Styling */
+.close-btn-assign {
+  background-color: #C3C3C3;
+  color: white;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left:230px;
+  width: 120px;
+  /* Remove display: block and margin, as they’re handled by the container */
+}
+
+.close-btn-assign:hover {
+  opacity: 0.7;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.assigned-task-table th, .assigned-task-table td {
+  text-align: left;
+}
+
+.assigned-task-table :last-child, .assigned-task-table :last-child {
+  width: 200px; /* Adjusted width for the action column */
+  min-width: 200px; /* Minimum width to ensure usability */
+  text-align: center;
+}
+
+td,
+th {
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+th {
+  background-color: white;
+  color: #333;
+  font-weight: 200px;
+}
+
+tbody tr {
+  background-color: white;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+tbody tr:hover {
+  background-color: #F3F4F6;
+}
+
+.search-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+#search-bar {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid lightgray; 
+  border-radius: 10px;
+  outline: none;
+  margin-left: 30px;
+  margin-bottom: 50px;
+  margin-top: -60px;
+}
+#search-bar {
+  width: 450px;
+}
+
+#search-bar:focus {
+  border-color: #aaa;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+}
+.search-container input{
+padding: 0.5rem;
+border: 1px solid #dcdcdc;
+border-radius: 5px;
+}
+
+#crop-filter {
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 150px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+  margin-right: -30px; /* Add this to reduce the gap */
+}
+
+#crop-type-filter {
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+  margin-left: 5px; /* Add this to reduce the gap */
+}
+
+#crop-type-select {
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+  margin-left: 5px; /* Add this to reduce the gap */
+}
+
+.edit-task-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 5px 15px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.delete-task-btn {
+  background-color: #e0e0e0;
+  color: white;
+  padding: 5px 15px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.delete-subtask-btn {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: opacity 0.3s ease;
+}
+
+.delete-subtask-btn:hover {
+  opacity: 0.7;
+}
+
+/* Pagination Styles */
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.pagination-btn {
+  padding: 10px 10px;
+  margin: 0;
+  font-size: 25px;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  background: none;
+  transition: color 0.3s ease;
+  color: #333;
+}
+
+.pagination-btn:disabled {
+  color: #cccccc;
+  cursor: not-allowed;
+}
+
+#page-info {
+  font-size: 17px;
+  margin-top: 10px;
+}
+
+#duplicate-tasks-message {
+  white-space: pre-line;
+}
+
+.text-add-btn {
+  background: none;
+  border: none;
+  color: #41A186;
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px;
+  transition: color 0.3s ease;
+  margin-right: 30px;
+}
+
+.text-add-btn:hover {
+  color: #318a71;
+}
+
+.action-icon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  margin: 0 5px;
+  vertical-align: middle;
+  transition: opacity 0.3s ease;
+}
+
+.action-icon:hover {
+  opacity: 0.7;
+}
+
+.main-content > h2 {
+  font-weight: 500;
+  color: #486581;
+  font-family: 'Poppins';
+}
+
+
+
+
+
+#edit-task-modal .modal-content ul + h2 {
+  font-size: 15px;
+  color: #333333;
+  margin-top: 20px;
+  border-top: 3px solid #f0f0f0;
+}
+
+#edit-task-modal .save-btn {
+  margin: 0 0 0 auto; /* Aligns the button to the right */
+  display: block; /* Keep it as a block element */
+}
+#task-list {
+  transition: opacity 0.2s ease-in-out; /* Smooth fade effect */
+}
+
+.no-tasks-found {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+
+/* Success and Error Message Panels */
+.success-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #41a186;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.error-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #AC415B;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .header-title {
+      font-size: 24px;
+  }
+
+  .title{
+    margin-top: 10px;
+  }
+
+  .main-content {
+    padding: 5px 50px;
+  }
+
+  .panel {
+      padding: 10px;
+  }
+
+  .btn-container {
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+  }
+
+  #search-bar {
+    width: 100px;
+  }
+
+  .save-btn {
+    margin-left: 10px;
+  }
+
+  .add-user-btn {
+      margin-top: 10px;
+  }
+
+  .modal-content {
+      width:90%;
+      padding: 30px;
+  }
+
+  table {
+      overflow-x: auto;
+  }
+
+  th,
+  td {
+    padding: 0.4rem;
+  }
+
+  #new-task-input,
+  #new-subtask-input {
+      width: 100%;
+      margin-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title {
+      font-size: 20px;
+  }
+
+  .header-icons img {
+      width: 20px;
+      height: 20px;
+  }
+
+  .title{
+    margin-top: 10px;
+  }
+
+  #search-bar {
+    width: 100px;
+  }
+
+  .main-content {
+    padding: 5px 50px;
+  }
+
+  .panel {
+      padding: 5px;
+  }
+
+  .add-user-btn,
+  .dell-user-btn {
+      font-size: 14px;
+      padding: 8px 10px;
+  }
+
+  .modal-content {
+      width: 95%;
+      padding: 10px;
+  }
+
+  th,
+  td {
+      padding: 0.3rem;
+  }
+
+  #new-task-input,
+  #new-subtask-input {
+      font-size: 14px;
+  }
+}
+@media (max-width: 600px) {
+  /* Panel should NOT restrict overflow */
+  .panel {
+    overflow: visible; /* Allow table to scroll */
+    padding: 10px;
+  }
+
+  /* Table container (forces scroll) */
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth iOS scroll */
+    border: 1px solid #f0f0f0; /* Visual boundary */
+    border-radius: 8px;
+  }
+
+  /* Table itself (expands beyond viewport if needed) */
+  .assigned-task-table {
+    width: 100%;
+    min-width: 500px; /* Ensures table is wide enough for content */
+    border-collapse: collapse;
+  }
+
+  /* Table cells (prevent text wrapping) */
+  .assigned-task-table th,
+  .assigned-task-table td {
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap; /* Keep text in one line */
+    font-size: 14px; /* Slightly smaller text for readability */
+  }
+
+  /* Sticky first column (e.g., task name) */
+  .assigned-task-table th:first-child,
+  .assigned-task-table td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+    min-width: 120px; /* Ensure enough width for content */
+  }
+
+  /* Sticky action buttons column */
+  .assigned-task-table td:last-child {
+    position: sticky;
+    right: 0;
+    background: white;
+    z-index: 2;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+    min-width: 100px; /* Ensure action buttons are accessible */
+  }
+
+  /* Action buttons for smaller screens */
+  .edit-task-btn,
+  .delete-task-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 15px;
+  }
+
+  /* Search container adjustments */
+  .search-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap if needed */
+    gap: 8px; /* Reduced gap for compactness */
+    margin-bottom: 1rem;
+    padding: 0 10px; /* Ensure padding within panel */
+    justify-content: center; /* Align items to the start */
+  }
+
+  /* Search bar */
+  #search-bar {
+    width: 100%; /* Full width on small screens */
+    max-width: 300px; /* Cap width to prevent overflow */
+    padding: 8px 12px;
+    font-size: 14px; /* Smaller font for readability */
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    margin: 0; /* Remove conflicting margins */
+    box-sizing: border-box; /* Ensure padding is included in width */
+  }
+
+  /* Dropdowns */
+  #crop-filter,
+  #crop-type-filter,
+  #crop-type-select {
+    width: 100%; /* Full width on small screens */
+    max-width: 150px; /* Cap width to fit content */
+    padding: 8px 24px 8px 10px; /* Adjust padding for arrow */
+    font-size: 14px; /* Smaller font for readability */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 0; /* Remove conflicting margins */
+    background-position: right 8px center; /* Adjust arrow position */
+    background-size: 14px; /* Smaller arrow for smaller dropdown */
+    box-sizing: border-box; /* Ensure padding is included in width */
+  }
+}

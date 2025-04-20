@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="/src/js/supervisor/supervisor_farmers_edit.js"></script>
+  <title>Edit Farmer Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/supervisor/supervisor_farmers_edit.css">
+</head>
+<body>
+     <!-- Placeholder for Header -->
+      <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+  <div class="container">
+    <h2>Farmer Profile</h2>
+    <form id="supervisor_farmers_edit" method="POST">
+      
+      <div class="profile-picture-container">
+        <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
+        
+      </div>
+      <div class="change-picture-container">    
+        <!-- The file input field placed inside the profile-picture container -->
+        <label for="profile_picture">Change Profile Picture</label>
+        <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="file-input">
+    </div>
+    
+      
+      <div class="form-group">
+        <label for="farmer_id">Farmer ID</label>
+        <input type="text" id="farmer_id" name="farmer_id" required maxlength="7">
+      </div>
+
+      <div class="form-group">
+        <label for="first_name">First Name</label>
+        <input type="text" id="first_name" name="first_name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="middle_name">Middle Name</label>
+        <input type="text" id="middle_name" name="middle_name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="last_name">Last Name</label>
+        <input type="text" id="last_name" name="last_name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="contact">Contact</label> <!-- Fixed ID -->
+        <input type="text" id="contact" name="contact" required> <!-- Fixed ID -->
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="birthday">Birthday</label>
+        <input type="date" id="birthday" name="birthday" required> <!-- Added required -->
+      </div>
+
+      <div class="form-group">
+        <label for="sex">Sex</label>
+        <select name="sex" id="sex" required> <!-- Added required -->
+          <option value="">Select Sex</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="user_type">User Type</label>
+        <select name="user_type" id="user_type" required>
+          <option value="">Select User Type</option>
+          <!-- Dynamically populated with Firestore data -->
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="barangay">Barangay</label>
+        <select name="barangay" id="barangay" required>
+          <option value="">Select Barangay</option>
+          <!-- Dynamically populated with Firestore data -->
+        </select>
+      </div>
+
+      <div class="modify-buttons">
+        <button type="button" id="close-button">Close</button>
+        <button type="submit">Update</button>
+    </div>
+
+      <div id="error-message" style="color: red;"></div>
+    </form>
+  </div>
+    
+  <!-- Bulk Delete Message Panel -->
+  <div id="delete-message-panel" style="display: none;" class="delete-message-panel">
+    <p>All selected records has been successfully deleted!</p>
+  </div>
+    <!-- Modal for displaying larger image -->
+<div id="imageModal" class="modal">
+  <span class="close">&times;</span>
+  <img class="modal-content" id="modalImage">
+  <div id="caption"></div>
+</div>
+ <!-- Import the reusable script from src/auth -->
+ <script type="module" src="/src/auth/header.js"></script>
+</body>
+</html>

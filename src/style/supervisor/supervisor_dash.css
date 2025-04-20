@@ -1,0 +1,917 @@
+/* General Styles */
+body {
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Poppins', sans-serif;
+  cursor: default;
+}
+
+.header {
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.year-selector {
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+.main-content {
+  flex: 1;
+  padding: 0 40px;
+  overflow-y: auto;
+}
+
+/* Top Section: System Stats and Project Status */
+.top-section {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+/* System Stats Section */
+.system-stats-section {
+  flex: 1;
+  position: relative;
+  padding-top: 0;
+}
+
+.system-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stats-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.stats-icon {
+  width: 60px;
+  height: 60px;
+}
+
+.farmers-icon,
+.projects-icon {
+  /* No background image needed */
+}
+
+.stats-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.stats-info p {
+  font-size: 35px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.number-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.number-wrapper h3 {
+  font-size: 48px;
+  font-weight: 500;
+  margin: 0;
+  color: #333;
+}
+
+.number-wrapper span {
+  font-size: 16px;
+  color: #888;
+}
+
+/* Project Status Section */
+.project-status-section {
+  flex: 1;
+  position: relative;
+  padding-top: 0;
+}
+
+.project-status {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 68%;
+  padding: 30px;
+}
+
+.status-circles {
+  display: flex;
+  gap: 20px;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.circle {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  font-size: 30px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  background: #E0E0E0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  color: #333333;
+  z-index: 0;
+}
+
+.circle span::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  background: #fff;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.circle span::after {
+  content: attr(data-count);
+  position: relative;
+  z-index: 2;
+}
+
+.circle.completed span,
+.circle.in-progress span,
+.circle.not-started span {
+  /* Conic-gradient set dynamically */
+}
+
+.circle p {
+  font-size: 20px;
+  color: #333;
+  margin: 0;
+  text-align: center;
+}
+
+.circle.completed p::before {
+  content: "\2022";
+  color: #41A186;
+  margin-right: 5px;
+}
+
+.circle.in-progress p::before {
+  content: "\2022";
+  color: #6277B3;
+  margin-right: 5px;
+}
+
+.circle.not-started p::before {
+  content: "\2022";
+  color: #F28F8F;
+  margin-right: 5px;
+}
+
+.analytics-section {
+  margin-top: 40px;
+  margin-bottom: 20px;
+  width: 100%;
+  padding-top: 0;
+  height: 400px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.analytics {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 100%;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #486581;
+}
+
+.harvest-info h5 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.chart-wrapper {
+  display: flex;
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+.y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 40px;
+  margin-right: 15px;
+  font-size: 12px;
+  color: #333;
+  text-align: right;
+  padding-top: 0;
+  flex-shrink: 0;
+  min-height: 300px;
+  position: relative;
+  height: 100%;
+}
+
+.y-axis span {
+  line-height: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: absolute;
+  color: #333;
+}
+
+.year-selector-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.year-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.year-selector-label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.year-selector {
+  padding: 5px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.year-selector:focus {
+  outline: none;
+  border-color: #41A186;
+}
+
+.bar-chart {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  min-height: 300px;
+  padding-bottom: 60px;
+}
+
+.bar-chart::after {
+  content: '';
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #e0e0e0;
+  z-index: 0;
+}
+
+.bar {
+  flex: 1;
+  width: 20px;
+  margin: 0 5px;
+  background-color: #d3e8e1;
+  border-radius: 5px 5px 0 0;
+  position: relative;
+  height: var(--bar-height);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  z-index: 1;
+}
+
+.bar.highlighted {
+  background-color: #41A186;
+  transition: background-color 0.2s ease;
+  box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
+}
+
+.bar::after {
+  content: attr(data-month);
+  position: absolute;
+  top: calc(100% + 30px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px; /* Updated from missing value to 12px */
+  color: #333;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.bar-chart::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 30px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent calc((100% / 13) - 1px),
+    #e0e0e0 calc((100% / 13) - 1px),
+    #e0e0e0 calc(100% / 13)
+  );
+  z-index: -1;
+}
+
+/* Account Panel Styles */
+.account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+
+.account-panel.active {
+  display: block;
+}
+
+.account-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.account-panel ul li {
+  padding: 10px;
+  border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+}
+
+.account-panel ul li:hover {
+  background-color: #F7FAFC;
+}
+
+.account-panel ul li:last-child {
+  border-bottom: none;
+}
+
+.number-wrapper.total-farmers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  position: relative;
+}
+
+.number-wrapper.total-farmers .change-indicators {
+  position: absolute;
+  top: -10px;
+  left: 36px;
+  font-size: 12px;
+}
+
+.number-wrapper.total-farmers .new-farmers {
+  color: #888;
+}
+
+.number-wrapper.total-farmers .new-farmers.active {
+  color: #41A186;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1024px) {
+  .header {
+    padding: 0 15px;
+  }
+
+  .header-title {
+    font-size: clamp(24px, 5vw, 26px);
+  }
+
+  .main-content {
+    padding: 0 30px;
+  }
+
+  .top-section {
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .system-stats-section,
+  .project-status-section {
+    flex: none;
+    width: 100%;
+  }
+
+  .project-status {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .status-circles {
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .circle span {
+    width: 100px;
+    height: 100px;
+    font-size: 24px;
+  }
+
+  .circle p {
+    font-size: 16px;
+  }
+
+  .analytics-section {
+    margin-top: 30px;
+    height: 350px;
+  }
+
+  .analytics {
+    padding: 15px;
+  }
+
+  .bar-chart {
+    min-height: 250px;
+  }
+
+  .y-axis {
+    width: 35px;
+    min-height: 250px;
+    font-size: 11px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .header {
+    padding: 0 10px;
+  }
+
+  .header-title {
+    font-size: clamp(20px, 4vw, 22px);
+  }
+
+  .header-icons img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .main-content {
+    padding: 0 20px;
+  }
+
+  .year-selector {
+    width: 160px;
+    font-size: 14px;
+    padding: 8px 25px 8px 8px;
+    background-size: 14px;
+  }
+
+  .account-panel {
+    width: clamp(250px, 80vw, 280px);
+    height: auto;
+    top: 70px;
+    right: 10px;
+    padding: 15px;
+  }
+
+  .top-section {
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stats-card {
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .stats-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .stats-info p {
+    font-size: 28px;
+  }
+
+  .number-wrapper h3 {
+    font-size: 36px;
+  }
+
+  .number-wrapper span {
+    font-size: 14px;
+  }
+
+  .project-status {
+    padding: 15px;
+  }
+
+  .status-circles {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .circle span {
+    width: 90px;
+    height: 90px;
+    font-size: 22px;
+  }
+
+  .circle p {
+    font-size: 14px;
+  }
+
+  .analytics-section {
+    margin-top: 20px;
+    height: 300px;
+  }
+
+  .analytics {
+    padding: 12px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+
+  .bar-chart {
+    min-height: 200px;
+    padding-bottom: 50px;
+  }
+
+  .bar-chart::after {
+    bottom: 25px;
+  }
+
+  .bar {
+    width: 15px;
+    margin: 0 3px;
+  }
+
+  .bar::after {
+    font-size: 10px;
+    top: calc(100% + 25px);
+  }
+
+  .y-axis {
+    width: 30px;
+    min-height: 200px;
+    font-size: 10px;
+  }
+
+  .year-selector-container {
+    gap: 8px;
+  }
+
+  .year-selector-label {
+    font-size: 13px;
+  }
+
+  .year-selector {
+    font-size: 13px;
+    padding: 4px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .header {
+    padding: 0 8px;
+  }
+
+  .header-title {
+    font-size: clamp(18px, 3.5vw, 20px);
+  }
+
+  .header-icons img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .main-content {
+    padding: 0 15px;
+  }
+
+  .year-selector {
+    width: 140px;
+    font-size: 13px;
+    padding: 6px 20px 6px 6px;
+    background-size: 12px;
+  }
+
+  .account-panel {
+    width: 90vw;
+    height: auto;
+    top: 65px;
+    right: 5px;
+    padding: 10px;
+  }
+
+  .stats-card {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .stats-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stats-info p {
+    font-size: 24px;
+  }
+
+  .number-wrapper h3 {
+    font-size: 30px;
+  }
+
+  .number-wrapper span {
+    font-size: 12px;
+  }
+
+  .project-status {
+    padding: 12px;
+  }
+
+  .status-circles {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .circle span {
+    width: 80px;
+    height: 80px;
+    font-size: 20px;
+  }
+
+  .circle p {
+    font-size: 13px;
+  }
+
+  .analytics-section {
+    margin-top: 15px;
+    height: 250px;
+  }
+
+  .analytics {
+    padding: 10px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .bar-chart {
+    min-height: 180px;
+    padding-bottom: 40px;
+  }
+
+  .bar-chart::after {
+    bottom: 20px;
+  }
+
+  .bar {
+    width: 12px;
+    margin: 0 2px;
+  }
+
+  .bar::after {
+    font-size: 9px;
+    top: calc(100% + 20px);
+  }
+
+  .y-axis {
+    width: 25px;
+    min-height: 180px;
+    font-size: 9px;
+  }
+
+  .year-selector-container {
+    gap: 6px;
+  }
+
+  .year-selector-label {
+    font-size: 12px;
+  }
+
+  .year-selector {
+    font-size: 12px;
+    padding: 3px;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .header {
+    padding: 0 6px;
+  }
+
+  .header-title {
+    font-size: clamp(16px, 3vw, 18px);
+  }
+
+  .header-icons img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .main-content {
+    padding: 0 10px;
+  }
+
+  .year-selector {
+    width: 120px;
+    font-size: 12px;
+    padding: 5px 15px 5px 5px;
+    background-size: 10px;
+  }
+
+  .account-panel {
+    width: 95vw;
+    top: 60px;
+    padding: 8px;
+  }
+
+  .stats-card {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .stats-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .stats-info p {
+    font-size: 20px;
+  }
+
+  .number-wrapper h3 {
+    font-size: 26px;
+  }
+
+  .number-wrapper span {
+    font-size: 11px;
+  }
+
+  .project-status {
+    padding: 10px;
+  }
+
+  .status-circles {
+    gap: 12px;
+  }
+
+  .circle span {
+    width: 70px;
+    height: 70px;
+    font-size: 18px;
+  }
+
+  .circle p {
+    font-size: 12px;
+  }
+
+  .analytics-section {
+    margin-top: 10px;
+    height: 220px;
+  }
+
+  .analytics {
+    padding: 8px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .bar-chart {
+    min-height: 160px;
+    padding-bottom: 35px;
+  }
+
+  .bar-chart::after {
+    bottom: 18px;
+  }
+
+  .bar {
+    width: 10px;
+    margin: 0 1px;
+  }
+
+  .bar::after {
+    font-size: 8px;
+    top: calc(100% + 18px);
+  }
+
+  .y-axis {
+    width: 20px;
+    min-height: 160px;
+    font-size: 8px;
+  }
+
+  .year-selector-container {
+    gap: 5px;
+  }
+
+  .year-selector-label {
+    font-size: 11px;
+  }
+
+  .year-selector {
+    font-size: 11px;
+    padding: 2px;
+  }
+}
