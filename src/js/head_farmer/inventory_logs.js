@@ -54,9 +54,11 @@ async function getAuthenticatedFarmer() {
 async function fetchLogs() {
   try {
     await getAuthenticatedFarmer();
+    const projectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
     const logsQuery = query(
       collection(db, "tb_inventory_log"),
-      where("farmer_id", "==", currentFarmerId)
+      where("farmer_id", "==", currentFarmerId),
+      ...(projectId ? [where("project_id", "==", projectId)] : []) // Filter by project_id if present
     );
     const logsSnapshot = await getDocs(logsQuery);
 
@@ -116,11 +118,13 @@ function displayLogs(logs) {
       : "N/A";
 
     row.innerHTML = `
-      <td>${log.project_id}</td>
-      <td>${log.resource_type}</td>
-      <td>${log.quantity_used}</td>
-      <td>${log.unit}</td>
-      <td>${log.usage_type}</td>
+      <td>${log.project_id || "N/A"}</td>
+      <td>${
+        log.resource_name || "N/A"
+      }</td> <!-- Changed to resource_name for accuracy -->
+      <td>${log.quantity_used || "N/A"}</td>
+      <td>${log.unit || "N/A"}</td>
+      <td>${log.usage_type || "N/A"}</td>
       <td>${log.details || "N/A"}</td>
       <td>${formattedDate}</td>
     `;
@@ -150,7 +154,7 @@ async function configureBackButton() {
 
   const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
-  const projectId = sessionStorage.getItem("selected_project_id");
+  const projectId = sessionStorage.getItem("projectId"); // Use sessioned project_id
 
   console.log("userType:", userType);
   console.log("farmerId:", farmerId);
@@ -166,7 +170,7 @@ async function configureBackButton() {
     const projectsRef = collection(db, "tb_projects");
     const q = query(
       projectsRef,
-      where("project_id", "==", parseInt(projectId, 10))
+      where("project_id", "==", projectId) // Use string project_id
     );
     const querySnapshot = await getDocs(q);
 
@@ -196,12 +200,10 @@ async function configureBackButton() {
     console.log("canNavigateBack:", canNavigateBack);
 
     if (isLeadFarmer && userType === "Head Farmer") {
-      // Hide back button for Head Farmers who are lead farmers
       backContainer.style.display = "none";
       backContainer.classList.remove("visible");
       console.log("Back button hidden: Head Farmer is lead farmer.");
     } else if (canNavigateBack) {
-      // Show back button for Admin, Supervisor, Farm President
       backContainer.style.display = "block";
       backContainer.classList.add("visible");
       console.log("Back button visible: User is allowed to navigate back.");
@@ -214,7 +216,6 @@ async function configureBackButton() {
         console.log(`Navigating to ${redirectPath}`);
       });
     } else {
-      // Hide for other users
       backContainer.style.display = "none";
       backContainer.classList.remove("visible");
       console.log(
@@ -255,12 +256,45 @@ document.addEventListener("DOMContentLoaded", () => {
       .getElementById("log-search-bar")
       .value.toLowerCase()
       .trim();
-    filteredLogs = logsList.filter(
-      (log) =>
-        log.project_id?.toLowerCase().includes(searchQuery) ||
-        log.crop_type_name?.toLowerCase().includes(searchQuery) ||
-        log.usage_type?.toLowerCase().includes(searchQuery)
-    );
+    const selectedResourceType =
+      document.querySelector(".resource_select").value;
+
+    filteredLogs = logsList.filter((log) => {
+      const matchesSearch =
+        log.project_id?.toString().toLowerCase().includes(searchQuery) ||
+        log.resource_name?.toLowerCase().includes(searchQuery) ||
+        log.usage_type?.toLowerCase().includes(searchQuery);
+      const matchesResourceType = selectedResourceType
+        ? log.resource_type === selectedResourceType
+        : true;
+      return matchesSearch && matchesResourceType;
+    });
+
+    currentPage = 1;
+    sortLogsByDate();
+    displayLogs(filteredLogs);
+  });
+
+  // Resource type dropdown
+  document.querySelector(".resource_select").addEventListener("change", () => {
+    const selectedResourceType =
+      document.querySelector(".resource_select").value;
+    const searchQuery = document
+      .getElementById("log-search-bar")
+      .value.toLowerCase()
+      .trim();
+
+    filteredLogs = logsList.filter((log) => {
+      const matchesSearch =
+        log.project_id?.toString().toLowerCase().includes(searchQuery) ||
+        log.resource_name?.toLowerCase().includes(searchQuery) ||
+        log.usage_type?.toLowerCase().includes(searchQuery);
+      const matchesResourceType = selectedResourceType
+        ? log.resource_type === selectedResourceType
+        : true;
+      return matchesSearch && matchesResourceType;
+    });
+
     currentPage = 1;
     sortLogsByDate();
     displayLogs(filteredLogs);

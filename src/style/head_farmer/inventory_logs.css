@@ -135,7 +135,7 @@ body {
 
 .log_table th:nth-child(2),
 .log_table td:nth-child(2) {
-  width: 150px; /* Crop Type */
+  width: 150px; /* Resource Name */
 }
 
 .log_table th:nth-child(3),
@@ -184,6 +184,7 @@ body {
 
 .log-pagination-btn {
   padding: 10px 10px;
+  margin: 0;
   font-size: 25px;
   border: none;
   border-radius: 6px;

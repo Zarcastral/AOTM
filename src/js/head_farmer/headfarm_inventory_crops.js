@@ -25,6 +25,27 @@ let currentLastName = "";
 let cropsList = [];
 let filteredCrops = [];
 
+// Helper function to display success or error messages
+function showMessage(type, text) {
+  const messageElement = document.getElementById(`${type}-message`);
+  if (!messageElement) {
+    console.error(`Message element #${type}-message not found.`);
+    return;
+  }
+
+  messageElement.textContent = text;
+  messageElement.style.display = "block";
+  messageElement.style.opacity = "1";
+
+  setTimeout(() => {
+    messageElement.style.opacity = "0";
+    setTimeout(() => {
+      messageElement.style.display = "none";
+      messageElement.textContent = "";
+    }, 300);
+  }, 3000);
+}
+
 function sortCropsByDate() {
   filteredCrops.sort((a, b) => {
     const dateA = parseDate(a.stock_date || a.cropDate);
@@ -98,6 +119,16 @@ async function fetchCrops() {
       ongoingQuery,
       async (snapshot) => {
         const stockCollection = collection(db, "tb_crop_stock");
+
+        // Store the single project_id in sessionStorage
+        const projectId = snapshot.docs[0]?.data().project_id;
+        if (projectId) {
+          sessionStorage.setItem("projectId", projectId);
+          console.log("Stored project_id in sessionStorage:", projectId);
+        } else {
+          sessionStorage.removeItem("projectId");
+          console.log("No project_id found, cleared from sessionStorage");
+        }
 
         const projectsData = await Promise.all(
           snapshot.docs.map(async (doc) => {
@@ -234,11 +265,9 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
   const resourceNameDisplay = document.getElementById("resource-type-display");
   const maxQuantityDisplay = document.getElementById("max-quantity");
   const quantityInput = document.getElementById("quantity-input");
-  const quantityError = document.getElementById("quantity-error");
   const usageTypeSelect = document.getElementById("usage-type");
   const detailsContainer = document.getElementById("details-container");
   const detailsInput = document.getElementById("usage-details");
-  const detailsError = document.getElementById("details-error");
   const saveButton = document.getElementById("save-resource");
 
   console.log("Opening crop resource panel with:", {
@@ -255,11 +284,13 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
     !usageTypeSelect ||
     !detailsContainer ||
     !detailsInput ||
-    !detailsError ||
     !saveButton
   ) {
     console.error("Required DOM elements for use-resource-panel not found.");
-    alert("Error: Resource panel elements not found. Please check the HTML.");
+    showMessage(
+      "error",
+      "Resource panel elements not found. Please check the HTML."
+    );
     return;
   }
 
@@ -275,7 +306,10 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
     );
   } catch (error) {
     console.error("Error setting resource-type-display:", error);
-    alert("Error setting resource name. Please check the console for details.");
+    showMessage(
+      "error",
+      "Error setting resource name. Please check the console."
+    );
     return;
   }
 
@@ -285,15 +319,13 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
   quantityInput.min = 0;
   usageTypeSelect.innerHTML = `
     <option value="">Select Usage Type</option>
-    <option value="Task">Task</option>
+    <option value="Used">Used</option>
     <option value="Damaged">Damaged</option>
     <option value="Missing">Missing</option>
   `;
   usageTypeSelect.value = "";
   detailsInput.value = "";
   detailsContainer.style.display = "none";
-  quantityError.style.display = "none";
-  detailsError.style.display = "none";
 
   panel.classList.add("active");
 
@@ -303,25 +335,20 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
   usageTypeSelect.parentNode.replaceChild(newUsageTypeSelect, usageTypeSelect);
 
   newUsageTypeSelect.addEventListener("change", () => {
-    detailsContainer.style.display =
+    if (newUsageTypeSelect.value === "Used") {
+      detailsContainer.style.display = "none";
+      detailsInput.value = "";
+    } else if (
       newUsageTypeSelect.value === "Damaged" ||
       newUsageTypeSelect.value === "Missing"
-        ? "block"
-        : "none";
-  });
-
-  newQuantityInput.addEventListener("input", () => {
-    const quantity = parseFloat(newQuantityInput.value);
-    if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
-      quantityError.style.display = "block";
-    } else {
-      quantityError.style.display = "none";
+    ) {
+      detailsContainer.style.display = "block";
     }
   });
 
   // One-click prevention for save button
   let isSaving = false;
-  saveButton.disabled = false; // Ensure button starts enabled
+  saveButton.disabled = false;
   const handleSaveClick = async () => {
     if (isSaving) {
       console.log("Save operation already in progress, ignoring click");
@@ -332,24 +359,56 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
     console.log("Save button clicked, processing...");
 
     try {
-      const quantity = parseFloat(newQuantityInput.value);
+      const quantity = newQuantityInput.value.trim();
       const usageType = newUsageTypeSelect.value;
       const details = detailsInput.value.trim();
+      const sessionedProjectId = sessionStorage.getItem("projectId");
 
-      if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
-        quantityError.style.display = "block";
+      // Warning trap: Check if all fields are empty/invalid
+      if (
+        (quantity === "" || isNaN(parseFloat(quantity))) &&
+        usageType === "" &&
+        (newUsageTypeSelect.value === "Damaged" ||
+        newUsageTypeSelect.value === "Missing"
+          ? details === ""
+          : true)
+      ) {
+        showMessage("error", "Please provide quantity and usage type.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+
+      // Individual validations
+      const parsedQuantity = parseFloat(quantity);
+      if (
+        isNaN(parsedQuantity) ||
+        parsedQuantity > currentStock ||
+        parsedQuantity <= 0
+      ) {
+        showMessage(
+          "error",
+          "Please enter a valid quantity within stock limits."
+        );
         isSaving = false;
         saveButton.disabled = false;
         return;
       }
       if (!usageType) {
-        alert("Please select a usage type.");
+        showMessage("error", "Please select a usage type.");
         isSaving = false;
         saveButton.disabled = false;
         return;
       }
       if ((usageType === "Damaged" || usageType === "Missing") && !details) {
-        detailsError.style.display = "block";
+        showMessage("error", "Details field cannot be empty.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+      if (!sessionedProjectId) {
+        console.error("No project_id found in sessionStorage");
+        showMessage("error", "Project ID not found. Please try again.");
         isSaving = false;
         saveButton.disabled = false;
         return;
@@ -362,7 +421,7 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
       const stockSnapshot = await getDocs(stockQuery);
       if (stockSnapshot.empty) {
         console.error("No stock found for crop type:", cropType);
-        alert("No stock found for this crop type.");
+        showMessage("error", "No stock found for this crop type.");
         isSaving = false;
         saveButton.disabled = false;
         return;
@@ -375,21 +434,22 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
       );
       if (!stockEntry) {
         console.error("No stock entry found for farmer:", currentFarmerId);
-        alert("No stock entry found for this farmer.");
+        showMessage("error", "No stock entry found for this farmer.");
         isSaving = false;
         saveButton.disabled = false;
         return;
       }
 
-      stockEntry.current_stock = (stockEntry.current_stock || 0) - quantity;
+      stockEntry.current_stock =
+        (stockEntry.current_stock || 0) - parsedQuantity;
       await updateDoc(doc(db, "tb_crop_stock", stockDoc.id), {
         stocks: stockData.stocks,
       });
 
       await addDoc(collection(db, "tb_inventory_log"), {
-        project_id: projectId,
+        project_id: sessionedProjectId,
         resource_name: cropType,
-        quantity_used: quantity,
+        quantity_used: parsedQuantity,
         unit: unit || "kg",
         resource_type: "Crops",
         usage_type: usageType,
@@ -399,12 +459,13 @@ function openResourcePanel(projectId, cropType, currentStock, unit) {
       });
 
       console.log("Crop usage saved successfully");
-      alert("Crop usage saved successfully!");
+      showMessage("success", "Crop usage saved successfully!");
+      newQuantityInput.value = "";
       closeResourcePanel();
       fetchCrops();
     } catch (error) {
       console.error("Error saving inventory log:", error);
-      alert("Failed to save inventory log.");
+      showMessage("error", "Failed to save inventory log.");
       isSaving = false;
       saveButton.disabled = false;
     }

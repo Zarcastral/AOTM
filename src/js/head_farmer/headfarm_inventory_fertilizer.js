@@ -27,6 +27,28 @@ let filteredFertilizers = [];
 let currentPage = 1;
 const rowsPerPage = 5;
 
+// Helper function to display success or error messages
+function showMessage(type, text) {
+  const messageElement = document.getElementById(`${type}-message`);
+  if (!messageElement) {
+    console.error(`Message element #${type}-message not found.`);
+    return;
+  }
+
+  messageElement.textContent = text;
+  messageElement.style.display = "block";
+  messageElement.style.opacity = "1";
+
+  // Auto-dismiss after 3 seconds
+  setTimeout(() => {
+    messageElement.style.opacity = "0";
+    setTimeout(() => {
+      messageElement.style.display = "none";
+      messageElement.textContent = "";
+    }, 300); // Match CSS transition duration
+  }, 3000);
+}
+
 function sortFertilizersByDate() {
   filteredFertilizers.sort((a, b) => {
     const dateA = parseDate(a.stock_date || a.fertilizerDate);
@@ -290,11 +312,9 @@ function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
   const resourceNameDisplay = document.getElementById("resource-type-display");
   const maxQuantityDisplay = document.getElementById("max-quantity");
   const quantityInput = document.getElementById("quantity-input");
-  const quantityError = document.getElementById("quantity-error");
   const usageTypeSelect = document.getElementById("usage-type");
   const detailsContainer = document.getElementById("details-container");
   const detailsInput = document.getElementById("usage-details");
-  const detailsError = document.getElementById("details-error");
   const saveButton = document.getElementById("save-resource");
 
   console.log("Opening fertilizer resource panel with:", {
@@ -311,13 +331,15 @@ function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
     !usageTypeSelect ||
     !detailsContainer ||
     !detailsInput ||
-    !detailsError ||
     !saveButton
   ) {
     console.error(
       "One or more required DOM elements for use-resource-panel not found."
     );
-    alert("Error: Resource panel elements not found. Please check the HTML.");
+    showMessage(
+      "error",
+      "Resource panel elements not found. Please check the HTML."
+    );
     return;
   }
 
@@ -333,7 +355,10 @@ function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
     );
   } catch (error) {
     console.error("Error setting resource-type-display:", error);
-    alert("Error setting resource name. Please check the console for details.");
+    showMessage(
+      "error",
+      "Error setting resource name. Please check the console."
+    );
     return;
   }
 
@@ -350,37 +375,30 @@ function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
   usageTypeSelect.value = "";
   detailsInput.value = "";
   detailsContainer.style.display = "none";
-  quantityError.style.display = "none";
-  detailsError.style.display = "none";
 
   panel.classList.add("active");
 
-  // Clone inputs to reset event listeners (keep for quantity and usage type)
+  // Clone inputs to reset event listeners
   const newQuantityInput = quantityInput.cloneNode(true);
   quantityInput.parentNode.replaceChild(newQuantityInput, quantityInput);
   const newUsageTypeSelect = usageTypeSelect.cloneNode(true);
   usageTypeSelect.parentNode.replaceChild(newUsageTypeSelect, usageTypeSelect);
 
   newUsageTypeSelect.addEventListener("change", () => {
-    detailsContainer.style.display =
+    if (newUsageTypeSelect.value === "Used") {
+      detailsContainer.style.display = "none";
+      detailsInput.value = "";
+    } else if (
       newUsageTypeSelect.value === "Damaged" ||
       newUsageTypeSelect.value === "Missing"
-        ? "block"
-        : "none";
-  });
-
-  newQuantityInput.addEventListener("input", () => {
-    const quantity = parseFloat(newQuantityInput.value);
-    if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
-      quantityError.style.display = "block";
-    } else {
-      quantityError.style.display = "none";
+    ) {
+      detailsContainer.style.display = "block";
     }
   });
 
   // One-click prevention for save button
   let isSaving = false;
-  saveButton.disabled = false; // Ensure button starts enabled
+  saveButton.disabled = false;
   const handleSaveClick = async () => {
     if (isSaving) {
       console.log("Save operation already in progress, ignoring click");
@@ -391,24 +409,56 @@ function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
     console.log("Save button clicked, processing...");
 
     try {
-      const quantity = parseFloat(newQuantityInput.value);
+      const quantity = newQuantityInput.value.trim();
       const usageType = newUsageTypeSelect.value;
       const details = detailsInput.value.trim();
+      const sessionedProjectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
 
-      if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
-        quantityError.style.display = "block";
+      // Warning trap: Check if all fields are empty/invalid
+      if (
+        (quantity === "" || isNaN(parseFloat(quantity))) &&
+        usageType === "" &&
+        (newUsageTypeSelect.value === "Damaged" ||
+        newUsageTypeSelect.value === "Missing"
+          ? details === ""
+          : true)
+      ) {
+        showMessage("error", "Please provide quantity and usage type.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+
+      // Individual validations
+      const parsedQuantity = parseFloat(quantity);
+      if (
+        isNaN(parsedQuantity) ||
+        parsedQuantity > currentStock ||
+        parsedQuantity <= 0
+      ) {
+        showMessage(
+          "error",
+          "Please enter a valid quantity within stock limits."
+        );
         isSaving = false;
         saveButton.disabled = false;
         return;
       }
       if (!usageType) {
-        alert("Please select a usage type.");
+        showMessage("error", "Please select a usage type.");
         isSaving = false;
         saveButton.disabled = false;
         return;
       }
       if ((usageType === "Damaged" || usageType === "Missing") && !details) {
-        detailsError.style.display = "block";
+        showMessage("error", "Details field cannot be empty.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+      if (!sessionedProjectId) {
+        console.error("No project_id found in sessionStorage");
+        showMessage("error", "Project ID not found. Please try again.");
         isSaving = false;
         saveButton.disabled = false;
         return;
@@ -421,7 +471,7 @@ function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
       const stockSnapshot = await getDocs(stockQuery);
       if (stockSnapshot.empty) {
         console.error("No stock found for fertilizer:", fertilizerName);
-        alert("No stock found for this fertilizer.");
+        showMessage("error", "No stock found for this fertilizer.");
         isSaving = false;
         saveButton.disabled = false;
         return;
@@ -434,21 +484,22 @@ function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
       );
       if (!stockEntry) {
         console.error("No stock entry found for farmer:", currentFarmerId);
-        alert("No stock entry found for this farmer.");
+        showMessage("error", "No stock entry found for this farmer.");
         isSaving = false;
         saveButton.disabled = false;
         return;
       }
 
-      stockEntry.current_stock = (stockEntry.current_stock || 0) - quantity;
+      stockEntry.current_stock =
+        (stockEntry.current_stock || 0) - parsedQuantity;
       await updateDoc(doc(db, "tb_fertilizer_stock", stockDoc.id), {
         stocks: stockData.stocks,
       });
 
       await addDoc(collection(db, "tb_inventory_log"), {
-        project_id: projectId,
+        project_id: sessionedProjectId, // Use sessioned project_id
         resource_name: fertilizerName,
-        quantity_used: quantity,
+        quantity_used: parsedQuantity,
         unit: unit || "units",
         resource_type: "Fertilizer",
         usage_type: usageType,
@@ -458,22 +509,21 @@ function openResourcePanel(projectId, fertilizerName, currentStock, unit) {
       });
 
       console.log("Fertilizer usage saved successfully");
-      alert("Fertilizer usage saved successfully!");
+      showMessage("success", "Fertilizer usage saved successfully!");
+      newQuantityInput.value = "";
       closeResourcePanel();
       fetchFertilizers();
     } catch (error) {
       console.error("Error saving inventory log:", error);
-      alert("Failed to save inventory log.");
+      showMessage("error", "Failed to save inventory log.");
       isSaving = false;
       saveButton.disabled = false;
     }
   };
 
-  // Remove existing listeners and add new one
   saveButton.removeEventListener("click", handleSaveClick);
   saveButton.addEventListener("click", handleSaveClick);
 
-  // Handle cancel and close buttons
   const cancelButton = document.getElementById("cancel-resource");
   const newCancelButton = cancelButton.cloneNode(true);
   cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);

@@ -414,6 +414,8 @@ tbody tr:hover {
   cursor: not-allowed;
 }
 
+/* ... (all other styles remain unchanged) */
+
 /* Use Resource Panel */
 .use-resource-panel {
   display: none;
@@ -506,8 +508,8 @@ tbody tr:hover {
 }
 
 #cancel-resource.cancel-btn {
-  background: #f44336;
-  color: white;
+  background: #e0e0e0;
+  color: #333;
   padding: 10px 20px;
   border: none;
   border-radius: 6px;
@@ -517,7 +519,7 @@ tbody tr:hover {
 }
 
 #cancel-resource.cancel-btn:hover {
-  background: #d32f2f;
+  background: #d0d0d0;
 }
 
 #close-resource-panel.close-btn {
@@ -542,6 +544,8 @@ tbody tr:hover {
   margin-top: 5px;
   display: none;
 }
+
+/* ... (all other styles remain unchanged) */
 
 /* History Log Link */
 .history-log-link {
@@ -662,6 +666,41 @@ tbody tr:hover {
 .log-pagination-btn:disabled {
   color: #bbb;
   cursor: not-allowed;
+}
+
+/* Success and Error Messages */
+.success-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #41a186;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.error-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ac415b;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-size: 18px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 /* Responsive Design */
@@ -833,5 +872,13 @@ tbody tr:hover {
     max-width: 100%;
     font-size: 14px;
     padding: 8px 24px 8px 8px;
+  }
+
+  .success-message,
+  .error-message {
+    width: 90%;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 18px;
   }
 }

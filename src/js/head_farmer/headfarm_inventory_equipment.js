@@ -27,6 +27,28 @@ let filteredEquipments = [];
 let currentPage = 1;
 const rowsPerPage = 5;
 
+// Helper function to display success or error messages
+function showMessage(type, text) {
+  const messageElement = document.getElementById(`${type}-message`);
+  if (!messageElement) {
+    console.error(`Message element #${type}-message not found.`);
+    return;
+  }
+
+  messageElement.textContent = text;
+  messageElement.style.display = "block";
+  messageElement.style.opacity = "1";
+
+  // Auto-dismiss after 3 seconds
+  setTimeout(() => {
+    messageElement.style.opacity = "0";
+    setTimeout(() => {
+      messageElement.style.display = "none";
+      messageElement.textContent = "";
+    }, 300); // Match CSS transition duration
+  }, 3000);
+}
+
 async function getAuthenticatedFarmer() {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, async (user) => {
@@ -207,11 +229,9 @@ function openResourcePanel(equipmentName, currentStock, unit) {
   const resourceNameDisplay = document.getElementById("resource-type-display");
   const maxQuantityDisplay = document.getElementById("max-quantity");
   const quantityInput = document.getElementById("quantity-input");
-  const quantityError = document.getElementById("quantity-error");
   const usageTypeSelect = document.getElementById("usage-type");
   const detailsContainer = document.getElementById("details-container");
   const detailsInput = document.getElementById("usage-details");
-  const detailsError = document.getElementById("details-error");
 
   console.log("Opening equipment resource panel with:", {
     equipmentName,
@@ -226,11 +246,13 @@ function openResourcePanel(equipmentName, currentStock, unit) {
     !quantityInput ||
     !usageTypeSelect ||
     !detailsContainer ||
-    !detailsInput ||
-    !detailsError
+    !detailsInput
   ) {
     console.error("Required DOM elements for use-resource-panel not found.");
-    alert("Error: Resource panel elements not found. Please check the HTML.");
+    showMessage(
+      "error",
+      "Resource panel elements not found. Please check the HTML."
+    );
     return;
   }
 
@@ -246,7 +268,10 @@ function openResourcePanel(equipmentName, currentStock, unit) {
     );
   } catch (error) {
     console.error("Error setting resource-type-display:", error);
-    alert("Error setting resource name. Please check the console for details.");
+    showMessage(
+      "error",
+      "Error setting resource name. Please check the console."
+    );
     return;
   }
 
@@ -261,8 +286,6 @@ function openResourcePanel(equipmentName, currentStock, unit) {
   `;
   detailsInput.value = "";
   detailsContainer.style.display = "block";
-  quantityError.style.display = "none";
-  detailsError.style.display = "none";
 
   panel.classList.add("active");
 
@@ -272,43 +295,75 @@ function openResourcePanel(equipmentName, currentStock, unit) {
   const newUsageTypeSelect = usageTypeSelect.cloneNode(true);
   usageTypeSelect.parentNode.replaceChild(newUsageTypeSelect, usageTypeSelect);
 
-  newQuantityInput.addEventListener("input", () => {
-    const quantity = parseFloat(newQuantityInput.value);
-    if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
-      quantityError.style.display = "block";
-    } else {
-      quantityError.style.display = "none";
-    }
-  });
-
+  // One-click prevention for save button
+  let isSaving = false;
   const saveButton = document.getElementById("save-resource");
-  const newSaveButton = saveButton.cloneNode(true);
-  saveButton.parentNode.replaceChild(newSaveButton, saveButton);
-  newSaveButton.addEventListener("click", async () => {
-    // Disable button to prevent multiple clicks
-    newSaveButton.disabled = true;
-
-    const quantity = parseFloat(newQuantityInput.value);
-    const usageType = newUsageTypeSelect.value;
-    const details = detailsInput.value.trim();
-
-    if (isNaN(quantity) || quantity > currentStock || quantity <= 0) {
-      quantityError.style.display = "block";
-      newSaveButton.disabled = false;
+  saveButton.disabled = false;
+  const handleSaveClick = async () => {
+    if (isSaving) {
+      console.log("Save operation already in progress, ignoring click");
       return;
     }
-    if (!usageType) {
-      alert("Please select a usage type.");
-      newSaveButton.disabled = false;
-      return;
-    }
-    if (!details) {
-      detailsError.style.display = "block";
-      newSaveButton.disabled = false;
-      return;
-    }
+    isSaving = true;
+    saveButton.disabled = true;
+    console.log("Save button clicked, processing...");
 
     try {
+      const quantity = newQuantityInput.value.trim();
+      const usageType = newUsageTypeSelect.value;
+      const details = detailsInput.value.trim();
+      const sessionedProjectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
+
+      // Warning trap: Check if all fields are empty/invalid
+      if (
+        (quantity === "" || isNaN(parseFloat(quantity))) &&
+        usageType === "" &&
+        details === ""
+      ) {
+        showMessage(
+          "error",
+          "Please provide quantity, usage type, and details."
+        );
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+
+      // Individual validations
+      const parsedQuantity = parseFloat(quantity);
+      if (
+        isNaN(parsedQuantity) ||
+        parsedQuantity > currentStock ||
+        parsedQuantity <= 0
+      ) {
+        showMessage(
+          "error",
+          "Please enter a valid quantity within stock limits."
+        );
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+      if (!usageType) {
+        showMessage("error", "Please select a usage type.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+      if (!details) {
+        showMessage("error", "Details field cannot be empty.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+      if (!sessionedProjectId) {
+        console.error("No project_id found in sessionStorage");
+        showMessage("error", "Project ID not found. Please try again.");
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
+      }
+
       const stockQuery = query(
         collection(db, "tb_equipment_stock"),
         where("equipment_name", "==", equipmentName)
@@ -316,8 +371,9 @@ function openResourcePanel(equipmentName, currentStock, unit) {
       const stockSnapshot = await getDocs(stockQuery);
       if (stockSnapshot.empty) {
         console.error("No stock found for equipment:", equipmentName);
-        alert("No stock found for this equipment.");
-        newSaveButton.disabled = false;
+        showMessage("error", "No stock found for this equipment.");
+        isSaving = false;
+        saveButton.disabled = false;
         return;
       }
 
@@ -328,20 +384,22 @@ function openResourcePanel(equipmentName, currentStock, unit) {
       );
       if (!stockEntry) {
         console.error("No stock entry found for farmer:", currentFarmerId);
-        alert("No stock entry found for this farmer.");
-        newSaveButton.disabled = false;
+        showMessage("error", "No stock entry found for this farmer.");
+        isSaving = false;
+        saveButton.disabled = false;
         return;
       }
 
-      stockEntry.current_stock = (stockEntry.current_stock || 0) - quantity;
+      stockEntry.current_stock =
+        (stockEntry.current_stock || 0) - parsedQuantity;
       await updateDoc(doc(db, "tb_equipment_stock", stockDoc.id), {
         stocks: stockData.stocks,
       });
 
       await addDoc(collection(db, "tb_inventory_log"), {
-        project_id: "General",
+        project_id: sessionedProjectId, // Use sessioned project_id
         resource_name: equipmentName,
-        quantity_used: quantity,
+        quantity_used: parsedQuantity,
         unit: unit,
         resource_type: "Equipment",
         usage_type: usageType,
@@ -350,15 +408,20 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         timestamp: new Date(),
       });
 
-      alert("Equipment usage saved successfully!");
+      console.log("Equipment usage saved successfully");
+      showMessage("success", "Equipment usage saved successfully!");
       closeResourcePanel();
       fetchEquipments();
     } catch (error) {
       console.error("Error saving inventory log:", error);
-      alert("Failed to save inventory log.");
-      newSaveButton.disabled = false;
+      showMessage("error", "Failed to save inventory log.");
+      isSaving = false;
+      saveButton.disabled = false;
     }
-  });
+  };
+
+  saveButton.removeEventListener("click", handleSaveClick);
+  saveButton.addEventListener("click", handleSaveClick);
 
   const cancelButton = document.getElementById("cancel-resource");
   const newCancelButton = cancelButton.cloneNode(true);
