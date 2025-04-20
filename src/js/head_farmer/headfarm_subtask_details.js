@@ -16,6 +16,10 @@ const db = getFirestore(app);
 
 // Function to show success panel
 function showSuccessPanel(message) {
+  // Remove existing success or error panels
+  const existingPanels = document.querySelectorAll(".success-message, .error-message");
+  existingPanels.forEach((panel) => panel.remove());
+
   const successMessage = document.createElement("div");
   successMessage.className = "success-message";
   successMessage.textContent = message;
@@ -32,13 +36,19 @@ function showSuccessPanel(message) {
   setTimeout(() => {
     successMessage.style.opacity = "0";
     setTimeout(() => {
-      document.body.removeChild(successMessage);
+      if (successMessage.parentNode) {
+        document.body.removeChild(successMessage);
+      }
     }, 400);
   }, 4000);
 }
 
 // Function to show error panel
 function showErrorPanel(message) {
+  // Remove existing success or error panels
+  const existingPanels = document.querySelectorAll(".success-message, .error-message");
+  existingPanels.forEach((panel) => panel.remove());
+
   const errorMessage = document.createElement("div");
   errorMessage.className = "error-message";
   errorMessage.textContent = message;
@@ -55,7 +65,9 @@ function showErrorPanel(message) {
   setTimeout(() => {
     errorMessage.style.opacity = "0";
     setTimeout(() => {
-      document.body.removeChild(errorMessage);
+      if (errorMessage.parentNode) {
+        document.body.removeChild(errorMessage);
+      }
     }, 400);
   }, 4000);
 }
