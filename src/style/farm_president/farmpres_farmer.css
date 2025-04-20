@@ -71,22 +71,27 @@ body {
   font-size: clamp(0.875rem, 2.5vw, 1rem);
 }
 
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on touch devices */
+}
+
 .team-table {
   width: 100%;
   border-collapse: collapse;
   margin: 0 auto;
-  table-layout: fixed;
+  min-width: 700px; /* Ensure table remains large enough */
 }
 
 .team-table th,
 .team-table td {
-  padding: clamp(8px, 1.5vw, 10px);
+  padding: clamp(10px, 1.5vw, 12px);
   text-align: center;
   border-bottom: 1px solid #ddd;
-  font-size: clamp(0.75rem, 2vw, 0.875rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  white-space: normal;
+  min-width: 120px;
 }
 
 .team-table th {
@@ -108,7 +113,7 @@ body {
   width: clamp(280px, 25vw, 300px);
   height: clamp(350px, 50vh, 400px);
   background: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5.chatpx rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   padding: clamp(10px, 1.5vw, 15px);
   display: none;
@@ -162,7 +167,6 @@ body {
   border-bottom: none;
 }
 
-/* Popup Styles */
 .popup {
   display: none;
   position: fixed;
@@ -344,17 +348,21 @@ input {
   color: white;
 }
 
-/* Responsive Design */
 @media screen and (max-width: 1024px) {
   .team-panel {
     padding: clamp(15px, 2.5vw, 25px);
     margin: clamp(10px, 1.5vw, 15px);
   }
 
+  .table-container {
+    overflow-x: auto;
+  }
+
   .team-table th,
   .team-table td {
-    font-size: clamp(0.7rem, 1.8vw, 0.8rem);
-    padding: clamp(6px, 1.2vw, 8px);
+    font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+    padding: clamp(8px, 1.2vw, 10px);
+    min-width: 100px;
   }
 
   .account-panel {
@@ -395,15 +403,15 @@ input {
     gap: 8px;
   }
 
-  .team-table {
-    display: table;
+  .table-container {
     overflow-x: auto;
   }
 
   .team-table th,
   .team-table td {
-    min-width: 100px;
-    font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+    font-size: clamp(0.75rem, 1.8vw, 0.85rem);
+    min-width: 90px;
+    padding: clamp(6px, 1.2vw, 8px);
   }
 
   .account-panel {
@@ -445,10 +453,15 @@ input {
     font-size: clamp(1rem, 3vw, 1.25rem);
   }
 
+  .table-container {
+    overflow-x: auto;
+  }
+
   .team-table th,
   .team-table td {
-    font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+    font-size: clamp(0.7rem, 1.8vw, 0.8rem);
     min-width: 80px;
+    padding: clamp(5px, 1vw, 7px);
   }
 
   .account-panel {
@@ -487,6 +500,8 @@ input {
   .team-table th,
   .team-table td {
     font-size: clamp(0.875rem, 1vw, 1rem);
+    min-width: 140px;
+    padding: clamp(12px, 1.5vw, 14px);
   }
 
   .account-panel {

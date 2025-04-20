@@ -251,7 +251,7 @@ function renderTable(searchTerm = '') {
         deleteButton.id = 'deleteTeamBtn';
         deleteButton.textContent = 'x Delete Team';
         
-        deleteButton.style.marginLeft = '100px';
+        deleteButton.style.marginLeft = '270px';
         deleteButton.style.color = '#AC415B';
         deleteButton.style.border = 'none';
         deleteButton.style.padding = '8px 18px';

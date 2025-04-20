@@ -38,9 +38,13 @@ body {
 }
 
 .back {
-    margin-top: 20px;
-    margin-left: 100px;
-    margin-bottom: 5px;
+    width: 1000px;
+    max-width: 80%;
+    margin: 20px auto;
+    margin-left: calc((100% - 1000px) / 2 - 20px); /* Adjusts for container's padding */
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .container {
@@ -94,11 +98,18 @@ body {
     font-size: 14px;
 }
 
-table {
+.table-wrapper {
     width: 100%;
-    border-collapse: collapse;
+    overflow-x: auto;
     margin-bottom: 15px;
     margin-left: 10px;
+}
+
+table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    margin-bottom: 0;
 }
 
 th, td {
@@ -155,15 +166,26 @@ td {
     color: #333;
 }
 
+.delete-team-container {
+    width: 1000px;
+    max-width: 80%;
+    margin: 10px auto;
+    text-align: right;
+}
+
 #deleteTeamBtn {
-    margin-top: 10px;
     background-color: transparent;
     color: #AC415B;
     border: none;
     padding: 8px 16px;
     cursor: pointer;
     font-size: 14px;
-    text-align: left;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+}
+
+#deleteTeamBtn:hover {
+    text-decoration: underline;
 }
 
 #addFarmerBtn:disabled {
@@ -212,6 +234,7 @@ td {
     right: 10px;
     cursor: pointer;
     font-size: 20px;
+    color: #cacaca;
 }
 
 .form-group {
@@ -221,6 +244,9 @@ td {
 .form-group label {
     display: block;
     margin-bottom: 5px;
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
 }
 
 .form-group input {
@@ -230,10 +256,11 @@ td {
     border-radius: 4px;
 }
 
-.search-bar {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+.search-bar input,
+.search-bar select {
+    padding: 0.5rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
 }
 
 #searchInput {
@@ -242,153 +269,12 @@ td {
     border: 1px solid lightgray;
     border-radius: 5px;
     outline: none;
-}
-
-#searchInput {
     max-width: 50%;
 }
 
 #searchInput:focus {
     border-color: #aaa;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-}
-
-.search-bar input,
-.search-bar select {
-    padding: 0.5rem;
-    border: 1px solid #dcdcdc;
-    border-radius: 5px;
-}
-
-.farmer-box {
-    border: 1px solid #ccc;
-    padding: 10px;
-    min-height: 50px;
-    border-radius: 10px;
-}
-
-.farmer-item {
-    background: #f0f0f0;
-    padding: 12px;
-    margin: 10px 10px;
-    display: flex;
-    border-radius: 10px;
-    justify-content: space-between;
-}
-
-.remove-btn {
-    color: #cacaca;
-    cursor: pointer;
-    border: none;
-    background: none;
-}
-
-.remove-btn:hover {
-    opacity: 0.8;
-}
-
-.save-btn {
-    background-color: #41A186;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
-}
-
-/* Base styles for the popup */
-.popup {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    min-height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    font-family: 'Poppins', sans-serif;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-.popup-content {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    width: 400px;
-    max-width: 90%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 20px;
-    cursor: pointer;
-    color: #333;
-    font-weight: 500;
-    color: #cacaca;
-}
-
-.popup-content h2 {
-    color: #41A186;
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0 0 15px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #333;
-    font-weight: 500;
-}
-
-#farmerSearch {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
-
-.search-results {
-    max-height: 150px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #fff;
-    width: 100%;
-    box-sizing: border-box;
-    z-index: 21;
-}
-
-.search-item {
-    padding: 10px 12px;
-    font-size: 14px;
-    color: #333;
-    cursor: pointer;
-}
-
-.search-item:hover {
-    background: #F5F6FA;
 }
 
 .farmer-box {
@@ -474,7 +360,6 @@ td {
     transition: opacity 0.3s ease;
 }
 
-/* Delete Team Popup */
 .popup-actions {
     justify-content: space-between;
     gap: 10px;
@@ -515,6 +400,13 @@ td {
     background-color: #912d47;
 }
 
+.popup-content h2 {
+    color: #41A186;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 15px;
+}
+
 .popup-content p {
     font-size: 14px;
     color: #333;
@@ -522,8 +414,143 @@ td {
     line-height: 1.5;
 }
 
-/* Responsive Design for 780px */
+#farmerSearch {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+.search-results {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 21;
+}
+
+.search-item {
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
+
+.search-item:hover {
+    background: #F5F6FA;
+}
+
+#addFarmerPopup,
+#deleteTeamPopup {
+    display: none;
+}
+
+/* Responsive Design for Larger Tablets (1024px and below) */
+@media (max-width: 1024px) {
+    .container,
+    .delete-team-container {
+        width: 90%;
+        max-width: 90%;
+        padding: 15px;
+    }
+
+    .back {
+        width: 90%;
+        max-width: 90%;
+        margin: 15px auto;
+        margin-left: calc((100% - 90%) / 2 - 15px); /* Matches container's padding */
+    }
+
+    .top-section h1 {
+        font-size: 22px;
+    }
+
+    .add-farmer {
+        font-size: 14px;
+    }
+
+    .search-bar input {
+        max-width: 40%;
+        font-size: 13px;
+    }
+
+    #deleteTeamBtn {
+        font-size: 13px;
+        padding: 7px 14px;
+    }
+}
+
+/* Responsive Design for Tablets (780px and below) */
 @media (max-width: 780px) {
+    body {
+        height: auto;
+    }
+
+    .container,
+    .delete-team-container {
+        width: 90%;
+        margin: 15px auto;
+        padding: 15px;
+    }
+
+    .back {
+        width: 90%;
+        margin: 15px auto;
+        margin-left: calc((100% - 90%) / 2 - 15px); /* Matches container's padding */
+    }
+
+    .top-section {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .top-section h1 {
+        font-size: 20px;
+    }
+
+    .add-farmer {
+        font-size: 14px;
+        margin-right: 10px;
+        margin-top: 0;
+    }
+
+    .search-bar input {
+        max-width: 50%;
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .action-btn {
+        width: 70px;
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .pagination span {
+        font-size: 12px;
+    }
+
+    .pagination button {
+        font-size: 14px;
+    }
+
+    #deleteTeamBtn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
     .popup-content {
         width: 90%;
         padding: 15px;
@@ -574,14 +601,142 @@ td {
         font-size: 14px;
     }
 
-    .cancel-btn, .confirm-btn {
+    .cancel-btn,
+    .confirm-btn {
         padding: 8px 16px;
         font-size: 12px;
     }
 }
 
-/* Responsive Design for 420px */
+/* Responsive Design for Small Tablets (600px and below) */
+@media (max-width: 600px) {
+    .container,
+    .delete-team-container {
+        width: 95%;
+        padding: 10px;
+    }
+
+    .back {
+        width: 95%;
+        margin: 15px auto;
+        margin-left: calc((100% - 95%) / 2 - 10px); /* Matches container's padding */
+    }
+
+    .top-section h1 {
+        font-size: 18px;
+    }
+
+    .add-farmer {
+        font-size: 13px;
+    }
+
+    .search-bar input {
+        max-width: 100%;
+        font-size: 12px;
+    }
+
+    th, td {
+        font-size: 11px;
+        padding: 6px 8px;
+    }
+
+    .action-btn {
+        width: 60px;
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+
+    .pagination span {
+        font-size: 11px;
+    }
+
+    .pagination button {
+        font-size: 13px;
+    }
+
+    #deleteTeamBtn {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+}
+
+/* Responsive Design for Mobile (420px and below) */
 @media (max-width: 420px) {
+    body {
+        height: auto;
+    }
+
+    .container,
+    .delete-team-container {
+        width: 95%;
+        padding: 10px;
+        margin: 10px auto;
+    }
+
+    .back {
+        width: 95%;
+        margin: 10px auto;
+        margin-left: calc((100% - 95%) / 2 - 10px); /* Matches container's padding */
+    }
+
+    .top-section {
+        flex-direction: row;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .top-section h1 {
+        font-size: 16px;
+    }
+
+    .add-farmer {
+        font-size: 12px;
+        margin-right: 5px;
+    }
+
+    .search-bar {
+        margin-bottom: 10px;
+    }
+
+    .search-bar input {
+        max-width: 100%;
+        font-size: 11px;
+        padding: 6px;
+    }
+
+    .table-wrapper {
+        margin-left: 0;
+    }
+
+    th, td {
+        font-size: 10px;
+        padding: 5px 6px;
+    }
+
+    .action-btn {
+        width: 50px;
+        font-size: 9px;
+        padding: 3px 5px;
+    }
+
+    .pagination span {
+        font-size: 10px;
+    }
+
+    .pagination button {
+        font-size: 12px;
+    }
+
+    #deleteTeamBtn {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+
+    #addFarmerBtn:disabled:hover::after {
+        font-size: 12px;
+        top: -12px;
+    }
+
     .popup-content {
         width: 95%;
         padding: 10px;
@@ -637,7 +792,8 @@ td {
         font-size: 12px;
     }
 
-    .cancel-btn, .confirm-btn {
+    .cancel-btn,
+    .confirm-btn {
         padding: 6px 12px;
         font-size: 10px;
     }
@@ -647,190 +803,8 @@ td {
         gap: 10px;
     }
 
-    .cancel-btn, .confirm-btn {
+    .cancel-btn,
+    .confirm-btn {
         width: 100%;
-    }
-}
-
-/* Responsive Design for 780px */
-@media (max-width: 780px) {
-    body {
-        height: auto;
-    }
-
-    .container {
-        width: 80%;
-        margin: 20px auto;
-        padding: 15px;
-    }
-
-    .top-section {
-        flex-direction: column;
-        align-items: flex-start;
-        margin-bottom: 30px;
-    }
-
-    .top-section h1 {
-        font-size: 20px;
-    }
-
-    .add-farmer {
-        font-size: 15px;
-        margin-left: 280px;
-        margin-top: -20px;
-    }
-
-    .search-bar input {
-        max-width: 50%;
-        font-size: 12px;
-    }
-
-    table {
-        font-size: 12px;
-    }
-
-    th, td {
-        padding: 8px 10px;
-        font-size: 12px;
-    }
-
-    th:nth-child(4), td:nth-child(4) {
-        display: none;
-    }
-
-    .action-btn {
-        width: 60px;
-        font-size: 10px;
-        padding: 4px 8px;
-    }
-
-    .pagination span {
-        font-size: 12px;
-    }
-
-    .pagination button {
-        font-size: 14px;
-    }
-
-    #deleteTeamBtn {
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-
-    #addFarmerBtn:disabled:hover::after {
-        font-size: 14px;
-        top: -15px;
-    }
-}
-
-
-#addFarmerPopup,
-#deleteTeamPopup {
-    display: none;
-}
-
-/* Responsive Design for 420px */
-@media (max-width: 420px) {
-    body {
-        height: auto;
-    }
-
-    .container {
-        width: 95%;
-        padding: 10px;
-        margin: 10px auto;
-    }
-
-    .top-section {
-        margin-bottom: 8px;
-    }
-
-    .back {
-        margin-top: 20px;
-        margin-left: 100px;
-        margin-bottom: 5px;
-    }
-
-    .top-section h1 {
-        font-size: 20px;
-    }
-
-    .add-farmer {
-        font-size: 12px;
-        margin-left: 100px;
-        margin-top: -20px;
-    }
-
-    .search-bar {
-        margin-bottom: 10px;
-    }
-
-    .search-bar input {
-        font-size: 10px;
-        padding: 6px;
-    }
-
-    table {
-        display: block;
-    }
-
-    thead {
-        display: none;
-    }
-
-    tr {
-        display: block;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #e0e0e0;
-        padding-bottom: 10px;
-    }
-
-    td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 11px;
-        padding: 5px 8px;
-        border-bottom: none;
-    }
-
-    td:before {
-        content: attr(data-label);
-        font-weight: 600;
-        text-transform: uppercase;
-        color: #333;
-        flex: 1;
-    }
-
-    td:last-child {
-        justify-content: center;
-    }
-
-    .action-btn {
-        width: 50px;
-        font-size: 9px;
-        padding: 3px 6px;
-    }
-
-    .pagination {
-        justify-content: center;
-    }
-
-    .pagination span {
-        font-size: 10px;
-    }
-
-    .pagination button {
-        font-size: 12px;
-    }
-
-    #deleteTeamBtn {
-        font-size: 10px;
-        padding: 5px 10px;
-    }
-
-    #addFarmerBtn:disabled:hover::after {
-        font-size: 12px;
-        top: -12px;
     }
 }

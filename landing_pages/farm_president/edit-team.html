@@ -23,23 +23,29 @@
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="Search">
         </div>
-        <table id="teamTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Farmer's Name</th>
-                    <th>User Role</th>
-                    <th>Contact</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="teamTableBody"></tbody>
-        </table>
+        <div class="table-wrapper">
+            <table id="teamTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Farmer's Name</th>
+                        <th>User Role</th>
+                        <th>Contact</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="teamTableBody"></tbody>
+            </table>
+        </div>
         <div class="pagination">
             <button id="prevPage">&lt;</button>
             <span id="pageInfo">1 of 1</span>
             <button id="nextPage">&gt;</button>
         </div>
+    </div>
+    <!-- Delete Team Button (Moved Outside Container, Below Pagination) -->
+    <div class="delete-team-container">
+        <button id="deleteTeamBtn">Delete Team</button>
     </div>
 
     <!-- Add Farmer Popup -->
