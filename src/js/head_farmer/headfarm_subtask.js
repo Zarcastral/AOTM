@@ -190,70 +190,73 @@ function attachEventListeners(projectTaskId) {
 
   const deleteModal = document.getElementById("deleteConfirmModal");
   const closeDeleteModal = document.querySelector(".close-delete-modal");
-  const cancelBtn = document.querySelector(".cancel-btn");
   const confirmDeleteBtn = document.querySelector(".confirm-delete-btn");
   let subtaskIndexToDelete = null;
+
+  if (!deleteModal) {
+    console.error("Delete modal not found!");
+    return;
+  }
 
   document.querySelectorAll(".delete-icon").forEach((icon) => {
     icon.removeEventListener("click", handleDeleteClick);
     icon.addEventListener("click", handleDeleteClick);
   });
 
-  closeDeleteModal.removeEventListener("click", closeModalHandler);
-  closeDeleteModal.addEventListener("click", closeModalHandler);
-
-  cancelBtn.removeEventListener("click", cancelHandler);
-  cancelBtn.addEventListener("click", cancelHandler);
+  if (closeDeleteModal) {
+    closeDeleteModal.removeEventListener("click", closeModalHandler);
+    closeDeleteModal.addEventListener("click", closeModalHandler);
+  } else {
+    console.error("Close delete modal button not found!");
+  }
 
   window.removeEventListener("click", windowClickHandler);
   window.addEventListener("click", windowClickHandler);
 
-  confirmDeleteBtn.removeEventListener("click", confirmDeleteHandler);
-  confirmDeleteBtn.addEventListener("click", confirmDeleteHandler);
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.removeEventListener("click", confirmDeleteHandler);
+    confirmDeleteBtn.addEventListener("click", confirmDeleteHandler);
+  } else {
+    console.error("Confirm delete button not found!");
+  }
 
   document.querySelectorAll(".view-icon").forEach((icon) => {
     icon.removeEventListener("click", handleViewClick);
     icon.addEventListener("click", handleViewClick);
   });
 
-// Function to handle delete click
-async function handleDeleteClick(event) {
-  const endDate = sessionStorage.getItem("selected_project_end_date");
-  const userType = sessionStorage.getItem("user_type");
-  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-    showErrorPanel("Project is way past the deadline, request extension of project");
-    return;
-  }
-  subtaskIndexToDelete = event.target.dataset.index;
-  const tasksRef = collection(db, "tb_project_task");
-  const q = query(
-    tasksRef,
-    where("project_task_id", "==", Number(projectTaskId))
-  );
-  const querySnapshot = await getDocs(q);
-
-  if (!querySnapshot.empty) {
-    const subtasks = querySnapshot.docs[0].data().subtasks || [];
-    const subtask = subtasks[subtaskIndexToDelete];
-    if (subtask.status === "Completed") {
-      showErrorPanel(`"${subtask.subtask_name}" is completed and cannot be deleted.`);
-      console.log(
-        `Attempted to delete completed subtask: ${subtask.subtask_name}`
-      );
-      subtaskIndexToDelete = null;
+  async function handleDeleteClick(event) {
+    const endDate = sessionStorage.getItem("selected_project_end_date");
+    const userType = sessionStorage.getItem("user_type");
+    const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+    if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
+      showErrorPanel("Project is way past the deadline, request extension of project");
       return;
     }
+    subtaskIndexToDelete = event.target.dataset.index;
+    const tasksRef = collection(db, "tb_project_task");
+    const q = query(
+      tasksRef,
+      where("project_task_id", "==", Number(projectTaskId))
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const subtasks = querySnapshot.docs[0].data().subtasks || [];
+      const subtask = subtasks[subtaskIndexToDelete];
+      if (subtask.status === "Completed") {
+        showErrorPanel(`"${subtask.subtask_name}" is completed and cannot be deleted.`);
+        console.log(
+          `Attempted to delete completed subtask: ${subtask.subtask_name}`
+        );
+        subtaskIndexToDelete = null;
+        return;
+      }
+    }
+    deleteModal.style.display = "flex";
   }
-  deleteModal.style.display = "flex";
-}
 
   function closeModalHandler() {
-    deleteModal.style.display = "none";
-    subtaskIndexToDelete = null;
-  }
-
-  function cancelHandler() {
     deleteModal.style.display = "none";
     subtaskIndexToDelete = null;
   }
@@ -265,22 +268,21 @@ async function handleDeleteClick(event) {
     }
   }
 
-// Function to handle confirm delete
-async function confirmDeleteHandler() {
-  const endDate = sessionStorage.getItem("selected_project_end_date");
-  const userType = sessionStorage.getItem("user_type");
-  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-    showErrorPanel("Project is way past the deadline, request extension of project");
-    deleteModal.style.display = "none";
-    return;
+  async function confirmDeleteHandler() {
+    const endDate = sessionStorage.getItem("selected_project_end_date");
+    const userType = sessionStorage.getItem("user_type");
+    const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+    if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
+      showErrorPanel("Project is way past the deadline, request extension of project");
+      deleteModal.style.display = "none";
+      return;
+    }
+    if (subtaskIndexToDelete !== null) {
+      await deleteSubtask(projectTaskId, subtaskIndexToDelete);
+      deleteModal.style.display = "none";
+      subtaskIndexToDelete = null;
+    }
   }
-  if (subtaskIndexToDelete !== null) {
-    await deleteSubtask(projectTaskId, subtaskIndexToDelete);
-    deleteModal.style.display = "none";
-    subtaskIndexToDelete = null;
-  }
-}
 
   function handleViewClick(event) {
     const index = event.target.dataset.index;
@@ -715,7 +717,7 @@ export function initializeSubtaskPage() {
       const completeBtn = document.getElementById("completeTaskBtn");
       const userType = sessionStorage.getItem("user_type");
       const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-      
+
       if (completeBtn) {
         const isNotAuthorized = userType !== "Head Farmer" && !isUserLeadFarmer;
         if (isNotAuthorized) {
@@ -723,7 +725,7 @@ export function initializeSubtaskPage() {
           completeBtn.classList.add("disabled");
           completeBtn.style.cursor = "not-allowed";
         }
-      
+
         completeBtn.onclick = null;
         completeBtn.onclick = async () => {
           if (!completeBtn.disabled && !isNotAuthorized) {
@@ -732,19 +734,21 @@ export function initializeSubtaskPage() {
             await completeTask(projectTaskId);
           }
         };
-      } else {
+      }
+
+      if (!projectTaskId) {
         console.log("No project_task_id found in sessionStorage.");
         document.querySelector(".subtask-table tbody").innerHTML = `
           <tr><td colspan="5">No task selected.</td></tr>
         `;
       }
     }
-  }      
+  }
 
   const addSubtaskBtn = document.querySelector(".add-subtask");
   const userType = sessionStorage.getItem("user_type");
   const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-  
+
   if (addSubtaskBtn) {
     if (userType !== "Head Farmer" && !isUserLeadFarmer) {
       addSubtaskBtn.disabled = true;
@@ -756,7 +760,7 @@ export function initializeSubtaskPage() {
       console.log("Add Subtask event listener attached");
     }
   }
-  
+
   const closeModal = document.querySelector(".close-modal");
   if (closeModal) {
     closeModal.removeEventListener("click", handleCloseModal);
@@ -777,6 +781,21 @@ export function initializeSubtaskPage() {
     subtaskForm.removeEventListener("submit", handleSubtaskSubmit);
     subtaskForm.addEventListener("submit", handleSubtaskSubmit);
   }
+
+  // Add event delegation for delete modal cancel button
+  document.addEventListener("click", (event) => {
+    if (event.target.matches(".cancel-btn")) {
+      event.stopPropagation(); // Prevent click from bubbling to modal
+      const deleteModal = document.getElementById("deleteConfirmModal");
+      if (deleteModal) {
+        deleteModal.style.display = "none";
+        subtaskIndexToDelete = null; // Reset the index
+        console.log("Cancel button clicked, modal closed");
+      } else {
+        console.error("Delete modal not found!");
+      }
+    }
+  });
 
   document.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
   document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
