@@ -312,7 +312,13 @@ function openResourcePanel(equipmentName, currentStock, unit) {
       const quantity = newQuantityInput.value.trim();
       const usageType = newUsageTypeSelect.value;
       const details = detailsInput.value.trim();
-      const sessionedProjectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
+      let sessionedProjectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
+
+      // Use "General" if no project_id is found
+      if (!sessionedProjectId) {
+        console.warn("No project_id found in sessionStorage, using 'General'");
+        sessionedProjectId = "General";
+      }
 
       // Warning trap: Check if all fields are empty/invalid
       if (
@@ -356,13 +362,6 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         saveButton.disabled = false;
         return;
       }
-      if (!sessionedProjectId) {
-        console.error("No project_id found in sessionStorage");
-        showMessage("error", "Project ID not found. Please try again.");
-        isSaving = false;
-        saveButton.disabled = false;
-        return;
-      }
 
       const stockQuery = query(
         collection(db, "tb_equipment_stock"),
@@ -397,7 +396,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
       });
 
       await addDoc(collection(db, "tb_inventory_log"), {
-        project_id: sessionedProjectId, // Use sessioned project_id
+        project_id: sessionedProjectId, // Use sessioned project_id or "General"
         resource_name: equipmentName,
         quantity_used: parsedQuantity,
         unit: unit,

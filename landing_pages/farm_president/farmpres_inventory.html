@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,33 +11,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/style/farm_president/farmpres_inventory.css">
 </head>
+
 <body>
     <!-- Placeholder for Header -->
-    <div id="header-container"></div> <!-- This will hold the header content dynamically -->
+    <div id="header-container"></div>
 
     <div class="main-content">
+        <!-- Project Selector Navigation -->
+        <div class="project-selector">
+            <span class="inventory-list"><a class="active" href="farmpres_inventory.html">Inventory List</a></span>
+            <div class="rando-line">|</div>
+            <span class="inventory-logs"><a href="inventory_logs.html">Inventory Logs</a></span>
+        </div>
+
+        <!-- Crops Panel -->
         <div class="panel">
             <div class="table-wrapper">
                 <h2>Crops</h2>
-                <div class="crop-search-bar">
-                    <input type="text" id="crop-search-bar" placeholder="Search">
-                    <select class="project_select">
-                        <option value="">Select Project</option>
-                    </select>
-                    <select class="crop_select">
-                        <option value="">Select Crops</option>
-                    </select>
-                </div>
                 <div class="crop_table">
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Project Name</th>
+                                <th>Project ID</th>
                                 <th>Crop Type</th>
                                 <th>Crops</th>
                                 <th>Date Added</th>
                                 <th>Current Stock</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,23 +45,15 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="crops-pagination">
-                    <span id="crop-page-number">Page 1</span>
-                    <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
-                    <button id="crop-next-page" class="crop-pagination-btn">&gt;</button>
-                </div>
             </div>
         </div>
 
-        <!-- Farmers Activity Panel -->
+        <!-- Fertilizer Panel -->
         <div class="panel">
             <div class="table-wrapper">
                 <h2>Fertilizer</h2>
                 <div class="fert-search-bar">
                     <input type="text" id="fert-search-bar" placeholder="Search">
-                    <select class="fert_project_select">
-                        <option value="">Select Project</option>
-                    </select>
                     <select class="fertilizer_select">
                         <option value="">Select Fertilizer</option>
                     </select>
@@ -69,36 +62,34 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Project Name</th>
+                                <th>Project ID</th>
                                 <th>Fertilizer Name</th>
                                 <th>Category</th>
                                 <th>Date Added</th>
                                 <th>Current Stock</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- will be populated here -->
+                            <!-- Fertilizers will be populated here -->
                         </tbody>
                     </table>
                 </div>
                 <div class="fertilizer-pagination">
                     <span id="fertilizer-page-number">Page 1</span>
-                    <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
-                    <button id="fertilizer-next-page" class="fertilizer-pagination-btn">&gt;</button>
+                    <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>
+                    </button>
+                    <button id="fertilizer-next-page" class="fertilizer-pagination-btn">></button>
                 </div>
             </div>
         </div>
 
-        <!-- Equipment Status Panel -->
+        <!-- Equipment Panel -->
         <div class="panel">
             <div class="table-wrapper">
                 <h2>Equipment</h2>
                 <div class="equip-search-bar">
                     <input type="text" id="equip-search-bar" placeholder="Search">
-                    <select class="equip_project_select">
-                        <option value="">Select Project</option>
-                    </select>
                     <select class="equipment_select">
                         <option value="">Equipment Type</option>
                     </select>
@@ -107,29 +98,63 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Project Name</th>
                                 <th>Equipment Name</th>
-                                <th>Category</th>
-                                <th>Date Added</th>
+                                <th>Equipment Type</th>
                                 <th>Current Stock</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- record will be put here -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
-                <div class="equipment-pagination">
-                    <span id="equipment-page-number">Page 1</span>
-                    <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
-                    <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
-                </div>
+            </div>
+            <div class="equipment-pagination">
+                <span id="equipment-page-number">Page 1</span>
+                <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>
+                </button>
+                <button id="equipment-next-page" class="equipment-pagination-btn">></button>
             </div>
         </div>
     </div>
 
-    <!-- Import the reusable script from src/auth -->
+    <!-- Use Resource Panel -->
+    <div id="use-resource-panel" class="use-resource-panel">
+        <button class="close-btn" id="close-resource-panel">×</button>
+        <h3>Use Resource</h3>
+        <div>
+            <label>Resource Name</label>
+            <input type="text" id="resource-type-display" readonly>
+        </div>
+        <div>
+            <label>Quantity to Use (Max: <span id="max-quantity"></span>)</label>
+            <input type="number" id="quantity-input" min="0" placeholder="Enter quantity">
+            <div id="quantity-error" class="error-message">Quantity cannot exceed current stock or be zero.</div>
+        </div>
+        <div>
+            <label>Usage Type</label>
+            <select id="usage-type">
+                <option value="">Select Usage Type</option>
+                <option value="Task">Task</option>
+                <option value="Damaged">Damaged</option>
+                <option value="Missing">Missing</option>
+            </select>
+        </div>
+        <div id="details-container" style="display: none;">
+            <label>Details (Required for Damaged or Missing)</label>
+            <textarea id="usage-details" placeholder="Provide details"></textarea>
+            <div id="details-error" class="error-message">Details are required for Damaged or Missing.</div>
+        </div>
+        <div class="panel-buttons">
+            <button class="cancel-btn" id="cancel-resource">Cancel</button>
+            <button class="save-btn" id="save-resource">Save</button>
+        </div>
+    </div>
+
+    <!-- Success and Error Messages -->
+    <div id="success-message" class="success-message"></div>
+    <div id="error-message" class="error-message"></div>
+
     <script type="module" src="/src/auth/header.js"></script>
 </body>
+
 </html>
