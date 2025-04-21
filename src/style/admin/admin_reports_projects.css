@@ -813,7 +813,6 @@ body.preview-active::before {
 
   .projects-pagination {
     position: absolute;
-    bottom: -10px;
     right: 5px;
     padding: 5px;
   }
