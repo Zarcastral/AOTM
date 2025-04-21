@@ -613,7 +613,7 @@ const cropStockMessage = document.getElementById("crop-stock-message");
 
 function showCropStockMessage(message, success) {
   cropStockMessage.textContent = message;
-  cropStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  cropStockMessage.style.backgroundColor = success ? "#41A186" : "#f44336";
   cropStockMessage.style.opacity = "1";
   cropStockMessage.style.display = "block";
   setTimeout(() => {

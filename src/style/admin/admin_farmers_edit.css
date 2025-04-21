@@ -465,3 +465,204 @@ button[type="submit"]:hover {
 }
 
 
+@media (max-width: 768px) {
+  .header {
+    min-height: 50px;
+    height: 50px;
+    padding: 0 15px;
+  }
+
+  .header-title {
+    font-size: 24px;
+  }
+
+  .header-icons img {
+    width: 20px;
+    height: 20px;
+  }
+
+  #sex, #user_type, #barangay {
+    width: 100%;
+    font-size: 14px;
+    padding: 8px 25px 8px 8px;
+    background-size: 14px;
+    background-position: right 8px center;
+  }
+
+  .container {
+    width: 90%;
+    margin: 30px auto;
+    padding: 15px;
+  }
+
+  h2 {
+    font-size: 24px;
+    margin-right: 0;
+    text-align: center
+
+  }
+
+  button[type="submit"] {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  input, select {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  #confirmationPanel {
+    width: 80%;
+    padding: 15px;
+  }
+
+  #confirmationPanel p {
+    font-size: 14px;
+  }
+
+  #confirmationPanel #confirmYes,
+  #confirmationPanel #confirmCancel {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  #errorPanel {
+    width: 80%;
+    padding: 15px;
+  }
+
+  #errorPanel p {
+    font-size: 14px;
+  }
+
+  #errorPanel button {
+    font-size: 12px;
+    padding: 8px 15px;
+  }
+
+  .profile-picture {
+    width: 120px;
+    height: 120px;
+  }
+
+  .modal-content {
+    max-width: 90%;
+    max-height: 90%;
+  }
+
+  .delete-message-panel {
+    font-size: 15px;
+    padding: 15px 20px;
+  }
+
+  .close {
+    font-size: 30px;
+    top: 10px;
+    right: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 10px;
+  }
+
+  .header-title {
+    font-size: 20px;
+  }
+
+  .header-icons img {
+    width: 18px;
+    height: 18px;
+  }
+
+  #sex, #user_type, #barangay {
+    font-size: 12px;
+    padding: 6px 20px 6px 6px;
+    background-size: 12px;
+    background-position: right 6px center;
+  }
+
+  .container {
+    padding: 10px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  input, select {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  button {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  #confirmationPanel {
+    width: 90%;
+    padding: 10px;
+  }
+
+  #confirmationPanel p {
+    font-size: 12px;
+  }
+
+  #confirmationPanel #confirmYes,
+  #confirmationPanel #confirmCancel {
+    font-size: 10px;
+    padding: 6px;
+  }
+
+  #errorPanel {
+    width: 90%;
+    padding: 10px;
+  }
+
+  #errorPanel p {
+    font-size: 12px;
+  }
+
+  #errorPanel button {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  .profile-picture {
+    width: 100px;
+    height: 100px;
+  }
+
+  .delete-message-panel {
+    font-size: 13px;
+    padding: 10px 15px;
+  }
+
+  .close {
+    font-size: 25px;
+    top: 5px;
+    right: 15px;
+  }
+
+  .modify-buttons {
+    flex-direction: row;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  button[type="submit"], #close-button {
+    flex: none;
+    width: 100px;
+    font-size: 14px;
+    padding: 8px;
+    border-radius: 25px;
+  }
+}

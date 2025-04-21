@@ -740,119 +740,164 @@ transition: opacity 0.3s ease;
   display: none;
 }
 /*------------------------------- END OF DELETE STOCK DESIGN --------------------------------------*/
-/* Responsive Design */
 @media screen and (max-width: 768px) {
-  .header {
-    padding: 0 10px;
+  .crop-panel, .fert-panel, .equip-panel, .crop-delete-panel {
+    width: 80vw;
+    max-width: 500px;
+    min-width: 250px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-radius: 15px;
   }
 
-  .header-title {
-    font-size: 1.25rem;
+  .crop-panel h3, .fert-panel h3, .equip-panel h3 {
+    font-size: 28px;
+    margin-top: 8px;
   }
 
-  .header-icons img {
-    width: 20px;
-    height: 20px;
-  }
-
-  .main-content {
-    padding: 10px;
-  }
-
-  .header {
-    padding-left: 50px;
-  }
-
-  .account-panel {
-    width: 100%;
-    height: auto;
-    top: 80px;
-    padding: 20px;
-  }
-
-  .stock-selector {
-    font-size: 16px;
-    justify-content: center;
-  }
-
-  .crop_select, .fertilizer_select, .equipment_select {
-    font-size: 14px;
-    width: 130px;
-  }
-
-  .crop-search-bar, .fert-search-bar, .equip-search-bar {
-    display: flex;
-    flex-wrap: nowrap;
+  .crop-content, .fert-content, .equip-content, .crop-delete-content {
     gap: 10px;
+  }
+
+  .crop-input, .crop-select, .fert-input, .fert-select, .equip-input, .equip-select {
+    height: 35px;
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+
+  .crop-row, .fert-row, .equip-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .crop-stock-row, .fert-stock-row, .equip-stock-row {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  #crop_name, #fert_name, #equip_name {
+    min-width: 180px;
     max-width: 100%;
-    box-sizing: border-box;
-    padding: 0 10px;
-    width: calc(100% - 20px); /* Ensure it fits within panel padding */
   }
 
-  .crop-search-bar input, .fert-search-bar input, .equip-search-bar input {
-    width: clamp(120px, 30vw, 150px);
-    max-width: calc(50% - 5px); /* Split available space with gap */
-    box-sizing: border-box;
+  #crop_stock, #fert_stock, #equip_stock {
+    min-width: 70px;
+    max-width: 100%;
   }
 
-  .crop-search-bar select, .fert-search-bar select, .equip-search-bar select {
-    width: clamp(100px, 25vw, 130px);
-    max-width: calc(50% - 5px); /* Split available space with gap */
-    box-sizing: border-box;
+  #unit, #fert_unit, #equip_unit {
+    min-width: 50px;
+    max-width: 100%;
+  }
+
+  .crop-row > div, .fert-row > div, .equip-row > div, .crop-stock-row > div {
+    padding: 4px;
+  }
+
+  .crop-row label, .fert-row label, .equip-row label, .crop-stock-row label {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .crop-actions, .fert-actions, .equip-actions {
+    gap: 8px;
+  }
+
+  .crop-btn, .fert-btn, .equip-btn {
+    padding: 8px 30px;
+    border-radius: 20px;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+
+  .crop-stock-message, .fert-stock-message, .equip-stock-message {
+    font-size: 16px;
+    padding: 8px 15px;
+    border-radius: 4px;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .header-title {
-    font-size: 1.1rem;
+  .crop-panel, .fert-panel, .equip-panel, .crop-delete-panel {
+    width: 85vw;
+    max-width: 400px;
+    min-width: 200px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    border-radius: 12px;
   }
 
-  .header-icons img {
-    width: 18px;
-    height: 18px;
+  .crop-panel h3, .fert-panel h3, .equip-panel h3 {
+    font-size: 24px;
+    margin-top: 6px;
   }
 
-  .main-content {
-    padding: 5px;
-  }
-
-  .account-panel {
-    width: 100%;
-    height: 60%;
-    padding: 15px;
-  }
-
-  .stock-selector {
-    font-size: 16px;
-    justify-content: center;
-  }
-
-  .crop_select, .fertilizer_select, .equipment_select {
-    font-size: 12px;
-    width: 110px;
-  }
-
-  .crop-search-bar, .fert-search-bar, .equip-search-bar {
-    display: flex;
-    flex-wrap: nowrap;
+  .crop-content, .fert-content, .equip-content, .crop-delete-content {
     gap: 8px;
+  }
+
+  .crop-input, .crop-select, .fert-input, .fert-select, .equip-input, .equip-select {
+    height: 30px;
+    font-size: 12px;
+    padding: 5px 8px;
+    border-radius: 6px;
+  }
+
+  .crop-row, .fert-row, .equip-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .crop-stock-row, .fert-stock-row, .equip-stock-row {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  #crop_name, #fert_name, #equip_name {
+    min-width: 150px;
     max-width: 100%;
-    box-sizing: border-box;
-    padding: 0 5px;
-    width: calc(100% - 10px); /* Ensure it fits within panel padding */
   }
 
-  .crop-search-bar input, .fert-search-bar input, .equip-search-bar input {
-    width: clamp(180px, 25vw, 120px);
-    max-width: calc(50% - 4px); /* Split available space with gap */
-    box-sizing: border-box;
+  #crop_stock, #fert_stock, #equip_stock {
+    min-width: 60px;
+    max-width: 100%;
   }
 
-  .crop-search-bar select, .fert-search-bar select, .equip-search-bar select {
-    width: clamp(130px, 20vw, 100px);
-    max-width: calc(50% - 4px); /* Split available space with gap */
-    box-sizing: border-box;
-    height: 37px;
+  #unit, #fert_unit, #equip_unit {
+    min-width: 40px;
+    max-width: 100%;
+  }
+
+  .crop-row > div, .fert-row > div, .equip-row > div, .crop-stock-row > div {
+    padding: 3px;
+  }
+
+  .crop-row label, .fert-row label, .equip-row label, .crop-stock-row label {
+    font-size: 14px;
+    margin-bottom: 3px;
+  }
+
+  .crop-actions, .fert-actions, .equip-actions {
+    gap: 6px;
+  }
+
+  .crop-btn, .fert-btn, .equip-btn {
+    padding: 6px 20px;
+    border-radius: 15px;
+    font-size: 14px;
+    margin-top: 15px;
+  }
+
+  .crop-stock-message, .fert-stock-message, .equip-stock-message {
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 3px;
   }
 }

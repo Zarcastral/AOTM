@@ -932,27 +932,37 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     currentPage++;
   }
 
-  const pdfBlob = doc.output("blob");
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  const previewPanel = document.getElementById("pdf-preview-panel");
-  const previewContainer = document.getElementById("pdf-preview-container");
+  // Check screen width to determine if preview is feasible
+  const isPreviewSupported = window.innerWidth > 768; // Adjust threshold as needed
 
-  previewContainer.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%"></iframe>`;
-  previewPanel.style.display = "flex";
-  document.body.classList.add("preview-active");
+  if (isPreviewSupported) {
+    // Show PDF preview for larger screens
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const previewPanel = document.getElementById("pdf-preview-panel");
+    const previewContainer = document.getElementById("pdf-preview-container");
 
-  document.getElementById("preview-cancel-btn").onclick = () => {
-    previewPanel.style.display = "none";
-    document.body.classList.remove("preview-active");
-    URL.revokeObjectURL(pdfUrl);
-  };
+    previewContainer.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%"></iframe>`;
+    previewPanel.style.display = "flex";
+    document.body.classList.add("preview-active");
 
-  document.getElementById("preview-done-btn").onclick = async () => {
-      doc.save(`Project_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
-      await saveActivityLog("Create", `Project Report downloaded by ${userTypePrint} ${fullName} `);
+    document.getElementById("preview-cancel-btn").onclick = () => {
       previewPanel.style.display = "none";
       document.body.classList.remove("preview-active");
       URL.revokeObjectURL(pdfUrl);
     };
+
+    document.getElementById("preview-done-btn").onclick = async () => {
+      doc.save(`Project_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+      await saveActivityLog("Create", `Project Report downloaded by ${userTypePrint} ${fullName}`);
+      previewPanel.style.display = "none";
+      document.body.classList.remove("preview-active");
+      URL.revokeObjectURL(pdfUrl);
+    };
+  } else {
+    // Directly download PDF and log activity for smaller screens
+    doc.save(`Project_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+    await saveActivityLog("Create", `Project Report downloaded by ${userTypePrint} ${fullName}`);
+  }
 });
 // <-------------= EVENT LISTENERS END =---------------->

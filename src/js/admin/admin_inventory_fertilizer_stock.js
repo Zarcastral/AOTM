@@ -491,7 +491,7 @@ function displayFertilizers(fertilizersList) {
   if (paginatedFertilizers.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center; color: red;">No records found</td>
+        <td colspan="6" style="text-align: center;">No records found</td>
       </tr>`;
     return;
   }
@@ -625,7 +625,7 @@ const fertilizerStockMessage = document.getElementById("fert-stock-message");
 function showFertilizerStockMessage(message, success) {
   fertilizerStockMessage.textContent = message;
   fertilizerStockMessage.style.backgroundColor = success
-    ? "#4CAF50"
+    ? "#41A186"
     : "#f44336";
   fertilizerStockMessage.style.opacity = "1";
   fertilizerStockMessage.style.display = "block";
