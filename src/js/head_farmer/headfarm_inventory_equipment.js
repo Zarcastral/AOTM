@@ -364,48 +364,51 @@ function openResourcePanel(equipmentName, currentStock, unit) {
   maxQuantityDisplay.textContent = `${currentStock} ${unit}`;
   quantityInput.value = "";
   quantityInput.max = currentStock;
-  quantityInput.min = 0;
+  quantityInput.min = 1;
+  quantityInput.type = "number";
   statusSelect.innerHTML = `
-    <option value="">Select Status</option>
     <option value="Used">Used</option>
     <option value="Damaged">Damaged</option>
     <option value="Missing">Missing</option>
   `;
+  statusSelect.value = "Used"; // Set default to Used
   detailsInput.value = "";
   detailsContainer.style.display = "none";
 
   panel.classList.add("active");
 
-  // Clone inputs to reset event listeners
-  const newQuantityInput = quantityInput.cloneNode(true);
-  quantityInput.parentNode.replaceChild(newQuantityInput, quantityInput);
-  const newStatusSelect = statusSelect.cloneNode(true);
-  statusSelect.parentNode.replaceChild(newStatusSelect, statusSelect);
+  // Reset event listeners without cloning
+  statusSelect.value = "Used"; // Ensure initial value
+  statusSelect.dispatchEvent(new Event("change")); // Trigger initial state
 
   // Real-time quantity validation
-  newQuantityInput.addEventListener("input", () => {
-    const value = newQuantityInput.value.trim();
+  let lastValidQuantity = "";
+  quantityInput.addEventListener("input", () => {
+    const value = quantityInput.value.trim();
     const parsedValue = parseFloat(value);
     if (value === "") {
-      newQuantityInput.value = "";
       showMessage("error", "Quantity cannot be empty.");
     } else if (isNaN(parsedValue)) {
-      newQuantityInput.value = "";
       showMessage("error", "Please enter a valid number.");
     } else if (parsedValue > currentStock) {
-      newQuantityInput.value = currentStock;
+      quantityInput.value = currentStock;
+      lastValidQuantity = currentStock.toString();
       showMessage("error", `Quantity cannot exceed ${currentStock} ${unit}.`);
-    } else if (parsedValue <= 0) {
-      newQuantityInput.value = "";
-      showMessage("error", "Quantity must be greater than 0.");
+    } else if (parsedValue < 1) {
+      quantityInput.value = 1;
+      lastValidQuantity = "1";
+      showMessage("error", "Quantity must be at least 1.");
+    } else {
+      lastValidQuantity = value;
     }
   });
 
   // Handle status change to toggle details field
-  newStatusSelect.addEventListener("change", () => {
-    if (newStatusSelect.value === "Used") {
+  statusSelect.addEventListener("change", () => {
+    console.log("Status changed to:", statusSelect.value);
+    if (statusSelect.value === "Used") {
       detailsContainer.style.display = "none";
-      detailsInput.value = ""; // Clear details when Used is selected
+      detailsInput.value = "";
     } else {
       detailsContainer.style.display = "block";
     }
@@ -423,11 +426,13 @@ function openResourcePanel(equipmentName, currentStock, unit) {
     }
     isSaving = true;
     saveButton.disabled = true;
+    quantityInput.disabled = true;
+    statusSelect.disabled = true; // Prevent status changes during save
     console.log("Save button clicked, processing...");
 
     try {
-      const quantity = newQuantityInput.value.trim();
-      const status = newStatusSelect.value;
+      const quantity = quantityInput.value.trim() || lastValidQuantity;
+      const status = statusSelect.value;
       const details = detailsInput.value.trim();
       const sessionedProjectId = sessionStorage.getItem("projectId");
 
@@ -442,6 +447,8 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         );
         isSaving = false;
         saveButton.disabled = false;
+        quantityInput.disabled = false;
+        statusSelect.disabled = false;
         return;
       }
 
@@ -451,7 +458,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         !quantity ||
         isNaN(parsedQuantity) ||
         parsedQuantity > currentStock ||
-        parsedQuantity <= 0
+        parsedQuantity < 1
       ) {
         console.warn("Invalid quantity detected:", quantity);
         showMessage(
@@ -460,15 +467,19 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         );
         isSaving = false;
         saveButton.disabled = false;
+        quantityInput.disabled = false;
+        statusSelect.disabled = false;
         return;
       }
 
       // Validate status
-      if (!status) {
-        console.warn("No status selected.");
-        showMessage("error", "Please select a status.");
+      if (!status || !["Used", "Damaged", "Missing"].includes(status)) {
+        console.warn("Invalid or no status selected:", status);
+        showMessage("error", "Please select a valid status.");
         isSaving = false;
         saveButton.disabled = false;
+        quantityInput.disabled = false;
+        statusSelect.disabled = false;
         return;
       }
 
@@ -481,6 +492,8 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         );
         isSaving = false;
         saveButton.disabled = false;
+        quantityInput.disabled = false;
+        statusSelect.disabled = false;
         return;
       }
 
@@ -499,6 +512,8 @@ function openResourcePanel(equipmentName, currentStock, unit) {
           showMessage("error", "No stock found for this equipment.");
           isSaving = false;
           saveButton.disabled = false;
+          quantityInput.disabled = false;
+          statusSelect.disabled = false;
           return;
         }
 
@@ -512,6 +527,8 @@ function openResourcePanel(equipmentName, currentStock, unit) {
           showMessage("error", "No stock entry found for this farmer.");
           isSaving = false;
           saveButton.disabled = false;
+          quantityInput.disabled = false;
+          statusSelect.disabled = false;
           return;
         }
 
@@ -544,6 +561,8 @@ function openResourcePanel(equipmentName, currentStock, unit) {
     } finally {
       isSaving = false;
       saveButton.disabled = false;
+      quantityInput.disabled = false;
+      statusSelect.disabled = false;
     }
   };
 
