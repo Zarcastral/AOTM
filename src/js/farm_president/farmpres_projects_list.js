@@ -238,8 +238,8 @@ function updateTable() {
             <td>
               <button class="action-btn edit-btn" data-id="${
                 data.project_id
-              }" title="Edit">
-                <img src="/images/Edit.png" alt="Edit">
+              }" title="Select Team">
+                <img src="/images/team-icon.png" alt="Select Team">
               </button>
               <button class="action-btn view-btn" data-id="${
                 data.project_id
