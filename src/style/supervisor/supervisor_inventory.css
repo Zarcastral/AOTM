@@ -1,83 +1,101 @@
 body {
-    margin: 0;
-    height: 100vh;
-    background-color: #F5F6FA;
-    font-family: 'Poppins';
-    display: flex;
-    flex-direction: column;
-    cursor: default;
-  }
-  .table-wrapper {
-    width: 100%;
-    overflow-x: auto;
+  margin: 0;
+  height: 100vh;
+  background-color: #F5F6FA;
+  font-family: 'Poppins';
+  display: flex;
+  flex-direction: column;
+  cursor: default;
 }
-  .header {
-    min-height: 60px;
-    height: 60px;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    position: relative;
-  }
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+.header {
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+}
 
-  .header-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-  }
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
 
-  .header-icons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
 
-  .header-icons img {
-    width: 24px;
-    height: 24px;
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Space between panels */
+  padding: 20px; /* Padding around the panels */
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
+}
+
+#crop-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
+
+
+#fert-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
+
+
+#equip-search-bar {
+  padding: 9px;
+  font-size: 15px;
+  border: 1px solid lightgray; 
+  border-radius: px;
+  outline: none;
+}
+
+.crop_select{
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 150px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
     cursor: pointer;
   }
 
-  .main-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px; /* Space between panels */
-    padding: 20px; /* Padding around the panels */
-    overflow-y: auto; /* Enable vertical scrolling */
-    max-height: calc(100vh - 60px); /* Limit height to viewport minus header */
-  }
 
-  #crop-search-bar {
-    padding: 9px;
-    font-size: 15px;
-    border: 1px solid lightgray; 
-    border-radius: px;
-    outline: none;
-  }
-
-  
-  #fert-search-bar {
-    padding: 9px;
-    font-size: 15px;
-    border: 1px solid lightgray; 
-    border-radius: px;
-    outline: none;
-  }
-
-
-  #equip-search-bar {
-    padding: 9px;
-    font-size: 15px;
-    border: 1px solid lightgray; 
-    border-radius: px;
-    outline: none;
-  }
-
-  .crop_select{
+  .fertilizer_select{
     padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
       font-size: 16px;
       color: #243B53;
@@ -94,15 +112,14 @@ body {
       cursor: pointer;
     }
 
-
-    .fertilizer_select{
+    .equipment_select{
       padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
         font-size: 16px;
         color: #243B53;
         border: 1px solid #ccc;
         border-radius: 10px;
         outline: none;
-        width: 150px;
+        width: 190px;
         transition: border-color 0.3s ease, box-shadow 0.3s ease;
         appearance: none; /* Removes default dropdown styling */
         background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
@@ -112,304 +129,353 @@ body {
         cursor: pointer;
       }
 
-      .equipment_select{
-        padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-          font-size: 16px;
-          color: #243B53;
-          border: 1px solid #ccc;
-          border-radius: 10px;
-          outline: none;
-          width: 190px;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease;
-          appearance: none; /* Removes default dropdown styling */
-          background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-          background-repeat: no-repeat;
-          background-position: right 10px center; /* Moves the arrow closer */
-          background-size: 16px;
-          cursor: pointer;
-        }
+/* Account Panel Styles */
+.account-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  height: 400px; /* Set a fixed height here */
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+.panel h2 {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+  margin-bottom: 20px;
+}
+.account-panel.active {
+  display: block;
+}
 
-  /* Account Panel Styles */
-  .account-panel {
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    width: 300px;
-    height: 400px; /* Set a fixed height here */
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    padding: 10px;
-    display: none;
-    z-index: 10;
-  }
-  .panel h2 {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-    margin-bottom: 20px;
-  }
-  .account-panel.active {
-    display: block;
-  }
+.account-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
 
-  .account-panel ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
+.account-panel ul li {
+  padding: 10px;
+  border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+}
 
-  .account-panel ul li {
-    padding: 10px;
-    border-bottom: 1px solid #E2E8F0;
-    cursor: pointer;
-  }
+.account-panel ul li:hover {
+  background-color: #F7FAFC;
+}
 
-  .account-panel ul li:hover {
-    background-color: #F7FAFC;
-  }
-
-  .account-panel ul li:last-child {
-    border-bottom: none;
-  }
+.account-panel ul li:last-child {
+  border-bottom: none;
+}
 .panel {
-    background-color: white;
-    width: 90%;
-    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
-    padding: 45px 20px 60px 20px; /* Increased bottom padding to accommodate pagination */    margin-top: 0px;
-    border-radius: 10px;
-    position: relative; /* Make panel the positioning context for pagination */
-  }
+  background-color: white;
+  width: 87%;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+  padding: 45px 20px 60px 20px; /* Increased bottom padding to accommodate pagination */   
+  margin-top: 0px;
+  border-radius: 10px;
+  position: relative; /* Make panel the positioning context for pagination */
+}
 
-  .crop-search-bar, .fert-search-bar
-  .equip-search-bar {
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-  }
-  .panel table th, .panel table td {
-    text-align: center;
-    vertical-align: middle; /* Ensures vertical alignment */
-  }
-  
-  .image-header img {
-    display: block; /* Makes the image block-level for better alignment */
-    margin: 0 auto; /* Centers the image horizontally */
-  }
-  .crop-search-bar input, .fert-search-bar input,
-  .equip-search-bar input {
-    width: 300px;
-    padding: 8px 12px;
-    border: 1px solid #D1D5DB;
-    border-radius: 6px;
-  }
+.crop-search-bar, .fert-search-bar
+.equip-search-bar {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.panel table th, .panel table td {
+  text-align: center;
+  vertical-align: middle; /* Ensures vertical alignment */
+}
 
-  .crop-search-bar select, .fert-search-bar select,
-  .equip-search-bar select  {
-    padding: 8px 12px;
-    border: 1px solid #D1D5DB;
-    border-radius: 6px;
-  }
-  .panel table th, .panel table td {
-    text-align: left; /* This centers the text */
-    vertical-align: middle;
-  }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-  }
+.image-header img {
+  display: block; /* Makes the image block-level for better alignment */
+  margin: 0 auto; /* Centers the image horizontally */
+}
+.crop-search-bar input, .fert-search-bar input,
+.equip-search-bar input {
+  width: 300px;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+}
 
-  th,
-  td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 2px solid #f0f0f0;
-  }
+.crop-search-bar select, .fert-search-bar select,
+.equip-search-bar select  {
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+}
+.panel table th, .panel table td {
+  text-align: left; /* This centers the text */
+  vertical-align: middle;
+}
 
-  th {
-    background-color: white;
-    color: #333;
-    font-weight: 600;
-  }
-  th:first-child{
-    padding-left: 15px;
-  }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
 
-  td:first-child{
-    width: 50px; /* Adjusted width for the action column */
-    min-width: 50px; /* Minimum width to ensure usability */
-    text-align: middle; /* Center the content in the column for better appearance */
-  }
-  
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #f0f0f0;
+}
 
-  th:nth-child(5), td:nth-child(5) {
-    width: 140px; /* Adjusted width for the action column */
-    min-width: 80px; /* Minimum width to ensure usability */
-    text-align: Left; /* Center the content in the column for better appearance */
-  }
-  th:last-child, td:last-child {
-    width: 100px; /* Fixed width for the action column; adjust as needed */
-    min-width: 100px; /* Minimum width to ensure usability */
-  }
+th {
+  background-color: white;
+  color: #333;
+  font-weight: 600;
+}
+th:first-child{
+  padding-left: 15px;
+}
 
-  tbody tr:hover {
-    background-color: #F3F4F6;
-  }
+td:first-child{
+  width: 50px; /* Adjusted width for the action column */
+  min-width: 50px; /* Minimum width to ensure usability */
+  text-align: middle; /* Center the content in the column for better appearance */
+}
 
-  .checkbox {
-    justify-content: center;
-    align-items: center;
-  }
 
-  .checkbox input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
+th:nth-child(5), td:nth-child(5) {
+  width: 140px; /* Adjusted width for the action column */
+  min-width: 80px; /* Minimum width to ensure usability */
+  text-align: Left; /* Center the content in the column for better appearance */
+}
+th:last-child, td:last-child {
+  width: 100px; /* Fixed width for the action column; adjust as needed */
+  min-width: 100px; /* Minimum width to ensure usability */
+}
 
-  .btn-new-project {
-    background-color: #41A186;;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    text-decoration: none;
-    display: inline-block;
-    margin-bottom: 10px;
-  }
+tbody tr:hover {
+  background-color: #F3F4F6;
+}
 
-  .btn-new-project:hover {
-    background-color: #318a71;
-  }
+.checkbox {
+  justify-content: center;
+  align-items: center;
+}
 
-  .button-container {
-    width: 90%;
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
-  }
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
 
-  .stock-selector {
-    display: flex;
-    margin-top: 20px;
-    gap: 30px;
-    font-size: 20px;
-  }
+.btn-new-project {
+  background-color: #41A186;;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 10px;
+}
 
-  .stock-selector a:hover{
-    color: #41A186;
-  }
-  
-  .stock-selector a {
-    color: slategray;
-    transition: color 0.3s ease;
+.btn-new-project:hover {
+  background-color: #318a71;
+}
+
+.button-container {
+  width: 90%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.stock-selector {
+  display: flex;
+  margin-top: 20px;
+  gap: 30px;
+  font-size: 20px;
+}
+
+.stock-selector a:hover{
+  color: #41A186;
+}
+
+.stock-selector a {
+  color: slategray;
+  transition: color 0.3s ease;
 }
 
 .stock-selector a.active {
-    color: #41A186;
-    font-weight: 500;
+  color: #41A186;
+  font-weight: 500;
 }
 
 .rando-line {
-  color: slategray;
-  transition: color 0.3s ease;
+color: slategray;
+transition: color 0.3s ease;
 }
 
 /* Pagination styles */
 .crops-pagination,
 .fertilizer-pagination,
 .equipment-pagination {
-  position: absolute;
-  bottom: 10px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+position: absolute;
+bottom: 10px;
+right: 20px;
+display: flex;
+align-items: center;
+gap: 10px;
 }
 
 #crop-page-number, #fertilizer-page-number, #equipment-page-number {
-  font-size: 17px;
-  color: #333;
+font-size: 17px;
+color: #333;
 }
 
 .crop-pagination-btn, .fertilizer-pagination-btn,
 .equipment-pagination-btn {
-  padding: 10px 10px;
-  margin: 0;
-  font-size: 25px;
-  border: none;
-  border-radius: 0;
-  cursor: pointer;
-  background: none;
-  transition: color 0.3s ease;
-  color: #333;
+padding: 10px 10px;
+margin: 0;
+font-size: 25px;
+border: none;
+border-radius: 0;
+cursor: pointer;
+background: none;
+transition: color 0.3s ease;
+color: #333;
 }
 
 .crop-pagination-btn:hover, .fertilizer-pagination-btn:hover,
 .equipment-pagination-btn:hover {
-  color: #41A186;
+color: #41A186;
 }
 
 .crop-pagination-btn:disabled, .fertilizer-pagination-btn:disabled,
 .equipment-pagination-btn:disabled {
-  color: #bbb;
-  cursor: not-allowed;
+color: #bbb;
+cursor: not-allowed;
 }
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {
-  .header {
-    padding: 0 10px;
-  }
+.header {
+  padding: 0 10px;
+}
 
-  .header-title {
-    font-size: 1.25rem;
-  }
+.header-title {
+  font-size: 1.25rem;
+}
 
-  .header-icons img {
-    width: 20px;
-    height: 20px;
-  }
+.header-icons img {
+  width: 20px;
+  height: 20px;
+}
 
-  .main-content {
-    padding: 10px;
-  }
+.main-content {
+  padding: 10px;
+}
 
-  .header {
-    padding-left: 50px;
-  }
+.header {
+  padding-left: 50px;
+}
 
-  .account-panel {
-    width: 100%;
-    height: auto;
-    top: 80px;
-    padding: 20px;
-  }
+.account-panel {
+  width: 100%;
+  height: auto;
+  top: 80px;
+  padding: 20px;
+}
+
+.stock-selector {
+  font-size: 20px;
+  justify-content: center;
+}
+
+.crop_select, .fertilizer_select, .equipment_select {
+  font-size: 14px;
+  width: 130px;
+}
+
+.crop-search-bar, .fert-search-bar, .equip-search-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 10px;
+  width: calc(100% - 20px); /* Ensure it fits within panel padding */
+}
+
+.crop-search-bar input, .fert-search-bar input, .equip-search-bar input {
+  width: clamp(120px, 30vw, 150px);
+  max-width: calc(50% - 5px); /* Split available space with gap */
+  box-sizing: border-box;
+}
+
+.crop-search-bar select, .fert-search-bar select, .equip-search-bar select {
+  width: clamp(100px, 25vw, 130px);
+  max-width: calc(50% - 5px); /* Split available space with gap */
+  box-sizing: border-box;
+}
 }
 
 @media screen and (max-width: 480px) {
-  .header-title {
-    font-size: 1.1rem;
-  }
+.header-title {
+  font-size: 1.1rem;
+}
 
-  .header-icons img {
-    width: 18px;
-    height: 18px;
-  }
+.header-icons img {
+  width: 18px;
+  height: 18px;
+}
 
-  .main-content {
-    padding: 5px;
-  }
+.main-content {
+  padding: 5px;
+}
 
-  .account-panel {
-    width: 100%;
-    height: 60%;
-    padding: 15px;
-  }
+.account-panel {
+  width: 100%;
+  height: 60%;
+  padding: 15px;
+}
+
+.stock-selector {
+  font-size: 16px;
+  justify-content: center;
+}
+
+.crop_select, .fertilizer_select, .equipment_select {
+  font-size: 12px;
+  width: 110px;
+}
+
+.crop-search-bar, .fert-search-bar, .equip-search-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 5px;
+  width: calc(100% - 10px); /* Ensure it fits within panel padding */
+}
+
+.crop-search-bar input, .fert-search-bar input, .equip-search-bar input {
+  width: clamp(180px, 25vw, 120px);
+  max-width: calc(50% - 4px); /* Split available space with gap */
+  box-sizing: border-box;
+}
+
+.crop-search-bar select, .fert-search-bar select, .equip-search-bar select {
+  width: clamp(130px, 20vw, 100px);
+  max-width: calc(50% - 4px); /* Split available space with gap */
+  box-sizing: border-box;
+  height: 37px;
+}
 }
