@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="/src/style/components/notifications.css">
 </head>
 
-
 <body>
     <div class="notification-container">
         <div class="back-arrow">❮</div>
@@ -27,12 +26,13 @@
             where,
             doc,
             updateDoc,
-            orderBy, // Added import for orderBy
+            orderBy,
         } from "firebase/firestore";
         import app from "/src/config/firebase_config.js";
 
         const db = getFirestore(app);
         const notificationList = document.getElementById('notification-list');
+        const backArrow = document.querySelector('.back-arrow');
 
         // Function to format timestamp as relative time (e.g., "45 mins ago")
         function getRelativeTime(timestamp) {
@@ -63,6 +63,31 @@
                 }); // e.g., "Apr 4, 2025"
             }
         }
+
+        // Close notification panel when back arrow is clicked
+        backArrow.addEventListener('click', () => {
+            console.log("Back arrow clicked, sending closeNotificationPanel message");
+            try {
+                // Send message to parent window
+                window.parent.postMessage("closeNotificationPanel", "*");
+                // Fallback: Hide the notification container locally
+                const notificationContainer = document.querySelector('.notification-container');
+                if (notificationContainer) {
+                    notificationContainer.style.display = 'none';
+                    console.log("Notification container hidden locally as fallback");
+                } else {
+                    console.error("Notification container not found");
+                }
+            } catch (error) {
+                console.error("Error sending close message to parent: ", error);
+                // Fallback: Hide locally even if postMessage fails
+                const notificationContainer = document.querySelector('.notification-container');
+                if (notificationContainer) {
+                    notificationContainer.style.display = 'none';
+                    console.log("Notification container hidden locally due to error");
+                }
+            }
+        });
 
         async function fetchNotifications() {
             try {
@@ -106,7 +131,7 @@
                 const q = query(
                     collection(db, "tb_notifications"),
                     where("recipient", "==", recipientValue),
-                    orderBy("timestamp", "desc") // Added to sort latest at top
+                    orderBy("timestamp", "desc")
                 );
 
                 const querySnapshot = await getDocs(q);

@@ -134,6 +134,7 @@ function initializeHeaderEvents() {
         closeAccountPanel();
         break;
       case "closeNotificationsPanel":
+      case "closeNotificationPanel": // Add this line to handle message from notification.html
         closeNotificationsPanel();
         break;
       case "closeIframe":
