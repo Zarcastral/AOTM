@@ -37,13 +37,30 @@ function showCustomMessage(message, success) {
     }, 4000);
 }
 
+let isSubmitting = false; // Flag to prevent multiple submissions
+
 window.openAddBarangayPopup = function() {
     document.getElementById('add-barangay-popup').style.display = 'block';
+    // Re-enable the save button and reset submission flag when opening the popup
+    const saveButton = document.querySelector('#add-barangay-popup .btn-primary');
+    if (saveButton) {
+        saveButton.disabled = false;
+    }
+    isSubmitting = false; // Reset submission flag
 };
+
+
+let isSubmittingCrop = false; // Flag to prevent multiple submissions for crop type
 
 window.openAddCropTypePopup = function() {
     document.getElementById('add-crop-type-popup').style.display = 'block';
     loadCropNames();
+    // Re-enable the save button and reset submission flag when opening the popup
+    const saveButton = document.querySelector('#add-crop-type-popup .btn-primary');
+    if (saveButton) {
+        saveButton.disabled = false;
+    }
+    isSubmittingCrop = false; // Reset submission flag
 };
 
 window.loadCropNames = async function() {
@@ -73,9 +90,17 @@ window.loadCropNames = async function() {
     }
 };
 
+let isSubmittingEquipment = false; // Flag to prevent multiple submissions for equipment
+
 window.openAddEquipmentPopup = function() {
     document.getElementById('add-equipment-popup').style.display = 'block';
     loadEquipmentTypes();
+    // Re-enable the save button and reset submission flag when opening the popup
+    const saveButton = document.querySelector('#add-equipment-popup .btn-primary');
+    if (saveButton) {
+        saveButton.disabled = false;
+    }
+    isSubmittingEquipment = false; // Reset submission flag
 };
 
 window.loadEquipmentTypes = async function() {
@@ -105,9 +130,17 @@ window.loadEquipmentTypes = async function() {
     }
 };
 
+let isSubmittingFertilizer = false; // Flag to prevent multiple submissions for fertilizer
+
 window.openAddFertilizerPopup = function() {
     document.getElementById('add-fertilizer-popup').style.display = 'block';
     loadFertilizerTypes();
+    // Re-enable the save button and reset submission flag when opening the popup
+    const saveButton = document.querySelector('#add-fertilizer-popup .btn-primary');
+    if (saveButton) {
+        saveButton.disabled = false;
+    }
+    isSubmittingFertilizer = false; // Reset submission flag
 };
 
 window.loadFertilizerTypes = async function() {
@@ -459,15 +492,54 @@ window.deleteItem = function(collection, id) {
     openPopup('delete-confirm-popup');
 };
 
-window.confirmDelete = function() {
-    if (deleteItemId && deleteItemCollection) {
-        deleteDoc(doc(db, deleteItemCollection, deleteItemId)).then(() => {
-            showCustomMessage('Item deleted successfully', true);
-            closePopup('delete-confirm-popup');
-        }).catch(error => {
-            console.error('Error deleting item:', error);
-            showCustomMessage('Error deleting item. Please try again.', false);
-        });
+window.confirmDelete = async function() {
+    if (!deleteItemId || !deleteItemCollection) {
+        showCustomMessage('No item selected for deletion.', false);
+        return;
+    }
+
+    try {
+        const batch = writeBatch(db);
+
+        // If deleting a barangay, also delete related farmlands
+        if (deleteItemCollection === 'tb_barangay') {
+            // Get the barangay document to retrieve its name
+            const barangayDoc = await getDoc(doc(db, deleteItemCollection, deleteItemId));
+            if (!barangayDoc.exists()) {
+                showCustomMessage('Barangay not found!', false);
+                return;
+            }
+            const barangayName = barangayDoc.data().barangay_name;
+
+            // Query all farmlands with matching barangay_name
+            const farmlandQuery = query(
+                collection(db, 'tb_farmland'),
+                where('barangay_name', '==', barangayName)
+            );
+            const farmlandSnapshot = await getDocs(farmlandQuery);
+
+            // Add each farmland to the batch for deletion
+            farmlandSnapshot.forEach((farmlandDoc) => {
+                batch.delete(doc(db, 'tb_farmland', farmlandDoc.id));
+            });
+
+            // Add the barangay to the batch for deletion
+            batch.delete(doc(db, deleteItemCollection, deleteItemId));
+        } else {
+            // For non-barangay deletions, delete only the specified document
+            batch.delete(doc(db, deleteItemCollection, deleteItemId));
+        }
+
+        // Commit the batch
+        await batch.commit();
+
+        showCustomMessage('Barangay and related farmland deleted successfully', true);
+        closePopup('delete-confirm-popup');
+        deleteItemId = null;
+        deleteItemCollection = null;
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        showCustomMessage('Error deleting item. Please try again.', false);
     }
 };
 
@@ -487,6 +559,16 @@ function clearBarangayInputs() {
 }
 
 window.addBarangay = async function() {
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    isSubmitting = true;
+
+    const saveButton = document.querySelector('#add-barangay-popup .btn-primary');
+    // Disable the save button immediately to prevent double-clicking
+    if (saveButton) {
+        saveButton.disabled = true;
+    }
+
     const barangayName = document.getElementById('barangay-name').value.trim();
     const totalPlotSize = parseFloat(document.getElementById('total-plot-size').value);
     const landArea = document.getElementById('land-area').value.trim();
@@ -496,6 +578,11 @@ window.addBarangay = async function() {
     // Validate inputs
     if (!barangayName || isNaN(totalPlotSize) || !landArea || isNaN(plotSize)) {
         showCustomMessage('All fields are required, and numeric fields must be valid numbers!', false);
+        // Re-enable the save button and reset flag on validation failure
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmitting = false;
         return;
     }
 
@@ -504,6 +591,11 @@ window.addBarangay = async function() {
         const isDuplicateBarangay = await checkForDuplicate('tb_barangay', 'barangay_name', barangayName);
         if (isDuplicateBarangay) {
             showCustomMessage('Barangay name already exists!', false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmitting = false;
             return;
         }
 
@@ -511,6 +603,11 @@ window.addBarangay = async function() {
         const isDuplicateFarmland = await checkForDuplicate('tb_farmland', 'farmland_name', landArea);
         if (isDuplicateFarmland) {
             showCustomMessage('Farmland name already exists!', false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmitting = false;
             return;
         }
 
@@ -519,6 +616,11 @@ window.addBarangay = async function() {
 
         if (nextBrgyId === null || nextFarmlandId === null) {
             showCustomMessage('Error generating IDs. Please try again.', false);
+            // Re-enable the save button and reset flag on ID generation error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmitting = false;
             return;
         }
 
@@ -552,9 +654,15 @@ window.addBarangay = async function() {
         showCustomMessage('Barangay and farmland added successfully', true);
         clearBarangayInputs();
         closePopup('add-barangay-popup');
+        // Save button remains disabled after success to prevent further clicks
     } catch (error) {
         console.error('Error adding barangay and farmland:', error);
         showCustomMessage('Error adding barangay and farmland. Please try again.', false);
+        // Re-enable the save button and reset flag on unexpected error
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmitting = false;
     }
 };
 
@@ -564,6 +672,16 @@ function clearCropInputs() {
 }
 
 window.addCropType = async function() {
+    // Prevent multiple submissions
+    if (isSubmittingCrop) return;
+    isSubmittingCrop = true;
+
+    const saveButton = document.querySelector('#add-crop-type-popup .btn-primary');
+    // Disable the save button immediately to prevent double-clicking
+    if (saveButton) {
+        saveButton.disabled = true;
+    }
+
     const cropTypeName = document.getElementById('crop-type-name').value.trim();
     const cropName = document.getElementById('crop-name').value.trim();
     const dateAdded = new Date().toISOString();
@@ -571,6 +689,11 @@ window.addCropType = async function() {
     // Validate inputs
     if (!cropTypeName || !cropName) {
         showCustomMessage('All fields are required!', false);
+        // Re-enable the save button and reset flag on validation failure
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingCrop = false;
         return;
     }
 
@@ -579,6 +702,11 @@ window.addCropType = async function() {
         const isDuplicateCropType = await checkForDuplicate('tb_crop_types', 'crop_type_name', cropTypeName);
         if (isDuplicateCropType) {
             showCustomMessage('Crop type name already exists!', false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingCrop = false;
             return;
         }
 
@@ -589,6 +717,11 @@ window.addCropType = async function() {
         const existingCropType = await getDocs(q);
         if (!existingCropType.empty) {
             showCustomMessage('This crop type and crop name combination already exists!', false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingCrop = false;
             return;
         }
 
@@ -602,12 +735,22 @@ window.addCropType = async function() {
 
         if (!cropNameId) {
             showCustomMessage('Crop name not found!', false);
+            // Re-enable the save button and reset flag on crop name error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingCrop = false;
             return;
         }
 
         const nextCropTypeId = await getNextId('crop_type_id_counter');
         if (nextCropTypeId === null) {
             showCustomMessage('Error generating crop type ID. Please try again.', false);
+            // Re-enable the save button and reset flag on ID generation error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingCrop = false;
             return;
         }
 
@@ -624,9 +767,15 @@ window.addCropType = async function() {
         showCustomMessage('Crop Type added successfully', true);
         clearCropInputs();
         closePopup('add-crop-type-popup');
+        // Save button remains disabled after success to prevent further clicks
     } catch (error) {
         console.error('Error adding crop type:', error);
         showCustomMessage('Error adding crop type. Please try again.', false);
+        // Re-enable the save button and reset flag on unexpected error
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingCrop = false;
     }
 };
 
@@ -636,6 +785,16 @@ function clearEquipmentInputs() {
 }
 
 window.addEquipment = async function() {
+    // Prevent multiple submissions
+    if (isSubmittingEquipment) return;
+    isSubmittingEquipment = true;
+
+    const saveButton = document.querySelector('#add-equipment-popup .btn-primary');
+    // Disable the save button immediately to prevent double-clicking
+    if (saveButton) {
+        saveButton.disabled = true;
+    }
+
     const equipmentName = document.getElementById('equipment-name').value.trim();
     const category = document.getElementById('equipment-category').value.trim();
     const dateAdded = new Date().toISOString();
@@ -643,6 +802,11 @@ window.addEquipment = async function() {
     // Validate inputs
     if (!equipmentName || !category) {
         showCustomMessage('All fields are required!', false);
+        // Re-enable the save button and reset flag on validation failure
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingEquipment = false;
         return;
     }
 
@@ -651,6 +815,11 @@ window.addEquipment = async function() {
         const isDuplicateEquipment = await checkForDuplicate('tb_equipment', 'equipment_name', equipmentName);
         if (isDuplicateEquipment) {
             showCustomMessage('Equipment name already exists!', false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingEquipment = false;
             return;
         }
 
@@ -661,12 +830,22 @@ window.addEquipment = async function() {
         const existingEquipment = await getDocs(q);
         if (!existingEquipment.empty) {
             showCustomMessage('This equipment name and category combination already exists!', false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingEquipment = false;
             return;
         }
 
         const nextEquipmentId = await getNextId('equipment_id_counter');
         if (nextEquipmentId === null) {
             showCustomMessage('Error generating equipment ID. Please try again.', false);
+            // Re-enable the save button and reset flag on ID generation error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingEquipment = false;
             return;
         }
 
@@ -681,9 +860,15 @@ window.addEquipment = async function() {
         showCustomMessage('Equipment added successfully', true);
         clearEquipmentInputs();
         closePopup('add-equipment-popup');
+        // Save button remains disabled after success to prevent further clicks
     } catch (error) {
         console.error('Error adding equipment:', error);
         showCustomMessage('Error adding equipment. Please try again.', false);
+        // Re-enable the save button and reset flag on unexpected error
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingEquipment = false;
     }
 };
 
@@ -693,6 +878,16 @@ function clearFertilizerInputs() {
 }
 
 window.addFertilizer = async function() {
+    // Prevent multiple submissions
+    if (isSubmittingFertilizer) return;
+    isSubmittingFertilizer = true;
+
+    const saveButton = document.querySelector('#add-fertilizer-popup .btn-primary');
+    // Disable the save button immediately to prevent double-clicking
+    if (saveButton) {
+        saveButton.disabled = true;
+    }
+
     const fertilizerName = document.getElementById('fertilizer-name').value.trim();
     const fertilizerType = document.getElementById('fertilizer-category').value.trim();
     const dateAdded = new Date().toISOString();
@@ -700,6 +895,11 @@ window.addFertilizer = async function() {
     // Validate inputs
     if (!fertilizerName || !fertilizerType) {
         showCustomMessage('All fields are required!', false);
+        // Re-enable the save button and reset flag on validation failure
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingFertilizer = false;
         return;
     }
 
@@ -708,6 +908,11 @@ window.addFertilizer = async function() {
         const isDuplicateFertilizer = await checkForDuplicate('tb_fertilizer', 'fertilizer_name', fertilizerName);
         if (isDuplicateFertilizer) {
             showCustomMessage('Fertilizer name already exists!', false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingFertilizer = false;
             return;
         }
 
@@ -718,12 +923,22 @@ window.addFertilizer = async function() {
         const existingFertilizer = await getDocs(q);
         if (!existingFertilizer.empty) {
             showCustomMessage('This fertilizer name and type combination already exists!', false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingFertilizer = false;
             return;
         }
 
         const nextFertilizerId = await getNextId('fertilizer_id_counter');
         if (nextFertilizerId === null) {
             showCustomMessage('Error generating fertilizer ID. Please try again.', false);
+            // Re-enable the save button and reset flag on ID generation error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingFertilizer = false;
             return;
         }
 
@@ -739,9 +954,15 @@ window.addFertilizer = async function() {
         showCustomMessage('Fertilizer added successfully', true);
         clearFertilizerInputs();
         closePopup('add-fertilizer-popup');
+        // Save button remains disabled after success to prevent further clicks
     } catch (error) {
         console.error('Error adding fertilizer:', error);
         showCustomMessage('Error adding fertilizer. Please try again.', false);
+        // Re-enable the save button and reset flag on unexpected error
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingFertilizer = false;
     }
 };
 
@@ -802,8 +1023,17 @@ window.loadFarmlandsForBarangay = function() {
 
 document.getElementById('barangay-select').addEventListener('change', loadFarmlandsForBarangay);
 
+let isSubmittingFarmland = false; // Flag to prevent multiple submissions for farmland
+
+
 window.openAddFarmlandPopup = function() {
     document.getElementById('add-farmland-popup').style.display = 'block';
+    // Re-enable the save button and reset submission flag when opening the popup
+    const saveButton = document.querySelector('#add-farmland-popup .btn-primary');
+    if (saveButton) {
+        saveButton.disabled = false;
+    }
+    isSubmittingFarmland = false; // Reset submission flag
 };
 
 function loadFarmlandsForBarangay() {
@@ -823,6 +1053,16 @@ function clearFarmlandInputs() {
 }
 
 window.addFarmland = async function() {
+    // Prevent multiple submissions
+    if (isSubmittingFarmland) return;
+    isSubmittingFarmland = true;
+
+    const saveButton = document.querySelector('#add-farmland-popup .btn-primary');
+    // Disable the save button immediately to prevent double-clicking
+    if (saveButton) {
+        saveButton.disabled = true;
+    }
+
     const barangaySelect = document.getElementById("barangay-select");
     const selectedBarangayName = barangaySelect.value.trim();
     const farmlandName = document.getElementById("farmland-name").value.trim();
@@ -832,17 +1072,32 @@ window.addFarmland = async function() {
     // Validate inputs
     if (!farmlandName || !landArea) {
         showCustomMessage("All fields are required!", false);
+        // Re-enable the save button and reset flag on validation failure
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingFarmland = false;
         return;
     }
 
     if (!selectedBarangayName) {
         showCustomMessage("Please select a barangay.", false);
+        // Re-enable the save button and reset flag on validation failure
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingFarmland = false;
         return;
     }
 
     const landAreaValue = parseInt(landArea);
     if (isNaN(landAreaValue) || landAreaValue <= 0) {
         showCustomMessage("Land area must be a valid positive number!", false);
+        // Re-enable the save button and reset flag on validation failure
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingFarmland = false;
         return;
     }
 
@@ -852,6 +1107,11 @@ window.addFarmland = async function() {
         const barangaySnapshot = await getDocs(barangayQuery);
         if (barangaySnapshot.empty) {
             showCustomMessage("Selected barangay does not exist!", false);
+            // Re-enable the save button and reset flag on error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingFarmland = false;
             return;
         }
 
@@ -866,12 +1126,22 @@ window.addFarmland = async function() {
         const existingFarmland = await getDocs(farmlandQuery);
         if (!existingFarmland.empty) {
             showCustomMessage("Farmland name already exists in this barangay!", false);
+            // Re-enable the save button and reset flag on duplicate error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingFarmland = false;
             return;
         }
 
         const nextFarmlandId = await getNextId("farmland_id_counter");
         if (nextFarmlandId === null) {
             showCustomMessage("Error generating farmland ID. Please try again.", false);
+            // Re-enable the save button and reset flag on ID generation error
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            isSubmittingFarmland = false;
             return;
         }
 
@@ -890,9 +1160,15 @@ window.addFarmland = async function() {
         clearFarmlandInputs();
         // No reset of barangaySelect to retain the selected barangay
         closePopup("add-farmland-popup");
+        // Save button remains disabled after success to prevent further clicks
     } catch (error) {
         console.error("Error adding farmland:", error);
         showCustomMessage("Error adding farmland. Please try again.", false);
+        // Re-enable the save button and reset flag on unexpected error
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        isSubmittingFarmland = false;
     }
 };
 
