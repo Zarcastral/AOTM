@@ -763,13 +763,13 @@ body.preview-active::before {
   }
 
   .crop_select {
-    width: clamp(70px, 18vw, 90px);
+    width: clamp(130px, 18vw, 90px);
     font-size: 12px;
     padding: 6px 15px 6px 8px;
   }
 
   .barangay_select {
-    width: clamp(80px, 22vw, 110px);
+    width: clamp(140px, 22vw, 110px);
     font-size: 12px;
     padding: 6px 15px 6px 8px;
   }
@@ -813,7 +813,7 @@ body.preview-active::before {
 
   .projects-pagination {
     position: absolute;
-    bottom: 5px;
+    bottom: -10px;
     right: 5px;
     padding: 5px;
   }
@@ -884,7 +884,7 @@ body.preview-active::before {
   }
 
   .projects-pagination {
-    bottom: 5px;
+    bottom: -10px;
     right: 5px;
     padding: 5px;
   }

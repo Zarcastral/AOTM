@@ -20,6 +20,18 @@ body {
     padding: 0 20px;
 }
 
+.main-content {
+    flex: 1; /* Takes remaining height */
+    overflow-y: auto; /* Main content handles vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    width: 100%; /* Full width of the viewport */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Align panel to the right */
+    padding: 20px; /* Add padding for spacing */
+    box-sizing: border-box;
+}
+
 .header-title {
     font-size: 30px;
     font-weight: bold;
@@ -38,13 +50,6 @@ body {
     cursor: pointer;
 }
 
-.main-content {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
 /* Panel container style */
 .panel {
     background-color: white;
@@ -52,8 +57,11 @@ body {
     padding: 15px;
     border-radius: 10px;
     min-height: 600px;
+    width: 100%; /* Full width of the main-content */
+    max-width: 1200px; /* Optional: limit panel width for larger screens */
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 input[type="checkbox"] {
@@ -495,36 +503,30 @@ tbody tr:last-child td {
 /* Media Queries for Responsive Layout */
 @media (min-width: 1200px) {
     .main-content {
-        max-width: 1200px;
-        margin: 0 auto;
         padding: 50px 20px;
     }
     .panel {
-        width: 100%;
+        max-width: 1200px; /* Limit panel width */
         margin-bottom: 20px;
     }
 }
 
 @media (min-width: 769px) and (max-width: 1199px) {
     .main-content {
-        max-width: 90%;
-        margin: 0 auto;
         padding: 40px 15px;
     }
     .panel {
-        width: 100%;
+        max-width: 90%;
         margin-bottom: 20px;
     }
 }
 
 @media (max-width: 768px) {
     .main-content {
-        width: 95%;
-        margin: 0 auto;
         padding: 30px 10px;
     }
     .panel {
-        width: 100%;
+        max-width: 95%;
         height: auto;
         padding: 15px;
         margin-bottom: 15px;
@@ -555,12 +557,10 @@ tbody tr:last-child td {
 
 @media (max-width: 480px) {
     .main-content {
-        width: 95%;
-        margin: 0 auto;
         padding: 20px 5px;
     }
     .panel {
-        width: 100%;
+        max-width: 95%;
         padding: 10px;
         margin-bottom: 10px;
     }
