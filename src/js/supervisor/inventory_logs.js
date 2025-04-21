@@ -1,4 +1,4 @@
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import {
   collection,
   getDocs,
@@ -11,53 +11,18 @@ import app from "../../config/firebase_config.js";
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Global variable for authenticated farmer ID
-let currentFarmerId = "";
+// Global variables
 let logsList = [];
 let filteredLogs = [];
 let currentPage = 1;
 const rowsPerPage = 5;
 
-// Fetch authenticated farmer's ID from tb_farmers
-async function getAuthenticatedFarmer() {
-  return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          const farmerQuery = query(
-            collection(db, "tb_farmers"),
-            where("email", "==", user.email)
-          );
-          const farmerSnapshot = await getDocs(farmerQuery);
-
-          if (!farmerSnapshot.empty) {
-            const farmerData = farmerSnapshot.docs[0].data();
-            currentFarmerId = farmerData.farmer_id;
-            resolve(currentFarmerId);
-          } else {
-            console.error("Farmer record not found.");
-            reject("Farmer record not found.");
-          }
-        } catch (error) {
-          console.error("Error fetching farmer data:", error);
-          reject(error);
-        }
-      } else {
-        console.error("User not authenticated.");
-        reject("User not authenticated.");
-      }
-    });
-  });
-}
-
-// Fetch logs from tb_inventory_log for the current farmer
+// Fetch all logs from tb_inventory_log
 async function fetchLogs() {
   try {
-    await getAuthenticatedFarmer();
     const projectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
     const logsQuery = query(
       collection(db, "tb_inventory_log"),
-      where("farmer_id", "==", currentFarmerId),
       ...(projectId ? [where("project_id", "==", projectId)] : []) // Filter by project_id if present
     );
     const logsSnapshot = await getDocs(logsQuery);

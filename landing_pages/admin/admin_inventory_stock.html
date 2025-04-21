@@ -18,37 +18,40 @@
 
   <div class="main-content">
     <div class="stock-selector">
-      <span class="inventory-form"><a href="admin_inventory.html">Inventory List</a></span> <div class="rando-line">|</div>
+      <span class="inventory-form"><a href="admin_inventory.html">Inventory List</a></span>
+      <div class="rando-line">|</div>
       <span class="stock-form"><a href="admin_inventory_stock.html">Manage Inventory</a></span>
+      <div class="rando-line">|</div>
+      <span class="stock-form"><a href="inventory_logs.html">Inventory Logs</a></span>
     </div>
 
     <div class="panel">
       <div class="table-wrapper">
-      <h2>Crops</h2>
-      <div class="crop-search-bar">
-        <input type="text" id="crop-search-bar" placeholder="Search">
-        <select class="crop_select">
-          <option value="">Crops </option>
-        </select>
-      </div>
-      <div class="crop_table">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Crop Type</th>
-              <th>Crops</th>
-              <th>Stock Date</th>
-              <th>Stock</th>
-              <th>Added By</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Crops will be populated here -->
-          </tbody>
-        </table>
-      </div>
+        <h2>Crops</h2>
+        <div class="crop-search-bar">
+          <input type="text" id="crop-search-bar" placeholder="Search">
+          <select class="crop_select">
+            <option value="">Crops </option>
+          </select>
+        </div>
+        <div class="crop_table">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Crop Type</th>
+                <th>Crops</th>
+                <th>Stock Date</th>
+                <th>Stock</th>
+                <th>Added By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Crops will be populated here -->
+            </tbody>
+          </table>
+        </div>
         <div class="crops-pagination">
           <span id="crop-page-number">Page 1</span>
           <button id="crop-prev-page" class="crop-pagination-btn" disabled>&lt;</button>
