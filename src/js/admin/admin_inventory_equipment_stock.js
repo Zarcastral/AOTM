@@ -490,7 +490,7 @@ function displayEquipments(equipmentsList) {
   if (paginatedEquipments.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="6" style="text-align: center; color: red;">No records found</td>
+        <td colspan="6" style="text-align: center;">No records found</td>
       </tr>`;
     return;
   }
@@ -637,7 +637,7 @@ const equipmentStockMessage = document.getElementById("equip-stock-message");
 
 function showEquipmentStockMessage(message, success) {
   equipmentStockMessage.textContent = message;
-  equipmentStockMessage.style.backgroundColor = success ? "#4CAF50" : "#f44336";
+  equipmentStockMessage.style.backgroundColor = success ? "#41A186" : "#f44336";
   equipmentStockMessage.style.opacity = "1";
   equipmentStockMessage.style.display = "block";
 

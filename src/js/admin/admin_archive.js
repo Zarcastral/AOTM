@@ -506,6 +506,10 @@ confirmRestoreBtn.addEventListener("click", async () => {
 
     restorePanel.classList.remove("show");
 });
+// Cancel button functionality to close the restore panel
+cancelRestoreBtn.addEventListener("click", () => {
+    restorePanel.classList.remove("show");
+});
 
 // Function to display messages
 function showRestoreMessage(message, success) {
