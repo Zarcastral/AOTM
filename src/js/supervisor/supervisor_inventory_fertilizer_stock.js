@@ -520,6 +520,7 @@ function displayFertilizers(fertilizersList) {
             <img src="/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
             <span>Add Stock</span>
           </span>
+          <br>
           <span class="delete-fert-stock-btn" data-id="${fertilizer.fertilizer_id}">
             <img src="/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
             <span>Delete Stock</span>

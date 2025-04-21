@@ -341,24 +341,35 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const stockLinks = document.querySelectorAll(".stock-selector a");
-
-      // Retrieve stored active link from localStorage
-      const activeLink = localStorage.getItem("activeStockLink");
-
-      stockLinks.forEach(link => {
-        // If the link matches the stored active link, keep it active
-        if (link.href === activeLink) {
-          link.classList.add("active");
-        }
-
-        link.addEventListener("click", function () {
+      const currentPage = window.location.href; // Get the current page URL
+  
+      // Function to set the active link
+      function setActiveLink() {
+        stockLinks.forEach(link => {
           // Remove active class from all links
-          stockLinks.forEach(link => link.classList.remove("active"));
-
-          // Add active class to clicked link
+          link.classList.remove("active");
+  
+          // Add active class if the link matches the current page or stored active link
+          if (link.href === currentPage) {
+            link.classList.add("active");
+            localStorage.setItem("activeStockLink", link.href); // Store the active link
+          }
+        });
+      }
+  
+      // Initial call to set the active link based on the current page
+      setActiveLink();
+  
+      // Add click event listeners to all stock selector links
+      stockLinks.forEach(link => {
+        link.addEventListener("click", function (e) {
+          // Remove active class from all links
+          stockLinks.forEach(l => l.classList.remove("active"));
+  
+          // Add active class to the clicked link
           this.classList.add("active");
-
-          // Store the active link in localStorage
+  
+          // Store the clicked link in localStorage
           localStorage.setItem("activeStockLink", this.href);
         });
       });

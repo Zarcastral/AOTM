@@ -520,6 +520,7 @@ function displayCrops(cropsList) {
             <img src="/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
             <span>Add Stock</span>
           </span>
+          <br>
           <span class="delete-crop-stock-btn" data-id="${crop.crop_type_id}">
             <img src="/images/ekisRed.png" alt="Action Icon" class="action-icon-remove">
             <span>Remove Stock</span>

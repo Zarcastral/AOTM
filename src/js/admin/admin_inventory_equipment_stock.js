@@ -521,6 +521,7 @@ function displayEquipments(equipmentsList) {
             <img src="/images/plusGreen.png" alt="Action Icon" class="action-icon-add">
             <span>Add Stock</span>
           </span>
+          <br>
           <span class="delete-equip-stock-btn" data-id="${
             equipment.equipment_id
           }">

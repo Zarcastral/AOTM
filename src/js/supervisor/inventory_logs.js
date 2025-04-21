@@ -20,10 +20,10 @@ const rowsPerPage = 5;
 // Fetch all logs from tb_inventory_log
 async function fetchLogs() {
   try {
-    const projectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
+    const projectId = sessionStorage.getItem("projectId");
     const logsQuery = query(
       collection(db, "tb_inventory_log"),
-      ...(projectId ? [where("project_id", "==", projectId)] : []) // Filter by project_id if present
+      ...(projectId ? [where("project_id", "==", projectId)] : [])
     );
     const logsSnapshot = await getDocs(logsQuery);
 
@@ -105,6 +105,21 @@ function updatePagination() {
   document.getElementById("log-next-page").disabled = currentPage >= totalPages;
 }
 
+// Set active link based on current page
+function setActiveLink() {
+  const links = document.querySelectorAll(".stock-selector a");
+  const currentPath = window.location.pathname.toLowerCase();
+
+  links.forEach((link) => {
+    const linkPath = new URL(link.href, window.location.origin).pathname.toLowerCase();
+    if (currentPath === linkPath || currentPath.endsWith(linkPath.split("/").pop())) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
+}
+
 // Back button logic
 async function configureBackButton() {
   const backContainer = document.querySelector(".back");
@@ -116,11 +131,7 @@ async function configureBackButton() {
 
   const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
-  const projectId = sessionStorage.getItem("projectId"); // Use sessioned project_id
-
-  console.log("userType:", userType);
-  console.log("farmerId:", farmerId);
-  console.log("projectId:", projectId);
+  const projectId = sessionStorage.getItem("projectId");
 
   if (!projectId) {
     console.error("No project_id found in sessionStorage.");
@@ -132,7 +143,7 @@ async function configureBackButton() {
     const projectsRef = collection(db, "tb_projects");
     const q = query(
       projectsRef,
-      where("project_id", "==", projectId) // Use string project_id
+      where("project_id", "==", projectId)
     );
     const querySnapshot = await getDocs(q);
 
@@ -145,44 +156,32 @@ async function configureBackButton() {
     const projectData = querySnapshot.docs[0].data();
     const leadFarmerId = projectData.lead_farmer_id;
 
-    console.log("leadFarmerId:", leadFarmerId);
-
     const isLeadFarmer = farmerId && String(leadFarmerId) === String(farmerId);
-    console.log("isLeadFarmer:", isLeadFarmer);
 
-    // Define user types and their respective redirect paths
     const navigationPaths = {
       Admin: "../../../../landing_pages/admin/viewproject.html",
       Supervisor: "../../../../landing_pages/admin/viewproject.html",
-      "Farm President":
-        "../../../landing_pages/farm_president/viewproject.html",
+      "Farm President": "../../../landing_pages/farm_president/viewproject.html",
     };
 
     const canNavigateBack = Object.keys(navigationPaths).includes(userType);
-    console.log("canNavigateBack:", canNavigateBack);
 
     if (isLeadFarmer && userType === "Head Farmer") {
       backContainer.style.display = "none";
       backContainer.classList.remove("visible");
-      console.log("Back button hidden: Head Farmer is lead farmer.");
     } else if (canNavigateBack) {
       backContainer.style.display = "block";
       backContainer.classList.add("visible");
-      console.log("Back button visible: User is allowed to navigate back.");
 
       backLink.addEventListener("click", (event) => {
         event.preventDefault();
         sessionStorage.setItem("selectedProjectId", projectId);
         const redirectPath = navigationPaths[userType];
         window.location.href = redirectPath;
-        console.log(`Navigating to ${redirectPath}`);
       });
     } else {
       backContainer.style.display = "none";
       backContainer.classList.remove("visible");
-      console.log(
-        "Back button hidden: User type not allowed to navigate back."
-      );
     }
   } catch (error) {
     console.error("Error fetching project data for back button:", error);
@@ -195,8 +194,8 @@ async function configureBackButton() {
 document.addEventListener("DOMContentLoaded", () => {
   fetchLogs();
   configureBackButton();
+  setActiveLink(); // Add this to set the active link
 
-  // Previous page button
   const prevPageButton = document.getElementById("log-prev-page");
   if (prevPageButton) {
     prevPageButton.addEventListener("click", () => {
@@ -205,11 +204,8 @@ document.addEventListener("DOMContentLoaded", () => {
         displayLogs(filteredLogs);
       }
     });
-  } else {
-    console.error("Previous page button not found.");
   }
 
-  // Next page button
   const nextPageButton = document.getElementById("log-next-page");
   if (nextPageButton) {
     nextPageButton.addEventListener("click", () => {
@@ -218,11 +214,8 @@ document.addEventListener("DOMContentLoaded", () => {
         displayLogs(filteredLogs);
       }
     });
-  } else {
-    console.error("Next page button not found.");
   }
 
-  // Search bar input
   const searchBar = document.getElementById("log-search-bar");
   if (searchBar) {
     searchBar.addEventListener("input", () => {
@@ -245,11 +238,8 @@ document.addEventListener("DOMContentLoaded", () => {
       sortLogsByDate();
       displayLogs(filteredLogs);
     });
-  } else {
-    console.error("Search bar not found.");
   }
 
-  // Resource type dropdown
   const resourceSelect = document.querySelector(".resource_select");
   if (resourceSelect) {
     resourceSelect.addEventListener("change", () => {
@@ -273,7 +263,5 @@ document.addEventListener("DOMContentLoaded", () => {
       sortLogsByDate();
       displayLogs(filteredLogs);
     });
-  } else {
-    console.error("Resource select dropdown not found.");
   }
 });

@@ -201,7 +201,26 @@ body {
   color: #bbb;
   cursor: not-allowed;
 }
+.stock-selector {
+  display: flex;
+  margin-top: 20px;
+  gap: 10px;
+  font-size: 20px;
+}
 
+.stock-selector a:hover{
+  color: #41A186;
+}
+
+.stock-selector a {
+  color: slategray;
+  transition: color 0.3s ease;
+}
+
+.stock-selector a.active {
+  color: #41A186;
+  font-weight: 500;
+}
 /* Responsive Adjustments */
 @media (max-width: 1200px) {
   .project-selector {
@@ -239,6 +258,10 @@ body {
     width: 100%;
     max-width: 250px;
   }
+  .stock-selector {
+    font-size: 20px;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -265,6 +288,10 @@ body {
   .log_table td {
     padding: 6px;
     font-size: 12px;
+  }
+  .stock-selector {
+    font-size: 16px;
+    justify-content: center;
   }
 
 }
