@@ -140,6 +140,8 @@ body {
   margin-top: 20px;
   box-sizing: border-box;
   overflow-x: auto;
+  position: relative;
+  padding-bottom: 60px; /* Allocate space for fixed pagination */
 }
 
 .harvest-search-bar {
@@ -207,7 +209,7 @@ body {
 }
 
 .calendar-btn-icon {
-  width: 55px;
+  width: inline-block;
   height: 40px;
   cursor: pointer;
 }
@@ -403,11 +405,15 @@ tbody tr:hover {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-top: 20px;
-  width: 90%;
-  max-width: 1200px;
   gap: 10px;
-  position: relative;
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
+  background-color: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
 #harvest-page-number {
@@ -531,10 +537,11 @@ tbody tr:hover {
   font-weight: 600;
   transition: background-color 0.2s;
 }
+
 .preview-btn.done-btn {
   padding: 10px 35px;
-
 }
+
 .cancel-btn {
   background-color: #C4c4c4;
   color: white;
@@ -592,10 +599,10 @@ body.preview-active::before {
   .panel {
     width: 95%;
     padding: 15px;
+    padding-bottom: 80px; /* Increased padding for pagination */
   }
 
-  .button-container,
-  .harvest-pagination {
+  .button-container {
     width: 95%;
   }
 
@@ -613,6 +620,22 @@ body.preview-active::before {
   td {
     font-size: clamp(7px, 1.5vw, 9px);
     padding: 6px;
+  }
+
+  .harvest-pagination {
+    bottom: 10px;
+    right: 10px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .harvest-pagination-btn {
+    font-size: 20px;
+    padding: 8px;
+  }
+
+  #harvest-page-number {
+    font-size: 15px;
   }
 }
 
@@ -660,11 +683,11 @@ body.preview-active::before {
   .panel {
     width: 98%;
     padding: 10px;
+    padding-bottom: 100px; /* Increased padding for pagination */
     overflow-x: auto;
   }
 
-  .button-container,
-  .harvest-pagination {
+  .button-container {
     width: 98%;
   }
 
@@ -673,13 +696,21 @@ body.preview-active::before {
     font-size: 12px;
   }
 
+  .harvest-pagination {
+    bottom: 10px;
+    right: 5px;
+    padding: 5px;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+
   .harvest-pagination-btn {
-    font-size: 20px;
+    font-size: 18px;
     padding: 5px;
   }
 
   #harvest-page-number {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .report-selector {
