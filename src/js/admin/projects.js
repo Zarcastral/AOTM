@@ -650,6 +650,7 @@ async function addEquipmentForm() {
       return;
     }
 
+    // Add the form inputs and Remove button first
     div.innerHTML = `
       <div class="form__group">
           <label class="form__label">Equipment Type:</label>
@@ -669,6 +670,11 @@ async function addEquipmentForm() {
       </div>
       <button class="btn btn--remove" onclick="removeEquipmentForm(this)">Remove</button>
     `;
+
+    // Always add an <hr> as the last child of the group
+    const hr = document.createElement("hr");
+    hr.classList.add("form__divider");
+    div.appendChild(hr);
 
     container.appendChild(div);
 
@@ -845,6 +851,7 @@ async function addFertilizerForm() {
       return;
     }
 
+    // Add the form inputs and Remove button first
     div.innerHTML = `
       <div class="form__group">
           <label class="form__label">Fertilizer Type:</label>
@@ -864,6 +871,11 @@ async function addFertilizerForm() {
       </div>
       <button class="btn btn--remove" onclick="removeFertilizerForm(this)">Remove</button>
     `;
+
+    // Always add an <hr> as the last child of the group
+    const hr = document.createElement("hr");
+    hr.classList.add("form__divider");
+    div.appendChild(hr);
 
     container.appendChild(div);
 
