@@ -140,6 +140,8 @@ body {
   margin-top: 20px;
   box-sizing: border-box;
   overflow-x: auto;
+  position: relative;
+  padding-bottom: 10px; /* Allocate space for fixed pagination */
 }
 
 .harvest-search-bar {
@@ -207,7 +209,7 @@ body {
 }
 
 .calendar-btn-icon {
-  width: 55px;
+  width: inline-block;
   height: 40px;
   cursor: pointer;
 }
@@ -400,14 +402,20 @@ tbody tr:hover {
 }
 
 .harvest-pagination {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 20px;
-  width: 90%;
-  max-width: 1200px;
-  gap: 10px;
-  position: relative;
+  padding: 10px 10px;
+    margin: 0;
+    font-size: 25px;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    background: none;
+    transition: color 0.3s ease;
+    color: #333;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 #harvest-page-number {
@@ -523,21 +531,26 @@ tbody tr:hover {
 }
 
 .preview-btn {
-  padding: 10px 20px;
+  padding: 10px 30px;
   border: none;
-  border-radius: 5px;
+  border-radius: 25px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
   transition: background-color 0.2s;
 }
 
+.preview-btn.done-btn {
+  padding: 10px 35px;
+}
+
 .cancel-btn {
-  background-color: #E2E8F0;
-  color: #333;
+  background-color: #C4c4c4;
+  color: white;
 }
 
 .cancel-btn:hover {
-  background-color: #CBD5E0;
+  background-color: #b9b9b9;
 }
 
 .done-btn {
@@ -590,8 +603,7 @@ body.preview-active::before {
     padding: 15px;
   }
 
-  .button-container,
-  .harvest-pagination {
+  .button-container {
     width: 95%;
   }
 
@@ -609,6 +621,22 @@ body.preview-active::before {
   td {
     font-size: clamp(7px, 1.5vw, 9px);
     padding: 6px;
+  }
+
+  .harvest-pagination {
+    bottom: 10px;
+    right: 10px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .harvest-pagination-btn {
+    font-size: 20px;
+    padding: 8px;
+  }
+
+  #harvest-page-number {
+    font-size: 15px;
   }
 }
 
@@ -659,8 +687,7 @@ body.preview-active::before {
     overflow-x: auto;
   }
 
-  .button-container,
-  .harvest-pagination {
+  .button-container {
     width: 98%;
   }
 
@@ -669,13 +696,21 @@ body.preview-active::before {
     font-size: 12px;
   }
 
+  .harvest-pagination {
+    bottom: 10px;
+    right: 5px;
+    padding: 5px;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+
   .harvest-pagination-btn {
-    font-size: 20px;
+    font-size: 18px;
     padding: 5px;
   }
 
   #harvest-page-number {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .report-selector {
