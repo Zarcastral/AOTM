@@ -8,6 +8,7 @@ body {
   flex-direction: column;
   cursor: default;
   overflow-x: hidden;
+  overflow-y: auto; /* Allow vertical scroll by default */
 }
 
 /* Header */
@@ -50,7 +51,7 @@ body {
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
-  width: clamp(100px, 30vw, 180px); /* Shortened width */
+  width: clamp(100px, 30vw, 180px);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   appearance: none;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
@@ -65,10 +66,10 @@ body {
   display: flex;
   flex-direction: column;
   padding: clamp(20px, 5vw, 50px);
-  overflow-y: auto;
   flex-grow: 1;
   width: 100%;
   box-sizing: border-box;
+  overflow-y: auto; /* Default vertical scroll */
 }
 
 /* Panel */
@@ -92,17 +93,18 @@ body {
 /* Table styles */
 .table-wrapper {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: auto; /* Enable horizontal scrolling */
   flex-grow: 1;
   min-height: 0;
   margin-bottom: 60px;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on touch devices */
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
-  min-width: 600px;
+  min-width: 600px; /* Ensure table is wide enough to trigger horizontal scroll */
 }
 
 th, td {
@@ -188,7 +190,7 @@ tbody tr:hover {
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
-  width: clamp(150px, 40vw, 250px); /* Shortened width */
+  width: clamp(150px, 40vw, 250px);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -599,17 +601,40 @@ body.preview-active::before {
 
 /* Responsive styles */
 @media (max-width: 768px) {
+  body {
+    overflow-y: hidden; /* Remove vertical scroll on smaller screens */
+  }
+
   .header {
     padding: 0 10px;
   }
 
   .main-content {
     padding: 20px;
+    overflow-y: hidden; /* Prevent vertical scrolling */
+    height: calc(100vh - 60px); /* Adjust height to fit below header */
   }
 
   .panel {
     padding: 15px;
-    min-height: 300px;
+    min-height: auto; /* Allow panel to fit content */
+    height: 100%; /* Fit panel to main-content height */
+    overflow: hidden; /* Prevent panel from causing scroll */
+  }
+
+  .table-wrapper {
+    max-height: calc(100vh - 200px); /* Constrain table height to fit viewport */
+    overflow-y: hidden; /* Disable vertical scroll for table */
+    overflow-x: auto; /* Ensure horizontal scroll */
+  }
+
+  table {
+    font-size: 14px;
+    min-width: 600px; /* Ensure table triggers horizontal scroll */
+  }
+
+  th, td {
+    padding: 8px;
   }
 
   .search-container {
@@ -625,14 +650,6 @@ body.preview-active::before {
 
   #barangay-select {
     width: clamp(105px, 40vw, 160px);
-  }
-
-  table {
-    font-size: 14px;
-  }
-
-  th, td {
-    padding: 8px;
   }
 
   .pagination-container {
@@ -658,7 +675,6 @@ body.preview-active::before {
   .button-container {
     margin-left: 0;
     width: 100%;
-    justify-content: center;
   }
 
   .confirm-btn, .cancel-btn, #cancel-delete {
@@ -673,6 +689,10 @@ body.preview-active::before {
 }
 
 @media (max-width: 480px) {
+  body {
+    overflow-y: hidden; /* Remove vertical scroll */
+  }
+
   .header-title {
     font-size: 20px;
   }
@@ -684,11 +704,30 @@ body.preview-active::before {
 
   .main-content {
     padding: 10px;
+    overflow-y: hidden; /* Prevent vertical scrolling */
+    height: calc(100vh - 60px); /* Adjust height to fit below header */
   }
 
   .panel {
     padding: 10px;
-    min-height: 250px;
+    min-height: auto;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .table-wrapper {
+    max-height: calc(100vh - 180px); /* Further constrain for smaller screens */
+    overflow-y: hidden; /* Disable vertical scroll */
+    overflow-x: auto; /* Ensure horizontal scroll */
+  }
+
+  table {
+    font-size: 12px;
+    min-width: 600px; /* Maintain min-width for horizontal scroll */
+  }
+
+  th, td {
+    padding: 6px;
   }
 
   .search-container {
@@ -704,14 +743,6 @@ body.preview-active::before {
 
   #barangay-select {
     width: clamp(80px, 50vw, 140px);
-  }
-
-  table {
-    font-size: 12px;
-  }
-
-  th, td {
-    padding: 6px;
   }
 
   .pagination-container {
