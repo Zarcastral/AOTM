@@ -416,6 +416,13 @@ restoreButtons.forEach(button => {
     });
 });
 
+// Add event listener for cancel restore button
+cancelRestoreBtn.addEventListener("click", () => {
+    restorePanel.classList.remove("show"); // Hide the restore panel
+    idsToRestore = []; // Clear the IDs to restore
+    restoreMessage.style.display = "none"; // Hide any existing messages
+});
+
 // Replace the existing confirmRestoreBtn event listener with this modified version
 confirmRestoreBtn.addEventListener("click", async () => {
     try {
