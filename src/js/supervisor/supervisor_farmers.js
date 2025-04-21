@@ -357,7 +357,7 @@ async function editFarmerAccount(farmerId) {
             querySnapshot.forEach((doc) => {
                 const farmerData = doc.data();
                 localStorage.setItem("farmerData", JSON.stringify(farmerData));
-                window.location.href = "admin_farmers_edit.html";
+                window.location.href = "supervisor_farmers_edit.html";
             });
         } else {
             showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
@@ -375,7 +375,7 @@ async function viewFarmerAccount(farmerId) {
             querySnapshot.forEach((doc) => {
                 const farmerData = doc.data();
                 localStorage.setItem("farmerData", JSON.stringify(farmerData));
-                window.location.href = "admin_farmers_view.html";
+                window.location.href = "supervisor_farmers_view.html";
             });
         } else {
             showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
