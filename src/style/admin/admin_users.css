@@ -20,18 +20,6 @@ body {
     padding: 0 20px;
 }
 
-.main-content {
-    flex: 1; /* Takes remaining height */
-    overflow-y: auto; /* Main content handles vertical scrolling */
-    overflow-x: hidden; /* Prevent horizontal scrolling */
-    width: 100%; /* Full width of the viewport */
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end; /* Align panel to the right */
-    padding: 20px; /* Add padding for spacing */
-    box-sizing: border-box;
-}
-
 .header-title {
     font-size: 30px;
     font-weight: bold;
@@ -50,39 +38,47 @@ body {
     cursor: pointer;
 }
 
+.main-content {
+    display: flex;
+    flex-direction: column;
+    padding: 50px; /* Padding around the panels */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Disable horizontal scrolling */
+}
+
 /* Panel container style */
 .panel {
     background-color: white;
     box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
     padding: 15px;
     border-radius: 10px;
-    min-height: 600px;
-    width: 100%; /* Full width of the main-content */
-    max-width: 1200px; /* Optional: limit panel width for larger screens */
+    min-height: 600px; /* Your specified minimum height */
     display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
+    flex-direction: column; /* Stack children vertically */
 }
 
 input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    border: 1px solid #D1D5DB;
-    border-radius: 4px;
+    border: 1px solid #D1D5DB; /* Thin border */
+    border-radius: 4px; /* Optional: Slightly rounded corners */
     outline: none;
     background-color: white;
     cursor: pointer;
-    -webkit-appearance: none;
+    -webkit-appearance: none; /* Removes default browser styling */
     -moz-appearance: none;
     appearance: none;
 }
 
+/* Style when checkbox is checked */
 input[type="checkbox"]:checked {
-    background-color: #41A186;
+    background-color: #41A186; /* Green color */
     border-color: #41A186;
     position: relative;
 }
 
+/* Create the checkmark */
 input[type="checkbox"]:checked::after {
     content: '';
     position: absolute;
@@ -104,8 +100,8 @@ table {
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
-    flex-grow: 1;
-    min-height: 0;
+    flex-grow: 1; /* Takes up available space above pagination */
+    min-height: 0; /* Prevents overflow issues in flex context */
 }
 
 th, td {
@@ -121,21 +117,36 @@ th {
 }
 
 th:first-child, td:first-child {
-    text-align: center;
+    text-align: center; /* Center the content in the column for better appearance */
 }
 
-th:nth-child(2), td:nth-child(2),
-th:nth-child(3), td:nth-child(3),
-th:nth-child(4), td:nth-child(4),
+th:nth-child(2), td:nth-child(2) {
+    width: 200px; /* Adjusted width for the action column */
+    min-width: 100px; /* Minimum width to ensure usability */
+    text-align: left; /* Center the content in the column for better appearance */
+}
+
+th:nth-child(3), td:nth-child(3) {
+    width: 200px; /* Adjusted width for the action column */
+    min-width: 100px; /* Minimum width to ensure usability */
+    text-align: left; /* Center the content in the column for better appearance */
+}
+
+th:nth-child(4), td:nth-child(4) {
+    width: 200px; /* Adjusted width for the action column */
+    min-width: 100px; /* Minimum width to ensure usability */
+    text-align: left; /* Center the content in the column for better appearance */
+}
+
 th:nth-child(5), td:nth-child(5) {
-    width: 200px;
-    min-width: 100px;
-    text-align: left;
+    width: 200px; /* Adjusted width for the action column */
+    min-width: 100px; /* Minimum width to ensure usability */
+    text-align: left; /* Center the content in the column for better appearance */
 }
 
 th:last-child, td:last-child {
-    width: 170px;
-    min-width: 100px;
+    width: 170px; /* Fixed width for the action column; adjust as needed */
+    min-width: 100px; /* Minimum width to ensure usability */
     text-align: center;
 }
 
@@ -148,44 +159,28 @@ tbody tr:hover {
     background-color: #F3F4F6;
 }
 
+/* Remove border from the last row */
 tbody tr:last-child td {
     border-bottom: none;
 }
 
 .search-container {
     display: flex;
-    flex-wrap: nowrap; /* Ensure items stay side by side */
     gap: 1rem;
     margin-bottom: 1rem;
     margin-top: 30px;
-    align-items: center; /* Vertically align search bar and dropdown */
+}
+
+#search-bar, #barangay-select {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    outline: none;
 }
 
 #search-bar {
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    outline: none;
-    width: clamp(200px, 40vw, 400px); /* Responsive width with clamp */
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-#barangay-select {
-    padding: 10px 30px 10px 10px;
-    font-size: 16px;
-    color: #243B53;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    outline: none;
-    width: 200px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px;
-    cursor: pointer;
+    width: 300px;
 }
 
 #search-bar:focus, #barangay-select:focus {
@@ -193,9 +188,11 @@ tbody tr:last-child td {
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
-#barangay-select option[value=""] {
-    color: #888;
-    font-style: italic;
+.search-container input,
+.search-container select {
+    padding: 0.5rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
 }
 
 .action-btn {
@@ -204,20 +201,10 @@ tbody tr:last-child td {
     cursor: pointer;
     font-size: 16px;
     margin: 0 5px;
-    padding: 5px;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .action-btn:hover {
     opacity: 0.7;
-}
-
-.action-btn img {
-    width: 26px;
-    height: 20px;
-    object-fit: contain;
 }
 
 .action-icon-add {
@@ -225,8 +212,8 @@ tbody tr:last-child td {
     height: 20px;
     object-fit: contain;
     vertical-align: middle;
-    margin-right: -1px;
-    margin-top: -3px;
+    margin-right: -1px; /* Nudges the icon closer to the text */
+    margin-top: -3px; /* Nudges the icon closer to the text */
 }
 
 .btn-container {
@@ -235,6 +222,7 @@ tbody tr:last-child td {
     margin-bottom: 1rem;
 }
 
+/* New User Button */
 .add-user-btn {
     background-color: #41A186;
     color: white;
@@ -264,7 +252,7 @@ tbody tr:last-child td {
     margin-top: 20px;
     width: 100%;
     gap: 10px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevents pagination from shrinking */
 }
 
 #page-number {
@@ -356,7 +344,7 @@ tbody tr:last-child td {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: transparent;
+    background-color: transparent; /* Remove the default green */
     color: white;
     padding: 10px 20px;
     border-radius: 20px;
@@ -366,6 +354,55 @@ tbody tr:last-child td {
     z-index: 1001;
     opacity: 0;
     transition: opacity 0.3s ease;
+}
+
+/* Styling for search input */
+#search-bar {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 400px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Styling for the Barangay select dropdown */
+#barangay-select {
+    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+    font-size: 16px;
+    color: #243B53;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    appearance: none; /* Removes default dropdown styling */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Moves the arrow closer */
+    background-size: 16px;
+    cursor: pointer;
+}
+
+/* Optional: Style for the placeholder option */
+#barangay-select option[value=""] {
+    color: #888;
+    font-style: italic;
+}
+
+.action-btn img {
+    width: 26px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.action-btn {
+    padding: 5px;
+    margin: -5px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Bulk Delete Button Style */
@@ -469,7 +506,7 @@ tbody tr:last-child td {
 }
 
 .modal {
-    display: none;
+    display: none; /* Hidden by default */
     position: fixed;
     z-index: 1000;
     left: 50%;
@@ -500,93 +537,67 @@ tbody tr:last-child td {
     margin-top: 20px;
 }
 
-/* Media Queries for Responsive Layout */
-@media (min-width: 1200px) {
-    .main-content {
-        padding: 50px 20px;
-    }
-    .panel {
-        max-width: 1200px; /* Limit panel width */
-        margin-bottom: 20px;
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1199px) {
-    .main-content {
-        padding: 40px 15px;
-    }
-    .panel {
-        max-width: 90%;
-        margin-bottom: 20px;
-    }
-}
-
+/* Responsive styles */
 @media (max-width: 768px) {
-    .main-content {
-        padding: 30px 10px;
-    }
     .panel {
-        max-width: 95%;
+        width: 95%;
         height: auto;
         padding: 15px;
-        margin-bottom: 15px;
     }
-    .search-container {
-        flex-direction: row; /* Keep side-by-side layout */
-        flex-wrap: wrap; /* Allow wrapping if needed */
-        gap: 0.5rem;
-    }
+
     #search-bar {
-        width: clamp(150px, 50vw, 300px); /* Adjusted clamp for smaller screens */
-        flex-grow: 1; /* Allow search bar to take available space */
+        width: 300px;
     }
-    #barangay-select {
-        width: 150px; /* Slightly smaller dropdown */
+
+    .search-container {
+        flex-direction: column;
+        align-items: flex-start;
     }
+
     .add-user-btn {
         right: 10px;
         top: 10px;
     }
+
     table {
         font-size: 14px;
     }
+
     .pagination-btn {
         font-size: 14px;
     }
 }
 
 @media (max-width: 480px) {
-    .main-content {
-        padding: 20px 5px;
-    }
-    .panel {
-        max-width: 95%;
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-    .search-container {
-        flex-direction: row; /* Try to keep side-by-side */
-        flex-wrap: wrap; /* Allow wrapping if space is too tight */
-        gap: 0.5rem;
-    }
     #search-bar {
-        width: clamp(120px, 60vw, 200px); /* Tighter clamp for very small screens */
-        flex-grow: 1;
+        width: 100%;
     }
-    #barangay-select {
-        width: 180px; /* Smaller dropdown for mobile */
-    }
+
     .pagination-container {
-        display: flex;
+        display: flex; /* Keep it as flex, not column */
         justify-content: flex-end;
         align-items: center;
-        flex-wrap: nowrap;
+        flex-wrap: nowrap; /* Prevent wrapping */
     }
+
     .pagination-btn {
-        font-size: 20px;
-        padding: 8px;
+        font-size: 20px; /* Slightly smaller font size for better fit */
+        padding: 8px; /* Adjust padding for smaller screens */
     }
+
     #page-number {
-        font-size: 15px;
+        font-size: 15px; /* Slightly smaller font size */
+    }
+}
+
+/* Responsive design for small screens */
+@media (max-width: 768px) {
+    .search-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #search-bar, #barangay-select {
+        width: 100%;
     }
 }
