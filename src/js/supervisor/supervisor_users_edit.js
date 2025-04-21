@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const closeButton = document.getElementById("close-button");
   closeButton.addEventListener("click", () => {
-    window.location.href = "admin_users.html"; // Redirect to users_list.html
+    window.location.href = "supervisor_users.html"; // Redirect to users_list.html
   });
 
   // Add event listener for the save button
@@ -468,7 +468,7 @@ async function saveChanges() {
 
     // Delay before redirecting
     setTimeout(() => {
-      window.location.href = "admin_users.html";
+      window.location.href = "supervisor_users.html";
     }, 2000); // 2-second delay
   } else {
     showDeleteMessage("Account with this username does not exist.", false);

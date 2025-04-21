@@ -1,151 +1,150 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-  }
-    
-  .header {
-    min-height: 60px;
-    height: 60px;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-  }
-  
-  .header-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-  }
-  
-  .header-icons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-  
-  .header-icons img {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-  }
-  
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
 
-  #sex {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-    font-size: 16px;
-    color: #243B53;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    width: 500px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-    background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
-    background-size: 16px;
-    cursor: pointer;
-  }
-  
-  #user_type {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-    font-size: 16px;
-    color: #243B53;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    width: 500px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-    background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
-    background-size: 16px;
-    cursor: pointer;
-  }
-  
-  #barangay {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-    font-size: 16px;
-    color: #243B53;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    width: 500px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-    background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
-    background-size: 16px;
-    cursor: pointer;
-  }
-  
-  label {
-    font-weight: 500;
-  }
-  .container {
-    width: 400px;
-    margin: 50px auto;
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  h2 {
-    text-align: center;
-    font-size: 30px;
-    margin-bottom: 20px;
-    color: #333333;
-    margin-right: 170px;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  label {
-    display: block;
-    color: #333333;
-    margin-bottom: 5px;
-    font-weight: 500;;
-  }
-  
-  input {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    
-  }
-  input, select {
-    width: 100%; /* Automatically adjusts width considering container padding */
-    max-width: 100%; /* Ensures they don't exceed the container width */
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box; /* Includes padding and border in width calculation */
-  }
-  
-  .close-button {
-    display: flex;
-    justify-content: flex-end; /* Aligns button to the right */
-    margin-top: 15px;
-    width: 100%; /* Ensures it spans the form width */
+.header {
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41a186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+#sex {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243b53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  width: 500px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
+
+#user_type {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243b53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  width: 500px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
+
+#barangay {
+  padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
+  font-size: 16px;
+  color: #243b53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  width: 500px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none; /* Removes default dropdown styling */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Moves the arrow closer */
+  background-size: 16px;
+  cursor: pointer;
+}
+
+label {
+  font-weight: 500;
+}
+.container {
+  width: 400px;
+  margin: 50px auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 20px;
+  color: #333333;
+  margin-right: 170px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  color: #333333;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+input,
+select {
+  width: 100%; /* Automatically adjusts width considering container padding */
+  max-width: 100%; /* Ensures they don't exceed the container width */
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Includes padding and border in width calculation */
+}
+
+.close-button {
+  display: flex;
+  justify-content: flex-end; /* Aligns button to the right */
+  margin-top: 15px;
+  width: 100%; /* Ensures it spans the form width */
 }
 
 button {
   width: 35%; /* Only as wide as its text */
   padding: 10px 30px; /* Compact size */
-  background-color: #C3C3C3;
+  background-color: #c3c3c3;
   color: white;
   border: none;
   border-radius: 25px;
@@ -155,9 +154,9 @@ button {
 }
 
 button:hover {
-  background-color: #B0B7C0;
+  background-color: #b0b7c0;
 }
-  
+
 .profile-picture-container {
   display: flex;
   justify-content: center;
@@ -182,7 +181,7 @@ button:hover {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+  background-color: rgba(0, 0, 0, 0.8); /* Black w/ opacity */
   justify-content: center; /* Center horizontally */
   align-items: center; /* Center vertically */
 }
@@ -208,14 +207,19 @@ button:hover {
 }
 
 /* Add Animation - Zoom in the Modal */
-.modal-content, #caption { 
+.modal-content,
+#caption {
   animation-name: zoom;
   animation-duration: 0.6s;
 }
 
 @keyframes zoom {
-  from {transform: scale(0)} 
-  to {transform: scale(1)}
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
 /* The Close Button */
@@ -236,3 +240,156 @@ button:hover {
   cursor: pointer;
 }
 
+@media (max-width: 1024px) {
+  .header {
+    height: 50px;
+    padding: 0 15px;
+  }
+  .header-title {
+    font-size: 24px;
+  }
+  .header-icons img {
+    width: 20px;
+    height: 20px;
+  }
+  .container {
+    width: 350px;
+    margin: 40px auto;
+    padding: 15px;
+  }
+  h2 {
+    font-size: 24px;
+    margin-right: 120px;
+  }
+  #sex,
+  #user_type,
+  #barangay {
+    width: 100%;
+    font-size: 14px;
+    padding: 8px 25px 8px 8px;
+    background-size: 14px;
+  }
+  input,
+  select {
+    padding: 8px;
+    font-size: 14px;
+  }
+  .profile-picture {
+    width: 120px;
+    height: 120px;
+  }
+  button {
+    width: 40%;
+    padding: 8px 25px;
+    font-size: 14px;
+  }
+  .modal-content {
+    max-width: 85%;
+    max-height: 85%;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    height: 45px;
+    padding: 0 10px;
+  }
+  .header-title {
+    font-size: 20px;
+  }
+  .header-icons img {
+    width: 18px;
+    height: 18px;
+  }
+  .container {
+    width: 300px;
+    margin: 30px auto;
+    padding: 12px;
+  }
+  .form-group {
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-size: 20px;
+    margin-right: 80px;
+  }
+  #sex,
+  #user_type,
+  #barangay {
+    font-size: 12px;
+    padding: 6px 20px 6px 6px;
+    background-size: 12px;
+  }
+  input,
+  select {
+    padding: 6px;
+    font-size: 12px;
+  }
+  .profile-picture {
+    width: 100px;
+    height: 100px;
+  }
+  button {
+    width: 45%;
+    padding: 6px 20px;
+    font-size: 12px;
+  }
+  .close {
+    font-size: 30px;
+    top: 10px;
+    right: 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    height: 40px;
+    padding: 0 8px;
+  }
+  .header-title {
+    font-size: 18px;
+  }
+  .header-icons img {
+    width: 16px;
+    height: 16px;
+  }
+  .container {
+    width: 90%;
+    margin: 20px auto;
+    padding: 10px;
+  }
+  h2 {
+    font-size: 18px;
+    margin-right: 40px;
+  }
+  #sex,
+  #user_type,
+  #barangay {
+    font-size: 11px;
+    padding: 5px 15px 5px 5px;
+    background-size: 10px;
+  }
+  input,
+  select {
+    padding: 5px;
+    font-size: 11px;
+  }
+  .profile-picture {
+    width: 80px;
+    height: 80px;
+  }
+  button {
+    width: 50%;
+    padding: 5px 15px;
+    font-size: 11px;
+  }
+  .modal-content {
+    max-width: 90%;
+    max-height: 90%;
+  }
+  .close {
+    font-size: 25px;
+    top: 8px;
+    right: 15px;
+  }
+}
