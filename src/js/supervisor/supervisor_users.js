@@ -385,7 +385,7 @@ async function editUserAccount(user_name) {
             querySnapshot.forEach((doc) => {
                 const userData = doc.data();
                 localStorage.setItem("userData", JSON.stringify(userData));
-                window.location.href = "admin_users_edit.html";
+                window.location.href = "supervisor_users_edit.html";
             });
         } else {
             showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);
@@ -406,7 +406,7 @@ async function viewUserAccount(user_name) {
             querySnapshot.forEach((doc) => {
                 const userData = doc.data();
                 localStorage.setItem("userData", JSON.stringify(userData));
-                window.location.href = "admin_users_view.html";
+                window.location.href = "supervisor_users_view.html";
             });
         } else {
             showDeleteMessage("No matching record found, Unable to proceed with the requested action", false);

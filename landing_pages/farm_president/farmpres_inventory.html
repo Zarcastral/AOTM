@@ -4,8 +4,6 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module" src="/src/js/farm_president/farmpres_inventory_crops.js"></script>
-    <script type="module" src="/src/js/farm_president/farmpres_inventory_fertilizer.js"></script>
     <script type="module" src="/src/js/farm_president/farmpres_inventory_equipment.js"></script>
     <title>Organic Baras Productivity</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,68 +17,9 @@
     <div class="main-content">
         <!-- Project Selector Navigation -->
         <div class="project-selector">
-            <span class="inventory-list"><a class="active" href="farmpres_inventory.html">Inventory List</a></span>
+            <span class="inventory-list"><a class="active" href="headfarm_inventory.html">Inventory List</a></span>
             <div class="rando-line">|</div>
             <span class="inventory-logs"><a href="inventory_logs.html">Inventory Logs</a></span>
-        </div>
-
-        <!-- Crops Panel -->
-        <div class="panel">
-            <div class="table-wrapper">
-                <h2>Crops</h2>
-                <div class="crop_table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Project ID</th>
-                                <th>Crop Type</th>
-                                <th>Crops</th>
-                                <th>Date Added</th>
-                                <th>Current Stock</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Crops will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Fertilizer Panel -->
-        <div class="panel">
-            <div class="table-wrapper">
-                <h2>Fertilizer</h2>
-                <div class="fert-search-bar">
-                    <input type="text" id="fert-search-bar" placeholder="Search">
-                    <select class="fertilizer_select">
-                        <option value="">Select Fertilizer</option>
-                    </select>
-                </div>
-                <div class="fertilizer_table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Project ID</th>
-                                <th>Fertilizer Name</th>
-                                <th>Category</th>
-                                <th>Date Added</th>
-                                <th>Current Stock</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Fertilizers will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="fertilizer-pagination">
-                    <span id="fertilizer-page-number">Page 1</span>
-                    <button id="fertilizer-prev-page" class="fertilizer-pagination-btn" disabled>&lt;</button>
-                    <button id="fertilizer-next-page" class="fertilizer-pagination-btn">&gt;</button>
-                </div>
-            </div>
         </div>
 
         <!-- Equipment Panel -->
@@ -109,8 +48,9 @@
             </div>
             <div class="equipment-pagination">
                 <span id="equipment-page-number">Page 1</span>
-                <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>&lt;</button>
-                <button id="equipment-next-page" class="equipment-pagination-btn">&gt;</button>
+                <button id="equipment-prev-page" class="equipment-pagination-btn" disabled>
+                </button>
+                <button id="equipment-next-page" class="equipment-pagination-btn">></button>
             </div>
         </div>
     </div>
@@ -129,7 +69,7 @@
             <div id="quantity-error" class="error-message">Quantity cannot exceed current stock or be zero.</div>
         </div>
         <div>
-            <label>Usage Type</label>
+            <label>Status</label>
             <select id="usage-type">
                 <option value="">Select Usage Type</option>
                 <option value="Task">Task</option>

@@ -229,7 +229,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
   const resourceNameDisplay = document.getElementById("resource-type-display");
   const maxQuantityDisplay = document.getElementById("max-quantity");
   const quantityInput = document.getElementById("quantity-input");
-  const usageTypeSelect = document.getElementById("usage-type");
+  const statusSelect = document.getElementById("usage-type");
   const detailsContainer = document.getElementById("details-container");
   const detailsInput = document.getElementById("usage-details");
 
@@ -244,7 +244,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
     !resourceNameDisplay ||
     !maxQuantityDisplay ||
     !quantityInput ||
-    !usageTypeSelect ||
+    !statusSelect ||
     !detailsContainer ||
     !detailsInput
   ) {
@@ -279,21 +279,46 @@ function openResourcePanel(equipmentName, currentStock, unit) {
   quantityInput.value = "";
   quantityInput.max = currentStock;
   quantityInput.min = 0;
-  usageTypeSelect.innerHTML = `
-    <option value="">Select Usage Type</option>
+  statusSelect.innerHTML = `
+    <option value="">Select Status</option>
+    <option value="Used">Used</option>
     <option value="Damaged">Damaged</option>
     <option value="Missing">Missing</option>
   `;
   detailsInput.value = "";
-  detailsContainer.style.display = "block";
+  detailsContainer.style.display = "none";
 
   panel.classList.add("active");
 
   // Clone inputs to reset event listeners
   const newQuantityInput = quantityInput.cloneNode(true);
   quantityInput.parentNode.replaceChild(newQuantityInput, quantityInput);
-  const newUsageTypeSelect = usageTypeSelect.cloneNode(true);
-  usageTypeSelect.parentNode.replaceChild(newUsageTypeSelect, usageTypeSelect);
+  const newStatusSelect = statusSelect.cloneNode(true);
+  statusSelect.parentNode.replaceChild(newStatusSelect, statusSelect);
+
+  // Real-time quantity validation
+  newQuantityInput.addEventListener("input", () => {
+    const value = parseFloat(newQuantityInput.value);
+    if (isNaN(value)) {
+      newQuantityInput.value = "";
+    } else if (value > currentStock) {
+      newQuantityInput.value = currentStock;
+      showMessage("error", `Quantity cannot exceed ${currentStock} ${unit}.`);
+    } else if (value < 0) {
+      newQuantityInput.value = 0;
+      showMessage("error", "Quantity cannot be negative.");
+    }
+  });
+
+  // Handle status change to toggle details field
+  newStatusSelect.addEventListener("change", () => {
+    if (newStatusSelect.value === "Used") {
+      detailsContainer.style.display = "none";
+      detailsInput.value = ""; // Clear details when Used is selected
+    } else {
+      detailsContainer.style.display = "block";
+    }
+  });
 
   // One-click prevention for save button
   let isSaving = false;
@@ -310,7 +335,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
 
     try {
       const quantity = newQuantityInput.value.trim();
-      const usageType = newUsageTypeSelect.value;
+      const status = newStatusSelect.value;
       const details = detailsInput.value.trim();
       let sessionedProjectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
 
@@ -320,22 +345,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         sessionedProjectId = "General";
       }
 
-      // Warning trap: Check if all fields are empty/invalid
-      if (
-        (quantity === "" || isNaN(parseFloat(quantity))) &&
-        usageType === "" &&
-        details === ""
-      ) {
-        showMessage(
-          "error",
-          "Please provide quantity, usage type, and details."
-        );
-        isSaving = false;
-        saveButton.disabled = false;
-        return;
-      }
-
-      // Individual validations
+      // Validate quantity
       const parsedQuantity = parseFloat(quantity);
       if (
         isNaN(parsedQuantity) ||
@@ -350,50 +360,63 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         saveButton.disabled = false;
         return;
       }
-      if (!usageType) {
-        showMessage("error", "Please select a usage type.");
-        isSaving = false;
-        saveButton.disabled = false;
-        return;
-      }
-      if (!details) {
-        showMessage("error", "Details field cannot be empty.");
+
+      // Validate status
+      if (!status) {
+        showMessage("error", "Please select a status.");
         isSaving = false;
         saveButton.disabled = false;
         return;
       }
 
-      const stockQuery = query(
-        collection(db, "tb_equipment_stock"),
-        where("equipment_name", "==", equipmentName)
-      );
-      const stockSnapshot = await getDocs(stockQuery);
-      if (stockSnapshot.empty) {
-        console.error("No stock found for equipment:", equipmentName);
-        showMessage("error", "No stock found for this equipment.");
+      // Validate details for Damaged or Missing
+      if ((status === "Damaged" || status === "Missing") && !details) {
+        showMessage(
+          "error",
+          "Details field cannot be empty for Damaged or Missing."
+        );
         isSaving = false;
         saveButton.disabled = false;
         return;
       }
 
-      const stockDoc = stockSnapshot.docs[0];
-      const stockData = stockDoc.data();
-      const stockEntry = stockData.stocks.find(
-        (stock) => stock.farmer_id === currentFarmerId
-      );
-      if (!stockEntry) {
-        console.error("No stock entry found for farmer:", currentFarmerId);
-        showMessage("error", "No stock entry found for this farmer.");
-        isSaving = false;
-        saveButton.disabled = false;
-        return;
-      }
+      // If status is Used, details are optional
+      const finalDetails = status === "Used" ? details || "" : details;
 
-      stockEntry.current_stock =
-        (stockEntry.current_stock || 0) - parsedQuantity;
-      await updateDoc(doc(db, "tb_equipment_stock", stockDoc.id), {
-        stocks: stockData.stocks,
-      });
+      // Only update stock for Damaged or Missing statuses
+      if (status === "Damaged" || status === "Missing") {
+        const stockQuery = query(
+          collection(db, "tb_equipment_stock"),
+          where("equipment_name", "==", equipmentName)
+        );
+        const stockSnapshot = await getDocs(stockQuery);
+        if (stockSnapshot.empty) {
+          console.error("No stock found for equipment:", equipmentName);
+          showMessage("error", "No stock found for this equipment.");
+          isSaving = false;
+          saveButton.disabled = false;
+          return;
+        }
+
+        const stockDoc = stockSnapshot.docs[0];
+        const stockData = stockDoc.data();
+        const stockEntry = stockData.stocks.find(
+          (stock) => stock.farmer_id === currentFarmerId
+        );
+        if (!stockEntry) {
+          console.error("No stock entry found for farmer:", currentFarmerId);
+          showMessage("error", "No stock entry found for this farmer.");
+          isSaving = false;
+          saveButton.disabled = false;
+          return;
+        }
+
+        stockEntry.current_stock =
+          (stockEntry.current_stock || 0) - parsedQuantity;
+        await updateDoc(doc(db, "tb_equipment_stock", stockDoc.id), {
+          stocks: stockData.stocks,
+        });
+      }
 
       await addDoc(collection(db, "tb_inventory_log"), {
         project_id: sessionedProjectId, // Use sessioned project_id or "General"
@@ -401,8 +424,8 @@ function openResourcePanel(equipmentName, currentStock, unit) {
         quantity_used: parsedQuantity,
         unit: unit,
         resource_type: "Equipment",
-        usage_type: usageType,
-        details: details,
+        status: status,
+        details: finalDetails,
         farmer_id: currentFarmerId,
         timestamp: new Date(),
       });

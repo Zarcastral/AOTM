@@ -103,7 +103,7 @@ function displayLogs(logs) {
   if (paginatedLogs.length === 0) {
     tableBody.innerHTML = `
       <tr class="no-records-message">
-        <td colspan="7" style="text-align: center;">No inventory logs found</td>
+        <td colspan="6" style="text-align: center;">No inventory logs found</td>
       </tr>
     `;
     return;
@@ -119,12 +119,9 @@ function displayLogs(logs) {
 
     row.innerHTML = `
       <td>${log.project_id || "N/A"}</td>
-      <td>${
-        log.resource_name || "N/A"
-      }</td> <!-- Changed to resource_name for accuracy -->
+      <td>${log.resource_name || "N/A"}</td>
       <td>${log.quantity_used || "N/A"}</td>
-      <td>${log.unit || "N/A"}</td>
-      <td>${log.usage_type || "N/A"}</td>
+      <td>${log.status || "N/A"}</td>
       <td>${log.details || "N/A"}</td>
       <td>${formattedDate}</td>
     `;
@@ -235,68 +232,83 @@ document.addEventListener("DOMContentLoaded", () => {
   configureBackButton();
 
   // Previous page button
-  document.getElementById("log-prev-page").addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      displayLogs(filteredLogs);
-    }
-  });
+  const prevPageButton = document.getElementById("log-prev-page");
+  if (prevPageButton) {
+    prevPageButton.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        displayLogs(filteredLogs);
+      }
+    });
+  } else {
+    console.error("Previous page button not found.");
+  }
 
   // Next page button
-  document.getElementById("log-next-page").addEventListener("click", () => {
-    if (currentPage * rowsPerPage < filteredLogs.length) {
-      currentPage++;
-      displayLogs(filteredLogs);
-    }
-  });
+  const nextPageButton = document.getElementById("log-next-page");
+  if (nextPageButton) {
+    nextPageButton.addEventListener("click", () => {
+      if (currentPage * rowsPerPage < filteredLogs.length) {
+        currentPage++;
+        displayLogs(filteredLogs);
+      }
+    });
+  } else {
+    console.error("Next page button not found.");
+  }
 
   // Search bar input
-  document.getElementById("log-search-bar").addEventListener("input", () => {
-    const searchQuery = document
-      .getElementById("log-search-bar")
-      .value.toLowerCase()
-      .trim();
-    const selectedResourceType =
-      document.querySelector(".resource_select").value;
+  const searchBar = document.getElementById("log-search-bar");
+  if (searchBar) {
+    searchBar.addEventListener("input", () => {
+      const searchQuery = searchBar.value.toLowerCase().trim();
+      const selectedResourceType =
+        document.querySelector(".resource_select")?.value;
 
-    filteredLogs = logsList.filter((log) => {
-      const matchesSearch =
-        log.project_id?.toString().toLowerCase().includes(searchQuery) ||
-        log.resource_name?.toLowerCase().includes(searchQuery) ||
-        log.usage_type?.toLowerCase().includes(searchQuery);
-      const matchesResourceType = selectedResourceType
-        ? log.resource_type === selectedResourceType
-        : true;
-      return matchesSearch && matchesResourceType;
+      filteredLogs = logsList.filter((log) => {
+        const matchesSearch =
+          log.project_id?.toString().toLowerCase().includes(searchQuery) ||
+          log.resource_name?.toLowerCase().includes(searchQuery) ||
+          log.status?.toLowerCase().includes(searchQuery);
+        const matchesResourceType = selectedResourceType
+          ? log.resource_type === selectedResourceType
+          : true;
+        return matchesSearch && matchesResourceType;
+      });
+
+      currentPage = 1;
+      sortLogsByDate();
+      displayLogs(filteredLogs);
     });
-
-    currentPage = 1;
-    sortLogsByDate();
-    displayLogs(filteredLogs);
-  });
+  } else {
+    console.error("Search bar not found.");
+  }
 
   // Resource type dropdown
-  document.querySelector(".resource_select").addEventListener("change", () => {
-    const selectedResourceType =
-      document.querySelector(".resource_select").value;
-    const searchQuery = document
-      .getElementById("log-search-bar")
-      .value.toLowerCase()
-      .trim();
+  const resourceSelect = document.querySelector(".resource_select");
+  if (resourceSelect) {
+    resourceSelect.addEventListener("change", () => {
+      const selectedResourceType = resourceSelect.value;
+      const searchQuery =
+        document.getElementById("log-search-bar")?.value.toLowerCase().trim() ||
+        "";
 
-    filteredLogs = logsList.filter((log) => {
-      const matchesSearch =
-        log.project_id?.toString().toLowerCase().includes(searchQuery) ||
-        log.resource_name?.toLowerCase().includes(searchQuery) ||
-        log.usage_type?.toLowerCase().includes(searchQuery);
-      const matchesResourceType = selectedResourceType
-        ? log.resource_type === selectedResourceType
-        : true;
-      return matchesSearch && matchesResourceType;
+      filteredLogs = logsList.filter((log) => {
+        const matchesSearch =
+          log.project_id?.toString().toLowerCase().includes(searchQuery) ||
+          log.resource_name?.toLowerCase().includes(searchQuery) ||
+          log.status?.toLowerCase().includes(searchQuery);
+        const matchesResourceType = selectedResourceType
+          ? log.resource_type === selectedResourceType
+          : true;
+        return matchesSearch && matchesResourceType;
+      });
+
+      currentPage = 1;
+      sortLogsByDate();
+      displayLogs(filteredLogs);
     });
-
-    currentPage = 1;
-    sortLogsByDate();
-    displayLogs(filteredLogs);
-  });
+  } else {
+    console.error("Resource select dropdown not found.");
+  }
 });
