@@ -14,50 +14,57 @@ import app from "../../config/firebase_config.js";
 // Initialize Firestore
 const db = getFirestore(app);
 
-// Function to show success panel
-function showSuccessPanel(message) {
-  const successMessage = document.createElement("div");
-  successMessage.className = "success-message";
-  successMessage.textContent = message;
+// Message queue to store pending messages
+const messageQueue = [];
+let isShowingMessage = false;
 
-  document.body.appendChild(successMessage);
+// Function to process the message queue
+function processMessageQueue() {
+  if (isShowingMessage || messageQueue.length === 0) {
+    return;
+  }
+
+  isShowingMessage = true;
+  const { message, type } = messageQueue.shift();
+  showMessage(message, type);
+}
+
+// Function to show a message (success or error)
+function showMessage(message, type) {
+  const messageElement = document.createElement("div");
+  messageElement.className =
+    type === "success" ? "success-message" : "error-message";
+  messageElement.textContent = message;
+
+  document.body.appendChild(messageElement);
 
   // Fade in
-  successMessage.style.display = "block";
+  messageElement.style.display = "block";
   setTimeout(() => {
-    successMessage.style.opacity = "1";
+    messageElement.style.opacity = "1";
   }, 5);
 
   // Fade out after 4 seconds
   setTimeout(() => {
-    successMessage.style.opacity = "0";
+    messageElement.style.opacity = "0";
     setTimeout(() => {
-      document.body.removeChild(successMessage);
-    }, 400);
-  }, 4000);
+      document.body.removeChild(messageElement);
+      isShowingMessage = false;
+      processMessageQueue(); // Process the next message in the queue
+    }, 40); // Wait for fade-out transition to complete
+  }, 2000); // Display duration
+}
+
+// Function to show success panel
+function showSuccessPanel(message) {
+  messageQueue.push({ message, type: "success" });
+  processMessageQueue();
 }
 
 // Function to show error panel
 function showErrorPanel(message) {
-  const errorMessage = document.createElement("div");
-  errorMessage.className = "error-message";
-  errorMessage.textContent = message;
-
-  document.body.appendChild(errorMessage);
-
-  // Fade in
-  errorMessage.style.display = "block";
-  setTimeout(() => {
-    errorMessage.style.opacity = "1";
-  }, 5);
-
-  // Fade out after 4 seconds
-  setTimeout(() => {
-    errorMessage.style.opacity = "0";
-    setTimeout(() => {
-      document.body.removeChild(errorMessage);
-    }, 400);
-  }, 4000);
+  messageQueue.push({ message, type: "error" });
+  processMessageQueue();
 }
 
 // Utility function to check if current date is past end_date
