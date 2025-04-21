@@ -92,9 +92,70 @@ async function getAuthenticatedFarmer() {
   });
 }
 
+// Fetch project_id for Farm President or Head Farmer
+async function fetchProjectsForFarmer() {
+  await getAuthenticatedFarmer();
+  const userType = currentUserType;
+  const farmerId = currentFarmerId;
+  let projectId = sessionStorage.getItem("projectId");
+
+  // For Farm President or Head Farmer, fetch project_id
+  if (
+    (userType === "Farm President" || userType === "Head Farmer") &&
+    farmerId
+  ) {
+    try {
+      const projectsRef = collection(db, "tb_projects");
+      const q = query(
+        projectsRef,
+        where("lead_farmer_id", "==", farmerId),
+        where("status", "==", "Ongoing")
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // Get the first matching project
+        const project = querySnapshot.docs[0].data();
+        projectId = String(project.project_id);
+        sessionStorage.setItem("projectId", projectId);
+        console.log(
+          `Found Ongoing project with ID ${projectId} for lead farmer ${farmerId}`
+        );
+      } else {
+        console.log("No Ongoing project found for lead farmer:", farmerId);
+        sessionStorage.removeItem("projectId");
+        projectId = null;
+      }
+    } catch (error) {
+      console.error("Error fetching project for lead farmer:", error);
+      sessionStorage.removeItem("projectId");
+      projectId = null;
+    }
+  }
+
+  // For Admin or Supervisor, rely on existing projectId in sessionStorage
+  if (["Admin", "Supervisor"].includes(userType)) {
+    if (!projectId) {
+      console.log("No project ID found for Admin/Supervisor.");
+      sessionStorage.removeItem("projectId");
+    }
+  }
+
+  return projectId;
+}
+
 async function fetchEquipments() {
   try {
-    await getAuthenticatedFarmer();
+    const projectId = await fetchProjectsForFarmer();
+
+    // Check if project_id exists
+    if (!projectId) {
+      console.warn("No project_id found.");
+      equipmentsList = [];
+      filteredEquipments = [];
+      displayEquipments(filteredEquipments); // Will display "No project assigned yet"
+      return;
+    }
 
     const stockCollection = collection(db, "tb_equipment_stock");
 
@@ -155,6 +216,19 @@ function displayEquipments(equipmentsList) {
   }
 
   tableBody.innerHTML = "";
+  const projectId = sessionStorage.getItem("projectId");
+
+  // If no project_id, display "No project assigned yet"
+  if (!projectId) {
+    tableBody.innerHTML = `
+      <tr class="no-records-message">
+        <td colspan="4" style="text-align: center;">No project assigned yet</td>
+      </tr>
+    `;
+    updatePagination(); // Update pagination to reflect no data
+    return;
+  }
+
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginatedEquipments = equipmentsList.slice(startIndex, endIndex);
@@ -165,6 +239,7 @@ function displayEquipments(equipmentsList) {
         <td colspan="4" style="text-align: center;">No equipment stock found for this farmer</td>
       </tr>
     `;
+    updatePagination();
     return;
   }
 
@@ -256,6 +331,17 @@ function openResourcePanel(equipmentName, currentStock, unit) {
     return;
   }
 
+  // Check if project_id exists before opening the panel
+  const projectId = sessionStorage.getItem("projectId");
+  if (!projectId) {
+    console.warn("No project_id found, cannot open resource panel.");
+    showMessage(
+      "error",
+      "No project assigned yet. Please assign a project first."
+    );
+    return;
+  }
+
   const displayName = equipmentName || "Unknown Equipment";
   console.log("Setting resource-type-display to:", displayName);
 
@@ -298,15 +384,20 @@ function openResourcePanel(equipmentName, currentStock, unit) {
 
   // Real-time quantity validation
   newQuantityInput.addEventListener("input", () => {
-    const value = parseFloat(newQuantityInput.value);
-    if (isNaN(value)) {
+    const value = newQuantityInput.value.trim();
+    const parsedValue = parseFloat(value);
+    if (value === "") {
       newQuantityInput.value = "";
-    } else if (value > currentStock) {
+      showMessage("error", "Quantity cannot be empty.");
+    } else if (isNaN(parsedValue)) {
+      newQuantityInput.value = "";
+      showMessage("error", "Please enter a valid number.");
+    } else if (parsedValue > currentStock) {
       newQuantityInput.value = currentStock;
       showMessage("error", `Quantity cannot exceed ${currentStock} ${unit}.`);
-    } else if (value < 0) {
-      newQuantityInput.value = 0;
-      showMessage("error", "Quantity cannot be negative.");
+    } else if (parsedValue <= 0) {
+      newQuantityInput.value = "";
+      showMessage("error", "Quantity must be greater than 0.");
     }
   });
 
@@ -324,6 +415,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
   let isSaving = false;
   const saveButton = document.getElementById("save-resource");
   saveButton.disabled = false;
+
   const handleSaveClick = async () => {
     if (isSaving) {
       console.log("Save operation already in progress, ignoring click");
@@ -337,21 +429,31 @@ function openResourcePanel(equipmentName, currentStock, unit) {
       const quantity = newQuantityInput.value.trim();
       const status = newStatusSelect.value;
       const details = detailsInput.value.trim();
-      let sessionedProjectId = sessionStorage.getItem("projectId"); // Get sessioned project_id
+      const sessionedProjectId = sessionStorage.getItem("projectId");
 
-      // Use "General" if no project_id is found
+      console.log("Validating save with:", { quantity, status, details });
+
+      // Validate project_id
       if (!sessionedProjectId) {
-        console.warn("No project_id found in sessionStorage, using 'General'");
-        sessionedProjectId = "General";
+        console.error("No project_id found in sessionStorage.");
+        showMessage(
+          "error",
+          "No project assigned yet. Please assign a project first."
+        );
+        isSaving = false;
+        saveButton.disabled = false;
+        return;
       }
 
       // Validate quantity
       const parsedQuantity = parseFloat(quantity);
       if (
+        !quantity ||
         isNaN(parsedQuantity) ||
         parsedQuantity > currentStock ||
         parsedQuantity <= 0
       ) {
+        console.warn("Invalid quantity detected:", quantity);
         showMessage(
           "error",
           "Please enter a valid quantity within stock limits."
@@ -363,6 +465,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
 
       // Validate status
       if (!status) {
+        console.warn("No status selected.");
         showMessage("error", "Please select a status.");
         isSaving = false;
         saveButton.disabled = false;
@@ -371,6 +474,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
 
       // Validate details for Damaged or Missing
       if ((status === "Damaged" || status === "Missing") && !details) {
+        console.warn("Details missing for Damaged/Missing status.");
         showMessage(
           "error",
           "Details field cannot be empty for Damaged or Missing."
@@ -419,7 +523,7 @@ function openResourcePanel(equipmentName, currentStock, unit) {
       }
 
       await addDoc(collection(db, "tb_inventory_log"), {
-        project_id: sessionedProjectId, // Use sessioned project_id or "General"
+        project_id: sessionedProjectId,
         resource_name: equipmentName,
         quantity_used: parsedQuantity,
         unit: unit,
@@ -437,11 +541,13 @@ function openResourcePanel(equipmentName, currentStock, unit) {
     } catch (error) {
       console.error("Error saving inventory log:", error);
       showMessage("error", "Failed to save inventory log.");
+    } finally {
       isSaving = false;
       saveButton.disabled = false;
     }
   };
 
+  // Remove any existing listeners to prevent duplicates
   saveButton.removeEventListener("click", handleSaveClick);
   saveButton.addEventListener("click", handleSaveClick);
 
@@ -470,8 +576,10 @@ function closeResourcePanel() {
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Initial currentFarmerId from session:", currentFarmerId);
-  fetchEquipmentNames();
-  fetchEquipments();
+  fetchProjectsForFarmer().then(() => {
+    fetchEquipmentNames();
+    fetchEquipments();
+  });
 });
 
 function updatePagination() {
@@ -483,28 +591,45 @@ function updatePagination() {
 }
 
 function updatePaginationButtons() {
-  document.getElementById("equipment-prev-page").disabled = currentPage === 1;
-  document.getElementById("equipment-next-page").disabled =
-    currentPage >= Math.ceil(filteredEquipments.length / rowsPerPage);
+  const prevButton = document.getElementById("equipment-prev-page");
+  const nextButton = document.getElementById("equipment-next-page");
+  if (prevButton) {
+    prevButton.disabled = currentPage === 1;
+  }
+  if (nextButton) {
+    nextButton.disabled =
+      currentPage >= Math.ceil(filteredEquipments.length / rowsPerPage);
+  }
 }
 
-document.getElementById("equipment-prev-page").addEventListener("click", () => {
-  if (currentPage > 1) {
-    currentPage--;
-    displayEquipments(filteredEquipments);
-  }
-});
+document
+  .getElementById("equipment-prev-page")
+  ?.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      displayEquipments(filteredEquipments);
+    }
+  });
 
-document.getElementById("equipment-next-page").addEventListener("click", () => {
-  if (currentPage * rowsPerPage < filteredEquipments.length) {
-    currentPage++;
-    displayEquipments(filteredEquipments);
-  }
-});
+document
+  .getElementById("equipment-next-page")
+  ?.addEventListener("click", () => {
+    if (currentPage * rowsPerPage < filteredEquipments.length) {
+      currentPage++;
+      displayEquipments(filteredEquipments);
+    }
+  });
 
 async function fetchEquipmentNames() {
   try {
-    await getAuthenticatedFarmer();
+    const projectId = sessionStorage.getItem("projectId");
+
+    // If no project_id, skip fetching equipment names
+    if (!projectId) {
+      console.warn("No project_id found, skipping equipment names fetch.");
+      return;
+    }
+
     const stockCollection = collection(db, "tb_equipment_stock");
     const stockSnapshot = await getDocs(stockCollection);
 
@@ -548,7 +673,7 @@ function populateEquipmentDropdown(equipmentTypes) {
 
 document
   .querySelector(".equipment_select")
-  .addEventListener("change", function () {
+  ?.addEventListener("change", function () {
     const selectedEquipment = this.value.toLowerCase();
 
     filteredEquipments = equipmentsList.filter((equipment) => {
@@ -563,7 +688,7 @@ document
 
 document
   .getElementById("equip-search-bar")
-  .addEventListener("input", function () {
+  ?.addEventListener("input", function () {
     const searchQuery = this.value.toLowerCase().trim();
 
     filteredEquipments = equipmentsList.filter((equipment) => {
