@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Logs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style/admin/inventory_logs.css">
+  <script type="module" src="/src/js/admin/inventory_logs.js"></script>
+</head>
+
+<body>
+  <!-- Placeholder for Header -->
+  <div id="header-container"></div>
+
+  <div class="main-content">
+    <div class="stock-selector">
+      <span class="inventory-form"><a href="admin_inventory.html">Inventory List</a></span>
+      <div class="rando-line">|</div>
+      <span class="stock-form"><a href="admin_inventory_stock.html">Manage Inventory</a></span>
+      <div class="rando-line">|</div>
+      <span class="stock-form"><a href="inventory_logs.html">Manage Inventory</a></span>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrapper">
+        <h2>Inventory Logs</h2>
+        <div class="log-search-bar">
+          <input type="text" id="log-search-bar" placeholder="Search">
+          <select class="resource_select">
+            <option value="">Select Resource Type</option>
+            <option value="Crops">Crops</option>
+            <option value="Fertilizer">Fertilizer</option>
+            <option value="Equipment">Equipment</option>
+          </select>
+        </div>
+        <div class="log_table">
+          <table>
+            <thead>
+              <tr>
+                <th>Project ID</th>
+                <th>Resource Name</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Details</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Logs will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        <div class="logs-pagination">
+          <span id="log-page-number">Page 1</span>
+          <button id="log-prev-page" class="log-pagination-btn" disabled>
+          </button> <!-- Added < for left arrow -->
+          <button id="log-next-page" class="log-pagination-btn">></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/auth/header.js"></script>
+</body>
+
+</html>
