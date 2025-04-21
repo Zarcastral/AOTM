@@ -20,32 +20,21 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 const auth = getAuth();
 
 // <-------------= ACTIVITY LOGGING START =---------------->
-/*
-      ACTIVITY LOG RECORD FORMAT
-      await saveActivityLog("Update", );
-      await saveActivityLog("Delete", );
-      await saveActivityLog("Create", );
-*/
 async function saveActivityLog(action, description) {
-  // Define allowed actions
   const allowedActions = ["Create", "Update", "Delete"];
   
-  // Validate action
   if (!allowedActions.includes(action)) {
     console.error("Invalid action. Allowed actions are: create, update, delete.");
     return;
   }
 
-  // Ensure description is provided
   if (!description || typeof description !== "string") {
     console.error("Activity description is required and must be a string.");
     return;
   }
 
-  // Use onAuthStateChanged to wait for authentication status
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      // Fetch authenticated user's data from tb_users collection
       const userDocRef = doc(db, "tb_users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
@@ -65,7 +54,6 @@ async function saveActivityLog(action, description) {
       const activityLogCollection = collection(db, "tb_activity_log");
 
       try {
-        // Fetch and increment the activity_log_id_counter
         const counterDocRef = doc(db, "tb_id_counters", "activity_log_id_counter");
         const counterDocSnap = await getDoc(counterDocRef);
 
@@ -77,16 +65,14 @@ async function saveActivityLog(action, description) {
         let currentCounter = counterDocSnap.data().value || 0;
         let newCounter = currentCounter + 1;
 
-        // Update the counter in the database
         await updateDoc(counterDocRef, { value: newCounter });
 
-        // Use the incremented counter as activity_log_id
         await addDoc(activityLogCollection, {
-          activity_log_id: newCounter, // Use counter instead of a placeholder
+          activity_log_id: newCounter,
           username: userName,
           user_type: userType,
           activity: action,
-          activity_desc: description, // Add descriptive message
+          activity_desc: description,
           date: date,
           time: time
         });
@@ -103,14 +89,15 @@ async function saveActivityLog(action, description) {
 // <-------------= ACTIVITY LOGGING END =---------------->
 
 // <-------------= GLOBAL VARIABLES START =---------------->
-let projectsList = []; // Full list of projects
-let filteredProjects = []; // Filtered list of projects
+let projectsList = [];
+let filteredProjects = [];
 let currentPage = 1;
 const rowsPerPage = 5;
 let selectedProjects = [];
 let originalProjectsList = [];
 let selectedMonth = null;
-let selectedYear = new Date().getFullYear(); // Default to current year
+let selectedYear = new Date().getFullYear();
+let isDataLoading = false; // State variable for data loading
 // <-------------= GLOBAL VARIABLES END =---------------->
 
 // <-------------= FETCH AUTHENTICATED USER START =---------------->
@@ -142,9 +129,24 @@ async function getAuthenticatedUser() {
 }
 // <-------------= FETCH AUTHENTICATED USER END =---------------->
 
+// Function to manage PDF download button state
+function updateDownloadButtonState() {
+  const downloadBtn = document.getElementById("download-btn");
+  if (downloadBtn) {
+    const isDisabled = isDataLoading || filteredProjects.length === 0;
+    downloadBtn.disabled = isDisabled;
+    downloadBtn.style.opacity = isDisabled ? "0.5" : "1";
+    downloadBtn.style.backgroundColor = isDisabled ? "#cccccc" : "";
+    downloadBtn.style.cursor = isDisabled ? "not-allowed" : "pointer";
+  }
+}
+
 // <-------------= FETCH PROJECTS START =---------------->
 async function fetchProjects() {
   try {
+    isDataLoading = true;
+    updateDownloadButtonState();
+
     const user = await getAuthenticatedUser();
     const usersCollection = collection(db, "tb_users");
     const userQuery = query(usersCollection, where("email", "==", user.email));
@@ -152,6 +154,8 @@ async function fetchProjects() {
 
     if (userSnapshot.empty) {
       console.error("User not found in the database.");
+      isDataLoading = false;
+      updateDownloadButtonState();
       return;
     }
 
@@ -161,35 +165,30 @@ async function fetchProjects() {
     const projectsQuery = query(projectsCollection);
     const projectHistoryQuery = query(projectHistoryCollection);
 
-    // Combine listeners for both collections
     const unsubscribeProjects = onSnapshot(projectsQuery, async (projectsSnapshot) => {
       const unsubscribeHistory = onSnapshot(projectHistoryQuery, async (historySnapshot) => {
-        // Step 1: Collect unique farmland_ids from both collections as numbers
         const farmlandIds = new Set();
         
-        // Process tb_projects
         projectsSnapshot.docs.forEach(docSnapshot => {
           const project = docSnapshot.data();
           if (project.farmland_id !== undefined && project.farmland_id !== null) {
-            farmlandIds.add(Number(project.farmland_id)); // Ensure it's a number
+            farmlandIds.add(Number(project.farmland_id));
           }
         });
 
-        // Process tb_project_history
         historySnapshot.docs.forEach(docSnapshot => {
           const project = docSnapshot.data();
           if (project.farmland_id !== undefined && project.farmland_id !== null) {
-            farmlandIds.add(Number(project.farmland_id)); // Ensure it's a number
+            farmlandIds.add(Number(project.farmland_id));
           }
         });
 
         console.log("Unique farmland_ids from projects and history:", Array.from(farmlandIds));
 
-        // Step 2: Fetch relevant farmland documents
         let farmlandMap = new Map();
         if (farmlandIds.size > 0) {
           const farmlandIdsArray = Array.from(farmlandIds);
-          const batchSize = 10; // Firestore 'in' query limit
+          const batchSize = 10;
           const batches = [];
           for (let i = 0; i < farmlandIdsArray.length; i += batchSize) {
             const batch = farmlandIdsArray.slice(i, i + batchSize);
@@ -207,7 +206,7 @@ async function fetchProjects() {
             console.log("Farmland documents fetched in batch:", snapshot.docs.length);
             snapshot.forEach(doc => {
               const data = doc.data();
-              const farmlandId = Number(data.farmland_id); // Ensure it's a number
+              const farmlandId = Number(data.farmland_id);
               farmlandMap.set(farmlandId, data.land_area || "N/A");
               console.log(`Farmland ID: ${farmlandId}, Land Area: ${data.land_area || "N/A"}`);
             });
@@ -216,15 +215,13 @@ async function fetchProjects() {
           console.log("No farmland_ids found in projects or history.");
         }
 
-        // Step 2.5: Fetch task counts from tb_project_task
         const taskCollection = collection(db, "tb_project_task");
         const taskSnapshot = await getDocs(taskCollection);
         const taskCountMap = new Map();
         
-        // Count tasks per project_id (project_id in tb_project_task is a string)
         taskSnapshot.docs.forEach(taskDoc => {
           const taskData = taskDoc.data();
-          const projectId = taskData.project_id; // String in tb_project_task
+          const projectId = taskData.project_id;
           if (projectId !== undefined && projectId !== null) {
             const currentCount = taskCountMap.get(projectId) || 0;
             taskCountMap.set(projectId, currentCount + 1);
@@ -233,21 +230,17 @@ async function fetchProjects() {
 
         console.log("Task counts per project:", Object.fromEntries(taskCountMap));
 
-        // Step 3: Process projects from both collections
         projectsList = [];
 
-        // Process tb_projects
         projectsSnapshot.docs.forEach((docSnapshot) => {
           const project = docSnapshot.data();
           project.id = docSnapshot.id;
-          project.source = "tb_projects"; // Add source for debugging
+          project.source = "tb_projects";
 
-          // Log project farmland_id for debugging
           console.log(`Project ID: ${project.project_id}, Farmland ID: ${project.farmland_id}, Source: {tb_projects}`);
 
-          // Get land_area using farmland_id
           if (project.farmland_id !== undefined && project.farmland_id !== null) {
-            const farmlandId = Number(project.farmland_id); // Ensure it's a number
+            const farmlandId = Number(project.farmland_id);
             const landArea = farmlandMap.get(farmlandId);
             project.land_area = landArea !== undefined ? landArea : "N/A";
             console.log(`Farmland ID ${farmlandId} lookup result: ${project.land_area}`);
@@ -256,12 +249,10 @@ async function fetchProjects() {
             console.log(`No farmland_id for Project ID: ${project.project_id}`);
           }
 
-          // Add task count to project (convert project_id to string for lookup)
-          const projectId = String(project.project_id); // Convert number to string to match tb_project_task
+          const projectId = String(project.project_id);
           project.task_count = taskCountMap.get(projectId) || 0;
           console.log(`Project ID: ${projectId}, Task Count: ${project.task_count}`);
 
-          // Extract equipment names from the equipment array
           if (project.equipment && Array.isArray(project.equipment) && project.equipment.length > 0) {
             const equipmentNames = project.equipment
               .map((equip) => equip.equipment_name || "Unknown")
@@ -271,7 +262,6 @@ async function fetchProjects() {
             project.equipment = "N/A";
           }
 
-          // Extract fertilizer names from the fertilizer array
           if (project.fertilizer && Array.isArray(project.fertilizer) && project.fertilizer.length > 0) {
             const fertilizerNames = project.fertilizer
               .map((fert) => fert.fertilizer_name || "Unknown")
@@ -281,7 +271,6 @@ async function fetchProjects() {
             project.fertilizer = "N/A";
           }
 
-          // Extract farmer names from the farmer_name array
           if (project.farmer_name && Array.isArray(project.farmer_name) && project.farmer_name.length > 0) {
             const farmerNames = project.farmer_name
               .map((farmer) => farmer.farmer_name || "Unknown")
@@ -294,18 +283,15 @@ async function fetchProjects() {
           projectsList.push(project);
         });
 
-        // Process tb_project_history
         historySnapshot.docs.forEach((docSnapshot) => {
           const project = docSnapshot.data();
           project.id = docSnapshot.id;
-          project.source = "tb_project_history"; // Add source for debugging
+          project.source = "tb_project_history";
 
-          // Log project farmland_id for debugging
           console.log(`Project ID: ${project.project_id}, Farmland ID: ${project.farmland_id}, Source: tb_project_history`);
 
-          // Get land_area using farmland_id
           if (project.farmland_id !== undefined && project.farmland_id !== null) {
-            const farmlandId = Number(project.farmland_id); // Ensure it's a number
+            const farmlandId = Number(project.farmland_id);
             const landArea = farmlandMap.get(farmlandId);
             project.land_area = landArea !== undefined ? landArea : "N/A";
             console.log(`Farmland ID ${farmlandId} lookup result: ${project.land_area}`);
@@ -314,12 +300,10 @@ async function fetchProjects() {
             console.log(`No farmland_id for Project ID: ${project.project_id}`);
           }
 
-          // Add task count to project (convert project_id to string for lookup)
-          const projectId = String(project.project_id); // Convert number to string to match tb_project_task
+          const projectId = String(project.project_id);
           project.task_count = taskCountMap.get(projectId) || 0;
           console.log(`Project ID: ${projectId}, Task Count: ${project.task_count}`);
 
-          // Extract equipment names from the equipment array
           if (project.equipment && Array.isArray(project.equipment) && project.equipment.length > 0) {
             const equipmentNames = project.equipment
               .map((equip) => equip.equipment_name || "Unknown")
@@ -329,7 +313,6 @@ async function fetchProjects() {
             project.equipment = "N/A";
           }
 
-          // Extract fertilizer names from the fertilizer array
           if (project.fertilizer && Array.isArray(project.fertilizer) && project.fertilizer.length > 0) {
             const fertilizerNames = project.fertilizer
               .map((fert) => fert.fertilizer_name || "Unknown")
@@ -339,7 +322,6 @@ async function fetchProjects() {
             project.fertilizer = "N/A";
           }
 
-          // Extract farmer names from the farmer_name array
           if (project.farmer_name && Array.isArray(project.farmer_name) && project.farmer_name.length > 0) {
             const farmerNames = project.farmer_name
               .map((farmer) => farmer.farmer_name || "Unknown")
@@ -354,14 +336,22 @@ async function fetchProjects() {
 
         originalProjectsList = projectsList;
         filterProjects();
+        isDataLoading = false;
+        updateDownloadButtonState();
       }, (error) => {
         console.error("Error listening to Project History:", error);
+        isDataLoading = false;
+        updateDownloadButtonState();
       });
     }, (error) => {
       console.error("Error listening to Projects:", error);
+      isDataLoading = false;
+      updateDownloadButtonState();
     });
   } catch (error) {
     console.error("Error fetching Projects:", error);
+    isDataLoading = false;
+    updateDownloadButtonState();
   }
 }
 // <-------------= FETCH PROJECTS END =---------------->
@@ -441,7 +431,6 @@ function parseDate(dateValue) {
 // <-------------= SORT PROJECTS BY STATUS AND DATE START =---------------->
 function sortProjectsById() {
   filteredProjects.sort((a, b) => {
-    // Define status priority (lower number = higher priority)
     const statusPriority = {
       "Completed": 0,
       "Ongoing": 1,
@@ -449,18 +438,15 @@ function sortProjectsById() {
       "Failed": 3
     };
 
-    // Get status values, defaulting to a low-priority value if not found
-    const statusA = a.status || "Pending"; // Default to Pending if status is missing
+    const statusA = a.status || "Pending";
     const statusB = b.status || "Pending";
-    const priorityA = statusPriority[statusA] !== undefined ? statusPriority[statusA] : 4; // Default to 4 if status not in map
+    const priorityA = statusPriority[statusA] !== undefined ? statusPriority[statusA] : 4;
     const priorityB = statusPriority[statusB] !== undefined ? statusPriority[statusB] : 4;
 
-    // Compare statuses first
     if (priorityA !== priorityB) {
-      return priorityA - priorityB; // Sort by status priority
+      return priorityA - priorityB;
     }
 
-    // If statuses are the same, sort by date
     const startDateA = a.start_date ? parseDate(a.start_date) : null;
     const endDateA = a.end_date ? parseDate(a.end_date) : null;
     const startDateB = b.start_date ? parseDate(b.start_date) : null;
@@ -470,11 +456,11 @@ function sortProjectsById() {
     const latestDateB = endDateB || startDateB;
 
     if (latestDateA && latestDateB) {
-      return latestDateB - latestDateA; // Latest date first
+      return latestDateB - latestDateA;
     } else if (!latestDateA && !latestDateB) {
-      return a.project_id - b.project_id; // Fallback to project_id if no dates
+      return a.project_id - b.project_id;
     } else {
-      return latestDateB ? 1 : -1; // Handle cases where one date is missing
+      return latestDateB ? 1 : -1;
     }
   });
 }
@@ -487,10 +473,8 @@ function filterProjects() {
   const selectedCropType = document.querySelector(".crop_select").value.toLowerCase();
   const selectedStatus = document.querySelector(".status_select").value.toLowerCase();
 
-  // Start with the full projects list
   filteredProjects = [...originalProjectsList];
 
-  // Apply search query filter
   if (searchQuery) {
     filteredProjects = filteredProjects.filter(project => {
       return (
@@ -501,22 +485,18 @@ function filterProjects() {
     });
   }
 
-  // Apply barangay filter (only if a barangay is selected)
   if (selectedBarangay) {
     filteredProjects = filteredProjects.filter(project => project.barangay_name?.toLowerCase() === selectedBarangay);
   }
 
-  // Apply crop type filter (only if a crop type is selected)
   if (selectedCropType) {
     filteredProjects = filteredProjects.filter(project => project.crop_type_name?.toLowerCase() === selectedCropType);
   }
 
-  // Apply status filter (only if a status is selected)
   if (selectedStatus) {
     filteredProjects = filteredProjects.filter(project => project.status?.toLowerCase() === selectedStatus);
   }
 
-  // Apply month/year filter (if applicable)
   if (selectedMonth) {
     filteredProjects = filteredProjects.filter(project => {
       const startDate = project.start_date ? parseDate(project.start_date) : null;
@@ -534,7 +514,6 @@ function filterProjects() {
     });
   }
 
-  // Reset pagination and update the table
   currentPage = 1;
   sortProjectsById();
   displayProjects(filteredProjects);
@@ -603,52 +582,52 @@ function displayProjects(projectsList) {
       <td colspan="14" style="text-align: center; color: red;">No records found</td>
     `;
     tableBody.appendChild(messageRow);
-    return;
+  } else {
+    const noRecordsMessage = document.querySelector(".no-records-message");
+    if (noRecordsMessage) {
+      noRecordsMessage.remove();
+    }
+
+    paginatedProjects.forEach((project) => {
+      const row = document.createElement("tr");
+      const projectId = project.project_id || "project Id not recorded";
+      const projectName = project.project_name || "project Name not recorded";
+      const projectStatus = project.status || "N/A";
+      const projectFarmPres = project.farm_president || "N/A";
+      const projectBarangay = project.barangay_name || "N/A";
+      const projectCategory = project.crop_name || "N/A";
+      const projectCropType = project.crop_type_name || "N/A";
+      const projectEquipment = project.equipment || "N/A";
+      const projectStart = project.start_date || "N/A";
+      const projectEnd = project.end_date || "N/A";
+      const equipmentList = Array.isArray(project.equipment) ? project.equipment.join("<br>") : (project.equipment || "N/A");
+      const fertilizerList = Array.isArray(project.fertilizer) ? project.fertilizer.join("<br>") : (project.fertilizer || "N/A");
+      const farmersName = Array.isArray(project.farmer_name) ? project.farmer_name.join("<br>") : (project.farmer_name || "N/A");
+      const leadFarmer = project.lead_farmer || "N/A";
+      const landArea = project.land_area || "N/A";
+      const taskCount = project.task_count !== undefined ? project.task_count : "N/A";
+
+      row.innerHTML = `
+        <td>${projectId}</td>
+        <td>${projectName}</td>
+        <td>${taskCount}</td>
+        <td>${projectStatus}</td>
+        <td>${projectFarmPres}</td>
+        <td>${leadFarmer}</td>
+        <td>${farmersName}</td>
+        <td>${projectBarangay}</td>
+        <td>${landArea}</td>
+        <td>${projectCategory}</td>
+        <td>${projectCropType}</td>
+        <td>${equipmentList}</td>
+        <td>${fertilizerList}</td>
+        <td>${projectStart} <br> ${projectEnd}</td>
+      `;
+      tableBody.appendChild(row);
+    });
   }
-
-  const noRecordsMessage = document.querySelector(".no-records-message");
-  if (noRecordsMessage) {
-    noRecordsMessage.remove();
-  }
-
-  paginatedProjects.forEach((project) => {
-    const row = document.createElement("tr");
-    const projectId = project.project_id || "project Id not recorded";
-    const projectName = project.project_name || "project Name not recorded";
-    const projectStatus = project.status || "N/A";
-    const projectFarmPres = project.farm_president || "N/A";
-    const projectBarangay = project.barangay_name || "N/A";
-    const projectCategory = project.crop_name || "N/A";
-    const projectCropType = project.crop_type_name || "N/A";
-    const projectEquipment = project.equipment || "N/A";
-    const projectStart = project.start_date || "N/A";
-    const projectEnd = project.end_date || "N/A";
-    const equipmentList = Array.isArray(project.equipment) ? project.equipment.join("<br>") : (project.equipment || "N/A");
-    const fertilizerList = Array.isArray(project.fertilizer) ? project.fertilizer.join("<br>") : (project.fertilizer || "N/A");
-    const farmersName = Array.isArray(project.farmer_name) ? project.farmer_name.join("<br>") : (project.farmer_name || "N/A");
-    const leadFarmer = project.lead_farmer || "N/A";
-    const landArea = project.land_area || "N/A";
-    const taskCount = project.task_count !== undefined ? project.task_count : "N/A";
-
-    row.innerHTML = `
-      <td>${projectId}</td>
-      <td>${projectName}</td>
-      <td>${taskCount}</td>
-      <td>${projectStatus}</td>
-      <td>${projectFarmPres}</td>
-      <td>${leadFarmer}</td>
-      <td>${farmersName}</td>
-      <td>${projectBarangay}</td>
-      <td>${landArea}</td>
-      <td>${projectCategory}</td>
-      <td>${projectCropType}</td>
-      <td>${equipmentList}</td>
-      <td>${fertilizerList}</td>
-      <td>${projectStart} <br> ${projectEnd}</td>
-    `;
-    tableBody.appendChild(row);
-  });
   updatePagination();
+  updateDownloadButtonState();
 }
 // <-------------= DISPLAY PROJECTS IN TABLE END =---------------->
 
@@ -672,6 +651,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchBarangayNames();
   fetchCropTypeNames();
   fetchProjects();
+  updateDownloadButtonState();
 
   const calendarIcon = document.querySelector('.calendar-btn-icon');
   if (calendarIcon) {
@@ -714,13 +694,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('month-picker').style.display = 'none';
   });
 
-  // Add event listeners for filters
   document.getElementById("projects-search-bar").addEventListener("input", filterProjects);
   document.querySelector(".barangay_select").addEventListener("change", filterProjects);
   document.querySelector(".crop_select").addEventListener("change", filterProjects);
   document.querySelector(".status_select").addEventListener("change", filterProjects);
 
-  // Pagination event listeners
   document.getElementById("projects-prev-page").addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -737,7 +715,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById("download-btn").addEventListener("click", async () => {
-  const { jsPDF } = window.jspdf; // Ensure this includes the full jsPDF with image support
+  if (document.getElementById("download-btn").disabled) return; // Prevent action if button is disabled
+
+  const { jsPDF } = window.jspdf;
   const doc = new jsPDF({
     orientation: "landscape",
     unit: "mm",
@@ -747,29 +727,25 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // Get the authenticated user's data
   const user = await getAuthenticatedUser();
   const usersCollection = collection(db, "tb_users");
   const userQuery = query(usersCollection, where("email", "==", user.email));
   const userSnapshot = await getDocs(userQuery);
   const userData = userSnapshot.docs[0].data();
 
-  // Construct the full name: First Name Middle Initial. Last Name
   const firstName = userData.first_name || "Unknown";
   const middleName = userData.middle_name ? `${userData.middle_name.charAt(0)}.` : "";
   const lastName = userData.last_name || "User";
   const fullName = `${firstName} ${middleName} ${lastName}`.trim();
   const userTypePrint = userData.user_type || "Unknown";
 
-  // Get the current date (date only)
   const currentDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
-  // Prepare table data from the full filteredProjects array
-  const tableData = filteredProjects.map((project, index) => {
+  const tableData = filteredProjects.map((project) => {
     const projectId = project.project_id || "project Id not recorded";
     const projectName = project.project_name || "project Name not recorded";
     const projectStatus = project.status || "N/A";
@@ -788,20 +764,20 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     const taskCount = project.task_count !== undefined ? project.task_count : "N/A";
 
     return [
-      projectId, // No.
+      projectId,
       projectName,
-      taskCount.toString(), // No. of Task (converted to string for PDF)
+      taskCount.toString(),
       projectStatus,
       projectFarmPres,
-      leadFarmer, // Lead Farmer/s
-      farmersName, // Farmers
+      leadFarmer,
+      farmersName,
       projectBarangay,
-      landArea, // Land Area
+      landArea,
       projectCategory,
       projectCropType,
-      fertilizerList, // Fertilizer
+      fertilizerList,
       equipmentList,
-      `${projectStart}\n${projectEnd}`, // Duration
+      `${projectStart}\n${projectEnd}`,
     ];
   });
 
@@ -814,7 +790,6 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const totalTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
   const leftMargin = (pageWidth - totalTableWidth) / 2;
 
-  // Header container
   const addHeader = (doc) => {
     const headerImg = "/images/BarasHeader.png";
     const headerImgWidth = 60;
@@ -835,30 +810,28 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     doc.text(":", 42, 60);
     doc.text("FROM", 20, 70);
     doc.text(":", 42, 70);
-    doc.text(fullName, 50, 70); // User's full name after "FROM:"
+    doc.text(fullName, 50, 70);
     doc.text("DATE", 20, 80);
     doc.text(":", 42, 80);
-    doc.text(currentDate, 50, 80); // Current date only after "DATE:"
+    doc.text(currentDate, 50, 80);
     doc.text("SUBJECT", 20, 90);
     doc.text(":", 42, 90);
-    doc.text("Project Report", 50, 90); // "Project Report" after "SUBJECT:"
+    doc.text("Project Report", 50, 90);
 
     doc.setFontSize(15);
     doc.setFont("helvetica", "bold");
-    doc.text("AGRICULTURAL PRODUCTION DATA 2025", pageWidth / 2, 100, { align: "center" });
+    doc.text(`AGRICULTURAL PRODUCTION DATA ${selectedYear || new Date().getFullYear()}`, pageWidth / 2, 100, { align: "center" });
   };
 
-  // Body container (table and bottom line)
   const addBody = (doc, data) => {
-    const tableEndY = data.cursor.y + 35; // Bottom line 35mm below table
-    if (tableEndY < pageHeight - 30) { // Ensure it fits above footer
+    const tableEndY = data.cursor.y + 35;
+    if (tableEndY < pageHeight - 30) {
       doc.setLineWidth(0.4);
       doc.setDrawColor(51, 51, 51);
       doc.line(10, tableEndY, pageWidth - 10, tableEndY);
     }
   };
 
-  // Footer container
   const addFooter = (doc, data) => {
     const footerImg = "/images/BarasFooter.png";
     const footerImgWidth = 140;
@@ -876,11 +849,10 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth - 10, pageHeight - 10, { align: "right" });
   };
 
-  // Pagination logic with table content limit
-  const maxTableHeight = pageHeight - 65; // 65mm reserved (30mm footer + 35mm for bottom line)
-  const rowHeightEstimate = 10; // Increased to 10mm to account for potential wrapping
-  const baseRowsPerPage = Math.floor((maxTableHeight - 105) / rowHeightEstimate); // 105 is startY
-  const rowsPerPage = baseRowsPerPage; // No extra rows, just base to ensure fit
+  const maxTableHeight = pageHeight - 65;
+  const rowHeightEstimate = 10;
+  const baseRowsPerPage = Math.floor((maxTableHeight - 105) / rowHeightEstimate);
+  const rowsPerPage = baseRowsPerPage;
   let currentPage = 0;
 
   while (currentPage * rowsPerPage < tableData.length) {
@@ -932,11 +904,9 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     currentPage++;
   }
 
-  // Check screen width to determine if preview is feasible
-  const isPreviewSupported = window.innerWidth > 768; // Adjust threshold as needed
+  const isPreviewSupported = window.innerWidth > 768;
 
   if (isPreviewSupported) {
-    // Show PDF preview for larger screens
     const pdfBlob = doc.output("blob");
     const pdfUrl = URL.createObjectURL(pdfBlob);
     const previewPanel = document.getElementById("pdf-preview-panel");
@@ -960,7 +930,6 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       URL.revokeObjectURL(pdfUrl);
     };
   } else {
-    // Directly download PDF and log activity for smaller screens
     doc.save(`Project_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
     await saveActivityLog("Create", `Project Report downloaded by ${userTypePrint} ${fullName}`);
   }

@@ -20,31 +20,34 @@ const auth = getAuth();
 // Global variable to store authenticated user details
 let currentUser = null;
 
+// State variable for data loading
+let isDataLoading = false;
+
 // <-----------------------ACTIVITY LOG CODE----------------------------->
 async function saveActivityLog(action, description) {
     const allowedActions = ["Create", "Update", "Delete"];
     
     if (!allowedActions.includes(action)) {
-    console.error("Invalid action. Allowed actions are: create, update, delete.");
-    return;
+        console.error("Invalid action. Allowed actions are: create, update, delete.");
+        return;
     }
 
     if (!description || typeof description !== "string") {
-    console.error("Activity description is required and must be a string.");
-    return;
+        console.error("Activity description is required and must be a string.");
+        return;
     }
 
     if (!currentUser) {
-    console.error("No authenticated user found.");
-    return;
+        console.error("No authenticated user found.");
+        return;
     }
 
     const userDocRef = doc(db, "tb_users", currentUser.uid);
     const userDocSnap = await getDoc(userDocRef);
 
     if (!userDocSnap.exists()) {
-    console.error("User data not found in tb_users.");
-    return;
+        console.error("User data not found in tb_users.");
+        return;
     }
 
     const userData = userDocSnap.data();
@@ -58,32 +61,32 @@ async function saveActivityLog(action, description) {
     const activityLogCollection = collection(db, "tb_activity_log");
 
     try {
-    const counterDocRef = doc(db, "tb_id_counters", "activity_log_id_counter");
-    const counterDocSnap = await getDoc(counterDocRef);
+        const counterDocRef = doc(db, "tb_id_counters", "activity_log_id_counter");
+        const counterDocSnap = await getDoc(counterDocRef);
 
-    if (!counterDocSnap.exists()) {
-        console.error("Counter document not found.");
-        return;
-    }
+        if (!counterDocSnap.exists()) {
+            console.error("Counter document not found.");
+            return;
+        }
 
-    let currentCounter = counterDocSnap.data().value || 0;
-    let newCounter = currentCounter + 1;
+        let currentCounter = counterDocSnap.data().value || 0;
+        let newCounter = currentCounter + 1;
 
-    await updateDoc(counterDocRef, { value: newCounter });
+        await updateDoc(counterDocRef, { value: newCounter });
 
-    await addDoc(activityLogCollection, {
-        activity_log_id: newCounter,
-        username: userName,
-        user_type: userType,
-        activity: action,
-        activity_desc: description,
-        date: date,
-        time: time
-    });
+        await addDoc(activityLogCollection, {
+            activity_log_id: newCounter,
+            username: userName,
+            user_type: userType,
+            activity: action,
+            activity_desc: description,
+            date: date,
+            time: time
+        });
 
-    console.log("Activity log saved successfully with ID:", newCounter);
+        console.log("Activity log saved successfully with ID:", newCounter);
     } catch (error) {
-    console.error("Error saving activity log:", error);
+        console.error("Error saving activity log:", error);
     }
 }
 
@@ -100,184 +103,205 @@ async function getAuthenticatedUser() {
     if (currentUser) return currentUser;
 
     return new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-        try {
-            const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
-            const userSnapshot = await getDocs(userQuery);
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userQuery = query(collection(db, "tb_users"), where("email", "==", user.email));
+                    const userSnapshot = await getDocs(userQuery);
 
-            if (!userSnapshot.empty) {
-            const userDoc = userSnapshot.docs[0];
-            currentUser = {
-                uid: user.uid,
-                email: user.email,
-                ...userDoc.data()
-            };
-            resolve(currentUser);
+                    if (!userSnapshot.empty) {
+                        const userDoc = userSnapshot.docs[0];
+                        currentUser = {
+                            uid: user.uid,
+                            email: user.email,
+                            ...userDoc.data()
+                        };
+                        resolve(currentUser);
+                    } else {
+                        console.error("User record not found in tb_users collection.");
+                        reject("User record not found.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                    reject(error);
+                }
             } else {
-            console.error("User record not found in tb_users collection.");
-            reject("User record not found.");
+                console.error("User not authenticated. Please log in.");
+                reject("User not authenticated.");
             }
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-            reject(error);
-        }
-        } else {
-        console.error("User not authenticated. Please log in.");
-        reject("User not authenticated.");
-        }
+        });
     });
-    });
+}
+
+// Function to manage PDF download button state
+function updateDownloadButtonState() {
+    const downloadBtn = document.getElementById("download-btn");
+    if (downloadBtn) {
+        const isDisabled = isDataLoading || filteredProjects.length === 0;
+        downloadBtn.disabled = isDisabled;
+        downloadBtn.style.opacity = isDisabled ? "0.5" : "1";
+        downloadBtn.style.backgroundColor = isDisabled ? "#cccccc" : "";
+        downloadBtn.style.cursor = isDisabled ? "not-allowed" : "pointer";
+    }
 }
 
 // <---------------------------------> TABLE FETCHING <--------------------------------->
 async function fetchProjects() {
     try {
-    const user = await getAuthenticatedUser();
-    const projectHistoryCollection = collection(db, "tb_project_history");
-    const projectQuery = query(
-        projectHistoryCollection,
-        where("project_creator", "==", user.user_type)
-    );
+        isDataLoading = true;
+        updateDownloadButtonState();
 
-    onSnapshot(projectQuery, async (snapshot) => {
-        projectList = [];
-        const projectPromises = snapshot.docs.map(async (doc) => {
-        const data = doc.data();
+        const user = await getAuthenticatedUser();
+        const projectHistoryCollection = collection(db, "tb_project_history");
+        const projectQuery = query(
+            projectHistoryCollection,
+            where("project_creator", "==", user.user_type)
+        );
 
-        // Use project_id field and ensure it's a string
-        const projectId = String(data.project_id);
-        if (!projectId) {
-            console.log(`Missing project_id in document ${doc.id}`);
-            return null;
-        }
+        onSnapshot(projectQuery, async (snapshot) => {
+            projectList = [];
+            const projectPromises = snapshot.docs.map(async (doc) => {
+                const data = doc.data();
 
-        // Calculate total farmer count
-        const totalFarmerCount = Array.isArray(data.farmer_name) ? data.farmer_name.length : 0;
+                // Use project_id field and ensure it's a string
+                const projectId = String(data.project_id);
+                if (!projectId) {
+                    console.log(`Missing project_id in document ${doc.id}`);
+                    return null;
+                }
 
-        // Calculate average productivity
-        const averageProductivity = await calculateAverageProductivity(projectId, data.farmer_name);
+                // Calculate total farmer count
+                const totalFarmerCount = Array.isArray(data.farmer_name) ? data.farmer_name.length : 0;
 
-        // Format duration
-        const duration = formatDuration(data.start_date, data.end_date);
+                // Calculate average productivity
+                const averageProductivity = await calculateAverageProductivity(projectId, data.farmer_name);
 
-        return {
-            project_name: data.project_name || "N/A",
-            crop_name: data.crop_name || "N/A",
-            crop_type_name: data.crop_type_name || "N/A",
-            barangay_name: data.barangay_name || "N/A",
-            total_farmer_count: totalFarmerCount,
-            average_productivity: averageProductivity,
-            duration: duration
-        };
+                // Format duration
+                const duration = formatDuration(data.start_date, data.end_date);
+
+                return {
+                    project_name: data.project_name || "N/A",
+                    crop_name: data.crop_name || "N/A",
+                    crop_type_name: data.crop_type_name || "N/A",
+                    barangay_name: data.barangay_name || "N/A",
+                    total_farmer_count: totalFarmerCount,
+                    average_productivity: averageProductivity,
+                    duration: duration
+                };
+            });
+
+            projectList = (await Promise.all(projectPromises)).filter(project => project !== null);
+            filteredProjects = [...projectList];
+            console.log("fetched projects:", projectList.map(p => p.project_name));
+            filterProjects();
+            isDataLoading = false;
+            updateDownloadButtonState();
+        }, (error) => {
+            console.error("Error listening to Project History:", error);
+            isDataLoading = false;
+            updateDownloadButtonState();
         });
-
-        projectList = (await Promise.all(projectPromises)).filter(project => project !== null);
-        filteredProjects = [...projectList];
-        console.log("fetched projects:", projectList.map(p => p.project_name));
-        filterProjects();
-    }, (error) => {
-        console.error("Error listening to Project History:", error);
-    });
     } catch (error) {
-    console.error("Error fetching Projects:", error);
+        console.error("Error fetching Projects:", error);
+        isDataLoading = false;
+        updateDownloadButtonState();
     }
 }
 
 // Calculate average productivity
 async function calculateAverageProductivity(projectId, farmerNames) {
     if (!projectId) {
-    console.log("No project_id provided");
-    return "No productivity recorded";
+        console.log("No project_id provided");
+        return "No productivity recorded";
     }
 
     if (!Array.isArray(farmerNames) || farmerNames.length === 0) {
-    console.log(`Project ${projectId}: No farmers`);
-    return "No productivity recorded";
+        console.log(`Project ${projectId}: No farmers`);
+        return "No productivity recorded";
     }
 
     const farmerIds = farmerNames
-    .map(farmer => String(farmer.farmer_id))
-    .filter(id => id && typeof id === "string");
+        .map(farmer => String(farmer.farmer_id))
+        .filter(id => id && typeof id === "string");
     if (farmerIds.length === 0) {
-    console.log(`Project ${projectId}: No valid farmer IDs`);
-    return "No productivity recorded";
+        console.log(`Project ${projectId}: No valid farmer IDs`);
+        return "No productivity recorded";
     }
     console.log(`Project ${projectId} - fetched farmer_ids:`, farmerIds);
 
     const remarksValues = {
-    "Productive": 3,
-    "Average": 2,
-    "Needs Improvement": 1
+        "Productive": 3,
+        "Average": 2,
+        "Needs Improvement": 1
     };
 
     try {
-    const taskQuery = query(
-        collection(db, "tb_project_task"),
-        where("project_id", "==", projectId)
-    );
-    const taskSnapshot = await getDocs(taskQuery);
-    if (taskSnapshot.empty) {
-        console.log(`Project ${projectId}: No tasks found`);
-        return "No productivity recorded";
-    }
-
-    let allRemarks = [];
-    for (const taskDoc of taskSnapshot.docs) {
-        const attendanceCollection = collection(db, `tb_project_task/${taskDoc.id}/Attendance`);
-        const attendanceSnapshot = await getDocs(attendanceCollection);
-        if (attendanceSnapshot.empty) {
-        console.log(`Project ${projectId}, Task ${taskDoc.id}: No attendance`);
-        continue;
+        const taskQuery = query(
+            collection(db, "tb_project_task"),
+            where("project_id", "==", projectId)
+        );
+        const taskSnapshot = await getDocs(taskQuery);
+        if (taskSnapshot.empty) {
+            console.log(`Project ${projectId}: No tasks found`);
+            return "No productivity recorded";
         }
 
-        for (const attendanceDoc of attendanceSnapshot.docs) {
-        const attendanceData = attendanceDoc.data();
-        if (attendanceData.farmers && Array.isArray(attendanceData.farmers)) {
-            attendanceData.farmers.forEach((farmer, index) => {
-            if (!farmer || typeof farmer !== "object") {
-                console.log(`Project ${projectId}, Attendance ${attendanceDoc.id}: Invalid farmer at index ${index}`);
-                return;
+        let allRemarks = [];
+        for (const taskDoc of taskSnapshot.docs) {
+            const attendanceCollection = collection(db, `tb_project_task/${taskDoc.id}/Attendance`);
+            const attendanceSnapshot = await getDocs(attendanceCollection);
+            if (attendanceSnapshot.empty) {
+                console.log(`Project ${projectId}, Task ${taskDoc.id}: No attendance`);
+                continue;
             }
-            const farmerId = String(farmer.farmer_id);
-            if (farmerIds.includes(farmerId) && farmer.remarks) {
-                allRemarks.push(farmer.remarks);
+
+            for (const attendanceDoc of attendanceSnapshot.docs) {
+                const attendanceData = attendanceDoc.data();
+                if (attendanceData.farmers && Array.isArray(attendanceData.farmers)) {
+                    attendanceData.farmers.forEach((farmer, index) => {
+                        if (!farmer || typeof farmer !== "object") {
+                            console.log(`Project ${projectId}, Attendance ${attendanceDoc.id}: Invalid farmer at index ${index}`);
+                            return;
+                        }
+                        const farmerId = String(farmer.farmer_id);
+                        if (farmerIds.includes(farmerId) && farmer.remarks) {
+                            allRemarks.push(farmer.remarks);
+                        }
+                    });
+                }
             }
-            });
         }
+
+        if (allRemarks.length === 0) {
+            console.log(`Project ${projectId}: No remarks found`);
+            return "No productivity recorded";
         }
-    }
+        console.log(`Project ${projectId} - fetched remarks:`, allRemarks);
 
-    if (allRemarks.length === 0) {
-        console.log(`Project ${projectId}: No remarks found`);
-        return "No productivity recorded";
-    }
-    console.log(`Project ${projectId} - fetched remarks:`, allRemarks);
+        const numericValues = allRemarks
+            .map(remark => {
+                const value = remarksValues[remark];
+                if (value === undefined) {
+                    console.log(`Project ${projectId}: Invalid remark: ${remark}`);
+                }
+                return value;
+            })
+            .filter(val => val !== undefined);
 
-    const numericValues = allRemarks
-        .map(remark => {
-        const value = remarksValues[remark];
-        if (value === undefined) {
-            console.log(`Project ${projectId}: Invalid remark: ${remark}`);
+        if (numericValues.length === 0) {
+            console.log(`Project ${projectId}: No valid remarks`);
+            return "No productivity recorded";
         }
-        return value;
-        })
-        .filter(val => val !== undefined);
 
-    if (numericValues.length === 0) {
-        console.log(`Project ${projectId}: No valid remarks`);
-        return "No productivity recorded";
-    }
+        const average = numericValues.reduce((sum, val) => sum + val, 0) / numericValues.length;
+        console.log(`Project ${projectId} - calculation of remarks: ${numericValues.join(" + ")} / ${numericValues.length} = ${average}`);
 
-    const average = numericValues.reduce((sum, val) => sum + val, 0) / numericValues.length;
-    console.log(`Project ${projectId} - calculation of remarks: ${numericValues.join(" + ")} / ${numericValues.length} = ${average}`);
-
-    if (average >= 2.5) return "Productive";
-    if (average >= 1.5) return "Average";
-    return "Needs Improvement";
+        if (average >= 2.5) return "Productive";
+        if (average >= 1.5) return "Average";
+        return "Needs Improvement";
     } catch (error) {
-    console.error(`Project ${projectId}: Error calculating productivity:`, error);
-    return "No productivity recorded";
+        console.error(`Project ${projectId}: Error calculating productivity:`, error);
+        return "No productivity recorded";
     }
 }
 
@@ -305,12 +329,12 @@ function formatDate(date) {
 // Fetch and populate barangay names
 async function fetchBarangayNames() {
     try {
-    const barangaysCollection = collection(db, "tb_barangay");
-    const barangaysSnapshot = await getDocs(barangaysCollection);
-    const barangayNames = barangaysSnapshot.docs.map(doc => doc.data().barangay_name);
-    populateBarangayDropdown(barangayNames);
+        const barangaysCollection = collection(db, "tb_barangay");
+        const barangaysSnapshot = await getDocs(barangaysCollection);
+        const barangayNames = barangaysSnapshot.docs.map(doc => doc.data().barangay_name);
+        populateBarangayDropdown(barangayNames);
     } catch (error) {
-    console.error("Error fetching barangay names:", error);
+        console.error("Error fetching barangay names:", error);
     }
 }
 
@@ -320,10 +344,10 @@ function populateBarangayDropdown(barangayNames) {
     barangaySelect.innerHTML = '<option value="">Barangay</option>';
 
     barangayNames.forEach(name => {
-    const option = document.createElement("option");
-    option.textContent = name;
-    option.value = name;
-    barangaySelect.appendChild(option);
+        const option = document.createElement("option");
+        option.textContent = name;
+        option.value = name;
+        barangaySelect.appendChild(option);
     });
 }
 
@@ -335,10 +359,10 @@ function populateProductivityDropdown() {
 
     const productivityLevels = ["Productive", "Average", "Needs Improvement"];
     productivityLevels.forEach(level => {
-    const option = document.createElement("option");
-    option.textContent = level;
-    option.value = level;
-    productivitySelect.appendChild(option);
+        const option = document.createElement("option");
+        option.textContent = level;
+        option.value = level;
+        productivitySelect.appendChild(option);
     });
 }
 
@@ -366,32 +390,32 @@ function filterProjects() {
     filteredProjects = [...projectList];
 
     if (searchQuery) {
-    filteredProjects = filteredProjects.filter(project => 
-        project.project_name?.toLowerCase().includes(searchQuery) ||
-        project.crop_name?.toLowerCase().includes(searchQuery) ||
-        project.crop_type_name?.toLowerCase().includes(searchQuery)
-    );
+        filteredProjects = filteredProjects.filter(project => 
+            project.project_name?.toLowerCase().includes(searchQuery) ||
+            project.crop_name?.toLowerCase().includes(searchQuery) ||
+            project.crop_type_name?.toLowerCase().includes(searchQuery)
+        );
     }
 
     if (selectedBarangay) {
-    filteredProjects = filteredProjects.filter(project => 
-        project.barangay_name?.toLowerCase().includes(selectedBarangay)
-    );
+        filteredProjects = filteredProjects.filter(project => 
+            project.barangay_name?.toLowerCase().includes(selectedBarangay)
+        );
     }
 
     if (selectedProductivity) {
-    filteredProjects = filteredProjects.filter(project => 
-        project.average_productivity?.toLowerCase() === selectedProductivity
-    );
+        filteredProjects = filteredProjects.filter(project => 
+            project.average_productivity?.toLowerCase() === selectedProductivity
+        );
     }
 
     if (selectedMonth) {
-    filteredProjects = filteredProjects.filter(project => {
-        const startDateStr = project.duration.split(" - ")[0];
-        const startDate = parseDate(new Date(startDateStr));
-        return startDate?.getMonth() + 1 === selectedMonth && 
-            startDate?.getFullYear() === selectedYear;
-    });
+        filteredProjects = filteredProjects.filter(project => {
+            const startDateStr = project.duration.split(" - ")[0];
+            const startDate = parseDate(new Date(startDateStr));
+            return startDate?.getMonth() + 1 === selectedMonth && 
+                startDate?.getFullYear() === selectedYear;
+        });
     }
 
     currentPage = 1;
@@ -410,41 +434,41 @@ function displayProjects(projectList) {
     const paginatedProjects = projectList.slice(startIndex, endIndex);
 
     if (paginatedProjects.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No records found</td></tr>`;
-    return;
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No records found</td></tr>`;
     }
 
     paginatedProjects.forEach(project => {
-    const row = document.createElement("tr");
+        const row = document.createElement("tr");
 
-    // Determine the color for the Average Productivity column
-    let productivityStyle = "";
-    switch (project.average_productivity) {
-        case "Productive":
-        productivityStyle = `style="color: #41A186;"`; // Green
-        break;
-        case "Average":
-        productivityStyle = `style="color: #9854CB;"`; // Purple
-        break;
-        case "Needs Improvement":
-        productivityStyle = `style="color: #848A9C;"`; // Gray
-        break;
-        default:
-        productivityStyle = ""; // No color for "No productivity recorded"
-    }
+        // Determine the color for the Average Productivity column
+        let productivityStyle = "";
+        switch (project.average_productivity) {
+            case "Productive":
+                productivityStyle = `style="color: #41A186;"`; // Green
+                break;
+            case "Average":
+                productivityStyle = `style="color: #9854CB;"`; // Purple
+                break;
+            case "Needs Improvement":
+                productivityStyle = `style="color: #848A9C;"`; // Gray
+                break;
+            default:
+                productivityStyle = ""; // No color for "No productivity recorded"
+        }
 
-    row.innerHTML = `
-        <td>${project.project_name || "N/A"}</td>
-        <td>${project.crop_name || "N/A"}</td>
-        <td>${project.crop_type_name || "N/A"}</td>
-        <td>${project.barangay_name || "N/A"}</td>
-        <td>${project.total_farmer_count || 0}</td>
-        <td ${productivityStyle}>${project.average_productivity || "No productivity recorded"}</td>
-        <td>${project.duration || "N/A"}</td>
-    `;
-    tableBody.appendChild(row);
+        row.innerHTML = `
+            <td>${project.project_name || "N/A"}</td>
+            <td>${project.crop_name || "N/A"}</td>
+            <td>${project.crop_type_name || "N/A"}</td>
+            <td>${project.barangay_name || "N/A"}</td>
+            <td>${project.total_farmer_count || 0}</td>
+            <td ${productivityStyle}>${project.average_productivity || "No productivity recorded"}</td>
+            <td>${project.duration || "N/A"}</td>
+        `;
+        tableBody.appendChild(row);
     });
     updatePagination();
+    updateDownloadButtonState();
 }
 
 // <---------------------------------> PAGINATION <--------------------------------->
@@ -457,6 +481,8 @@ function updatePagination() {
 
 // <---------------------------------> PDF GENERATION <--------------------------------->
 document.getElementById("download-btn").addEventListener("click", async () => {
+    if (document.getElementById("download-btn").disabled) return; // Prevent action if button is disabled
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -467,23 +493,23 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     const currentDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
     const tableData = filteredProjects.map(project => [
-    project.project_name || "N/A",
-    project.crop_name || "N/A",
-    project.crop_type_name || "N/A",
-    project.barangay_name || "N/A",
-    project.total_farmer_count.toString() || "0",
-    project.average_productivity || "No productivity recorded",
-    project.duration || "N/A"
+        project.project_name || "N/A",
+        project.crop_name || "N/A",
+        project.crop_type_name || "N/A",
+        project.barangay_name || "N/A",
+        project.total_farmer_count.toString() || "0",
+        project.average_productivity || "No productivity recorded",
+        project.duration || "N/A"
     ]);
 
     const columns = [
-    "Project Name",
-    "Commodity",
-    "Type of Crop",
-    "Barangay",
-    "No. of Farmers",
-    "Average Productivity",
-    "Duration"
+        "Project Name",
+        "Commodity",
+        "Type of Crop",
+        "Barangay",
+        "No. of Farmers",
+        "Average Productivity",
+        "Duration"
     ];
 
     const columnWidths = [35, 30, 30, 30, 20, 25, 35];
@@ -491,91 +517,91 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     const leftMargin = (pageWidth - totalTableWidth) / 2;
 
     const addHeader = (doc) => {
-    const headerImg = "/images/BarasHeader.png";
-    const headerImgWidth = 60;
-    const headerImgHeight = 40;
-    try {
-        doc.addImage(headerImg, "PNG", (pageWidth - headerImgWidth) / 2, 5, headerImgWidth, headerImgHeight);
-    } catch (e) {
-        console.error("Error adding header image:", e);
-    }
+        const headerImg = "/images/BarasHeader.png";
+        const headerImgWidth = 60;
+        const headerImgHeight = 40;
+        try {
+            doc.addImage(headerImg, "PNG", (pageWidth - headerImgWidth) / 2, 5, headerImgWidth, headerImgHeight);
+        } catch (e) {
+            console.error("Error adding header image:", e);
+        }
 
-    doc.setLineWidth(0.4);
-    doc.setDrawColor(51, 51, 51);
-    doc.line(10, 45, pageWidth - 10, 45);
+        doc.setLineWidth(0.4);
+        doc.setDrawColor(51, 51, 51);
+        doc.line(10, 45, pageWidth - 10, 45);
 
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text("FOR", 20, 60);
-    doc.text(":", 42, 60);
-    doc.text("FROM", 20, 70);
-    doc.text(":", 42, 70);
-    doc.text(fullName, 50, 70);
-    doc.text("DATE", 20, 80);
-    doc.text(":", 42, 80);
-    doc.text(currentDate, 50, 80);
-    doc.text("SUBJECT", 20, 90);
-    doc.text(":", 42, 90);
-    doc.text("Productivity Report", 50, 90);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text("FOR", 20, 60);
+        doc.text(":", 42, 60);
+        doc.text("FROM", 20, 70);
+        doc.text(":", 42, 70);
+        doc.text(fullName, 50, 70);
+        doc.text("DATE", 20, 80);
+        doc.text(":", 42, 80);
+        doc.text(currentDate, 50, 80);
+        doc.text("SUBJECT", 20, 90);
+        doc.text(":", 42, 90);
+        doc.text("Productivity Report", 50, 90);
 
-    doc.setFontSize(15);
-    doc.setFont("helvetica", "bold");
-    doc.text(`PRODUCTIVITY REPORT ${selectedYear || new Date().getFullYear()}`, pageWidth / 2, 100, { align: "center" });
+        doc.setFontSize(15);
+        doc.setFont("helvetica", "bold");
+        doc.text(`PRODUCTIVITY REPORT ${selectedYear || new Date().getFullYear()}`, pageWidth / 2, 100, { align: "center" });
     };
 
     const addBody = (doc, data) => {
-    const tableEndY = data.cursor.y + 35;
-    if (tableEndY < pageHeight - 30) {
-        doc.setLineWidth(0.4);
-        doc.setDrawColor(51, 51, 51);
-        doc.line(10, tableEndY, pageWidth - 10, tableEndY);
-    }
+        const tableEndY = data.cursor.y + 35;
+        if (tableEndY < pageHeight - 30) {
+            doc.setLineWidth(0.4);
+            doc.setDrawColor(51, 51, 51);
+            doc.line(10, tableEndY, pageWidth - 10, tableEndY);
+        }
     };
 
     const addFooter = (doc, data) => {
-    const footerImg = "/images/BarasFooter.png";
-    const footerImgWidth = 140;
-    const footerImgHeight = 15;
-    try {
-        doc.addImage(footerImg, "PNG", (pageWidth - footerImgWidth) / 2, pageHeight - 30, footerImgWidth, footerImgHeight);
-    } catch (e) {
-        console.error("Error adding footer image:", e);
-    }
+        const footerImg = "/images/BarasFooter.png";
+        const footerImgWidth = 140;
+        const footerImgHeight = 15;
+        try {
+            doc.addImage(footerImg, "PNG", (pageWidth - footerImgWidth) / 2, pageHeight - 30, footerImgWidth, footerImgHeight);
+        } catch (e) {
+            console.error("Error adding footer image:", e);
+        }
 
-    const pageCount = doc.internal.getNumberOfPages();
-    const pageNumber = data.pageNumber;
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth - 10, pageHeight - 10, { align: "right" });
+        const pageCount = doc.internal.getNumberOfPages();
+        const pageNumber = data.pageNumber;
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth - 10, pageHeight - 10, { align: "right" });
     };
 
     let currentPage = 0;
     const rowsPerPage = Math.floor((pageHeight - 65 - 105) / 10);
 
     while (currentPage * rowsPerPage < tableData.length) {
-    const startIndex = currentPage * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, tableData.length);
-    const pageData = tableData.slice(startIndex, endIndex);
+        const startIndex = currentPage * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, tableData.length);
+        const pageData = tableData.slice(startIndex, endIndex);
 
-    if (currentPage > 0) doc.addPage();
+        if (currentPage > 0) doc.addPage();
 
-    addHeader(doc);
-    doc.autoTable({
-        startY: 105,
-        head: [columns],
-        body: pageData,
-        theme: "grid",
-        margin: { top: 55, left: leftMargin, right: leftMargin, bottom: 20 },
-        styles: { fontSize: 5, cellPadding: 1, overflow: "linebreak", font: "helvetica", textColor: [51, 51, 51], lineColor: [132, 138, 156], lineWidth: 0.1, halign: "center", valign: "top" },
-        headStyles: { fillColor: [255, 255, 255], textColor: [65, 161, 134], fontSize: 7, font: "helvetica", fontStyle: "bold", lineColor: [132, 138, 156], lineWidth: 0.1, halign: "center", valign: "top" },
-        columnStyles: Object.fromEntries(columns.map((_, i) => [i, { cellWidth: columnWidths[i] }])),
-        didDrawPage: (data) => {
-        addBody(doc, data);
-        addFooter(doc, data);
-        },
-    });
+        addHeader(doc);
+        doc.autoTable({
+            startY: 105,
+            head: [columns],
+            body: pageData,
+            theme: "grid",
+            margin: { top: 55, left: leftMargin, right: leftMargin, bottom: 20 },
+            styles: { fontSize: 5, cellPadding: 1, overflow: "linebreak", font: "helvetica", textColor: [51, 51, 51], lineColor: [132, 138, 156], lineWidth: 0.1, halign: "center", valign: "top" },
+            headStyles: { fillColor: [255, 255, 255], textColor: [65, 161, 134], fontSize: 7, font: "helvetica", fontStyle: "bold", lineColor: [132, 138, 156], lineWidth: 0.1, halign: "center", valign: "top" },
+            columnStyles: Object.fromEntries(columns.map((_, i) => [i, { cellWidth: columnWidths[i] }])),
+            didDrawPage: (data) => {
+                addBody(doc, data);
+                addFooter(doc, data);
+            },
+        });
 
-    currentPage++;
+        currentPage++;
     }
 
     // Check screen width to determine if preview is feasible
@@ -617,51 +643,52 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchBarangayNames();
     populateProductivityDropdown();
     fetchProjects();
+    updateDownloadButtonState();
 
     const calendarIcon = document.querySelector('.calendar-btn-icon');
     if (calendarIcon) calendarIcon.addEventListener('click', showMonthPicker);
 
     document.addEventListener('click', (event) => {
-    const monthPicker = document.getElementById('month-picker');
-    const calendarIcon = document.querySelector('.calendar-btn-icon');
-    if (monthPicker && !monthPicker.contains(event.target) && !calendarIcon.contains(event.target)) {
-        monthPicker.style.display = 'none';
-    }
+        const monthPicker = document.getElementById('month-picker');
+        const calendarIcon = document.querySelector('.calendar-btn-icon');
+        if (monthPicker && !monthPicker.contains(event.target) && !calendarIcon.contains(event.target)) {
+            monthPicker.style.display = 'none';
+        }
     });
 
     document.getElementById('prev-year').addEventListener('click', () => {
-    selectedYear--;
-    document.getElementById('year-display').textContent = selectedYear;
-    filterProjects();
+        selectedYear--;
+        document.getElementById('year-display').textContent = selectedYear;
+        filterProjects();
     });
 
     document.getElementById('next-year').addEventListener('click', () => {
-    selectedYear++;
-    document.getElementById('year-display').textContent = selectedYear;
-    filterProjects();
+        selectedYear++;
+        document.getElementById('year-display').textContent = selectedYear;
+        filterProjects();
     });
 
     document.querySelectorAll('.month-btn').forEach((btn, index) => {
-    btn.addEventListener('click', () => {
-        selectedMonth = index + 1;
-        filterProjects();
-        document.querySelectorAll('.month-btn').forEach(b => b.style.backgroundColor = 'transparent');
-        btn.style.backgroundColor = '#41A186';
-        document.getElementById('month-picker').style.display = 'none';
-        document.querySelector('.calendar-btn-icon').style.filter = 'brightness(0.5)';
-    });
+        btn.addEventListener('click', () => {
+            selectedMonth = index + 1;
+            filterProjects();
+            document.querySelectorAll('.month-btn').forEach(b => b.style.backgroundColor = 'transparent');
+            btn.style.backgroundColor = '#41A186';
+            document.getElementById('month-picker').style.display = 'none';
+            document.querySelector('.calendar-btn-icon').style.filter = 'brightness(0.5)';
+        });
     });
 
     document.getElementById('clear-btn').addEventListener('click', () => {
-    selectedMonth = null;
-    selectedYear = new Date().getFullYear();
-    document.querySelector('.calendar-btn-icon').style.filter = 'none';
-    document.querySelectorAll('#month-picker .month-btn').forEach(btn => {
-        btn.style.backgroundColor = 'transparent';
-    });
-    document.getElementById('year-display').textContent = selectedYear;
-    filterProjects();
-    document.getElementById('month-picker').style.display = 'none';
+        selectedMonth = null;
+        selectedYear = new Date().getFullYear();
+        document.querySelector('.calendar-btn-icon').style.filter = 'none';
+        document.querySelectorAll('#month-picker .month-btn').forEach(btn => {
+            btn.style.backgroundColor = 'transparent';
+        });
+        document.getElementById('year-display').textContent = selectedYear;
+        filterProjects();
+        document.getElementById('month-picker').style.display = 'none';
     });
 
     document.getElementById("productivity-search-bar").addEventListener("input", filterProjects);
@@ -669,16 +696,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector(".crop_select").addEventListener("change", filterProjects);
 
     document.getElementById("productivity-prev-page").addEventListener("click", () => {
-    if (currentPage > 1) {
-        currentPage--;
-        displayProjects(filteredProjects);
-    }
+        if (currentPage > 1) {
+            currentPage--;
+            displayProjects(filteredProjects);
+        }
     });
 
     document.getElementById("productivity-next-page").addEventListener("click", () => {
-    if (currentPage * rowsPerPage < filteredProjects.length) {
-        currentPage++;
-        displayProjects(filteredProjects);
-    }
+        if (currentPage * rowsPerPage < filteredProjects.length) {
+            currentPage++;
+            displayProjects(filteredProjects);
+        }
     });
 });
