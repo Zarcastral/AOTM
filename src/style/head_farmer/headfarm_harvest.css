@@ -682,4 +682,7 @@ cursor: not-allowed;
     height: 60%;
     padding: 15px;
   }
+  .panel h2{
+    font-size: 25px;
+  }
 }

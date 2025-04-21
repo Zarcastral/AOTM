@@ -33,6 +33,7 @@ const deleteSelectedBtn = document.getElementById("bulk-delete");
 const bulkDeletePanel = document.getElementById("bulk-delete-panel");
 const confirmDeleteBtn = document.getElementById("confirm-bulk-delete");
 const cancelDeleteBtn = document.getElementById("cancel-bulk-delete");
+const downloadBtn = document.getElementById("download-btn");
 
 const editFormContainer = document.createElement("div");
 editFormContainer.id = "edit-form-container";
@@ -46,6 +47,7 @@ let farmerAccounts = [];
 let selectedFarmerId = null;
 let selectedRowId = null;
 let idsToDelete = [];
+let isDataLoading = false;
 
 // Activity Log Function (Updated to use email)
 async function saveActivityLog(action, description) {
@@ -140,15 +142,30 @@ async function getAuthenticatedUser() {
     });
 }
 
+// Function to manage PDF download button state
+function updateDownloadButtonState() {
+    if (downloadBtn) {
+        const isDisabled = isDataLoading || farmerAccounts.length === 0;
+        downloadBtn.disabled = isDisabled;
+        downloadBtn.style.opacity = isDisabled ? "0.5" : "1";
+        downloadBtn.style.backgroundColor = isDisabled ? "#cccccc" : ""; // Default background color when enabled
+        downloadBtn.style.cursor = isDisabled ? "not-allowed" : "pointer";
+    }
+}
+
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
     fetchFarmerAccounts();
     fetch_barangays();
+    updateDownloadButtonState();
 });
 
 // Fetch Farmer Accounts
 async function fetchFarmerAccounts(filter = {}) {
     try {
+        isDataLoading = true;
+        updateDownloadButtonState();
+        
         const querySnapshot = await getDocs(collection(db, "tb_farmers"));
         farmerAccounts = [];
 
@@ -198,6 +215,9 @@ async function fetchFarmerAccounts(filter = {}) {
         updateTable();
     } catch (error) {
         console.error("Error Fetching Farmer Accounts:", error);
+    } finally {
+        isDataLoading = false;
+        updateDownloadButtonState();
     }
 }
 
@@ -285,6 +305,7 @@ function updateTable() {
 
     updatePagination();
     toggleBulkDeleteButton();
+    updateDownloadButtonState();
 }
 
 // Event Listeners for Table
@@ -661,7 +682,9 @@ function showDeleteMessage(message, success) {
 }
 
 // PDF Generation
-document.getElementById("download-btn").addEventListener("click", async () => {
+downloadBtn.addEventListener("click", async () => {
+    if (downloadBtn.disabled) return; // Prevent action if button is disabled
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({
         orientation: "landscape",
