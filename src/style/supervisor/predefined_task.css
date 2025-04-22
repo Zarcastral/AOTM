@@ -2,13 +2,13 @@
 body {
   margin: 0;
   height: 100vh;
-  background-color: #F5F6FA;
-  font-family: 'Poppins';
+  background-color: #f5f6fa;
+  font-family: "Poppins";
   display: flex;
   flex-direction: column;
 }
 
-.title{
+.title {
   font-size: 15px;
   font-weight: 500;
   color: #486581;
@@ -16,22 +16,21 @@ body {
   margin-top: -20px;
 }
 
-
 #addadd {
   font-size: 25px;
   font-weight: 600;
   margin-bottom: 20px;
- margin-top: 20px;
+  margin-top: 20px;
 }
 
 #add {
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 20px;
- margin-top: 20px;
+  margin-top: 20px;
 }
 
-#taskselect{
+#taskselect {
   margin-top: 40px;
   font-size: 20px;
   font-weight: 600;
@@ -43,7 +42,6 @@ body {
   font-weight: 700;
   font-size: 24px;
 }
-
 
 #border {
   border-bottom: 2px solid #f0f0f0;
@@ -64,7 +62,7 @@ body {
 .header-title {
   font-size: 30px;
   font-weight: bold;
-  color: #41A186;
+  color: #41a186;
 }
 
 .header-icons {
@@ -104,7 +102,7 @@ body {
 }
 
 .add-user-btn {
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   padding: 12px 20px;
   font-size: 18px;
@@ -132,7 +130,7 @@ body {
 }
 
 .dell1-user-btn {
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   padding: 9px 20px;
   font-size: 16px;
@@ -190,7 +188,7 @@ body {
 }
 
 .popup-content h2 {
-margin-left: -200px;
+  margin-left: -200px;
 }
 
 .modal-content h2 {
@@ -205,9 +203,7 @@ margin-left: -200px;
   font-size: 5px; /* Increase font size for the text (previously 2px) */
   display: flex;
   flex-direction: column; /* Stack the checkboxes vertically */
-  
 }
-
 
 #task-checkboxes input[type="checkbox"] {
   width: 20px; /* Increase the checkbox size */
@@ -223,7 +219,6 @@ margin-left: -200px;
   cursor: pointer; /* Make the label clickable */
 }
 
-
 /* Task List Styling - ADD, EDIT */
 .task-list {
   display: flex;
@@ -236,7 +231,7 @@ margin-left: -200px;
   column-gap: 15px;
   cursor: default;
   max-height: 250px;
-    overflow-y: auto;
+  overflow-y: auto;
 }
 
 .task-list li {
@@ -275,7 +270,6 @@ margin-left: -200px;
   margin-bottom: 20px;
 }
 
-
 #new-task-input,
 #new-subtask-input,
 #new-subtask-input-subtasks {
@@ -290,12 +284,11 @@ margin-left: -200px;
 .add-task-btn {
   background: none;
   border: none;
-  color: #41A186;
+  color: #41a186;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: color 0.3s ease;
-  
 }
 
 .add-task-btn:hover {
@@ -312,7 +305,7 @@ margin-left: -200px;
 
 /* Save Button Styling */
 .save-btn {
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   padding: 10px 20px;
   font-size: 15px;
@@ -328,7 +321,7 @@ margin-left: -200px;
 }
 
 .save-btn:disabled {
-  background-color: #C4C4C4;
+  background-color: #c4c4c4;
   cursor: not-allowed;
 }
 
@@ -338,7 +331,7 @@ margin-left: -200px;
 
 /* Close Button Styling */
 .close-btn-assign {
-  background-color: #C3C3C3;
+  background-color: #c3c3c3;
   color: white;
   padding: 10px 20px;
   font-size: 15px;
@@ -347,7 +340,7 @@ margin-left: -200px;
   border-radius: 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-left:230px;
+  margin-left: 230px;
   width: 120px;
   /* Remove display: block and margin, as they’re handled by the container */
 }
@@ -361,11 +354,13 @@ table {
   border-collapse: collapse;
 }
 
-.assigned-task-table th, .assigned-task-table td {
+.assigned-task-table th,
+.assigned-task-table td {
   text-align: left;
 }
 
-.assigned-task-table :last-child, .assigned-task-table :last-child {
+.assigned-task-table :last-child,
+.assigned-task-table :last-child {
   width: 200px; /* Adjusted width for the action column */
   min-width: 200px; /* Minimum width to ensure usability */
   text-align: center;
@@ -390,7 +385,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background-color: #F3F4F6;
+  background-color: #f3f4f6;
 }
 
 .search-container {
@@ -402,7 +397,7 @@ tbody tr:hover {
 #search-bar {
   padding: 8px;
   font-size: 16px;
-  border: 1px solid lightgray; 
+  border: 1px solid lightgray;
   border-radius: 10px;
   outline: none;
   margin-left: 30px;
@@ -415,18 +410,18 @@ tbody tr:hover {
 
 #search-bar:focus {
   border-color: #aaa;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
-.search-container input{
-padding: 0.5rem;
-border: 1px solid #dcdcdc;
-border-radius: 5px;
+.search-container input {
+  padding: 0.5rem;
+  border: 1px solid #dcdcdc;
+  border-radius: 5px;
 }
 
 #crop-filter {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -444,7 +439,7 @@ border-radius: 5px;
 #crop-type-filter {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -462,7 +457,7 @@ border-radius: 5px;
 #crop-type-select {
   padding: 10px 30px 10px 10px;
   font-size: 16px;
-  color: #243B53;
+  color: #243b53;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
@@ -478,7 +473,7 @@ border-radius: 5px;
 }
 
 .edit-task-btn {
-  background-color: #41A186;
+  background-color: #41a186;
   color: white;
   padding: 5px 15px;
   font-size: 16px;
@@ -553,8 +548,8 @@ border-radius: 5px;
 .text-add-btn {
   background: none;
   border: none;
-  color: #41A186;
-  font-family: 'Poppins', sans-serif;
+  color: #41a186;
+  font-family: "Poppins", sans-serif;
   font-size: 18px;
   font-weight: 500;
   cursor: pointer;
@@ -586,12 +581,8 @@ border-radius: 5px;
 .main-content > h2 {
   font-weight: 500;
   color: #486581;
-  font-family: 'Poppins';
+  font-family: "Poppins";
 }
-
-
-
-
 
 #edit-task-modal .modal-content ul + h2 {
   font-size: 15px;
@@ -615,11 +606,10 @@ border-radius: 5px;
   font-size: 16px;
 }
 
-
 /* Success and Error Message Panels */
 .success-message {
   position: fixed;
-  top: 20px;
+  top: 100px;
   left: 50%;
   transform: translateX(-50%);
   background-color: #41a186;
@@ -639,7 +629,7 @@ border-radius: 5px;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #AC415B;
+  background-color: #ac415b;
   color: white;
   padding: 10px 20px;
   border-radius: 20px;
@@ -654,10 +644,10 @@ border-radius: 5px;
 /* Responsive styles */
 @media (max-width: 768px) {
   .header-title {
-      font-size: 24px;
+    font-size: 24px;
   }
 
-  .title{
+  .title {
     margin-top: 10px;
   }
 
@@ -666,14 +656,14 @@ border-radius: 5px;
   }
 
   .panel {
-      padding: 10px;
+    padding: 10px;
   }
 
   .btn-container {
-      flex-direction: row;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 10px;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
   }
 
   #search-bar {
@@ -685,16 +675,16 @@ border-radius: 5px;
   }
 
   .add-user-btn {
-      margin-top: 10px;
+    margin-top: 10px;
   }
 
   .modal-content {
-      width:90%;
-      padding: 30px;
+    width: 90%;
+    padding: 30px;
   }
 
   table {
-      overflow-x: auto;
+    overflow-x: auto;
   }
 
   th,
@@ -704,22 +694,22 @@ border-radius: 5px;
 
   #new-task-input,
   #new-subtask-input {
-      width: 100%;
-      margin-right: 0;
+    width: 100%;
+    margin-right: 0;
   }
 }
 
 @media (max-width: 480px) {
   .header-title {
-      font-size: 20px;
+    font-size: 20px;
   }
 
   .header-icons img {
-      width: 20px;
-      height: 20px;
+    width: 20px;
+    height: 20px;
   }
 
-  .title{
+  .title {
     margin-top: 10px;
   }
 
@@ -732,28 +722,28 @@ border-radius: 5px;
   }
 
   .panel {
-      padding: 5px;
+    padding: 5px;
   }
 
   .add-user-btn,
   .dell-user-btn {
-      font-size: 14px;
-      padding: 8px 10px;
+    font-size: 14px;
+    padding: 8px 10px;
   }
 
   .modal-content {
-      width: 95%;
-      padding: 10px;
+    width: 95%;
+    padding: 10px;
   }
 
   th,
   td {
-      padding: 0.3rem;
+    padding: 0.3rem;
   }
 
   #new-task-input,
   #new-subtask-input {
-      font-size: 14px;
+    font-size: 14px;
   }
 }
 @media (max-width: 600px) {
