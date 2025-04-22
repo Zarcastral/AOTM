@@ -22,6 +22,9 @@ const auth = getAuth();
 // Global variable to store authenticated user details
 let currentUser = null;
 
+// State variable for data loading
+let isDataLoading = false;
+
 // <-----------------------ACTIVITY LOG CODE----------------------------->
 async function saveActivityLog(action, description) {
   const allowedActions = ["Create", "Update", "Delete"];
@@ -132,9 +135,24 @@ async function getAuthenticatedUser() {
   });
 }
 
+// Function to manage PDF download button state
+function updateDownloadButtonState() {
+  const downloadBtn = document.getElementById("download-btn");
+  if (downloadBtn) {
+    const isDisabled = isDataLoading || filteredHarvest.length === 0;
+    downloadBtn.disabled = isDisabled;
+    downloadBtn.style.opacity = isDisabled ? "0.5" : "1";
+    downloadBtn.style.backgroundColor = isDisabled ? "#cccccc" : "";
+    downloadBtn.style.cursor = isDisabled ? "not-allowed" : "pointer";
+  }
+}
+
 // Fetch harvest data for current user's project_creator from both tb_harvest and tb_harvest_history
 async function fetchHarvest() {
   try {
+    isDataLoading = true;
+    updateDownloadButtonState();
+
     const user = await getAuthenticatedUser();
     const harvestCollection = collection(db, "tb_harvest");
     const harvestHistoryCollection = collection(db, "tb_harvest_history");
@@ -159,14 +177,22 @@ async function fetchHarvest() {
         harvestList = consolidateHarvestByCropType(combinedData);
         filteredHarvest = [...harvestList];
         filterHarvest();
+        isDataLoading = false;
+        updateDownloadButtonState();
       }, (error) => {
         console.error("Error listening to Harvest History:", error);
+        isDataLoading = false;
+        updateDownloadButtonState();
       });
     }, (error) => {
       console.error("Error listening to Harvest:", error);
+      isDataLoading = false;
+      updateDownloadButtonState();
     });
   } catch (error) {
     console.error("Error fetching Harvest:", error);
+    isDataLoading = false;
+    updateDownloadButtonState();
   }
 }
 
@@ -329,7 +355,6 @@ function displayHarvest(harvestList) {
 
   if (paginatedHarvest.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center;">No records found</td></tr>`;
-    return;
   }
 
   paginatedHarvest.forEach(harvest => {
@@ -349,6 +374,7 @@ function displayHarvest(harvestList) {
     tableBody.appendChild(row);
   });
   updatePagination();
+  updateDownloadButtonState();
 }
 
 // Update pagination
@@ -379,6 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchBarangayNames();
   fetchCropTypeNames();
   fetchHarvest();
+  updateDownloadButtonState();
 
   const calendarIcon = document.querySelector('.calendar-btn-icon');
   if (calendarIcon) calendarIcon.addEventListener('click', showMonthPicker);
@@ -447,6 +474,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // PDF generation
 document.getElementById("download-btn").addEventListener("click", async () => {
+  if (document.getElementById("download-btn").disabled) return; // Prevent action if button is disabled
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -567,26 +596,36 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     currentPage++;
   }
 
-  const pdfBlob = doc.output("blob");
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  const previewPanel = document.getElementById("pdf-preview-panel");
-  const previewContainer = document.getElementById("pdf-preview-container");
+  // Check screen width to determine if preview is feasible
+  const isPreviewSupported = window.innerWidth > 768; // Adjust threshold as needed
 
-  previewContainer.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%"></iframe>`;
-  previewPanel.style.display = "flex";
-  document.body.classList.add("preview-active");
+  if (isPreviewSupported) {
+    // Show PDF preview for larger screens
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const previewPanel = document.getElementById("pdf-preview-panel");
+    const previewContainer = document.getElementById("pdf-preview-container");
 
-  document.getElementById("preview-cancel-btn").onclick = () => {
-    previewPanel.style.display = "none";
-    document.body.classList.remove("preview-active");
-    URL.revokeObjectURL(pdfUrl);
-  };
+    previewContainer.innerHTML = `<iframe src="${pdfUrl}" width="100%" height="100%"></iframe>`;
+    previewPanel.style.display = "flex";
+    document.body.classList.add("preview-active");
 
-  document.getElementById("preview-done-btn").onclick = async () => {
+    document.getElementById("preview-cancel-btn").onclick = () => {
+      previewPanel.style.display = "none";
+      document.body.classList.remove("preview-active");
+      URL.revokeObjectURL(pdfUrl);
+    };
+
+    document.getElementById("preview-done-btn").onclick = async () => {
+      doc.save(`Harvest_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+      await saveActivityLog("Create", `Harvest Report downloaded by ${userTypePrint} ${fullName}`);
+      previewPanel.style.display = "none";
+      document.body.classList.remove("preview-active");
+      URL.revokeObjectURL(pdfUrl);
+    };
+  } else {
+    // Directly download PDF and log activity for smaller screens
     doc.save(`Harvest_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
     await saveActivityLog("Create", `Harvest Report downloaded by ${userTypePrint} ${fullName}`);
-    previewPanel.style.display = "none";
-    document.body.classList.remove("preview-active");
-    URL.revokeObjectURL(pdfUrl);
-  };
+  }
 });
