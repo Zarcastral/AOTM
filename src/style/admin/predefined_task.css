@@ -619,7 +619,7 @@ border-radius: 5px;
 /* Success and Error Message Panels */
 .success-message {
   position: fixed;
-  top: 20px;
+  top: 100px;
   left: 50%;
   transform: translateX(-50%);
   background-color: #41a186;

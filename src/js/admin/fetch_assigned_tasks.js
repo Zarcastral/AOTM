@@ -18,42 +18,58 @@ function capitalizeFirstLetter(str) {
 
 // Function to show success panel
 function showSuccessPanel(message) {
+  // Remove existing success or error panels
+  const existingPanels = document.querySelectorAll(".success-message, .error-message");
+  existingPanels.forEach((panel) => panel.remove());
+
   const successMessage = document.createElement("div");
   successMessage.className = "success-message";
   successMessage.textContent = message;
 
   document.body.appendChild(successMessage);
 
+  // Fade in
   successMessage.style.display = "block";
   setTimeout(() => {
     successMessage.style.opacity = "1";
   }, 5);
 
+  // Fade out after 4 seconds
   setTimeout(() => {
     successMessage.style.opacity = "0";
     setTimeout(() => {
-      document.body.removeChild(successMessage);
+      if (successMessage.parentNode) {
+        document.body.removeChild(successMessage);
+      }
     }, 400);
   }, 4000);
 }
 
 // Function to show error panel
 function showErrorPanel(message) {
+  // Remove existing success or error panels
+  const existingPanels = document.querySelectorAll(".success-message, .error-message");
+  existingPanels.forEach((panel) => panel.remove());
+
   const errorMessage = document.createElement("div");
   errorMessage.className = "error-message";
   errorMessage.textContent = message;
 
   document.body.appendChild(errorMessage);
 
+  // Fade in
   errorMessage.style.display = "block";
   setTimeout(() => {
     errorMessage.style.opacity = "1";
   }, 5);
 
+  // Fade out after 4 seconds
   setTimeout(() => {
     errorMessage.style.opacity = "0";
     setTimeout(() => {
-      document.body.removeChild(errorMessage);
+      if (errorMessage.parentNode) {
+        document.body.removeChild(errorMessage);
+      }
     }, 400);
   }, 4000);
 }
