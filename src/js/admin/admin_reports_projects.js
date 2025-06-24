@@ -207,8 +207,8 @@ async function fetchProjects() {
             snapshot.forEach(doc => {
               const data = doc.data();
               const farmlandId = Number(data.farmland_id);
-              farmlandMap.set(farmlandId, data.land_area || "N/A");
-              console.log(`Farmland ID: ${farmlandId}, Land Area: ${data.land_area || "N/A"}`);
+              farmlandMap.set(farmlandId, data.land_area || "");
+              console.log(`Farmland ID: ${farmlandId}, Land Area: ${data.land_area || ""}`);
             });
           });
         } else {
@@ -242,10 +242,10 @@ async function fetchProjects() {
           if (project.farmland_id !== undefined && project.farmland_id !== null) {
             const farmlandId = Number(project.farmland_id);
             const landArea = farmlandMap.get(farmlandId);
-            project.land_area = landArea !== undefined ? landArea : "N/A";
+            project.land_area = landArea !== undefined ? landArea : "";
             console.log(`Farmland ID ${farmlandId} lookup result: ${project.land_area}`);
           } else {
-            project.land_area = "N/A";
+            project.land_area = "";
             console.log(`No farmland_id for Project ID: ${project.project_id}`);
           }
 
@@ -257,27 +257,27 @@ async function fetchProjects() {
             const equipmentNames = project.equipment
               .map((equip) => equip.equipment_name || "Unknown")
               .filter((name) => name !== "Unknown" || project.equipment.every(e => !e.equipment_name));
-            project.equipment = equipmentNames.length > 0 ? equipmentNames.join("<br>") : "N/A";
+            project.equipment = equipmentNames.length > 0 ? equipmentNames.join("\n") : "";
           } else {
-            project.equipment = "N/A";
+            project.equipment = "";
           }
 
           if (project.fertilizer && Array.isArray(project.fertilizer) && project.fertilizer.length > 0) {
             const fertilizerNames = project.fertilizer
               .map((fert) => fert.fertilizer_name || "Unknown")
               .filter((name) => name !== "Unknown" || project.fertilizer.every(f => !f.fertilizer_name));
-            project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join("<br>") : "N/A";
+            project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join("\n") : "";
           } else {
-            project.fertilizer = "N/A";
+            project.fertilizer = "";
           }
 
           if (project.farmer_name && Array.isArray(project.farmer_name) && project.farmer_name.length > 0) {
             const farmerNames = project.farmer_name
               .map((farmer) => farmer.farmer_name || "Unknown")
               .filter((name) => name !== "Unknown" || project.farmer_name.every(f => !f.farmer_name));
-            project.farmer_name = farmerNames.length > 0 ? farmerNames.join("<br>") : "N/A";
+            project.farmer_name = farmerNames.length > 0 ? farmerNames.join("\n") : "";
           } else {
-            project.farmer_name = "N/A";
+            project.farmer_name = "";
           }
 
           projectsList.push(project);
@@ -293,10 +293,10 @@ async function fetchProjects() {
           if (project.farmland_id !== undefined && project.farmland_id !== null) {
             const farmlandId = Number(project.farmland_id);
             const landArea = farmlandMap.get(farmlandId);
-            project.land_area = landArea !== undefined ? landArea : "N/A";
+            project.land_area = landArea !== undefined ? landArea : "";
             console.log(`Farmland ID ${farmlandId} lookup result: ${project.land_area}`);
           } else {
-            project.land_area = "N/A";
+            project.land_area = "";
             console.log(`No farmland_id for Project ID: ${project.project_id}`);
           }
 
@@ -308,27 +308,27 @@ async function fetchProjects() {
             const equipmentNames = project.equipment
               .map((equip) => equip.equipment_name || "Unknown")
               .filter((name) => name !== "Unknown" || project.equipment.every(e => !e.equipment_name));
-            project.equipment = equipmentNames.length > 0 ? equipmentNames.join("<br>") : "N/A";
+            project.equipment = equipmentNames.length > 0 ? equipmentNames.join("\n") : "";
           } else {
-            project.equipment = "N/A";
+            project.equipment = "";
           }
 
           if (project.fertilizer && Array.isArray(project.fertilizer) && project.fertilizer.length > 0) {
             const fertilizerNames = project.fertilizer
               .map((fert) => fert.fertilizer_name || "Unknown")
               .filter((name) => name !== "Unknown" || project.fertilizer.every(f => !f.fertilizer_name));
-            project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join("<br>") : "N/A";
+            project.fertilizer = fertilizerNames.length > 0 ? fertilizerNames.join("\n") : "";
           } else {
-            project.fertilizer = "N/A";
+            project.fertilizer = "";
           }
 
           if (project.farmer_name && Array.isArray(project.farmer_name) && project.farmer_name.length > 0) {
             const farmerNames = project.farmer_name
               .map((farmer) => farmer.farmer_name || "Unknown")
               .filter((name) => name !== "Unknown" || project.farmer_name.every(f => !f.farmer_name));
-            project.farmer_name = farmerNames.length > 0 ? farmerNames.join("<br>") : "N/A";
+            project.farmer_name = farmerNames.length > 0 ? farmerNames.join("\n") : "";
           } else {
-            project.farmer_name = "N/A";
+            project.farmer_name = "";
           }
 
           projectsList.push(project);
@@ -592,20 +592,20 @@ function displayProjects(projectsList) {
       const row = document.createElement("tr");
       const projectId = project.project_id || "project Id not recorded";
       const projectName = project.project_name || "project Name not recorded";
-      const projectStatus = project.status || "N/A";
-      const projectFarmPres = project.farm_president || "N/A";
-      const projectBarangay = project.barangay_name || "N/A";
-      const projectCategory = project.crop_name || "N/A";
-      const projectCropType = project.crop_type_name || "N/A";
-      const projectEquipment = project.equipment || "N/A";
-      const projectStart = project.start_date || "N/A";
-      const projectEnd = project.end_date || "N/A";
-      const equipmentList = Array.isArray(project.equipment) ? project.equipment.join("<br>") : (project.equipment || "N/A");
-      const fertilizerList = Array.isArray(project.fertilizer) ? project.fertilizer.join("<br>") : (project.fertilizer || "N/A");
-      const farmersName = Array.isArray(project.farmer_name) ? project.farmer_name.join("<br>") : (project.farmer_name || "N/A");
-      const leadFarmer = project.lead_farmer || "N/A";
-      const landArea = project.land_area || "N/A";
-      const taskCount = project.task_count !== undefined ? project.task_count : "N/A";
+      const projectStatus = project.status || "";
+      const projectFarmPres = project.farm_president || "";
+      const projectBarangay = project.barangay_name || "";
+      const projectCategory = project.crop_name || "";
+      const projectCropType = project.crop_type_name || "";
+      const projectEquipment = project.equipment || "";
+      const projectStart = project.start_date || "";
+      const projectEnd = project.end_date || "";
+      const equipmentList = Array.isArray(project.equipment) ? project.equipment.join("\n") : (project.equipment || "");
+      const fertilizerList = Array.isArray(project.fertilizer) ? project.fertilizer.join("\n") : (project.fertilizer || "");
+      const farmersName = Array.isArray(project.farmer_name) ? project.farmer_name.join("\n") : (project.farmer_name || "");
+      const leadFarmer = project.lead_farmer || "";
+      const landArea = project.land_area || "";
+      const taskCount = project.task_count !== undefined ? project.task_count : "";
 
       row.innerHTML = `
         <td>${projectId}</td>
@@ -621,7 +621,7 @@ function displayProjects(projectsList) {
         <td>${projectCropType}</td>
         <td>${equipmentList}</td>
         <td>${fertilizerList}</td>
-        <td>${projectStart} <br> ${projectEnd}</td>
+        <td>${projectStart} \n ${projectEnd}</td>
       `;
       tableBody.appendChild(row);
     });
@@ -715,7 +715,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById("download-btn").addEventListener("click", async () => {
-  if (document.getElementById("download-btn").disabled) return; // Prevent action if button is disabled
+  if (document.getElementById("download-btn").disabled) return;
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({
@@ -726,6 +726,9 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const maxContentHeight = pageHeight - (margin * 2) - 30; // Subtract footer height and margins
+  const footerStartY = pageHeight - 30;
 
   const user = await getAuthenticatedUser();
   const usersCollection = collection(db, "tb_users");
@@ -748,20 +751,20 @@ document.getElementById("download-btn").addEventListener("click", async () => {
   const tableData = filteredProjects.map((project) => {
     const projectId = project.project_id || "project Id not recorded";
     const projectName = project.project_name || "project Name not recorded";
-    const projectStatus = project.status || "N/A";
-    const projectFarmPres = project.farm_president || "N/A";
-    const projectBarangay = project.barangay_name || "N/A";
-    const projectCategory = project.crop_name || "N/A";
-    const projectCropType = project.crop_type_name || "N/A";
-    const projectEquipment = project.equipment || "N/A";
-    const projectStart = project.start_date || "N/A";
-    const projectEnd = project.end_date || "N/A";
-    const equipmentList = Array.isArray(project.equipment) ? project.equipment.join("<br>") : (project.equipment || "N/A");
-    const fertilizerList = Array.isArray(project.fertilizer) ? project.fertilizer.join("<br>") : (project.fertilizer || "N/A");
-    const farmersName = Array.isArray(project.farmer_name) ? project.farmer_name.join("<br>") : (project.farmer_name || "N/A");
-    const leadFarmer = project.lead_farmer || "N/A";
-    const landArea = project.land_area || "N/A";
-    const taskCount = project.task_count !== undefined ? project.task_count : "N/A";
+    const projectStatus = project.status || "";
+    const projectFarmPres = project.farm_president || "";
+    const projectBarangay = project.barangay_name || "";
+    const projectCategory = project.crop_name || "";
+    const projectCropType = project.crop_type_name || "";
+    const projectEquipment = project.equipment || "";
+    const projectStart = project.start_date || "";
+    const projectEnd = project.end_date || "";
+    const equipmentList = Array.isArray(project.equipment) ? project.equipment.join("\n") : (project.equipment || "");
+    const fertilizerList = Array.isArray(project.fertilizer) ? project.fertilizer.join("\n") : (project.fertilizer || "");
+    const farmersName = Array.isArray(project.farmer_name) ? project.farmer_name.join("\n") : (project.farmer_name || "");
+    const leadFarmer = project.lead_farmer || "";
+    const landArea = project.land_area || "";
+    const taskCount = project.task_count !== undefined ? project.task_count : "";
 
     return [
       projectId,
@@ -769,7 +772,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       taskCount.toString(),
       projectStatus,
       projectFarmPres,
-      leadFarmer,
+     leadFarmer,
       farmersName,
       projectBarangay,
       landArea,
@@ -802,7 +805,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
     doc.setLineWidth(0.4);
     doc.setDrawColor(51, 51, 51);
-    doc.line(10, 45, pageWidth - 10, 45);
+    doc.line(10, 47, pageWidth - 10, 47);
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
@@ -820,60 +823,42 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
     doc.setFontSize(15);
     doc.setFont("helvetica", "bold");
-    doc.text(`AGRICULTURAL PRODUCTION DATA ${selectedYear || new Date().getFullYear()}`, pageWidth / 2, 100, { align: "center" });
+    doc.text(`AGRICULTURAL PRODUCTION DATA`, pageWidth / 2, 55, { align: "center" });
   };
 
-  const addBody = (doc, data) => {
-    const tableEndY = data.cursor.y + 35;
-    if (tableEndY < pageHeight - 30) {
-      doc.setLineWidth(0.4);
-      doc.setDrawColor(51, 51, 51);
-      doc.line(10, tableEndY, pageWidth - 10, tableEndY);
-    }
-  };
-
-  const addFooter = (doc, data) => {
+  const addFooter = (doc, pageNumber, totalPages) => {
     const footerImg = "/images/BarasFooter.png";
     const footerImgWidth = 140;
     const footerImgHeight = 15;
     try {
-      doc.addImage(footerImg, "PNG", (pageWidth - footerImgWidth) / 2, pageHeight - 30, footerImgWidth, footerImgHeight);
+      doc.addImage(footerImg, "PNG", (pageWidth - footerImgWidth) / 2, pageHeight - 18, footerImgWidth, footerImgHeight);
     } catch (e) {
       console.error("Error adding footer image:", e);
     }
 
-    const pageCount = doc.internal.getNumberOfPages();
-    const pageNumber = data.pageNumber;
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth - 10, pageHeight - 10, { align: "right" });
+    doc.text(`Date Generated: ${currentDate}`, 10, pageHeight - 10)
+    doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 10, pageHeight - 10, { align: "right" });
   };
 
-  const maxTableHeight = pageHeight - 65;
-  const rowHeightEstimate = 10;
-  const baseRowsPerPage = Math.floor((maxTableHeight - 105) / rowHeightEstimate);
-  const rowsPerPage = baseRowsPerPage;
-  let currentPage = 0;
+  let startY = 95;
+  const rowHeight = 10;
+  const rowsPerPage = Math.floor((footerStartY - startY) / rowHeight);
 
-  while (currentPage * rowsPerPage < tableData.length) {
-    const startIndex = currentPage * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, tableData.length);
-    const pageData = tableData.slice(startIndex, endIndex);
-
-    if (currentPage > 0) {
-      doc.addPage();
-    }
-
+  for (let i = 0; i < tableData.length; i += rowsPerPage) {
+    if (i > 0) doc.addPage();
     addHeader(doc);
 
+    const pageData = tableData.slice(i, i + rowsPerPage);
     doc.autoTable({
-      startY: 105,
+      startY: startY,
       head: [columns],
       body: pageData,
       theme: "grid",
-      margin: { top: 55, left: leftMargin, right: leftMargin, bottom: 20 },
+      margin: { top: margin, left: leftMargin, right: leftMargin, bottom: margin },
       styles: {
-        fontSize: 5,
+        fontSize: 10,
         cellPadding: 1,
         overflow: "linebreak",
         font: "helvetica",
@@ -886,7 +871,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       headStyles: {
         fillColor: [255, 255, 255],
         textColor: [65, 161, 134],
-        fontSize: 7,
+        fontSize: 12,
         font: "helvetica",
         fontStyle: "bold",
         lineColor: [132, 138, 156],
@@ -896,12 +881,9 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       },
       columnStyles: Object.fromEntries(columns.map((_, i) => [i, { cellWidth: columnWidths[i] }])),
       didDrawPage: (data) => {
-        addBody(doc, data);
-        addFooter(doc, data);
+        addFooter(doc, data.pageNumber, Math.ceil(tableData.length / rowsPerPage));
       },
     });
-
-    currentPage++;
   }
 
   const isPreviewSupported = window.innerWidth > 768;

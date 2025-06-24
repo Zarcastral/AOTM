@@ -315,7 +315,7 @@ table {
 th,
 td {
   padding: 8px;
-  font-size: clamp(8px, 2vw, 10px);
+  font-size: clamp(8px, 2vw, 15px);
   text-align: center;
   border: 1px solid #848A9C;
 }

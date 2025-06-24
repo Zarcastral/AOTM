@@ -326,11 +326,11 @@ th {
   background-color: white;
   color: #41A186;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 15px;
 }
 
 td {
-  font-size: 9px;
+  font-size: 15px;
 }
 
 th:nth-child(2),
@@ -353,8 +353,8 @@ td:nth-child(6) {
 
 th:nth-child(7),
 td:nth-child(7) {
-  width: 100px;
-  min-width: 100px;
+  width: 190px;
+  min-width: 190px;
 }
 
 th:nth-child(11),
@@ -377,8 +377,8 @@ td:nth-child(13) {
 
 th:last-child,
 td:last-child {
-  width: 70px;
-  min-width: 70px;
+  width: 100px;
+  min-width: 100px;
 }
 
 tbody tr:hover {

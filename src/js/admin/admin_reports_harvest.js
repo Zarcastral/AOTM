@@ -524,21 +524,21 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text("FOR", 20, 60);
-    doc.text(":", 42, 60);
-    doc.text("FROM", 20, 70);
+    doc.text("FOR", 20, 70);
     doc.text(":", 42, 70);
-    doc.text(fullName, 50, 70);
-    doc.text("DATE", 20, 80);
+    doc.text("FROM", 20, 80);
     doc.text(":", 42, 80);
-    doc.text(currentDate, 50, 80);
-    doc.text("SUBJECT", 20, 90);
+    doc.text(fullName, 50, 80);
+    doc.text("DATE", 20, 90);
     doc.text(":", 42, 90);
-    doc.text("Harvest Report", 50, 90);
+    doc.text(currentDate, 50, 90);
+    doc.text("SUBJECT", 20, 100);
+    doc.text(":", 42, 100);
+    doc.text("Harvest Report", 50, 100);
 
     doc.setFontSize(15);
     doc.setFont("helvetica", "bold");
-    doc.text(`AGRICULTURAL PRODUCTION DATA ${selectedYear || new Date().getFullYear()}`, pageWidth / 2, 100, { align: "center" });
+    doc.text(`AGRICULTURAL PRODUCTION DATA`, pageWidth / 2, 55, { align: "center" });
   };
 
   const addBody = (doc, data) => {
@@ -564,6 +564,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     const pageNumber = data.pageNumber;
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
+    doc.text(`Date Generated: ${currentDate}`, 10, pageHeight - 10)
     doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth - 10, pageHeight - 10, { align: "right" });
   };
 
@@ -584,8 +585,8 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       body: pageData,
       theme: "grid",
       margin: { top: 55, left: leftMargin, right: leftMargin, bottom: 20 },
-      styles: { fontSize: 5, cellPadding: 1, overflow: "linebreak", font: "helvetica", textColor: [51, 51, 51], lineColor: [132, 138, 156], lineWidth: 0.1, halign: "center", valign: "top" },
-      headStyles: { fillColor: [255, 255, 255], textColor: [65, 161, 134], fontSize: 7, font: "helvetica", fontStyle: "bold", lineColor: [132, 138, 156], lineWidth: 0.1, halign: "center", valign: "top" },
+      styles: { fontSize: 10, cellPadding: 1, overflow: "linebreak", font: "helvetica", textColor: [51, 51, 51], lineColor: [132, 138, 156], lineWidth: 0.1, halign: "center", valign: "top" },
+      headStyles: { fillColor: [255, 255, 255], textColor: [65, 161, 134], fontSize: 12, font: "helvetica", fontStyle: "bold", lineColor: [132, 138, 156], lineWidth: 0.1, halign: "center", valign: "top" },
       columnStyles: Object.fromEntries(columns.map((_, i) => [i, { cellWidth: columnWidths[i] }])),
       didDrawPage: (data) => {
         addBody(doc, data);
