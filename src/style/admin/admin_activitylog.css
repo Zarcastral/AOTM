@@ -24,7 +24,11 @@ body {
     height: 24px;
     cursor: pointer;
   }
-
+  .content-wrapper {
+    height: calc(100vh - 60px); /* Fit viewport minus header */
+    overflow-y: auto; /* Enable vertical scrolling for content */
+    box-sizing: border-box;
+  }
   #user-select {
     padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
       font-size: 16px;
