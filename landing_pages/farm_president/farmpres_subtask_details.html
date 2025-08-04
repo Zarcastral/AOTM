@@ -18,7 +18,7 @@
         <div class="panel">
             <div class="panel-top">
                 <h1 id="taskName"></h1>
-                <button class="add-day-btn">+ Add Day</button>
+                <button class="add-day-btn">+ Add Record</button>
             </div>
 
             <table class="subtask-table">
@@ -54,6 +54,22 @@
                     <div class="confirm-buttons">
                         <button id="cancelCompleteBtn" class="cancel-btn">No</button>
                         <button id="confirmCompleteBtn" class="confirm-complete-btn">Yes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Modal for Add Day Date Selection -->
+            <div id="addDayModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">×</span>
+                    <h3>Select Attendance Date</h3>
+                    <div class="form-group">
+                        <label for="attendanceDate">Select Date:</label>
+                        <input type="date" id="attendanceDate" max="" required>
+                    </div>
+                    <div class="confirm-buttons">
+                        <button id="cancelAddDayBtn" class="cancel-btn">Cancel</button>
+                        <button id="confirmAddDayBtn" class="submit-btn">OK</button>
                     </div>
                 </div>
             </div>

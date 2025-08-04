@@ -60,11 +60,15 @@ function showErrorPanel(message) {
   }, 4000);
 }
 
-// Utility function to check if current date is past end_date
-function isPastEndDate(endDate) {
+// Utility function to check if current date is past the relevant deadline (extend_date or end_date)
+function isPastEndDate(endDate, extendDate) {
   const currentDate = new Date();
-  const projectEndDate = new Date(endDate);
-  return currentDate > projectEndDate;
+  // Use extend_date if it exists and is valid, otherwise fall back to end_date
+  const projectDeadline =
+    extendDate && !isNaN(new Date(extendDate))
+      ? new Date(extendDate)
+      : new Date(endDate);
+  return currentDate > projectDeadline;
 }
 
 // Function to filter farmers based on search term
@@ -100,17 +104,19 @@ function renderTable(filteredFarmers, selectedDate) {
 
   filteredFarmers.forEach((farmer, index) => {
     const isChecked = farmer.attendance.present === "Yes";
-    const remarkValue = farmer.attendance.remarks || "";
+    const remarkValue = farmer.attendance.remarks
+      ? farmer.attendance.remarks.trim()
+      : "";
     const farmerDate =
       farmer.attendance && farmer.attendance.date
         ? farmer.attendance.date
-        : new Date().toISOString().split("T")[0];
-    const isDateDifferent = farmerDate !== sessionedDate;
-    const dateStyle = isDateDifferent ? 'style="color: red;"' : "";
+        : sessionedDate;
 
-    const capitalizedRemark = remarkValue
-      ? remarkValue.charAt(0).toUpperCase() + remarkValue.slice(1).toLowerCase()
-      : "";
+    // Use trimmed remarkValue for comparison
+    const capitalizedRemark = remarkValue;
+    console.log(
+      `Rendering farmer ${farmer.name}: raw remark='${remarkValue}', selected='${capitalizedRemark}'`
+    ); // Debug remark
 
     // Conditionally render checkbox and remarks select
     const checkboxCell =
@@ -127,15 +133,21 @@ function renderTable(filteredFarmers, selectedDate) {
           <option value="" ${
             !remarkValue ? "selected" : ""
           }>Select remark</option>
+          <option value="Outstanding" ${
+            capitalizedRemark === "Outstanding" ? "selected" : ""
+          } style="color: #41a186;">Outstanding</option>
+          <option value="High Efficient" ${
+            capitalizedRemark === "High Efficient" ? "selected" : ""
+          } style="color: #41a186;">High Efficient</option>
           <option value="Productive" ${
             capitalizedRemark === "Productive" ? "selected" : ""
           } style="color: #41a186;">Productive</option>
-          <option value="Average" ${
-            capitalizedRemark === "Average" ? "selected" : ""
-          } style="color: #9854cb;">Average</option>
-          <option value="Needs improvement" ${
-            capitalizedRemark === "Needs improvement" ? "selected" : ""
-          } style="color: #ac415b;">Needs improvement</option>
+          <option value="Average Performer" ${
+            capitalizedRemark === "Average Performer" ? "selected" : ""
+          } style="color: #9854cb;">Average Performer</option>
+          <option value="Needs Improvement" ${
+            capitalizedRemark === "Needs Improvement" ? "selected" : ""
+          } style="color: #ac415b;">Needs Improvement</option>
         </select>`
         : `<span>${capitalizedRemark || "—"}</span>`;
 
@@ -144,7 +156,7 @@ function renderTable(filteredFarmers, selectedDate) {
         <td>${checkboxCell}</td>
         <td>${farmer.name || "Unknown Farmer"}</td>
         <td>Farmer</td>
-        <td ${dateStyle}>${farmerDate}</td>
+        <td>${farmerDate}</td>
         <td>${remarksCell}</td>
         <td style="display: none;">${farmer.id}</td>
       </tr>
@@ -165,6 +177,12 @@ async function fetchFarmers(projectId) {
     let attendanceData = [];
     const selectedDate = sessionStorage.getItem("selected_date");
     const subtaskName = sessionStorage.getItem("subtask_name");
+
+    if (!selectedDate || !subtaskName) {
+      console.error("Missing selected_date or subtask_name in sessionStorage");
+      showErrorPanel("Required session data missing.");
+      return;
+    }
 
     if (!querySnapshot.empty) {
       const projectDoc = querySnapshot.docs[0];
@@ -332,7 +350,8 @@ function confirmSaveAttendance() {
 // Function to save attendance data with modal confirmation
 async function saveAttendance(projectId) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
     );
@@ -351,7 +370,11 @@ async function saveAttendance(projectId) {
     }
 
     const originalSelectedDate = sessionStorage.getItem("selected_date");
-    const todayDate = new Date().toISOString().split("T")[0];
+    if (!originalSelectedDate) {
+      showErrorPanel("No selected date provided.");
+      return;
+    }
+
     const projectTaskId = sessionStorage.getItem("project_task_id");
     const taskName = sessionStorage.getItem("selected_task_name");
     const selectedProjectId = sessionStorage.getItem("selected_project_id");
@@ -411,7 +434,7 @@ async function saveAttendance(projectId) {
     let hasChanges = false;
 
     checkboxes.forEach((checkbox, index) => {
-      const row = checkbox.closest("tr"); // Fixed typo: changed 'rowDistance' to 'row'
+      const row = checkbox.closest("tr");
       const farmerName = row.querySelector("td:nth-child(2)").textContent;
       const farmerId = row.querySelector("td:nth-child(6)").textContent;
       const remarkValue = remarks[index].value;
@@ -419,15 +442,27 @@ async function saveAttendance(projectId) {
 
       const capitalizedPresent =
         isPresent.charAt(0).toUpperCase() + isPresent.slice(1).toLowerCase();
+      // Ensure remark matches dropdown option exactly
       const capitalizedRemark =
-        remarkValue.charAt(0).toUpperCase() +
-        remarkValue.slice(1).toLowerCase();
+        remarkValue === "Outstanding"
+          ? "Outstanding"
+          : remarkValue === "High Efficient"
+          ? "High Efficient"
+          : remarkValue === "Productive"
+          ? "Productive"
+          : remarkValue === "Average Performer"
+          ? "Average Performer"
+          : remarkValue === "Needs Improvement"
+          ? "Needs Improvement"
+          : "";
+
+      console.log(`Saving for ${farmerName}: remark=${capitalizedRemark}`); // Debug remark
 
       const currentData = {
         farmer_id: farmerId,
         farmer_name: farmerName,
         present: capitalizedPresent,
-        date: todayDate,
+        date: originalSelectedDate,
         remarks: capitalizedRemark,
       };
 
@@ -474,7 +509,7 @@ async function saveAttendance(projectId) {
     const tbAttendanceData = {
       project_id: Number(projectId),
       farmers: mergedFarmers,
-      date_created: originalSelectedDate || todayDate,
+      date_created: originalSelectedDate,
       task_name: taskName,
       project_task_id: Number(projectTaskId),
       subtask_name: subtaskName,
@@ -487,7 +522,7 @@ async function saveAttendance(projectId) {
     const tbAttendanceQuery = query(
       existingTbAttendanceRef,
       where("project_id", "==", Number(projectId)),
-      where("date_created", "==", originalSelectedDate || todayDate),
+      where("date_created", "==", originalSelectedDate),
       where("project_task_id", "==", Number(projectTaskId)),
       where("subtask_name", "==", subtaskName)
     );
@@ -540,7 +575,7 @@ async function saveAttendance(projectId) {
           subAttendanceDocRef,
           {
             farmers: mergedFarmers,
-            date_created: originalSelectedDate || todayDate,
+            date_created: originalSelectedDate,
             subtask_name: subtaskName,
           },
           { merge: true }
@@ -558,6 +593,8 @@ async function saveAttendance(projectId) {
     }
 
     showSuccessPanel("Attendance data updated successfully!");
+    // Clear cached attendance_doc_id to force fresh fetch
+    sessionStorage.removeItem("attendance_doc_id");
     await fetchFarmers(projectId);
   } catch (error) {
     console.error("Error saving attendance data:", error);
@@ -590,6 +627,7 @@ export function initializeAttendancePage() {
   document.addEventListener("DOMContentLoaded", async () => {
     const projectId = sessionStorage.getItem("selected_project_id");
     const endDate = sessionStorage.getItem("selected_project_end_date");
+    const extendDate = sessionStorage.getItem("selected_project_extend_date");
 
     if (!projectId) {
       console.error("No selected_project_id found in sessionStorage.");
@@ -599,7 +637,7 @@ export function initializeAttendancePage() {
       return;
     }
 
-    console.log(`Fetched end_date on attendance page: ${endDate}`); // Log end_date
+    console.log(`Fetched end_date: ${endDate}, extend_date: ${extendDate}`); // Log end_date and extend_date
 
     const backArrow = document.querySelector(".back-arrow");
     if (backArrow) {
@@ -618,13 +656,16 @@ export function initializeAttendancePage() {
       if (subtaskStatus === "Completed") {
         saveBtn.disabled = true;
         console.log("Save button disabled because subtask_status is Completed");
+      } else if (endDate && isPastEndDate(endDate, extendDate)) {
+        saveBtn.disabled = true;
+        console.log("Save button disabled because project is past deadline");
       } else {
         saveBtn.disabled = false;
         console.log("Save button enabled");
       }
 
       saveBtn.addEventListener("click", async () => {
-        if (endDate && isPastEndDate(endDate)) {
+        if (endDate && isPastEndDate(endDate, extendDate)) {
           showErrorPanel(
             "Project is way past the deadline, request extension of project"
           );

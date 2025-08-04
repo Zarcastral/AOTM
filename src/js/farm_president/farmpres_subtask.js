@@ -64,11 +64,15 @@ function showErrorPanel(message) {
   }, 4000);
 }
 
-// Utility function to check if current date is past end_date
-function isPastEndDate(endDate) {
+// Utility function to check if current date is past the relevant deadline (extend_date or end_date)
+function isPastEndDate(endDate, extendDate) {
   const currentDate = new Date();
-  const projectEndDate = new Date(endDate);
-  return currentDate > projectEndDate;
+  // Use extend_date if it exists and is valid, otherwise fall back to end_date
+  const projectDeadline =
+    extendDate && !isNaN(new Date(extendDate))
+      ? new Date(extendDate)
+      : new Date(endDate);
+  return currentDate > projectDeadline;
 }
 
 // Function to fetch subtasks and populate the table
@@ -84,7 +88,8 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
       `Starting fetchSubtasks from ${source} for projectTaskId: ${projectTaskId}`
     );
     const endDate = sessionStorage.getItem("selected_project_end_date");
-    console.log(`Fetched end_date on subtask page: ${endDate}`);
+    const extendDate = sessionStorage.getItem("selected_project_extend_date");
+    console.log(`Fetched end_date: ${endDate}, extend_date: ${extendDate}`);
 
     const tasksRef = collection(db, "tb_project_task");
     const q = query(
@@ -178,7 +183,8 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
 function attachEventListeners(projectTaskId) {
   console.log("Attaching event listeners for projectTaskId:", projectTaskId);
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const isPastEnd = endDate ? isPastEndDate(endDate) : false;
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  const isPastEnd = endDate ? isPastEndDate(endDate, extendDate) : false;
 
   const deleteModal = document.getElementById("deleteConfirmModal");
   const closeDeleteModal = document.querySelector(".close-delete-modal");
@@ -324,7 +330,8 @@ function attachEventListeners(projectTaskId) {
 // Function to delete subtask and associated attendance records from Firestore
 async function deleteSubtask(projectTaskId, subtaskIndex) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
     );
@@ -427,7 +434,8 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
 // Function to add new subtask
 async function addSubtask(projectTaskId, newSubtaskName) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
     );
@@ -509,7 +517,8 @@ async function updateCompleteButtonState(projectTaskId) {
 // Function to complete the task
 async function completeTask(projectTaskId) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  if (endDate && isPastEndDate(endDate)) {
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
     );
@@ -583,9 +592,10 @@ async function handleAddSubtaskClick(e) {
   const projectTaskId = sessionStorage.getItem("project_task_id");
   const modal = document.getElementById("subtaskModal");
   const endDate = sessionStorage.getItem("selected_project_end_date");
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
 
   try {
-    if (endDate && isPastEndDate(endDate)) {
+    if (endDate && isPastEndDate(endDate, extendDate)) {
       showErrorPanel(
         "Project is way past the deadline, request extension of project"
       );

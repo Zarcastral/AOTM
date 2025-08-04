@@ -335,25 +335,41 @@ async function showExtendDatePanel(project_id) {
 
       if (projectData.extend_date) {
         // Show already extended message
-        document.getElementById("start-date-extended").textContent = `Start Date: ${projectData.start_date || "Not set"}`;
-        document.getElementById("current-end-date-extended").textContent = `Current End Date: ${projectData.end_date || "Not set"}`;
-        document.getElementById("extended-date").textContent = `Extended Date: ${projectData.extend_date}`;
+        document.getElementById(
+          "start-date-extended"
+        ).textContent = `Start Date: ${projectData.start_date || "Not set"}`;
+        document.getElementById(
+          "current-end-date-extended"
+        ).textContent = `Current End Date: ${
+          projectData.end_date || "Not set"
+        }`;
+        document.getElementById(
+          "extended-date"
+        ).textContent = `Extended Date: ${projectData.extend_date}`;
         extendForm.style.display = "none";
         extendedMessage.style.display = "block";
         extendDatePanel.style.display = "block";
         extendOverlay.style.display = "block"; // Show overlay
         document.body.style.overflow = "hidden";
 
-        document.getElementById("close-extend").addEventListener("click", () => {
-          extendDatePanel.style.display = "none";
-          extendOverlay.style.display = "none"; // Hide overlay
-          document.body.style.overflow = "auto";
-          selectedExtendProjectId = null;
-        });
+        document
+          .getElementById("close-extend")
+          .addEventListener("click", () => {
+            extendDatePanel.style.display = "none";
+            extendOverlay.style.display = "none"; // Hide overlay
+            document.body.style.overflow = "auto";
+            selectedExtendProjectId = null;
+          });
       } else {
         // Show extend date form
-        document.getElementById("start-date").textContent = `Start Date: ${projectData.start_date || "Not set"}`;
-        document.getElementById("current-end-date").textContent = `Current End Date: ${projectData.end_date || "Not set"}`;
+        document.getElementById("start-date").textContent = `Start Date: ${
+          projectData.start_date || "Not set"
+        }`;
+        document.getElementById(
+          "current-end-date"
+        ).textContent = `Current End Date: ${
+          projectData.end_date || "Not set"
+        }`;
         document.getElementById("extend-date-input").value = "";
         document.getElementById("extend-error").style.display = "none";
         extendForm.style.display = "block";
@@ -362,13 +378,17 @@ async function showExtendDatePanel(project_id) {
         extendOverlay.style.display = "block"; // Show overlay
         document.body.style.overflow = "hidden";
 
-        document.getElementById("confirm-extend").addEventListener("click", () => handleExtendDate(projectData));
-        document.getElementById("cancel-extend").addEventListener("click", () => {
-          extendDatePanel.style.display = "none";
-          extendOverlay.style.display = "none"; // Hide overlay
-          document.body.style.overflow = "auto";
-          selectedExtendProjectId = null;
-        });
+        document
+          .getElementById("confirm-extend")
+          .addEventListener("click", () => handleExtendDate(projectData));
+        document
+          .getElementById("cancel-extend")
+          .addEventListener("click", () => {
+            extendDatePanel.style.display = "none";
+            extendOverlay.style.display = "none"; // Hide overlay
+            document.body.style.overflow = "auto";
+            selectedExtendProjectId = null;
+          });
       }
     }
   } catch (error) {
@@ -399,15 +419,16 @@ async function handleExtendDate(projectData) {
   }
 
   try {
-    const q = query(
+    // Query tb_projects for the project
+    const projectQuery = query(
       collection(db, "tb_projects"),
       where("project_id", "==", Number(selectedExtendProjectId))
     );
-    const querySnapshot = await getDocs(q);
+    const projectSnapshot = await getDocs(projectQuery);
 
-    if (!querySnapshot.empty) {
-      const docRef = querySnapshot.docs[0].ref;
-      const latestData = querySnapshot.docs[0].data();
+    if (!projectSnapshot.empty) {
+      const projectDocRef = projectSnapshot.docs[0].ref;
+      const latestData = projectSnapshot.docs[0].data();
 
       if (latestData.extend_date) {
         showDeleteMessage(
@@ -415,26 +436,54 @@ async function handleExtendDate(projectData) {
           false
         );
         document.getElementById("extend-date-panel").style.display = "none";
-        extendOverlay.style.display = "none"; // Hide overlay
+        extendOverlay.style.display = "none";
         document.body.style.overflow = "auto";
         selectedExtendProjectId = null;
         return;
       }
 
-      await updateDoc(docRef, {
+      // Update extend_date in tb_projects
+      await updateDoc(projectDocRef, {
         extend_date: extendDateInput,
       });
 
+      // Query and update all related tasks in tb_project_task
+      const taskQuery = query(
+        collection(db, "tb_project_task"),
+        where("project_id", "==", String(selectedExtendProjectId))
+      );
+      const taskSnapshot = await getDocs(taskQuery);
+
+      // Update extend_date for each task
+      const updatePromises = taskSnapshot.docs.map(async (taskDoc) => {
+        const taskRef = taskDoc.ref;
+        await updateDoc(taskRef, {
+          extend_date: extendDateInput,
+        });
+      });
+
+      // Wait for all task updates to complete
+      await Promise.all(updatePromises);
+
+      // Close the panel and show success message
       document.getElementById("extend-date-panel").style.display = "none";
-      extendOverlay.style.display = "none"; // Hide overlay
+      extendOverlay.style.display = "none";
       document.body.style.overflow = "auto";
-      showDeleteMessage("Project extension date added successfully!", true);
+      showDeleteMessage(
+        "Project and related tasks extension date updated successfully!",
+        true
+      );
       fetch_projects();
       selectedExtendProjectId = null;
+    } else {
+      showDeleteMessage("Project not found.", false);
     }
   } catch (error) {
-    console.error("Error adding extension date:", error);
-    showDeleteMessage("Error updating project extension date.", false);
+    console.error("Error updating extension date:", error);
+    showDeleteMessage(
+      "Error updating project and tasks extension date.",
+      false
+    );
   }
 }
 
@@ -775,7 +824,7 @@ function setupProjectHistoryListener() {
           await setDoc(doc(historyCollection, projectId), {
             ...projectData,
             moved_to_history_timestamp: new Date().toISOString(),
-            history_status: status // Optional: Store the status that triggered the move
+            history_status: status, // Optional: Store the status that triggered the move
           });
           await deleteDoc(doc(db, "tb_projects", projectId));
           fetch_projects(); // Update the table in real-time

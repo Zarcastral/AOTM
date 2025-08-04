@@ -1,379 +1,403 @@
 body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #f5f9ff;
-    margin: 0;
-    padding-top: 1px;
-    cursor: default;
-    min-height: 100vh; /* Ensure body takes full viewport height */
+  font-family: "Poppins", sans-serif;
+  background-color: #f5f9ff;
+  margin: 0;
+  padding-top: 1px;
+  cursor: default;
+  min-height: 100vh; /* Ensure body takes full viewport height */
 }
 
 .panel-container {
-    max-width: 800px;
-    width: 90%; /* Flexible width for smaller screens */
-    margin: 100px auto 20px; /* Consistent margin */
-    position: relative;
-    box-sizing: border-box; /* Prevent padding issues */
+  max-width: 800px;
+  width: 90%; /* Flexible width for smaller screens */
+  margin: 100px auto 20px; /* Consistent margin */
+  position: relative;
+  box-sizing: border-box; /* Prevent padding issues */
 }
 
 .back-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    position: relative;
-    left: 10px; /* Fixed size as original */
-    margin-bottom: 20px;
-    margin-top: -50px; /* Fixed size as original */
-    margin-left: -10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
+  left: 10px; /* Fixed size as original */
+  margin-bottom: 20px;
+  margin-top: -50px; /* Fixed size as original */
+  margin-left: -10px;
 }
 
 .back-btn img {
-    width: 30px; /* Fixed size as original */
-    height: 30px;
+  width: 30px; /* Fixed size as original */
+  height: 30px;
 }
 
 .panel {
-    background-color: #fff;
-    border-radius: 10px; /* Fixed size as original */
-    padding: 40px; /* Fixed size as original */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e0e0;
-    box-sizing: border-box;
+  background-color: #fff;
+  border-radius: 10px; /* Fixed size as original */
+  padding: 40px; /* Fixed size as original */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  box-sizing: border-box;
 }
 
 .panel-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px; /* Fixed size as original */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px; /* Fixed size as original */
 }
 
 .panel-top h1 {
-    font-size: 24px; /* Fixed size as original */
-    color: #333;
-    margin: 0;
+  font-size: 24px; /* Fixed size as original */
+  color: #333;
+  margin: 0;
 }
 
 .add-day-btn {
-    color: #41A186;
-    font-size: 14px; /* Fixed size as original */
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-top: -10px; /* Fixed size as original */
+  color: #41a186;
+  font-size: 14px; /* Fixed size as original */
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: -10px; /* Fixed size as original */
 }
 
 .add-day-btn:hover {
-    opacity: 0.8;
-    text-decoration: underline;
+  opacity: 0.8;
+  text-decoration: underline;
 }
 
 .subtask-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px; /* Fixed size as original */
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px; /* Fixed size as original */
 }
 
 .subtask-table th,
 .subtask-table td {
-    padding: 10px; /* Fixed size as original */
-    text-align: center;
-    border-bottom: 1px solid #e0e0e0;
+  padding: 10px; /* Fixed size as original */
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .subtask-table th {
-    font-size: 12px; /* Fixed size as original */
-    color: #666;
-    text-transform: uppercase;
+  font-size: 12px; /* Fixed size as original */
+  color: #666;
+  text-transform: uppercase;
 }
 
 .subtask-table td {
-    font-size: 14px; /* Fixed size as original */
-    color: #333;
+  font-size: 14px; /* Fixed size as original */
+  color: #333;
 }
 
 .subtask-table td[colspan="3"] {
-    padding: 10px; /* Match original td padding */
-    text-align: center;
-    font-size: 14px; /* Match original td font-size */
-    color: #333; /* Match original td color */
+  padding: 10px; /* Match original td padding */
+  text-align: center;
+  font-size: 14px; /* Match original td font-size */
+  color: #333; /* Match original td color */
 }
 
 .action-icons img {
-    width: 16px; /* Fixed size as original */
-    height: 16px;
-    margin-left: 10px; /* Fixed size as original */
-    cursor: pointer;
-    opacity: 0.5;
+  width: 16px; /* Fixed size as original */
+  height: 16px;
+  margin-left: 10px; /* Fixed size as original */
+  cursor: pointer;
+  opacity: 0.5;
 }
 
 .action-icons img:hover {
-    opacity: 1;
+  opacity: 1;
 }
 
 .completed-btn {
-    display: block;
-    width: 100px; /* Fixed size as original */
-    margin: 20px 0 0 auto; /* Fixed size as original */
-    padding: 10px; /* Fixed size as original */
-    background-color: #41A186;
-    color: #fff;
-    border: none;
-    border-radius: 5px; /* Fixed size as original */
-    cursor: pointer;
-    font-size: 14px; /* Fixed size as original */
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: block;
+  width: 100px; /* Fixed size as original */
+  margin: 20px 0 0 auto; /* Fixed size as original */
+  padding: 10px; /* Fixed size as original */
+  background-color: #41a186;
+  color: #fff;
+  border: none;
+  border-radius: 5px; /* Fixed size as original */
+  cursor: pointer;
+  font-size: 14px; /* Fixed size as original */
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .completed-btn:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 .completed-btn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.6;
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Modal Design */
 .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
 .modal-content {
-    background-color: #fff;
-    padding: 20px; /* Fixed size as original */
-    border-radius: 5px; /* Fixed size as original */
-    width: 400px; /* Fixed size as original */
-    max-width: 90%; /* Ensure it fits smaller screens */
-    box-sizing: border-box;
+  background-color: #fff;
+  padding: 20px; /* Fixed size as original */
+  border-radius: 5px; /* Fixed size as original */
+  width: 400px; /* Fixed size as original */
+  max-width: 90%; /* Ensure it fits smaller screens */
+  box-sizing: border-box;
 }
 
 .close-modal {
-    position: absolute;
-    top: 10px; /* Fixed size as original */
-    right: 10px;
-    font-size: 24px; /* Fixed size as original */
-    cursor: pointer;
-    color: #666;
+  position: absolute;
+  top: 10px; /* Fixed size as original */
+  right: 10px;
+  font-size: 24px; /* Fixed size as original */
+  cursor: pointer;
+  color: #666;
 }
 
 .close-modal:hover {
-    color: #333;
+  color: #333;
 }
 
 .form-group {
-    margin-bottom: 15px; /* Fixed size as original */
+  margin-bottom: 15px; /* Fixed size as original */
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 5px; /* Fixed size as original */
-    font-size: 14px; /* Fixed size as original */
+  display: block;
+  margin-bottom: 5px; /* Fixed size as original */
+  font-size: 14px; /* Fixed size as original */
 }
 
 .form-group input {
-    width: 100%;
-    padding: 8px; /* Fixed size as original */
-    border: 1px solid #e0e0e0;
-    border-radius: 4px; /* Fixed size as original */
-    font-size: 14px; /* Fixed size as original */
-    box-sizing: border-box;
+  width: 100%;
+  padding: 8px; /* Fixed size as original */
+  border: 1px solid #e0e0e0;
+  border-radius: 4px; /* Fixed size as original */
+  font-size: 14px; /* Fixed size as original */
+  box-sizing: border-box;
 }
 
 .submit-btn {
-    background-color: #41A186;
-    color: #fff;
-    border: none;
-    padding: 10px 20px; /* Fixed size as original */
-    border-radius: 5px; /* Fixed size as original */
-    cursor: pointer;
-    font-size: 14px; /* Fixed size as original */
+  background-color: #41a186;
+  color: #fff;
+  border: none;
+  padding: 10px 20px; /* Fixed size as original */
+  border-radius: 5px; /* Fixed size as original */
+  cursor: pointer;
+  font-size: 14px; /* Fixed size as original */
 }
 
 .submit-btn:hover {
-    background-color: #359171;
+  background-color: #359171;
 }
 
 /* Delete and Complete Modal */
 .confirm-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px; /* Fixed size as original */
-    margin-top: 20px; /* Fixed size as original */
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px; /* Fixed size as original */
+  margin-top: 20px; /* Fixed size as original */
 }
 
 .cancel-btn {
-    background-color: #e0e0e0;
-    color: #333;
-    border: none;
-    padding: 8px 16px; /* Fixed size as original */
-    border-radius: 5px; /* Fixed size as original */
-    cursor: pointer;
-    font-size: 14px; /* Fixed size as original */
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 8px 16px; /* Fixed size as original */
+  border-radius: 5px; /* Fixed size as original */
+  cursor: pointer;
+  font-size: 14px; /* Fixed size as original */
 }
 
 .cancel-btn:hover {
-    background-color: #d0d0d0;
+  background-color: #d0d0d0;
 }
 
 .confirm-delete-btn,
 .confirm-complete-btn {
-    background-color: #41A186;
-    color: #fff;
-    border: none;
-    padding: 8px 16px; /* Fixed size as original */
-    border-radius: 5px; /* Fixed size as original */
-    cursor: pointer;
-    font-size: 14px; /* Fixed size as original */
+  background-color: #41a186;
+  color: #fff;
+  border: none;
+  padding: 8px 16px; /* Fixed size as original */
+  border-radius: 5px; /* Fixed size as original */
+  cursor: pointer;
+  font-size: 14px; /* Fixed size as original */
 }
 
 .confirm-delete-btn:hover,
 .confirm-complete-btn:hover {
-    background-color: #359171;
+  background-color: #359171;
 }
 
 .modal-content p {
-    margin: 15px 0; /* Fixed size as original */
-    color: #666;
+  margin: 15px 0; /* Fixed size as original */
+  color: #666;
 }
 
 /* Success and Error Messages */
 .success-message {
-    position: fixed;
-    top: 20px; /* Fixed size as original */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #41a186;
-    color: white;
-    padding: 10px 20px; /* Fixed size as original */
-    border-radius: 20px; /* Fixed size as original */
-    display: none;
-    font-size: 18px; /* Fixed size as original */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1001;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  position: fixed;
+  top: 20px; /* Fixed size as original */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #41a186;
+  color: white;
+  padding: 10px 20px; /* Fixed size as original */
+  border-radius: 20px; /* Fixed size as original */
+  display: none;
+  font-size: 18px; /* Fixed size as original */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .error-message {
-    position: fixed;
-    top: 20px; /* Fixed size as original */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #AC415B;
-    color: white;
-    padding: 10px 20px; /* Fixed size as original */
-    border-radius: 20px; /* Fixed size as original */
-    display: none;
-    font-size: 18px; /* Fixed size as original */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1001;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  position: fixed;
+  top: 20px; /* Fixed size as original */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ac415b;
+  color: white;
+  padding: 10px 20px; /* Fixed size as original */
+  border-radius: 20px; /* Fixed size as original */
+  display: none;
+  font-size: 18px; /* Fixed size as original */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Add Day Modal Close Button */
+#addDayModal .close-modal {
+  position: absolute;
+  top: 10px;
+  left: 10px; /* Upper left as requested */
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+#addDayModal .close-modal:hover {
+  color: #333;
+}
+
+/* Ensure date input is styled consistently */
+#addDayModal .form-group input[type="date"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
 }
 
 /* Media Queries for Responsiveness */
 @media screen and (max-width: 768px) {
-    .panel-container {
-        width: 95%; /* Slightly tighter fit to maximize space */
-        margin-top: 80px; /* Slightly reduced to fit header */
-    }
+  .panel-container {
+    width: 95%; /* Slightly tighter fit to maximize space */
+    margin-top: 80px; /* Slightly reduced to fit header */
+  }
 
-    .subtask-table {
-        display: block; /* Enable scrolling */
-        overflow-x: auto; /* Enable horizontal scrolling */
-        white-space: nowrap; /* Prevent text wrapping */
-    }
+  .subtask-table {
+    display: block; /* Enable scrolling */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: nowrap; /* Prevent text wrapping */
+  }
 
-    .subtask-table thead,
-    .subtask-table tbody {
-        display: table; /* Maintain table structure */
-        width: 100%;
-    }
+  .subtask-table thead,
+  .subtask-table tbody {
+    display: table; /* Maintain table structure */
+    width: 100%;
+  }
 
-    .subtask-table td[colspan="3"] {
-        min-width: 300px; /* Ensure message is wide enough to trigger scroll */
-        white-space: nowrap; /* Prevent wrapping */
-        padding: 10px; /* Match original td padding */
-        text-align: center;
-        font-size: 14px; /* Match original td font-size */
-        color: #333; /* Match original td color */
-    }
+  .subtask-table td[colspan="3"] {
+    min-width: 300px; /* Ensure message is wide enough to trigger scroll */
+    white-space: nowrap; /* Prevent wrapping */
+    padding: 10px; /* Match original td padding */
+    text-align: center;
+    font-size: 14px; /* Match original td font-size */
+    color: #333; /* Match original td color */
+  }
 
-    .modal-content {
-        width: 400px; /* Same size as original */
-        max-width: 85%; /* Ensure it fits smaller screens */
-    }
+  .modal-content {
+    width: 400px; /* Same size as original */
+    max-width: 85%; /* Ensure it fits smaller screens */
+  }
 
-    .confirm-buttons {
-        flex-wrap: wrap; /* Allow buttons to wrap if needed */
-        gap: 10px; /* Maintain original spacing */
-    }
+  .confirm-buttons {
+    flex-wrap: wrap; /* Allow buttons to wrap if needed */
+    gap: 10px; /* Maintain original spacing */
+  }
 }
 
 @media screen and (max-width: 480px) {
-    .panel-container {
-        width: 95%; /* Maximize space on very small screens */
-        margin-top: 60px; /* Further reduced to fit header */
-    }
+  .panel-container {
+    width: 95%; /* Maximize space on very small screens */
+    margin-top: 60px; /* Further reduced to fit header */
+  }
 
-    .subtask-table {
-        display: block; /* Enable scrolling */
-        overflow-x: auto; /* Enable horizontal scrolling */
-        white-space: nowrap; /* Prevent text wrapping */
-    }
+  .subtask-table {
+    display: block; /* Enable scrolling */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: nowrap; /* Prevent text wrapping */
+  }
 
-    .subtask-table thead,
-    .subtask-table tbody {
-        display: table; /* Maintain table structure */
-        width: 100%;
-    }
+  .subtask-table thead,
+  .subtask-table tbody {
+    display: table; /* Maintain table structure */
+    width: 100%;
+  }
 
-    .subtask-table td[colspan="3"] {
-        min-width: 300px; /* Ensure message is wide enough to trigger scroll */
-        white-space: nowrap; /* Prevent wrapping */
-        padding: 10px; /* Match original td padding */
-        text-align: center;
-        font-size: 14px; /* Match original td font-size */
-        color: #333; /* Match original td color */
-    }
+  .subtask-table td[colspan="3"] {
+    min-width: 300px; /* Ensure message is wide enough to trigger scroll */
+    white-space: nowrap; /* Prevent wrapping */
+    padding: 10px; /* Match original td padding */
+    text-align: center;
+    font-size: 14px; /* Match original td font-size */
+    color: #333; /* Match original td color */
+  }
 
-    .modal-content {
-        width: 400px; /* Same size as original */
-        max-width: 90%; /* Fit very small screens */
-    }
+  .modal-content {
+    width: 400px; /* Same size as original */
+    max-width: 90%; /* Fit very small screens */
+  }
 
-    .confirm-buttons {
-        flex-direction: column; /* Stack buttons vertically to avoid squeezing */
-        gap: 10px; /* Maintain original spacing */
-    }
+  .confirm-buttons {
+    flex-direction: column; /* Stack buttons vertically to avoid squeezing */
+    gap: 10px; /* Maintain original spacing */
+  }
 
-    .cancel-btn,
-    .confirm-delete-btn,
-    .confirm-complete-btn {
-        width: 100%; /* Full width for better tap targets */
-        padding: 8px 16px; /* Same size as original */
-        font-size: 14px; /* Same size as original */
-    }
+  .cancel-btn,
+  .confirm-delete-btn,
+  .confirm-complete-btn {
+    width: 100%; /* Full width for better tap targets */
+    padding: 8px 16px; /* Same size as original */
+    font-size: 14px; /* Same size as original */
+  }
 
-    .success-message,
-    .error-message {
-        width: 90%; /* Ensure it fits screen */
-        text-align: center;
-        padding: 10px 20px; /* Same size as original */
-        font-size: 18px; /* Same size as original */
-    }
+  .success-message,
+  .error-message {
+    width: 90%; /* Ensure it fits screen */
+    text-align: center;
+    padding: 10px 20px; /* Same size as original */
+    font-size: 18px; /* Same size as original */
+  }
 }

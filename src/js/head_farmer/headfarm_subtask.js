@@ -31,7 +31,7 @@ function showSuccessPanel(message) {
     successMessage.style.opacity = "1";
   }, 5);
 
-  // Fade out after 4 seconds 
+  // Fade out after 4 seconds
   setTimeout(() => {
     successMessage.style.opacity = "0";
     setTimeout(() => {
@@ -64,11 +64,15 @@ function showErrorPanel(message) {
   }, 4000);
 }
 
-// Utility function to check if current date is past end_date
-function isPastEndDate(endDate) {
+// Utility function to check if current date is past the relevant deadline (extend_date or end_date)
+function isPastEndDate(endDate, extendDate) {
   const currentDate = new Date();
-  const projectEndDate = new Date(endDate);
-  return currentDate > projectEndDate;
+  // Use extend_date if it exists and is valid, otherwise fall back to end_date
+  const projectDeadline =
+    extendDate && !isNaN(new Date(extendDate))
+      ? new Date(extendDate)
+      : new Date(endDate);
+  return currentDate > projectDeadline;
 }
 
 // Utility function to check if user is the lead farmer
@@ -77,7 +81,6 @@ function isLeadFarmer() {
   const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
   return farmerId && leadFarmerId && farmerId === leadFarmerId;
 }
-
 
 // Function to fetch subtasks and populate the table
 async function fetchSubtasks(projectTaskId, source = "unknown") {
@@ -92,7 +95,8 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
       `Starting fetchSubtasks from ${source} for projectTaskId: ${projectTaskId}`
     );
     const endDate = sessionStorage.getItem("selected_project_end_date");
-    console.log(`Fetched end_date on subtask page: ${endDate}`);
+    const extendDate = sessionStorage.getItem("selected_project_extend_date");
+    console.log(`Fetched end_date: ${endDate}, extend_date: ${extendDate}`);
 
     const tasksRef = collection(db, "tb_project_task");
     const q = query(
@@ -136,8 +140,8 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
         const safeSubtaskName = subtask.subtask_name
           ? subtask.subtask_name.replace(/"/g, "")
           : "Unnamed Subtask";
-        
-        let deleteButton = '';
+
+        let deleteButton = "";
         if (userType === "Head Farmer" || isUserLeadFarmer) {
           deleteButton = `<img src="/images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${index}">`;
         }
@@ -181,12 +185,12 @@ async function fetchSubtasks(projectTaskId, source = "unknown") {
   return false;
 }
 
-
 // Function to attach event listeners to table elements
 function attachEventListeners(projectTaskId) {
   console.log("Attaching event listeners for projectTaskId:", projectTaskId);
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const isPastEnd = endDate ? isPastEndDate(endDate) : false;
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  const isPastEnd = endDate ? isPastEndDate(endDate, extendDate) : false;
 
   const deleteModal = document.getElementById("deleteConfirmModal");
   const closeDeleteModal = document.querySelector(".close-delete-modal");
@@ -226,11 +230,10 @@ function attachEventListeners(projectTaskId) {
   });
 
   async function handleDeleteClick(event) {
-    const endDate = sessionStorage.getItem("selected_project_end_date");
-    const userType = sessionStorage.getItem("user_type");
-    const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-    if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-      showErrorPanel("Project is way past the deadline, request extension of project");
+    if (isPastEnd) {
+      showErrorPanel(
+        "Project is way past the deadline, request extension of project"
+      );
       return;
     }
     subtaskIndexToDelete = event.target.dataset.index;
@@ -245,7 +248,9 @@ function attachEventListeners(projectTaskId) {
       const subtasks = querySnapshot.docs[0].data().subtasks || [];
       const subtask = subtasks[subtaskIndexToDelete];
       if (subtask.status === "Completed") {
-        showErrorPanel(`"${subtask.subtask_name}" is completed and cannot be deleted.`);
+        showErrorPanel(
+          `"${subtask.subtask_name}" is completed and cannot be deleted.`
+        );
         console.log(
           `Attempted to delete completed subtask: ${subtask.subtask_name}`
         );
@@ -269,11 +274,10 @@ function attachEventListeners(projectTaskId) {
   }
 
   async function confirmDeleteHandler() {
-    const endDate = sessionStorage.getItem("selected_project_end_date");
-    const userType = sessionStorage.getItem("user_type");
-    const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-    if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-      showErrorPanel("Project is way past the deadline, request extension of project");
+    if (isPastEnd) {
+      showErrorPanel(
+        "Project is way past the deadline, request extension of project"
+      );
       deleteModal.style.display = "none";
       return;
     }
@@ -302,10 +306,11 @@ function attachEventListeners(projectTaskId) {
 // Function to delete subtask and associated attendance records from Firestore
 async function deleteSubtask(projectTaskId, subtaskIndex) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const userType = sessionStorage.getItem("user_type");
-  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-    showErrorPanel("Project is way past the deadline, request extension of project");
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
+    showErrorPanel(
+      "Project is way past the deadline, request extension of project"
+    );
     return;
   }
 
@@ -405,10 +410,11 @@ async function deleteSubtask(projectTaskId, subtaskIndex) {
 // Function to add new subtask
 async function addSubtask(projectTaskId, newSubtaskName) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const userType = sessionStorage.getItem("user_type");
-  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-    showErrorPanel("Project is way past the deadline, request extension of project");
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
+    showErrorPanel(
+      "Project is way past the deadline, request extension of project"
+    );
     return false;
   }
 
@@ -487,10 +493,11 @@ async function updateCompleteButtonState(projectTaskId) {
 // Function to complete the task
 async function completeTask(projectTaskId) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const userType = sessionStorage.getItem("user_type");
-  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-    showErrorPanel("Project is way past the deadline, request extension of project");
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (endDate && isPastEndDate(endDate, extendDate)) {
+    showErrorPanel(
+      "Project is way past the deadline, request extension of project"
+    );
     return;
   }
 
@@ -516,7 +523,9 @@ async function completeTask(projectTaskId) {
         console.log(
           `Cannot complete task ${projectTaskId}: Not all subtasks are completed or no subtasks exist`
         );
-        showErrorPanel("Cannot complete task: All subtasks must be completed first.");
+        showErrorPanel(
+          "Cannot complete task: All subtasks must be completed first."
+        );
         return;
       }
 
@@ -560,12 +569,13 @@ async function handleAddSubtaskClick(e) {
   const projectTaskId = sessionStorage.getItem("project_task_id");
   const modal = document.getElementById("subtaskModal");
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const userType = sessionStorage.getItem("user_type");
-  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
 
   try {
-    if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-      showErrorPanel("Project is way past the deadline, request extension of project");
+    if (endDate && isPastEndDate(endDate, extendDate)) {
+      showErrorPanel(
+        "Project is way past the deadline, request extension of project"
+      );
       return;
     }
 
@@ -584,7 +594,9 @@ async function handleAddSubtaskClick(e) {
         console.log(
           `Cannot add subtask: Task ${projectTaskId} is already completed`
         );
-        showErrorPanel("Adding subtask is not possible since task is already completed");
+        showErrorPanel(
+          "Adding subtask is not possible since task is already completed"
+        );
         return;
       }
 
@@ -729,8 +741,12 @@ export function initializeSubtaskPage() {
         completeBtn.onclick = null;
         completeBtn.onclick = async () => {
           if (!completeBtn.disabled && !isNotAuthorized) {
-            showSuccessPanel("All subtasks are completed! Marking task as Completed...");
-            console.log("All subtasks are completed! Marking task as Completed...");
+            showSuccessPanel(
+              "All subtasks are completed! Marking task as Completed..."
+            );
+            console.log(
+              "All subtasks are completed! Marking task as Completed..."
+            );
             await completeTask(projectTaskId);
           }
         };

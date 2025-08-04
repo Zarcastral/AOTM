@@ -19,14 +19,58 @@ let tasksPerPage = 5;
 let currentPage = 1;
 let totalPages = 0;
 
-// Utility function to check if current date is past end_date
+// Utility function to check if current date is past end_date or extend_date
 function isPastEndDate(endDate, extendDate) {
   const currentDate = new Date();
-  // Use extendDate if it exists and is valid, otherwise use endDate
-  const effectiveEndDate = extendDate
-    ? new Date(extendDate)
-    : new Date(endDate);
-  return currentDate > effectiveEndDate;
+  console.log("isPastEndDate called with:", { endDate, extendDate });
+
+  // Prioritize extendDate if it exists
+  if (extendDate) {
+    console.log("extendDate provided:", extendDate);
+    const parsedExtendDate = new Date(extendDate);
+    if (!isNaN(parsedExtendDate.getTime())) {
+      // If extendDate is valid, use it for comparison
+      if (currentDate <= parsedExtendDate) {
+        console.log(
+          `Current date ${currentDate} is not past extendDate ${parsedExtendDate}, allowing actions`
+        );
+        return false; // Not past extendDate, allow actions
+      }
+      console.log(
+        `Current date ${currentDate} is past extendDate ${parsedExtendDate}`
+      );
+      return true; // Past extendDate, block actions
+    } else {
+      console.warn(
+        `Invalid extendDate: ${extendDate}, falling back to endDate`
+      );
+    }
+  } else {
+    console.warn("No extendDate provided, falling back to endDate");
+  }
+
+  // If no valid extendDate, check endDate
+  if (endDate) {
+    const parsedEndDate = new Date(endDate);
+    if (!isNaN(parsedEndDate.getTime())) {
+      if (currentDate <= parsedEndDate) {
+        console.log(
+          `Current date ${currentDate} is not past endDate ${parsedEndDate}, allowing actions`
+        );
+        return false; // Not past endDate, allow actions
+      }
+      console.log(
+        `Current date ${currentDate} is past endDate ${parsedEndDate}`
+      );
+      return true; // Past endDate, block actions
+    } else {
+      console.warn(`Invalid endDate: ${endDate}`);
+    }
+  }
+
+  // If neither date is valid, allow actions
+  console.warn("No valid endDate or extendDate provided, allowing actions");
+  return false;
 }
 
 // Function to show success panel
@@ -72,23 +116,80 @@ function showErrorPanel(message) {
   }, 4000);
 }
 
-// New function to display "No tasks available" message
+// Function to display "No tasks available" message
 function displayNoTasksMessage() {
   const taskTableBody = document.getElementById("taskTableBody");
   if (!taskTableBody) return;
   taskTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No tasks available.</td></tr>`;
-  updateFinishProjectButton(); // Update button state when no tasks
+  updateFinishProjectButton();
 }
 
-// Modified fetchProjectsForFarmer to store project status
-// Modified fetchProjectsForFarmer to store project status
-// Modified fetchProjectsForFarmer to store lead_farmer_id
+// Modified fetchProjectsForFarmer to always fetch project_id for Farm President and Head Farmer
 export async function fetchProjectsForFarmer() {
   const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
+  let projectId = null; // Initialize as null to ensure fresh fetch
 
-  if (["Admin", "Supervisor", "Farm President"].includes(userType)) {
-    const projectId = sessionStorage.getItem("selected_project_id");
+  // Always fetch project_id for Farm President or Head Farmer
+  if (
+    (userType === "Farm President" || userType === "Head Farmer") &&
+    farmerId
+  ) {
+    try {
+      const projectsRef = collection(db, "tb_projects");
+      const q = query(
+        projectsRef,
+        where("lead_farmer_id", "==", farmerId),
+        where("status", "==", "Ongoing")
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // Get the first matching project
+        const project = querySnapshot.docs[0].data();
+        projectId = String(project.project_id);
+        sessionStorage.setItem("selected_project_id", projectId);
+        sessionStorage.setItem("selected_crop_type", project.crop_type_name);
+        sessionStorage.setItem("selected_crop_name", project.crop_name);
+        sessionStorage.setItem("selected_project_end_date", project.end_date);
+        sessionStorage.setItem("selected_project_status", project.status);
+        sessionStorage.setItem(
+          "selected_lead_farmer_id",
+          String(project.lead_farmer_id)
+        );
+        if (project.extend_date) {
+          sessionStorage.setItem(
+            "selected_project_extend_date",
+            project.extend_date
+          );
+          console.log(
+            "Stored extend_date in sessionStorage:",
+            project.extend_date
+          );
+        } else {
+          sessionStorage.removeItem("selected_project_extend_date");
+          console.log("No extend_date found, removed from sessionStorage");
+        }
+        console.log(
+          `Found Ongoing project with ID ${projectId} for lead farmer ${farmerId}`
+        );
+        fetchProjectTasks(project.crop_type_name, project.project_id);
+      } else {
+        console.log("No Ongoing project found for lead farmer:", farmerId);
+        displayNoTasksMessage();
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching project for lead farmer:", error);
+      displayNoTasksMessage();
+      return;
+    }
+  }
+
+  // For Admin, Supervisor, or Farm President with no projectId from above
+  if (["Admin", "Supervisor"].includes(userType)) {
+    // Use projectId from sessionStorage if not set above
+    projectId = projectId || sessionStorage.getItem("selected_project_id");
     if (!projectId) {
       console.log("No project ID found for this user.");
       displayNoTasksMessage();
@@ -96,7 +197,10 @@ export async function fetchProjectsForFarmer() {
     }
     try {
       const projectsRef = collection(db, "tb_projects");
-      const q = query(projectsRef, where("project_id", "==", parseInt(projectId, 10)));
+      const q = query(
+        projectsRef,
+        where("project_id", "==", parseInt(projectId, 10))
+      );
       const querySnapshot = await getDocs(q);
       if (querySnapshot.empty) {
         console.log("Project not found.");
@@ -105,16 +209,26 @@ export async function fetchProjectsForFarmer() {
       }
       querySnapshot.forEach((doc) => {
         const project = doc.data();
-        sessionStorage.setItem("selected_project_id", String(project.project_id));
         sessionStorage.setItem("selected_crop_type", project.crop_type_name);
         sessionStorage.setItem("selected_crop_name", project.crop_name);
         sessionStorage.setItem("selected_project_end_date", project.end_date);
         sessionStorage.setItem("selected_project_status", project.status);
-        sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Ensure stored
+        sessionStorage.setItem(
+          "selected_lead_farmer_id",
+          String(project.lead_farmer_id)
+        );
         if (project.extend_date) {
-          sessionStorage.setItem("selected_project_extend_date", project.extend_date);
+          sessionStorage.setItem(
+            "selected_project_extend_date",
+            project.extend_date
+          );
+          console.log(
+            "Stored extend_date in sessionStorage:",
+            project.extend_date
+          );
         } else {
           sessionStorage.removeItem("selected_project_extend_date");
+          console.log("No extend_date found, removed from sessionStorage");
         }
         fetchProjectTasks(project.crop_type_name, project.project_id);
       });
@@ -125,68 +239,65 @@ export async function fetchProjectsForFarmer() {
     return;
   }
 
-  if (!farmerId) {
-    console.log("No farmer ID found in session.");
-    displayNoTasksMessage();
-    return;
-  }
-
-  try {
-    const projectsRef = collection(db, "tb_projects");
-    let q;
-    if (userType === "Head Farmer") {
-      // Try lead_farmer_id first
-      q = query(projectsRef, where("lead_farmer_id", "==", farmerId));
-      const leadQuerySnapshot = await getDocs(q);
-      if (!leadQuerySnapshot.empty) {
-        leadQuerySnapshot.forEach((doc) => {
+  // For Head Farmer with projectId set above
+  if (userType === "Farm President" || userType === "Head Farmer") {
+    if (!projectId) {
+      console.log("No project ID found after fetch.");
+      displayNoTasksMessage();
+      return;
+    }
+    try {
+      const projectsRef = collection(db, "tb_projects");
+      const q = query(
+        projectsRef,
+        where("project_id", "==", parseInt(projectId, 10))
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
           const project = doc.data();
-          sessionStorage.setItem("selected_project_id", String(project.project_id));
           sessionStorage.setItem("selected_crop_type", project.crop_type_name);
           sessionStorage.setItem("selected_crop_name", project.crop_name);
           sessionStorage.setItem("selected_project_end_date", project.end_date);
           sessionStorage.setItem("selected_project_status", project.status);
-          sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Ensure stored
-          fetchProjectTasks(project.crop_type_name, project.project_id);
-        });
-        return;
-      }
-      // Fallback: Check associated projects
-      console.log("No lead project found, checking associated projects...");
-      const membersRef = collection(db, "tb_project_members");
-      q = query(membersRef, where("farmer_id", "==", farmerId));
-      const memberQuerySnapshot = await getDocs(q);
-      if (memberQuerySnapshot.empty) {
-        console.log("No projects found for farmer.");
-        displayNoTasksMessage();
-        return;
-      }
-      const projectId = memberQuerySnapshot.docs[0].data().project_id;
-      q = query(projectsRef, where("project_id", "==", parseInt(projectId, 10)));
-      const projectQuerySnapshot = await getDocs(q);
-      if (!projectQuerySnapshot.empty) {
-        projectQuerySnapshot.forEach((doc) => {
-          const project = doc.data();
-          sessionStorage.setItem("selected_project_id", String(project.project_id));
-          sessionStorage.setItem("selected_crop_type", project.crop_type_name);
-          sessionStorage.setItem("selected_crop_name", project.crop_name);
-          sessionStorage.setItem("selected_project_end_date", project.end_date);
-          sessionStorage.setItem("selected_project_status", project.status);
-          sessionStorage.setItem("selected_lead_farmer_id", String(project.lead_farmer_id)); // Ensure stored
+          sessionStorage.setItem(
+            "selected_lead_farmer_id",
+            String(project.lead_farmer_id)
+          );
+          if (project.extend_date) {
+            sessionStorage.setItem(
+              "selected_project_extend_date",
+              project.extend_date
+            );
+            console.log(
+              "Stored extend_date in sessionStorage:",
+              project.extend_date
+            );
+          } else {
+            sessionStorage.removeItem("selected_project_extend_date");
+            console.log("No extend_date found, removed from sessionStorage");
+          }
           fetchProjectTasks(project.crop_type_name, project.project_id);
         });
       } else {
         console.log("No project details found.");
         displayNoTasksMessage();
       }
+    } catch (error) {
+      console.error("Error fetching project details:", error);
+      displayNoTasksMessage();
     }
-  } catch (error) {
-    console.error("Error fetching projects:", error);
+    return;
+  }
+
+  if (!farmerId) {
+    console.log("No farmer ID found in session.");
     displayNoTasksMessage();
+    return;
   }
 }
 
-// Modified fetchProjectTasks to update button state
+// Fetch project tasks
 async function fetchProjectTasks(cropTypeName, projectId) {
   try {
     const tasksRef = collection(db, "tb_project_task");
@@ -217,9 +328,14 @@ async function fetchProjectTasks(cropTypeName, projectId) {
     filteredTasks = [...allTasks];
     updatePagination();
     const userType = sessionStorage.getItem("user_type");
-    const allowEditDelete = userType === "Head Farmer";
+    const farmerId = sessionStorage.getItem("farmer_id");
+    const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
+    const isLeadFarmer = String(farmerId) === String(leadFarmerId);
+    const allowEditDelete =
+      userType === "Head Farmer" ||
+      (userType === "Farm President" && isLeadFarmer);
     renderTasks(allowEditDelete);
-    updateFinishProjectButton(); // Check button state after fetching tasks
+    updateFinishProjectButton();
     attachGlobalEventListeners();
   } catch (error) {
     console.error("❌ Error fetching project tasks:", error);
@@ -236,17 +352,15 @@ function updatePagination() {
   }
 }
 
-// Modified renderTasks to update button state
-// Modified renderTasks to update button state and ensure pagination compatibility
 function renderTasks(allowEditDelete) {
   const userType = sessionStorage.getItem("user_type");
   const farmerId = sessionStorage.getItem("farmer_id");
   const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
   const isLeadFarmer = String(farmerId) === String(leadFarmerId);
 
-  // Override allowEditDelete based on userType and lead_farmer_id
   allowEditDelete =
-    userType === "Head Farmer" || (userType === "Farm President" && isLeadFarmer);
+    userType === "Head Farmer" ||
+    (userType === "Farm President" && isLeadFarmer);
 
   const taskTableBody = document.getElementById("taskTableBody");
   if (!taskTableBody) return;
@@ -311,14 +425,11 @@ function renderTasks(allowEditDelete) {
   nextBtn.disabled = currentPage === totalPages || filteredTasks.length === 0;
 
   attachRowEventListeners();
-  updateFinishProjectButton(); // Update button state after rendering
+  updateFinishProjectButton();
 }
 
 let globalListenersAttached = false;
 
-
-// New function to update the Finish Project button state
-// Modified updateFinishProjectButton to check lead_farmer_id
 function updateFinishProjectButton() {
   const finishButton = document.getElementById("finishProjectButton");
   const failButton = document.getElementById("failProjectButton");
@@ -329,17 +440,16 @@ function updateFinishProjectButton() {
   const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
   const projectStatus = sessionStorage.getItem("selected_project_status");
 
-  // Disable both buttons if project is already Completed or Failed
   if (projectStatus === "Completed" || projectStatus === "Failed") {
     finishButton.disabled = true;
     failButton.disabled = true;
     return;
   }
 
-  // Enable finish button for Head Farmer or Farm President with matching lead_farmer_id
   const isLeadFarmer = String(farmerId) === String(leadFarmerId);
   if (
-    (userType === "Head Farmer" || (userType === "Farm President" && isLeadFarmer)) &&
+    (userType === "Head Farmer" ||
+      (userType === "Farm President" && isLeadFarmer)) &&
     isLeadFarmer
   ) {
     const allTasksCompleted =
@@ -350,14 +460,9 @@ function updateFinishProjectButton() {
     finishButton.disabled = true;
   }
 
-  // Fail button: Enable only for Farm President (regardless of lead_farmer_id)
   failButton.disabled = userType !== "Farm President";
 }
 
-
-
-// Modified attachGlobalEventListeners to include Finish Project button handler
-// Modified attachGlobalEventListeners to enable addTaskButton for Farm President with matching lead_farmer_id
 function attachGlobalEventListeners() {
   if (globalListenersAttached) return;
   globalListenersAttached = true;
@@ -384,7 +489,6 @@ function attachGlobalEventListeners() {
   const leadFarmerId = sessionStorage.getItem("selected_lead_farmer_id");
   const isLeadFarmer = String(farmerId) === String(leadFarmerId);
 
-  // Enable addTaskButton for Head Farmer or Farm President with matching lead_farmer_id
   if (
     userType !== "Head Farmer" &&
     !(userType === "Farm President" && isLeadFarmer)
@@ -406,6 +510,10 @@ function attachGlobalEventListeners() {
   addTaskButton.addEventListener("click", () => {
     const endDate = sessionStorage.getItem("selected_project_end_date");
     const extendDate = sessionStorage.getItem("selected_project_extend_date");
+    console.log("addTaskButton clicked, checking dates:", {
+      endDate,
+      extendDate,
+    });
     if (endDate && isPastEndDate(endDate, extendDate)) {
       showErrorPanel(
         "Project is way past the deadline, request extension of project"
@@ -415,7 +523,6 @@ function attachGlobalEventListeners() {
     addTaskModal.classList.remove("hidden");
   });
 
-  // Finish Project button handler
   if (finishProjectButton) {
     finishProjectButton.addEventListener("click", async () => {
       const projectId = sessionStorage.getItem("selected_project_id");
@@ -442,7 +549,7 @@ function attachGlobalEventListeners() {
         sessionStorage.setItem("selected_project_status", "Completed");
         showSuccessPanel("Project marked as Completed!");
         finishProjectButton.disabled = true;
-        updateFinishProjectButton(); // Update both buttons
+        updateFinishProjectButton();
         console.log(`Project ${projectId} status updated to Completed`);
       } catch (error) {
         console.error("❌ Error updating project status:", error);
@@ -451,14 +558,12 @@ function attachGlobalEventListeners() {
     });
   }
 
-  // Fail Project button handler
   if (failProjectButton) {
     failProjectButton.addEventListener("click", () => {
       failProjectModal.classList.remove("hidden");
     });
   }
 
-  // Fail Modal handlers
   if (confirmFailBtn) {
     confirmFailBtn.addEventListener("click", async () => {
       const projectId = sessionStorage.getItem("selected_project_id");
@@ -487,7 +592,7 @@ function attachGlobalEventListeners() {
         sessionStorage.setItem("selected_project_status", "Failed");
         showSuccessPanel("Project marked as Failed!");
         failProjectModal.classList.add("hidden");
-        updateFinishProjectButton(); // Update both buttons
+        updateFinishProjectButton();
         console.log(`Project ${projectId} status updated to Failed`);
       } catch (error) {
         console.error("❌ Error updating project status to Failed:", error);
@@ -540,6 +645,10 @@ function attachGlobalEventListeners() {
 function attachRowEventListeners() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  console.log("attachRowEventListeners, checking dates:", {
+    endDate,
+    extendDate,
+  });
   const isPastEnd = endDate ? isPastEndDate(endDate, extendDate) : false;
 
   document.querySelectorAll(".delete-icon").forEach((icon) => {
@@ -664,7 +773,7 @@ function openEditModal(taskId, currentTaskName) {
   saveEditBtn.disabled = true;
 
   saveEditBtn.removeEventListener("click", saveEditHandler);
-  cancelEditBtn.removeEventListener("click", cancelEditHandler);
+  cancelEditBtn.removeEventListener("click", saveEditHandler);
   closeEditModalBtn.removeEventListener("click", cancelEditHandler);
   editTaskNameInput.removeEventListener("input", checkTaskNameChange);
 
@@ -674,23 +783,9 @@ function openEditModal(taskId, currentTaskName) {
   editTaskNameInput.addEventListener("input", checkTaskNameChange);
 }
 
-
-
-
 const failProjectModal = document.getElementById("failProjectModal");
 const confirmFailBtn = document.getElementById("confirmFailBtn");
 const cancelFailBtn = document.getElementById("cancelFailBtn");
-
-
-
-
-
-
-
-
-
-
-
 
 function checkTaskNameChange() {
   const currentInput = editTaskNameInput.value.trim();
@@ -701,6 +796,7 @@ function checkTaskNameChange() {
 async function saveEditHandler() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  console.log("saveEditHandler, checking dates:", { endDate, extendDate });
   if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
@@ -817,11 +913,10 @@ function cancelEditHandler() {
   originalTaskName = null;
 }
 
-// Modified saveTaskHandler to update button state
-// Modified saveTaskHandler to update button state
 async function saveTaskHandler() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  console.log("saveTaskHandler, checking dates:", { endDate, extendDate });
   if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
@@ -911,20 +1006,17 @@ async function saveTaskHandler() {
       currentPage = totalPages;
     }
     renderTasks();
-    updateFinishProjectButton(); // Update button state after adding task
+    updateFinishProjectButton();
   } catch (error) {
     console.error("❌ Error adding task:", error);
     showErrorPanel("Failed to add task. Try again.");
   }
 }
 
-
-
-// Modified deleteTaskHandler to update button state
-// Modified deleteTaskHandler to update button state
 async function deleteTaskHandler() {
   const endDate = sessionStorage.getItem("selected_project_end_date");
   const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  console.log("deleteTaskHandler, checking dates:", { endDate, extendDate });
   if (endDate && isPastEndDate(endDate, extendDate)) {
     showErrorPanel(
       "Project is way past the deadline, request extension of project"
@@ -1000,7 +1092,7 @@ async function deleteTaskHandler() {
     } else {
       renderTasks();
     }
-    updateFinishProjectButton(); // Update button state after deletion
+    updateFinishProjectButton();
   } catch (error) {
     console.error("❌ Error deleting task and related records:", error);
     showErrorPanel("Failed to delete task. Try again.");
@@ -1008,98 +1100,8 @@ async function deleteTaskHandler() {
 
   deleteTaskModal.classList.add("hidden");
   taskToDelete = null;
-} 
-
-// Back button logic
-async function configureBackButton() {
-  const backContainer = document.querySelector(".back"); // Target the parent container
-  const backLink = document.querySelector(".back-link"); // For event listener
-  if (!backContainer || !backLink) {
-    console.warn("Back container or link not found in the DOM.");
-    return;
-  }
-
-  const userType = sessionStorage.getItem("user_type");
-  const farmerId = sessionStorage.getItem("farmer_id");
-  const projectId = sessionStorage.getItem("selected_project_id");
-
-  console.log("userType:", userType);
-  console.log("farmerId:", farmerId);
-  console.log("projectId:", projectId);
-
-  if (!projectId) {
-    console.error("No project_id found in sessionStorage.");
-    backContainer.style.display = "none"; // Hide if no project ID
-    return;
-  }
-
-  try {
-    const projectsRef = collection(db, "tb_projects");
-    const q = query(
-      projectsRef,
-      where("project_id", "==", parseInt(projectId, 10))
-    );
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      console.log("Project not found in tb_projects.");
-      backContainer.style.display = "none"; // Hide if project not found
-      return;
-    }
-
-    const projectData = querySnapshot.docs[0].data();
-    const leadFarmerId = projectData.lead_farmer_id;
-
-    console.log("leadFarmerId:", leadFarmerId);
-
-    const isLeadFarmer = farmerId && String(leadFarmerId) === String(farmerId);
-    console.log("isLeadFarmer:", isLeadFarmer);
-
-    // Define user types and their respective redirect paths
-    const navigationPaths = {
-      Admin: "../../../../landing_pages/admin/viewproject.html",
-      Supervisor: "../../../../landing_pages/admin/viewproject.html",
-      "Farm President":
-        "../../../landing_pages/farm_president/viewproject.html",
-    };
-
-    const canNavigateBack = Object.keys(navigationPaths).includes(userType);
-    console.log("canNavigateBack:", canNavigateBack);
-
-    if (isLeadFarmer && userType === "Head Farmer") {
-      // Hide back button only for Head Farmers who are lead farmers
-      backContainer.style.display = "none";
-      backContainer.classList.remove("visible");
-      console.log("Back button hidden: Head Farmer is lead farmer.");
-    } else if (canNavigateBack) {
-      // Show back button and enable navigation for Admin, Supervisor, and Farm President
-      backContainer.style.display = "block";
-      backContainer.classList.add("visible");
-      console.log("Back button visible: User is allowed to navigate back.");
-
-      backLink.addEventListener("click", (event) => {
-        event.preventDefault();
-        sessionStorage.setItem("selectedProjectId", projectId); // Consistent key
-        const redirectPath = navigationPaths[userType];
-        window.location.href = redirectPath;
-        console.log(`Navigating to ${redirectPath}`);
-      });
-    } else {
-      // For other users (e.g., regular Farmers), hide or use default behavior
-      backContainer.style.display = "none";
-      backContainer.classList.remove("visible");
-      console.log(
-        "Back button hidden: User type not allowed to navigate back."
-      );
-    }
-  } catch (error) {
-    console.error("Error fetching project data for back button:", error);
-    backContainer.style.display = "none";
-    backContainer.classList.remove("visible");
-  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchProjectsForFarmer();
-  configureBackButton();
 });

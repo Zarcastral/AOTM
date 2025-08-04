@@ -17,7 +17,9 @@ const db = getFirestore(app);
 // Function to show success panel
 function showSuccessPanel(message) {
   // Remove existing success or error panels
-  const existingPanels = document.querySelectorAll(".success-message, .error-message");
+  const existingPanels = document.querySelectorAll(
+    ".success-message, .error-message"
+  );
   existingPanels.forEach((panel) => panel.remove());
 
   const successMessage = document.createElement("div");
@@ -46,7 +48,9 @@ function showSuccessPanel(message) {
 // Function to show error panel
 function showErrorPanel(message) {
   // Remove existing success or error panels
-  const existingPanels = document.querySelectorAll(".success-message, .error-message");
+  const existingPanels = document.querySelectorAll(
+    ".success-message, .error-message"
+  );
   existingPanels.forEach((panel) => panel.remove());
 
   const errorMessage = document.createElement("div");
@@ -72,11 +76,15 @@ function showErrorPanel(message) {
   }, 4000);
 }
 
-// Utility function to check if current date is past end_date
-function isPastEndDate(endDate) {
+// Utility function to check if current date is past the relevant deadline (extend_date or end_date)
+function isPastEndDate(endDate, extendDate) {
   const currentDate = new Date();
-  const projectEndDate = new Date(endDate);
-  return currentDate > projectEndDate;
+  // Use extend_date if it exists and is valid, otherwise fall back to end_date
+  const projectDeadline =
+    extendDate && !isNaN(new Date(extendDate))
+      ? new Date(extendDate)
+      : new Date(endDate);
+  return currentDate > projectDeadline;
 }
 
 // Function to show confirmation modal for completing subtask and return a Promise
@@ -107,7 +115,53 @@ function isLeadFarmer() {
   return farmerId && leadFarmerId && farmerId === leadFarmerId;
 }
 
+// Function to show add day modal and return a Promise with the selected date
+function showAddDayModal() {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("addDayModal");
+    const dateInput = document.getElementById("attendanceDate");
+    const confirmBtn = document.getElementById("confirmAddDayBtn");
+    const cancelBtn = document.getElementById("cancelAddDayBtn");
+    const closeBtn = document.querySelector("#addDayModal .close-modal");
 
+    // Set max attribute to the current date in the user's local timezone
+    const today = new Date();
+    const localDate = new Date(
+      today.getTime() - today.getTimezoneOffset() * 60000
+    );
+    const maxDate = localDate.toISOString().split("T")[0];
+    dateInput.setAttribute("max", maxDate);
+
+    // Clear previous date selection
+    dateInput.value = "";
+
+    // Show modal
+    modal.style.display = "flex";
+
+    // Handle OK button
+    confirmBtn.onclick = () => {
+      const selectedDate = dateInput.value;
+      if (!selectedDate) {
+        showErrorPanel("Please select a date.");
+        return;
+      }
+      modal.style.display = "none";
+      resolve(selectedDate);
+    };
+
+    // Handle Cancel button
+    cancelBtn.onclick = () => {
+      modal.style.display = "none";
+      resolve(null);
+    };
+
+    // Handle Close (X) button
+    closeBtn.onclick = () => {
+      modal.style.display = "none";
+      resolve(null);
+    };
+  });
+}
 
 // Function to initialize the subtask details page
 export function initializeSubtaskDetailsPage() {
@@ -119,6 +173,7 @@ export function initializeSubtaskDetailsPage() {
     const cropName = sessionStorage.getItem("selected_crop_name");
     const projectTaskId = sessionStorage.getItem("project_task_id");
     const endDate = sessionStorage.getItem("selected_project_end_date");
+    const extendDate = sessionStorage.getItem("selected_project_extend_date");
 
     console.log("Retrieved from sessionStorage:", {
       subtaskName,
@@ -127,8 +182,9 @@ export function initializeSubtaskDetailsPage() {
       cropName,
       projectTaskId,
       endDate,
+      extendDate,
     });
-    console.log(`Fetched end_date on subtask details page: ${endDate}`);
+    console.log(`Fetched end_date: ${endDate}, extend_date: ${extendDate}`);
 
     try {
       const tasksRef = collection(db, "tb_project_task");
@@ -201,17 +257,25 @@ export function initializeSubtaskDetailsPage() {
 
     if (addDayBtn) {
       addDayBtn.addEventListener("click", async () => {
-        if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-          showErrorPanel("Project is way past the deadline, request extension of project");
+        if (isPastEndDate(endDate, extendDate)) {
+          showErrorPanel(
+            "Project is way past the deadline, request extension of project"
+          );
           return;
         }
-        await addNewDay(
-          projectId,
-          cropType,
-          cropName,
-          projectTaskId,
-          subtaskName
-        );
+        const selectedDate = await showAddDayModal();
+        if (selectedDate) {
+          await addNewDay(
+            projectId,
+            cropType,
+            cropName,
+            projectTaskId,
+            subtaskName,
+            selectedDate
+          );
+        } else {
+          console.log("Add day action canceled by user.");
+        }
       });
     }
 
@@ -223,8 +287,10 @@ export function initializeSubtaskDetailsPage() {
         completeBtn.style.cursor = "not-allowed";
       }
       completeBtn.addEventListener("click", async () => {
-        if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-          showErrorPanel("Project is way past the deadline, request extension of project");
+        if (isPastEndDate(endDate, extendDate)) {
+          showErrorPanel(
+            "Project is way past the deadline, request extension of project"
+          );
           return;
         }
         const confirmed = await confirmCompleteSubtask();
@@ -276,7 +342,9 @@ export function initializeSubtaskDetailsPage() {
               console.log(
                 `Database updated: Status set to "Completed" for subtask: ${subtaskName} in tb_project_task/${taskId}`
               );
-              showSuccessPanel("Subtask marked as Completed and saved to database!");
+              showSuccessPanel(
+                "Subtask marked as Completed and saved to database!"
+              );
               completeBtn.disabled = true;
 
               await fetchAttendanceData(
@@ -297,7 +365,9 @@ export function initializeSubtaskDetailsPage() {
             }
           } catch (error) {
             console.error("Error updating subtask status in database:", error);
-            showErrorPanel("Error marking subtask as completed: " + error.message);
+            showErrorPanel(
+              "Error marking subtask as completed: " + error.message
+            );
           }
         } else {
           console.log("Complete action canceled by user.");
@@ -328,8 +398,10 @@ export function initializeSubtaskDetailsPage() {
         sessionStorage.setItem("selected_date", dateCreated);
         window.location.href = "headfarm_attendance.html";
       } else if (event.target.matches(".action-icons img[alt='Delete']")) {
-        if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-          showErrorPanel("Project is way past the deadline, request extension of project");
+        if (isPastEndDate(endDate, extendDate)) {
+          showErrorPanel(
+            "Project is way past the deadline, request extension of project"
+          );
           return;
         }
         const dateCreated = event.target
@@ -458,6 +530,8 @@ async function fetchAttendanceData(
       const userType = sessionStorage.getItem("user_type");
       const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
 
+      // Collect and sort attendance records by date_created (oldest to latest)
+      const attendanceRecords = [];
       attendanceSnapshot.forEach((doc) => {
         const data = doc.data();
         const dateCreated = data.date_created || "No Date";
@@ -466,22 +540,49 @@ async function fetchAttendanceData(
           (farmer) => farmer.present === "Yes"
         ).length;
         const totalRecords = farmers.length;
-        const attendanceSummary =
-          presentCount === 0 ? "0" : `${presentCount}/${totalRecords}`;
+        attendanceRecords.push({
+          doc,
+          dateCreated,
+          farmers,
+          presentCount,
+          totalRecords,
+        });
+      });
 
-        if (presentCount === 0) {
-          hasZeroAttendance = true;
-        }
+      // Sort records by date_created
+      attendanceRecords.sort((a, b) => {
+        const dateA = new Date(a.dateCreated);
+        const dateB = new Date(b.dateCreated);
+        // Handle invalid dates by pushing them to the end
+        if (isNaN(dateA)) return 1;
+        if (isNaN(dateB)) return -1;
+        return dateA - dateB;
+      });
 
-        console.log(`Date Created: ${dateCreated}, Farmers:`, farmers);
+      console.log(
+        "Sorted attendance records:",
+        attendanceRecords.map((r) => r.dateCreated)
+      );
 
-        // Conditionally render the Delete button for Head Farmer or lead Farm President
-        let deleteButton = '';
-        if (userType === "Head Farmer" || isUserLeadFarmer) {
-          deleteButton = `<img src="/images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${doc.id}">`;
-        }
+      // Render sorted records
+      attendanceRecords.forEach(
+        ({ doc, dateCreated, farmers, presentCount, totalRecords }) => {
+          const attendanceSummary =
+            presentCount === 0 ? "0" : `${presentCount}/${totalRecords}`;
 
-        const row = `
+          if (presentCount === 0) {
+            hasZeroAttendance = true;
+          }
+
+          console.log(`Date Created: ${dateCreated}, Farmers:`, farmers);
+
+          // Conditionally render the Delete button for Head Farmer or lead Farm President
+          let deleteButton = "";
+          if (userType === "Head Farmer" || isUserLeadFarmer) {
+            deleteButton = `<img src="/images/Delete.png" alt="Delete" class="w-4 h-4 delete-icon" data-index="${doc.id}">`;
+          }
+
+          const row = `
           <tr>
             <td>${dateCreated}</td>
             <td>${attendanceSummary}</td>
@@ -491,14 +592,15 @@ async function fetchAttendanceData(
             </td>
           </tr>
         `;
-        tbody.insertAdjacentHTML("beforeend", row);
+          tbody.insertAdjacentHTML("beforeend", row);
 
-        if (selectedDate && dateCreated === selectedDate) {
-          latestAttendanceData = { presentCount, totalRecords };
-        } else if (!selectedDate && !latestAttendanceData) {
-          latestAttendanceData = { presentCount, totalRecords };
+          if (selectedDate && dateCreated === selectedDate) {
+            latestAttendanceData = { presentCount, totalRecords };
+          } else if (!selectedDate && !latestAttendanceData) {
+            latestAttendanceData = { presentCount, totalRecords };
+          }
         }
-      });
+      );
 
       completedBtn.disabled =
         hasZeroAttendance || currentStatus === "Completed";
@@ -527,20 +629,21 @@ async function fetchAttendanceData(
   }
 }
 
-
 // Function to add a new day to Firestore and update the table
 async function addNewDay(
   projectId,
   cropType,
   cropName,
   projectTaskId,
-  subtaskName
+  subtaskName,
+  selectedDate
 ) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const userType = sessionStorage.getItem("user_type");
-  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-    showErrorPanel("Project is way past the deadline, request extension of project");
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (isPastEndDate(endDate, extendDate)) {
+    showErrorPanel(
+      "Project is way past the deadline, request extension of project"
+    );
     return;
   }
 
@@ -550,9 +653,12 @@ async function addNewDay(
       !cropType ||
       !cropName ||
       !projectTaskId ||
-      !subtaskName
+      !subtaskName ||
+      !selectedDate
     ) {
-      throw new Error("Missing required sessionStorage values");
+      throw new Error(
+        "Missing required sessionStorage values or selected date"
+      );
     }
 
     const tasksRef = collection(db, "tb_project_task");
@@ -594,27 +700,30 @@ async function addNewDay(
       taskId,
       "Attendance"
     );
-    const currentDate = new Date().toISOString().split("T")[0];
-    const todayQuery = query(
+    const dateQuery = query(
       attendanceRef,
-      where("date_created", "==", currentDate),
+      where("date_created", "==", selectedDate),
       where("subtask_name", "==", subtaskName)
     );
-    const todaySnapshot = await getDocs(todayQuery);
+    const dateSnapshot = await getDocs(dateQuery);
 
-    if (!todaySnapshot.empty) {
+    if (!dateSnapshot.empty) {
       console.log(
-        "Attendance record for today already exists:",
-        todaySnapshot.docs[0].id
+        "Attendance record for selected date already exists:",
+        dateSnapshot.docs[0].id
       );
-      showErrorPanel("A record for today already exists. No new record will be created.");
+      showErrorPanel(
+        `A record for ${selectedDate} already exists. No new record will be created.`
+      );
       return;
     }
 
     const newAttendanceRef = doc(attendanceRef);
+    const timestampCreated = new Date().toISOString();
     await setDoc(newAttendanceRef, {
       farmers: [],
-      date_created: currentDate,
+      date_created: selectedDate,
+      timestamp_created: timestampCreated,
       project_id: projectId,
       project_task_id: Number(projectTaskId),
       subtask_name: subtaskName,
@@ -630,18 +739,18 @@ async function addNewDay(
       (!subtask || !subtask.status || subtask.status === "Pending")
     ) {
       subtasks[subtaskIndex].status = "Ongoing";
-      subtasks[subtaskIndex].start_date = currentDate;
+      subtasks[subtaskIndex].start_date = selectedDate;
     }
 
     await updateDoc(doc(db, "tb_project_task", taskId), {
       task_status: "Ongoing",
-      start_date: currentDate,
+      start_date: selectedDate,
       subtasks: subtasks,
     });
 
     sessionStorage.setItem("subtask_status", "Ongoing");
     console.log(
-      `Database updated: task_status set to "Ongoing" and start_date set to "${currentDate}" for task and subtask: ${subtaskName}`
+      `Database updated: task_status set to "Ongoing" and start_date set to "${selectedDate}" for task and subtask: ${subtaskName}`
     );
 
     await fetchAttendanceData(
@@ -652,7 +761,9 @@ async function addNewDay(
       subtaskName
     );
 
-    showSuccessPanel(`New day (${currentDate}) added successfully and saved to database! Click the view icon to add attendance details.`);
+    showSuccessPanel(
+      `New day (${selectedDate}) added successfully and saved to database! Click the view icon to add attendance details.`
+    );
   } catch (error) {
     console.error("Error adding new day to database:", error);
     showErrorPanel("Error adding new day: " + error.message);
@@ -692,10 +803,11 @@ async function deleteAttendanceRecord(
   dateCreated
 ) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
-  const userType = sessionStorage.getItem("user_type");
-  const isUserLeadFarmer = userType === "Farm President" && isLeadFarmer();
-  if (userType !== "Head Farmer" && !isUserLeadFarmer && endDate && isPastEndDate(endDate)) {
-    showErrorPanel("Project is way past the deadline, request extension of project");
+  const extendDate = sessionStorage.getItem("selected_project_extend_date");
+  if (isPastEndDate(endDate, extendDate)) {
+    showErrorPanel(
+      "Project is way past the deadline, request extension of project"
+    );
     return;
   }
 
@@ -735,7 +847,9 @@ async function deleteAttendanceRecord(
     const subtask_status = subtask ? subtask.status || "Pending" : "Pending";
 
     if (subtask_status === "Completed") {
-      showErrorPanel("This subtask is already completed; deleting date records is not allowed.");
+      showErrorPanel(
+        "This subtask is already completed; deleting date records is not allowed."
+      );
       return;
     }
 
@@ -836,7 +950,9 @@ async function deleteAttendanceRecord(
       );
     }
 
-    showSuccessPanel(`Attendance record for ${dateCreated} deleted successfully from both collections!`);
+    showSuccessPanel(
+      `Attendance record for ${dateCreated} deleted successfully from both collections!`
+    );
   } catch (error) {
     console.error("Error deleting attendance record from database:", error);
     showErrorPanel("Error deleting attendance record: " + error.message);

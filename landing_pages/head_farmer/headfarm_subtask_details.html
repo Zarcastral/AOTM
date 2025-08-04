@@ -17,8 +17,8 @@
         </button>
         <div class="panel">
             <div class="panel-top">
-                <h1 id="taskName">Task</h1>
-                <button class="add-day-btn">+ Add Day</button>
+                <h1 id="taskName"></h1>
+                <button class="add-day-btn">+ Add Record</button>
             </div>
 
             <table class="subtask-table">
@@ -35,7 +35,7 @@
             </table>
 
             <!-- Modal for Delete Confirmation (already present) -->
-            <div id="deleteConfirmationModal" class="modal" >
+            <div id="deleteConfirmationModal" class="modal">
                 <div class="modal-content">
                     <h3>Confirm Delete</h3>
                     <p id="deleteModalMessage">Are you sure you want to delete this record?</p>
@@ -47,13 +47,29 @@
             </div>
 
             <!-- New Modal for Complete Confirmation -->
-            <div id="completeConfirmationModal" class="modal" >
+            <div id="completeConfirmationModal" class="modal">
                 <div class="modal-content">
                     <h3>Confirm Complete</h3>
                     <p>Are you sure you want to mark this subtask as Complete?</p>
                     <div class="confirm-buttons">
                         <button id="cancelCompleteBtn" class="cancel-btn">No</button>
                         <button id="confirmCompleteBtn" class="confirm-complete-btn">Yes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Modal for Add Day Date Selection -->
+            <div id="addDayModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">×</span>
+                    <h3>Select Attendance Date</h3>
+                    <div class="form-group">
+                        <label for="attendanceDate">Select Date:</label>
+                        <input type="date" id="attendanceDate" max="" required>
+                    </div>
+                    <div class="confirm-buttons">
+                        <button id="cancelAddDayBtn" class="cancel-btn">Cancel</button>
+                        <button id="confirmAddDayBtn" class="submit-btn">OK</button>
                     </div>
                 </div>
             </div>
