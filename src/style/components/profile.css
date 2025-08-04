@@ -1,9 +1,15 @@
-/* Base styles (unchanged) */
+/* Base styles */
 body {
   font-family: "Poppins";
   background-color: #f4f4f4;
   margin: 0;
   padding: 0;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* Prevent overall page scrollbar */
 }
 
 .header {
@@ -15,6 +21,16 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
+  position: fixed; /* Keep header fixed */
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Ensure header stays above content */
+}
+
+.content-wrapper {
+  height: calc(100vh - 60px); /* Fit viewport minus header */
+  overflow-y: auto; /* Enable vertical scrolling for content */
+  box-sizing: border-box;
 }
 
 .header-title {
