@@ -1,149 +1,118 @@
 body {
-    font-family: 'Poppins';
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .header {
-    min-height: 60px;
-    height: 60px;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-  }
-  
-  .header-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #41A186;
-  }
-  
-  .header-icons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-  
-  .header-icons img {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-  }
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Disable overall page scrolling */
+}
 
-  #sex {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-    font-size: 16px;
-    color: #243B53;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    width: 500px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-    background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
-    background-size: 16px;
-    cursor: pointer;
-  }
-  
-  #user_type {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-    font-size: 16px;
-    color: #243B53;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    width: 500px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-    background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
-    background-size: 16px;
-    cursor: pointer;
-  }
-  
-  #barangay {
-    padding: 10px 30px 10px 10px; /* Add space for dropdown arrow */
-    font-size: 16px;
-    color: #243B53;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    width: 500px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    appearance: none; /* Removes default dropdown styling */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>'); /* Custom dropdown arrow */
-    background-repeat: no-repeat;
-    background-position: right 10px center; /* Moves the arrow closer */
-    background-size: 16px;
-    cursor: pointer;
-  }
-  
-  label {
-    font-weight: 500;
-  }
-  .container {
-    width: 400px;
-    margin: 50px auto;
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  h2 {
-    text-align: center;
-    font-size: 30px;
-    margin-bottom: 20px;
-    color: #333333;
-    margin-right: 200px;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  label {
-    display: block;
-    color: #333333;
-    margin-bottom: 5px;
-    font-weight: 500;
-  }
-  
-  input {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    
-  }
-  input, select {
-    width: 100%; /* Automatically adjusts width considering container padding */
-    max-width: 100%; /* Ensures they don't exceed the container width */
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box; /* Includes padding and border in width calculation */
-  }
-  
-  .close-button {
-    display: flex;
-    justify-content: flex-end; /* Aligns button to the right */
-    margin-top: 15px;
-    width: 100%; /* Ensures it spans the form width */
+/* Fixed Header */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 60px;
+  height: 60px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 1000; /* Ensure header stays above content */
+}
+
+.header-title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #41A186;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+/* Scrollable Content */
+.main-content {
+  height: calc(100vh - 60px); /* Full viewport height minus header */
+  overflow-y: auto; /* Enable vertical scrolling for content */
+  padding-bottom: 20px; /* Extra padding for bottom content */
+}
+
+.container {
+  width: 400px;
+  margin: 50px auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 20px;
+  color: #333333;
+  margin-right: 200px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  color: #333333;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+input, select {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#sex, #user_type, #barangay {
+  padding: 10px 30px 10px 10px;
+  font-size: 16px;
+  color: #243B53;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+.close-button {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+  width: 100%;
 }
 
 button {
-  width: 35%; /* Only as wide as its text */
-  padding: 10px 30px; /* Compact size */
+  width: 35%;
+  padding: 10px 30px;
   background-color: #cacaca;
   color: white;
   border: none;
@@ -157,7 +126,7 @@ button {
 button:hover {
   opacity: 0.8;
 }
-  
+
 .profile-picture-container {
   display: flex;
   justify-content: center;
@@ -172,22 +141,21 @@ button:hover {
   object-fit: cover;
 }
 
-/* The Modal (background) */
+/* Modal Styles */
 .modal {
   display: none;
   position: fixed;
-  z-index: 1;
+  z-index: 1001; /* Above header */
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
+  background-color: rgba(0, 0, 0, 0.8);
+  justify-content: center;
+  align-items: center;
 }
 
-/* Modal Content (image) */
 .modal-content {
   margin: auto;
   display: block;
@@ -196,7 +164,6 @@ button:hover {
   border-radius: 10px;
 }
 
-/* Caption of Modal Image */
 #caption {
   margin: auto;
   display: block;
@@ -207,18 +174,16 @@ button:hover {
   padding: 10px 0;
 }
 
-/* Add Animation - Zoom in the Modal */
-.modal-content, #caption { 
+.modal-content, #caption {
   animation-name: zoom;
   animation-duration: 0.6s;
 }
 
 @keyframes zoom {
-  from {transform: scale(0)} 
-  to {transform: scale(1)}
+  from { transform: scale(0); }
+  to { transform: scale(1); }
 }
 
-/* The Close Button */
 .close {
   position: absolute;
   top: 15px;
@@ -235,6 +200,8 @@ button:hover {
   text-decoration: none;
   cursor: pointer;
 }
+
+/* Responsive Design */
 @media (max-width: 1024px) {
   .header {
     height: 50px;
@@ -246,6 +213,9 @@ button:hover {
   .header-icons img {
     width: 20px;
     height: 20px;
+  }
+  .main-content {
+    height: calc(100vh - 50px);
   }
   .container {
     width: 350px;
@@ -293,12 +263,15 @@ button:hover {
     width: 18px;
     height: 18px;
   }
+  .main-content {
+    height: calc(100vh - 45px);
+  }
   .container {
     width: 300px;
     margin: 30px auto;
     padding: 12px;
   }
-.form-group {
+  .form-group {
     margin-bottom: 12px;
   }
   h2 {
@@ -341,6 +314,9 @@ button:hover {
   .header-icons img {
     width: 16px;
     height: 16px;
+  }
+  .main-content {
+    height: calc(100vh - 40px);
   }
   .container {
     width: 90%;
