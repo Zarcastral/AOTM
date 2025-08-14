@@ -344,6 +344,24 @@ function confirmSaveAttendance() {
   });
 }
 
+// Function to calculate score based on remark
+function getScoreFromRemark(remark) {
+  switch (remark) {
+    case "Outstanding":
+      return 5;
+    case "High Efficient":
+      return 4;
+    case "Productive":
+      return 3;
+    case "Average Performer":
+      return 2;
+    case "Needs Improvement":
+      return 1;
+    default:
+      return 0;
+  }
+}
+
 // Function to save attendance data with modal confirmation
 async function saveAttendance(projectId) {
   const endDate = sessionStorage.getItem("selected_project_end_date");
@@ -454,7 +472,11 @@ async function saveAttendance(projectId) {
           ? "Needs Improvement"
           : "";
 
-      console.log(`Saving for ${farmerName}: remark=${capitalizedRemark}`);
+      const score = getScoreFromRemark(capitalizedRemark);
+
+      console.log(
+        `Saving for ${farmerName}: remark=${capitalizedRemark}, score=${score}`
+      );
 
       const currentData = {
         farmer_id: farmerId,
@@ -462,6 +484,7 @@ async function saveAttendance(projectId) {
         present: capitalizedPresent,
         date: originalSelectedDate,
         remarks: capitalizedRemark,
+        score: score,
       };
 
       const existingRecord = existingAttendanceData.find(
@@ -471,7 +494,8 @@ async function saveAttendance(projectId) {
       if (
         !existingRecord ||
         existingRecord.present !== capitalizedPresent ||
-        existingRecord.remarks !== capitalizedRemark
+        existingRecord.remarks !== capitalizedRemark ||
+        existingRecord.score !== score
       ) {
         updatedAttendanceData.push(currentData);
         hasChanges = true;
@@ -607,12 +631,13 @@ function arraysEqual(a, b) {
   if (a.length !== b.length) return false;
 
   const normalize = (arr) =>
-    arr.map(({ farmer_id, farmer_name, present, date, remarks }) => ({
+    arr.map(({ farmer_id, farmer_name, present, date, remarks, score }) => ({
       farmer_id,
       farmer_name,
       present,
       date,
       remarks,
+      score,
     }));
 
   const aStr = JSON.stringify(normalize(a));

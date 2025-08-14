@@ -456,7 +456,23 @@ async function saveAttendance(projectId) {
           ? "Needs Improvement"
           : "";
 
-      console.log(`Saving for ${farmerName}: remark=${capitalizedRemark}`); // Debug remark
+      // Map remarks to scores
+      const score =
+        remarkValue === "Outstanding"
+          ? 5
+          : remarkValue === "High Efficient"
+          ? 4
+          : remarkValue === "Productive"
+          ? 3
+          : remarkValue === "Average Performer"
+          ? 2
+          : remarkValue === "Needs Improvement"
+          ? 1
+          : 0;
+
+      console.log(
+        `Saving for ${farmerName}: remark=${capitalizedRemark}, score=${score}`
+      ); // Debug remark and score
 
       const currentData = {
         farmer_id: farmerId,
@@ -464,6 +480,7 @@ async function saveAttendance(projectId) {
         present: capitalizedPresent,
         date: originalSelectedDate,
         remarks: capitalizedRemark,
+        score: score,
       };
 
       const existingRecord = existingAttendanceData.find(
@@ -473,7 +490,8 @@ async function saveAttendance(projectId) {
       if (
         !existingRecord ||
         existingRecord.present !== capitalizedPresent ||
-        existingRecord.remarks !== capitalizedRemark
+        existingRecord.remarks !== capitalizedRemark ||
+        existingRecord.score !== score
       ) {
         updatedAttendanceData.push(currentData);
         hasChanges = true;
@@ -609,12 +627,13 @@ function arraysEqual(a, b) {
   if (a.length !== b.length) return false;
 
   const normalize = (arr) =>
-    arr.map(({ farmer_id, farmer_name, present, date, remarks }) => ({
+    arr.map(({ farmer_id, farmer_name, present, date, remarks, score }) => ({
       farmer_id,
       farmer_name,
       present,
       date,
       remarks,
+      score,
     }));
 
   const aStr = JSON.stringify(normalize(a));
