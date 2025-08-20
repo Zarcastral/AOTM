@@ -360,9 +360,18 @@ window.loadFarmPresidents = async function () {
       assignToSelect.innerHTML =
         '<option value="" selected disabled>Select Farm President</option>';
       querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        // Concatenate first_name, middle_name, and last_name for full name
+        const fullName = [
+          data.first_name || "",
+          data.middle_name || "",
+          data.last_name || ""
+        ]
+          .filter(name => name.trim() !== "") // Remove empty strings
+          .join(" ") || "Unnamed"; // Fallback to "Unnamed" if all fields are empty
         const option = document.createElement("option");
         option.value = doc.id;
-        option.textContent = doc.data().first_name || "Unnamed";
+        option.textContent = fullName;
         assignToSelect.appendChild(option);
       });
     }, (error) => {
@@ -374,6 +383,8 @@ window.loadFarmPresidents = async function () {
     showErrorPanel("Failed to load farm presidents.");
   }
 };
+
+
 
 window.loadBarangay = async function (farmPresidentId) {
   if (!farmPresidentId) return;
@@ -1073,24 +1084,17 @@ window.getFarmlandId = async function (farmlandName) {
   }
 };
 
-async function getFarmerIdByName(farmPresidentName) {
+async function getFarmerIdByName(farmPresidentId) {
   try {
-    const farmersRef = collection(db, "tb_farmers");
-    const farmersQuery = query(
-      farmersRef,
-      where("first_name", "==", farmPresidentName)
-    );
-    const farmersQuerySnapshot = await getDocs(farmersQuery);
+    const farmerRef = doc(db, "tb_farmers", farmPresidentId);
+    const farmerSnap = await getDoc(farmerRef);
 
-    if (farmersQuerySnapshot.empty) {
-      console.error(
-        `❌ Farm President '${farmPresidentName}' not found in the database.`
-      );
+    if (!farmerSnap.exists()) {
+      console.error(`❌ Farm President with ID '${farmPresidentId}' not found.`);
       return null;
     }
 
-    const farmPresidentDoc = farmersQuerySnapshot.docs[0];
-    return farmPresidentDoc.data().farmer_id.toString();
+    return farmerSnap.data().farmer_id.toString();
   } catch (error) {
     console.error("❌ Error fetching farmer_id:", error);
     return null;
@@ -1112,8 +1116,18 @@ window.saveProject = async function () {
 
     const projectName = document.getElementById("project-name")?.value.trim();
     const assignToSelect = document.getElementById("assign-to");
-    const farmPresidentName =
-      assignToSelect?.options[assignToSelect.selectedIndex]?.text;
+    const farmPresidentId = assignToSelect?.value;
+    const farmPresidentName = assignToSelect?.options[assignToSelect.selectedIndex]?.text;
+    const farmerId = await getFarmerIdByName(farmPresidentId);
+    if (!farmerId) {
+      showErrorPanel(
+        `Farm President '${farmPresidentName}' not found. Please select a valid Farm President.`
+      );
+      saveButton.disabled = false;
+      return;
+    }
+
+
     const status = document.getElementById("status")?.value;
     const cropName = document.getElementById("crops")?.value;
     const barangayName = document.getElementById("barangay")?.value.trim();
@@ -1129,14 +1143,7 @@ window.saveProject = async function () {
     const startDate = document.getElementById("start-date")?.value;
     const endDate = document.getElementById("end-date")?.value;
 
-    const farmerId = await getFarmerIdByName(farmPresidentName);
-    if (!farmerId) {
-      showErrorPanel(
-        `Farm President '${farmPresidentName}' not found. Please select a valid Farm President.`
-      );
-      saveButton.disabled = false;
-      return;
-    }
+   
 
     // Validate start date: should not be in the past
     const today = new Date();
