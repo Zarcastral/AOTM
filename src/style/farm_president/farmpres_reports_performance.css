@@ -5,7 +5,7 @@ body {
   font-family: 'Poppins';
   display: flex;
   flex-direction: column;
-  cursor: default;
+  overflow-x: hidden;
 }
 
 .header {
@@ -18,10 +18,12 @@ body {
   align-items: center;
   padding: 0 20px;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-title {
-  font-size: 30px;
+  font-size: clamp(24px, 5vw, 30px);
   font-weight: bold;
   color: #41A186;
 }
@@ -45,7 +47,7 @@ body {
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
-  width: 150px;
+  width: clamp(100px, 25vw, 150px);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   appearance: none;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
@@ -62,7 +64,7 @@ body {
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
-  width: 200px;
+  width: clamp(120px, 30vw, 200px);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   appearance: none;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="%23243B53" d="M7 10l5 5 5-5z"/></svg>');
@@ -79,13 +81,15 @@ body {
   padding: 20px;
   overflow-y: auto;
   max-height: calc(100vh - 60px);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .account-panel {
   position: absolute;
   top: 60px;
   right: 20px;
-  width: 300px;
+  width: clamp(200px, 40vw, 300px);
   height: 400px;
   background: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -96,7 +100,7 @@ body {
 }
 
 .panel h2 {
-  font-size: 30px;
+  font-size: clamp(24px, 5vw, 30px);
   font-weight: bold;
   color: #41A186;
   margin-bottom: 20px;
@@ -129,23 +133,32 @@ body {
 .panel {
   background-color: white;
   width: 90%;
+  max-width: 1200px;
   border-radius: 8px;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   margin-top: 20px;
-  position: relative; /* Ensure the panel is a positioning context */
+  box-sizing: border-box;
+  overflow-x: auto;
+  position: relative;
+  padding-bottom: 10px; /* Allocate space for fixed pagination */
 }
 
-.productivity-search-bar {
+.performance-search-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: nowrap;
+  gap: 10px;
+  min-width: 600px;
 }
 
 .search-and-dropdowns {
   display: flex;
   gap: 10px;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
 .search-container {
@@ -153,24 +166,25 @@ body {
   gap: 1rem;
   margin-bottom: 1rem;
   margin-top: 30px;
+  flex-wrap: nowrap;
 }
 
-#productivity-search-bar {
+#performance-search-bar {
   padding: 8px;
   font-size: 16px;
   border: 1px solid lightgray;
   border-radius: 5px;
   outline: none;
-  width: 300px;
+  width: clamp(150px, 40vw, 300px);
 }
 
-#productivity-search-bar:focus {
+#performance-search-bar:focus {
   border-color: #aaa;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
-.productivity-search-bar input,
-.productivity-search-bar select {
+.performance-search-bar input,
+.performance-search-bar select {
   padding: 0.5rem;
   border: 1px solid #dcdcdc;
   border-radius: 5px;
@@ -179,25 +193,24 @@ body {
 .image-header img {
   display: block;
   margin: 0 auto;
+  max-width: 100%;
 }
 
-.productivity-search-bar input {
-  width: 300px;
+.performance-search-bar input {
   padding: 8px 12px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
 }
 
-.productivity-search-bar select {
+.performance-search-bar select {
   padding: 8px 18px;
   border: 1px solid #D1D5DB;
   border-radius: 6px;
 }
 
 .calendar-btn-icon {
-  width: 55px;
+  width: inline-block;
   height: 40px;
-  margin-left: 100px;
   cursor: pointer;
 }
 
@@ -220,7 +233,7 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   color: white;
   display: none;
-  width: 200px;
+  width: clamp(150px, 30vw, 200px);
 }
 
 .year-nav {
@@ -296,12 +309,13 @@ table {
   background-color: white;
   border-radius: 0px;
   overflow: hidden;
+  min-width: 600px;
 }
 
 th,
 td {
   padding: 8px;
-  font-size: 15px;
+  font-size: clamp(8px, 2vw, 15px);
   text-align: center;
   border: 1px solid #848A9C;
 }
@@ -314,44 +328,38 @@ th {
 
 th:nth-child(1),
 td:nth-child(1) {
-  width: 150px;
-  min-width: 150px;
+  width: 40px;
+  min-width: 10px;
 }
 
 th:nth-child(2),
 td:nth-child(2) {
-  width: 150px;
-  min-width: 150px;
+  width: 200px;
+  min-width: 80px;
 }
 
 th:nth-child(3),
 td:nth-child(3) {
-  width: 100px;
-  min-width: 100px;
-}
-
-th:nth-child(4),
-td:nth-child(4) {
-  width: 100px;
-  min-width: 100px;
+  width: 70px;
+  min-width: 40px;
 }
 
 th:nth-child(5),
 td:nth-child(5) {
-  width: 80px;
-  min-width: 80px;
+  width: 50px;
+  min-width: 50px;
+}
+
+th:nth-child(4),
+td:nth-child(4) {
+  width: 50px;
+  min-width: 50px;
 }
 
 th:nth-child(6),
 td:nth-child(6) {
-  width: 100px;
-  min-width: 100px;
-}
-
-th:nth-child(7),
-td:nth-child(7) {
-  width: 140px;
-  min-width: 140px;
+  width: 50px;
+  min-width: 50px;
 }
 
 tbody tr:hover {
@@ -361,7 +369,6 @@ tbody tr:hover {
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
-  margin-bottom: 60px; /* Add space for pagination */
 }
 
 .checkbox {
@@ -390,9 +397,11 @@ tbody tr:hover {
 
 .button-container {
   width: 90%;
+  max-width: 1200px;
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .stock-selector {
@@ -410,23 +419,31 @@ tbody tr:hover {
   font-weight: bold;
 }
 
-.productivity-pagination {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 1; /* Ensure it stays above table content */
+.performance-pagination {
+  padding: 10px 10px;
+    margin: 0;
+    font-size: 25px;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    background: none;
+    transition: color 0.3s ease;
+    color: #333;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
 }
 
-#productivity-page-number {
+#performance-page-number {
   font-size: 17px;
   color: #333;
 }
 
-.productivity-pagination-btn {
+.performance-pagination-btn {
   padding: 10px;
+  margin: 0;
   font-size: 25px;
   border: none;
   border-radius: 0;
@@ -436,11 +453,11 @@ tbody tr:hover {
   color: #333;
 }
 
-.productivity-pagination-btn:hover {
+.performance-pagination-btn:hover {
   color: #41A186;
 }
 
-.productivity-pagination-btn:disabled {
+.performance-pagination-btn:disabled {
   color: #bbb;
   cursor: not-allowed;
 }
@@ -448,7 +465,7 @@ tbody tr:hover {
 .download-btn {
   background-color: #41A186;
   color: white;
-  padding: 20px;
+  padding: 15px 25px;
   font-weight: 700;
   border: none;
   border-radius: 40px;
@@ -471,7 +488,7 @@ tbody tr:hover {
 .report-selector {
   display: flex;
   gap: 30px;
-  font-size: 20px;
+  font-size: clamp(16px, 3vw, 20px);
 }
 
 .report-selector a {
@@ -537,17 +554,21 @@ tbody tr:hover {
   border-radius: 25px;
   cursor: pointer;
   font-size: 16px;
-  font-weight: 550;
+  font-weight: 600;
   transition: background-color 0.2s;
 }
 
+.preview-btn.done-btn {
+  padding: 10px 35px;
+}
+
 .cancel-btn {
-  background-color: #C4C4C4;
+  background-color: #C4c4c4;
   color: white;
 }
 
 .cancel-btn:hover {
-  background-color: #b6b5b5;
+  background-color: #b9b9b9;
 }
 
 .done-btn {
@@ -570,40 +591,7 @@ body.preview-active::before {
   z-index: 999;
 }
 
-/* Responsive Adjustments */
-@media screen and (max-width: 1024px) {
-  .crop_select {
-    width: 130px;
-  }
-
-  .barangay_select {
-    width: 180px;
-  }
-
-  #productivity-search-bar,
-  .productivity-search-bar input {
-    width: 250px;
-  }
-
-  .panel {
-    width: 95%;
-  }
-
-  .button-container {
-    width: 95%;
-  }
-
-  .calendar-btn-icon {
-    margin-left: 80px;
-  }
-
-  .productivity-pagination {
-    bottom: 10px;
-    right: 10px;
-  }
-}
-
-/* Tablet Breakpoint */
+/* Media Queries for Responsiveness */
 @media (max-width: 768px) {
   .header {
     padding: 0 10px;
@@ -614,43 +602,18 @@ body.preview-active::before {
   }
 
   .crop_select {
-    width: clamp(90px, 15vw, 110px);
+    width: clamp(80px, 20vw, 120px);
     font-size: 14px;
-    padding: 8px 20px 8px 10px;
   }
 
   .barangay_select {
-    width: clamp(100px, 20vw, 130px);
-    font-size: 14px;
-    padding: 8px 20px 8px 10px;
-  }
-
-  #productivity-search-bar {
-    width: clamp(120px, 30vw, 180px);
+    width: clamp(100px, 25vw, 150px);
     font-size: 14px;
   }
 
-  .productivity-search-bar {
-    flex-wrap: nowrap;
-    min-width: 0;
-    width: 100%;
-    gap: 8px;
-  }
-
-  .search-and-dropdowns {
-    flex-wrap: nowrap;
-    gap: 8px;
-  }
-
-  .search-container {
-    flex-wrap: nowrap;
-    gap: 8px;
-  }
-
-  .calendar-btn-icon {
-    width: 45px;
-    height: 35px;
-    margin-left: 60px;
+  #performance-search-bar {
+    width: clamp(120px, 35vw, 200px);
+    font-size: 14px;
   }
 
   .panel {
@@ -662,9 +625,9 @@ body.preview-active::before {
     width: 95%;
   }
 
-  .productivity-pagination {
-    bottom: 10px;
-    right: 10px;
+  .calendar-btn-icon {
+    width: 45px;
+    height: 35px;
   }
 
   .account-panel {
@@ -677,9 +640,24 @@ body.preview-active::before {
     font-size: clamp(7px, 1.5vw, 9px);
     padding: 6px;
   }
+
+  .performance-pagination {
+    bottom: 10px;
+    right: 10px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .performance-pagination-btn {
+    font-size: 20px;
+    padding: 8px;
+  }
+
+  #performance-page-number {
+    font-size: 15px;
+  }
 }
 
-/* Mobile Phone Breakpoint */
 @media (max-width: 480px) {
   .header-icons {
     gap: 10px;
@@ -691,43 +669,34 @@ body.preview-active::before {
   }
 
   .crop_select {
-    width: clamp(160px, 18vw, 90px);
+    width: clamp(120px, 18vw, 100px);
     font-size: 12px;
-    padding: 6px 15px 6px 8px;
+    padding: 8px 20px 8px 8px;
   }
 
   .barangay_select {
-    width: clamp(160px, 22vw, 110px);
+    width: clamp(120px, 22vw, 120px);
     font-size: 12px;
-    padding: 6px 15px 6px 8px;
+    padding: 8px 20px 8px 8px;
   }
 
-  #productivity-search-bar {
-    width: clamp(100px, 28vw, 130px);
+  #performance-search-bar {
+    width: clamp(160px, 25vw, 150px);
     font-size: 12px;
   }
 
-  .productivity-search-bar {
+  /* Prevent stacking, maintain horizontal layout */
+  .performance-search-bar {
     flex-wrap: nowrap;
-    min-width: 0;
-    width: 100%;
-    gap: 5px;
+    min-width: 600px;
   }
 
   .search-and-dropdowns {
     flex-wrap: nowrap;
-    gap: 5px;
   }
 
   .search-container {
     flex-wrap: nowrap;
-    gap: 5px;
-  }
-
-  .calendar-btn-icon {
-    width: 40px;
-    height: 30px;
-    margin-left: 450px;
   }
 
   .panel {
@@ -740,83 +709,30 @@ body.preview-active::before {
     width: 98%;
   }
 
-  .productivity-pagination {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    padding: 5px;
-  }
-
-  .productivity-pagination-btn {
-    padding: 5px;
-    font-size: 20px;
-  }
-
-  #productivity-page-number {
-    font-size: 14px;
-  }
-
   .download-btn {
     padding: 10px 15px;
     font-size: 12px;
   }
 
+  .performance-pagination {
+    bottom: 10px;
+    right: 5px;
+    padding: 5px;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+
+  .performance-pagination-btn {
+    font-size: 18px;
+    padding: 5px;
+  }
+
+  #performance-page-number {
+    font-size: 13px;
+  }
+
   .report-selector {
     gap: 15px;
     font-size: clamp(14px, 2.5vw, 16px);
-  }
-}
-
-/* Extra Small Mobile Breakpoint (for 360px and below) */
-@media (max-width: 360px) {
-  .crop_select {
-    width: clamp(150px, 18vw, 80px);
-    font-size: 12px;
-    padding: 5px 12px 5px 6px;
-  }
-
-  .barangay_select {
-    width: clamp(150px, 22vw, 90px);
-    font-size: 12px;
-    padding: 5px 12px 5px 6px;
-  }
-
-  #productivity-search-bar {
-    width: clamp(200px, 25vw, 100px);
-    font-size: 12px;
-  }
-
-  .calendar-btn-icon {
-    width: 35px;
-    height: 28px;
-    margin-left: 400px;
-    margin-top: 8px;
-  }
-
-  .productivity-search-bar {
-    gap: 3px;
-  }
-
-  .search-and-dropdowns {
-    gap: 3px;
-  }
-
-  .search-container {
-    gap: 3px;
-  }
-
-  .productivity-pagination {
-    bottom: 5px;
-    right: 5px;
-    padding: 5px;
-  }
-
-  .productivity-pagination-btn {
-    padding: 5px;
-    font-size: 18px;
-  }
-
-  #productivity-page-number {
-    font-size: 12px;
   }
 }

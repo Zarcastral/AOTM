@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-  <script type="module" src="/src/js/farm_president/farmpres_reports.js"></script>
+  <script type="module" src="/src/js/admin/admin_reports_performance.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Farmers Management</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/src/style/farm_president/farmpres_reports.css">
+  <link rel="stylesheet" href="/src/style/admin/admin_reports_performance.css">
 </head>
 
 <body>
@@ -18,19 +18,18 @@
 
 <!-- Main Content -->
 <div class="main-content">
-    <div class="report-selector">
-    <span class="harvest-form"><a href="farmpres_reports.html">Harvest</a></span> <div class="rando-line">|</div>
-    <span class="performance-form"><a href="farmpres_reports_performance.html">Performance</a>
+  <div class="report-selector">
+    <span class="harvest-form"><a href="admin_reports_harvest.html">Harvest</a></span> <div class="rando-line">|</div>
+    <span class="project-form"><a href="admin_reports_projects.html">Projects</a></span> <div class="rando-line">|</div>
+    <span class="productivity-form"><a href="admin_reports_productivity.html">Productivity</a></span> <div class="rando-line">|</div>
+    <span class="productivity-form"><a href="admin_reports_performance.html">Performance</a>
   </div>
   <div class="panel">
     <div class="table-wrapper">
-      <h2>Harvest Report</h2>
-        <div class="harvest-search-bar">
+      <h2>Performance Report</h2>
+        <div class="performance-search-bar">
           <div class="search-and-dropdowns">
-            <input type="text" id="harvest-search-bar" placeholder="Search">
-            <select class="crop_select">
-              <option value="">Crops</option>
-            </select>
+            <input type="text" id="performance-search-bar" placeholder="Search">
             <select class="barangay_select">
               <option value="">Barangay</option>
             </select>
@@ -61,39 +60,36 @@
           </div>
         </div>
       </div>
-      <div class="harvest_table">
+      <div class="performance_table">
         <table>
           <thead>
             <tr>
-              <th>Commodity</th> <!-- Crops (Lowland, Highland, Leafy, Root Crops, etc,.) -->
-              <th>Type of Crop</th> <!-- Palay, Patatas, Ampalaya, Okra, etc,. -->
-              <th>No. of Farmers Served</th>
+              <th>#</th>
+              <th>Farmer Name</th>
               <th>Barangay</th>
-              <th>Area Planted (ha)</th>
-              <th>To Date</th>
-              <th>Area Harvested (ha)</th>
-              <th>To Date</th>
-              <th>Production (mt)</th>
-              <th>To Date</th>
+              <th>Attendance</th>
+              <th>Productivity Percentage</th>
+              <th>Remarks</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Harvest records will be populated here -->
+            <!-- Performance records will be populated here -->
           </tbody>
         </table>
       </div>
-      <div class="harvest-pagination">
-        <span id="harvest-page-number">Page 1</span>
-        <button id="harvest-prev-page" class="harvest-pagination-btn" disabled>&lt;</button>
-        <button id="harvest-next-page" class="harvest-pagination-btn">&gt;</button>
-      </div>
     </div>
+      <div class="performance-pagination">
+        <span id="performance-page-number">Page 1</span>
+        <button id="performance-prev-page" class="performance-pagination-btn" disabled>&lt;</button>
+        <button id="performance-next-page" class="performance-pagination-btn">&gt;</button>
+      </div>
+    
   </div>
   <!-- Download Button -->
   <div class="button-container">
     <button class="download-btn" id="download-btn">
       <img src="/images/DownloadPDF.png" alt="Download-btn Icon" class="download-icon">
-      <span>Download PDF</span>
+      <span>Generate PDF</span>
     </button>
   </div>
   <div id="pdf-preview-panel" class="pdf-preview-panel">
@@ -102,7 +98,7 @@
     </div>
     <div class="preview-buttons">
       <button id="preview-cancel-btn" class="preview-btn cancel-btn">Cancel</button>
-      <button id="preview-done-btn" class="preview-btn done-btn">Done</button>
+      <button id="preview-done-btn" class="preview-btn done-btn">Download PDF</button>
     </div>
   </div>
 </div>
@@ -160,7 +156,7 @@
           // If no match for the stored active link, reset to Harvest
           if (!isMatchFound) {
               const harvestLink = Array.from(reportLinks).find(link =>
-                  normalizeUrl(link.href).includes("farmpres_reports.html")
+                  normalizeUrl(link.href).includes("admin_reports_harvest.html")
               );
               if (harvestLink) {
                   harvestLink.classList.add("active");

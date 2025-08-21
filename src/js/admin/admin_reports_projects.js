@@ -789,7 +789,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
     "Farmers", "Barangay", "Land Area", "Category", "Crop Type", "Fertilizer", "Equipment", "Duration",
   ];
 
-  const columnWidths = [10, 25, 15, 15, 20, 25, 30, 20, 15, 25, 15, 20, 25, 20];
+  const columnWidths = [10, 25, 15, 15, 20, 25, 30, 23, 15, 20, 15, 20, 20, 20];
   const totalTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
   const leftMargin = (pageWidth - totalTableWidth) / 2;
 
@@ -823,7 +823,7 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
     doc.setFontSize(15);
     doc.setFont("helvetica", "bold");
-    doc.text(`AGRICULTURAL PRODUCTION DATA`, pageWidth / 2, 55, { align: "center" });
+    doc.text(`PROJECT REPORT`, pageWidth / 2, 55, { align: "center" });
   };
 
   const addFooter = (doc, pageNumber, totalPages) => {
