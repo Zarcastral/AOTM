@@ -462,6 +462,32 @@ tbody tr:hover {
   cursor: not-allowed;
 }
 
+.refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 20px;          /* reduced gap between button and text */
+  margin: 10px 0;     /* top and bottom spacing */
+  padding-left: 25px; /* space from left edge of page/container */
+  color: gray;
+}
+
+
+.refresh-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 10px 25px;
+  font-size: 15px;
+  font-weight: bold;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.refresh-btn:hover {
+  background-color: #318a71;
+}
+
 .download-btn {
   background-color: #41A186;
   color: white;

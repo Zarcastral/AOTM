@@ -510,7 +510,18 @@ async function fetchPerformance() {
       }
     }
 
-    performanceList = combinedRows.sort((a, b) => b.productivity - a.productivity);
+    performanceList = combinedRows.sort((a, b) => {
+  // First, sort by productivity descending
+  if (b.productivity !== a.productivity) return b.productivity - a.productivity;
+
+  // Then by remark score descending
+  const remarkScoreA = remarkToScore(a.remarks);
+  const remarkScoreB = remarkToScore(b.remarks);
+  if (remarkScoreB !== remarkScoreA) return remarkScoreB - remarkScoreA;
+
+  // Finally, alphabetically by farmer_name
+  return (a.farmer_name || "").localeCompare(b.farmer_name || "");
+});
     filteredPerformance = [...performanceList];
     console.log("Performance List:", performanceList);
 
@@ -597,8 +608,19 @@ function filterPerformance() {
   } else {
     console.log("No month filter applied (selectedMonth is null)");
   }
+    filteredPerformance.sort((a, b) => {
+      // First, sort by productivity descending
+      if (b.productivity !== a.productivity) return b.productivity - a.productivity;
 
-  filteredPerformance.sort((a, b) => b.productivity - a.productivity);
+      // Then by remark score descending
+      const remarkScoreA = remarkToScore(a.remarks);
+      const remarkScoreB = remarkToScore(b.remarks);
+      if (remarkScoreB !== remarkScoreA) return remarkScoreB - remarkScoreA;
+
+      // Finally, alphabetically by farmer_name
+      return (a.farmer_name || "").localeCompare(b.farmer_name || "");
+    });
+
   console.log("Filtered Performance:", filteredPerformance);
   displayPerformance(filteredPerformance);
 }
@@ -620,24 +642,17 @@ function getRemarkColor(remark) {
    ------------------------------ */
 function displayPerformance(list) {
   const tableBody = document.querySelector(".performance_table table tbody");
-  if (!tableBody) {
-    console.error("Table body element not found, selector: .performance_table table tbody");
-    return;
-  }
+  if (!tableBody) return;
 
   tableBody.innerHTML = "";
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginated = list.slice(startIndex, endIndex);
 
-  console.log(`Displaying ${paginated.length} records for page ${currentPage}, startIndex: ${startIndex}, endIndex: ${endIndex}`);
-
   if (isDataLoading) {
-    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Processing data please wait...</td></tr>`;
-    console.log("Displaying loading message");
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Pulling Latest Records Please Wait..</td></tr>`;
   } else if (paginated.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No records found</td></tr>`;
-    console.log("No records to display, showing 'No records found'");
   } else {
     paginated.forEach((rowData, i) => {
       const rank = startIndex + i + 1;
@@ -651,13 +666,13 @@ function displayPerformance(list) {
         <td style="color: ${getRemarkColor(rowData.remarks)};">${rowData.remarks || "N/A"}</td>
       `;
       tableBody.appendChild(tr);
-      console.log(`Rendered row ${rank}:`, rowData);
     });
   }
 
   updatePagination();
   updateDownloadButtonState();
 }
+
 
 /* ------------------------------
    Pagination controls
@@ -701,75 +716,92 @@ function showMonthPicker() {
 /* ------------------------------
    Event listeners and initialization
    ------------------------------ */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   console.log("DOM fully loaded, initializing...");
-  fetchBarangayNames();
-  displayPerformance([]); // Initial display (will show "No records found" briefly)
-  fetchPerformance();
+
+  await fetchBarangayNames();
+
+  const latestTimestampEl = document.getElementById("latest-record-timestamp");
+  const savedPerformance = localStorage.getItem("performanceList");
+  const savedTimestamp = localStorage.getItem("performanceTimestamp");
+
+  if (savedPerformance) {
+    performanceList = JSON.parse(savedPerformance);
+    filteredPerformance = [...performanceList];
+    displayPerformance(filteredPerformance);
+  } else {
+    displayPerformance([]);
+  }
+
+  // Restore latest record timestamp
+  if (savedTimestamp && latestTimestampEl) {
+    latestTimestampEl.textContent = `Latest Record Date and Time: ${savedTimestamp}`;
+  }
+
   updateDownloadButtonState();
 
-  const calendarIcon = document.querySelector('.calendar-btn-icon');
-  if (calendarIcon) calendarIcon.addEventListener('click', showMonthPicker);
+  const pullBtn = document.getElementById("pull-latest-btn");
+  // Disable the button on page load
+  if (pullBtn) {
+    pullBtn.disabled = true;
+    pullBtn.style.opacity = 0.5;
+    pullBtn.style.cursor = 'not-allowed';
+  }
 
-  document.addEventListener('click', (event) => {
-    const monthPicker = document.getElementById('month-picker');
-    const calendarIcon = document.querySelector('.calendar-btn-icon');
-    if (monthPicker && calendarIcon && !monthPicker.contains(event.target) && !calendarIcon.contains(event.target)) {
-      monthPicker.style.display = 'none';
-    }
-  });
+  if (pullBtn) {
+    pullBtn.disabled = false;
+    pullBtn.style.opacity = 1;
+    pullBtn.style.cursor = 'pointer';
+  }
 
-  const prevYearBtn = document.getElementById('prev-year');
-  const nextYearBtn = document.getElementById('next-year');
-  if (prevYearBtn) prevYearBtn.addEventListener('click', () => {
-    selectedYear--;
-    const yd = document.getElementById('year-display');
-    if (yd) yd.textContent = selectedYear;
-    filterPerformance();
-  });
+  if (pullBtn) {
+    pullBtn.addEventListener("click", async () => {
+      console.log("Pull Latest Records button clicked");
 
-  if (nextYearBtn) nextYearBtn.addEventListener('click', () => {
-    selectedYear++;
-    const yd = document.getElementById('year-display');
-    if (yd) yd.textContent = selectedYear;
-    filterPerformance();
-  });
+      // Disable button to prevent spamming
+      pullBtn.disabled = true;
+      pullBtn.style.opacity = 0.5;
+      pullBtn.style.cursor = 'not-allowed';
 
-  document.querySelectorAll('.month-btn').forEach((btn, index) => {
-    btn.addEventListener('click', () => {
-      selectedMonth = index + 1;
-      filterPerformance();
-      document.querySelectorAll('.month-btn').forEach(b => b.style.backgroundColor = 'transparent');
-      btn.style.backgroundColor = '#41A186';
-      const mp = document.getElementById('month-picker');
-      if (mp) mp.style.display = 'none';
-      const ci = document.querySelector('.calendar-btn-icon');
-      if (ci) ci.style.filter = 'brightness(0.5)';
+      // Show temporary loading message
+      isDataLoading = true;
+      displayPerformance([]); // Shows "Pulling Latest Records Please Wait.."
+
+      // Fetch latest data
+      await fetchPerformance();
+
+      // Update latest record timestamp
+      const now = new Date();
+      const formatted = now.toLocaleString("en-US", { 
+        month: "long", day: "numeric", year: "numeric", 
+        hour: "2-digit", minute: "2-digit", second: "2-digit" 
+      });
+      if (latestTimestampEl) latestTimestampEl.textContent = `Latest Record Date and Time: ${formatted}`;
+
+      // Save new data and timestamp to localStorage
+      localStorage.setItem("performanceList", JSON.stringify(filteredPerformance));
+      localStorage.setItem("performanceTimestamp", formatted);
+
+      // Re-enable button after data is fetched
+      isDataLoading = false;
+      displayPerformance(filteredPerformance);
+
+      pullBtn.disabled = false;
+      pullBtn.style.opacity = 1;
+      pullBtn.style.cursor = 'pointer';
     });
-  });
+  }
 
-  const clearBtn = document.getElementById('clear-btn');
-  if (clearBtn) clearBtn.addEventListener('click', () => {
-    selectedMonth = null;
-    selectedYear = new Date().getFullYear();
-    const ci = document.querySelector('.calendar-btn-icon');
-    if (ci) ci.style.filter = 'none';
-    document.querySelectorAll('#month-picker .month-btn').forEach(btn => {
-      btn.style.backgroundColor = 'transparent';
-    });
-    const yd = document.getElementById('year-display');
-    if (yd) yd.textContent = selectedYear;
-    filterPerformance();
-    const mp = document.getElementById('month-picker');
-    if (mp) mp.style.display = 'none';
-  });
-
+  // Search and barangay filters
   const searchBar = document.getElementById("performance-search-bar");
   if (searchBar) searchBar.addEventListener("input", filterPerformance);
   const barangaySelect = document.querySelector(".barangay_select");
   if (barangaySelect) barangaySelect.addEventListener("change", filterPerformance);
 
+  // Pagination controls
   const prevPageBtn = document.getElementById("performance-prev-page");
+  const nextPageBtn = document.getElementById("performance-next-page");
+
   if (prevPageBtn) prevPageBtn.addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -777,14 +809,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const nextPageBtn = document.getElementById("performance-next-page");
   if (nextPageBtn) nextPageBtn.addEventListener("click", () => {
     if (currentPage * rowsPerPage < filteredPerformance.length) {
       currentPage++;
       displayPerformance(filteredPerformance);
     }
   });
+
+  // Automatically fetch data if needed on page load
+  // await fetchPerformance();
 });
+
+
 
 /* ------------------------------
    PDF generation
