@@ -58,6 +58,7 @@ function initializeDashboard() {
     let unsubscribeFarmers;
     let unsubscribeProjects;
     let unsubscribeProjectStatus;
+    let unsubscribePerformanceStatus;
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -65,6 +66,7 @@ function initializeDashboard() {
             if (unsubscribeFarmers) unsubscribeFarmers();
             if (unsubscribeProjects) unsubscribeProjects();
             if (unsubscribeProjectStatus) unsubscribeProjectStatus();
+            if (unsubscribePerformanceStatus) unsubscribePerformanceStatus();
 
             // Make sure DOM is ready
             if (document.querySelector("#total-farmers") && 
@@ -73,6 +75,7 @@ function initializeDashboard() {
                 unsubscribeFarmers = updateTotalFarmerCount();
                 unsubscribeProjects = updateTotalProjectsCount();
                 unsubscribeProjectStatus = updateProjectStatus();
+                unsubscribePerformanceStatus = updatePerformanceStatus();
                 updateBarGraph();
             } else {
                 console.error("Page elements not ready yet. Trying again...");
@@ -80,6 +83,7 @@ function initializeDashboard() {
                     unsubscribeFarmers = updateTotalFarmerCount();
                     unsubscribeProjects = updateTotalProjectsCount();
                     unsubscribeProjectStatus = updateProjectStatus();
+                    unsubscribePerformanceStatus = updatePerformanceStatus();
                     updateBarGraph();
                 }, 1000);
             }
@@ -332,6 +336,116 @@ function updateProjectStatus() {
     }
 }
 
+// Show performance status with filtering by project creator & user_type
+function updatePerformanceStatus() {
+    try {
+        const attendanceCollection = collection(db, "tb_attendance");
+        const projectsCollection = collection(db, "tb_projects");
+        const historyCollection = collection(db, "tb_project_history");
+
+        const unsubscribe = onSnapshot(attendanceCollection, async (snapshot) => {
+            try {
+                const currentUser = await getAuthenticatedUser();
+
+                // build a map of project_id -> project_creator
+                const projectSnapshot = await getDocs(projectsCollection);
+                const historySnapshot = await getDocs(historyCollection);
+
+                const projectCreators = {};
+
+                projectSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.project_id && data.project_creator) {
+                        projectCreators[data.project_id] = data.project_creator;
+                    }
+                });
+
+                historySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.project_id && data.project_creator) {
+                        projectCreators[data.project_id] = data.project_creator;
+                    }
+                });
+
+                let outstandingCount = 0;
+                let highlyEfficientCount = 0;
+                let productiveCount = 0;
+                let averagePerformerCount = 0;
+                let needsImprovementCount = 0;
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const projectId = data.project_id;
+
+                    // Only include if project matches current user's type
+                    if (!projectId || projectCreators[projectId] !== currentUser.user_type) {
+                        return;
+                    }
+
+                    if (Array.isArray(data.farmers)) {
+                        data.farmers.forEach(farmer => {
+                            const remark = (farmer.remarks || "").toLowerCase();
+                            switch (remark) {
+                                case "outstanding":
+                                    outstandingCount++;
+                                    break;
+                                case "highly efficient":
+                                    highlyEfficientCount++;
+                                    break;
+                                case "productive":
+                                    productiveCount++;
+                                    break;
+                                case "average performer":
+                                    averagePerformerCount++;
+                                    break;
+                                case "needs improvement":
+                                    needsImprovementCount++;
+                                    break;
+                            }
+                        });
+                    }
+                });
+
+                const totalPerformance =
+                    outstandingCount +
+                    highlyEfficientCount +
+                    productiveCount +
+                    averagePerformerCount +
+                    needsImprovementCount;
+
+                const calcPercent = (count) =>
+                    totalPerformance > 0 ? (count / totalPerformance) * 100 : 0;
+
+                const updateCircle = (id, count, percentage, color) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.setAttribute("data-count", count.toLocaleString());
+                        el.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, ${color} 100% 100%)`;
+                        animateGradient(el, percentage, color);
+                    }
+                };
+
+                updateCircle("total-outstanding", outstandingCount, calcPercent(outstandingCount), "#41A186");
+                updateCircle("total-highly-efficient", highlyEfficientCount, calcPercent(highlyEfficientCount), "#4CAF50");
+                updateCircle("total-productive", productiveCount, calcPercent(productiveCount), "#2196F3");
+                updateCircle("total-average-performer", averagePerformerCount, calcPercent(averagePerformerCount), "#9854CB");
+                updateCircle("total-needs-improvement", needsImprovementCount, calcPercent(needsImprovementCount), "#AC415B");
+
+            } catch (error) {
+                console.error("Problem filtering performance records:", error);
+            }
+        }, (error) => {
+            console.error("Problem getting performance updates:", error);
+        });
+
+        return unsubscribe;
+    } catch (error) {
+        console.error("Problem setting up performance status:", error);
+    }
+}
+
+
+
 // Create the bar graph for harvest data
 async function updateBarGraph() {
     const bars = document.querySelectorAll('.bar');
@@ -442,7 +556,17 @@ async function updateBarGraph() {
 
     const updateSizes = async () => {
         const dpr = window.devicePixelRatio || 1;
-        const maxDisplayHeight = analyticsSection.clientHeight - 130;
+
+let chartAreaHeight = 300;
+if (window.innerWidth < 360) chartAreaHeight = 160;
+else if (window.innerWidth < 480) chartAreaHeight = 180;
+else if (window.innerWidth < 768) chartAreaHeight = 200;
+else if (window.innerWidth < 1024) chartAreaHeight = 250;
+else chartAreaHeight = 300;
+
+// chart container height
+barChart.style.height = `${chartAreaHeight}px`;  
+yAxis.style.height = `${chartAreaHeight}px`;  
 
         let maxDataValue = 0;
         bars.forEach(bar => {
@@ -461,10 +585,7 @@ async function updateBarGraph() {
 
         const maxValue = Math.ceil(maxDataValue / interval) * interval;
 
-        barChart.style.height = `${maxDisplayHeight}px`;
-        yAxis.style.height = `${maxDisplayHeight}px`;
-        const chartHeight = yAxis.clientHeight;
-        const pixelsPerUnit = chartHeight / maxValue;
+        const pixelsPerUnit = chartAreaHeight / maxValue;
 
         bars.forEach(bar => {
             const dataValue = parseFloat(bar.dataset.value) || 0;
@@ -473,17 +594,17 @@ async function updateBarGraph() {
             bar.style.height = '0px';
         });
 
-        gridCanvas.width = barChart.offsetWidth * dpr;
-        gridCanvas.height = (barChart.offsetHeight - 60) * dpr;
-        gridCanvas.style.width = `${barChart.offsetWidth}px`;
-        gridCanvas.style.height = `${barChart.offsetHeight - 60}px`;
-        gridCtx.scale(dpr, dpr);
+gridCanvas.width = barChart.offsetWidth * dpr;
+gridCanvas.height = chartAreaHeight * dpr;
+gridCanvas.style.width = `${barChart.offsetWidth}px`;
+gridCanvas.style.height = `${chartAreaHeight}px`;
+gridCtx.scale(dpr, dpr);
 
-        dashCanvas.width = barChart.offsetWidth * dpr;
-        dashCanvas.height = (barChart.offsetHeight - 60) * dpr;
-        dashCanvas.style.width = `${barChart.offsetWidth}px`;
-        dashCanvas.style.height = `${barChart.offsetHeight - 60}px`;
-        dashCtx.scale(dpr, dpr);
+dashCanvas.width = barChart.offsetWidth * dpr;
+dashCanvas.height = chartAreaHeight * dpr;
+dashCanvas.style.width = `${barChart.offsetWidth}px`;
+dashCanvas.style.height = `${chartAreaHeight}px`;
+dashCtx.scale(dpr, dpr);
 
         return { maxValue, pixelsPerUnit, interval };
     };
@@ -491,7 +612,7 @@ async function updateBarGraph() {
     const drawGridLines = (positions) => {
         const dpr = window.devicePixelRatio || 1;
         const chartWidth = barChart.offsetWidth;
-        const chartHeight = barChart.offsetHeight - 60;
+        const chartHeight = barChart.offsetHeight - 90;
 
         gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
 
@@ -513,29 +634,44 @@ async function updateBarGraph() {
     };
 
     const updateYAxis = (maxValue, pixelsPerUnit, interval) => {
-        const numTicks = 11;
-        yAxis.innerHTML = '';
+    const numTicks = 11;
+    yAxis.innerHTML = '';
 
-        const displayMax = maxValue > 0 ? maxValue : 100;
-        const stepValue = displayMax / (numTicks - 1);
+    const displayMax = maxValue > 0 ? maxValue : 100;
+    const stepValue = displayMax / (numTicks - 1);
 
-        labelPositions = [];
+    labelPositions = [];
 
-        for (let i = 0; i < numTicks; i++) {
-            const span = document.createElement('span');
-            const labelValue = Math.round(i * stepValue);
-            span.textContent = labelValue.toString();
-            const labelPosition = labelValue * pixelsPerUnit;
-            span.style.position = 'absolute';
+    for (let i = 0; i < numTicks; i++) {
+        const span = document.createElement('span');
+        const labelValue = Math.round(i * stepValue);
+        span.textContent = labelValue.toString();
+
+        let labelPosition;
+        if (i === 0) {
+            // Bottom label = 0
+            labelPosition = 0;
+            span.style.bottom = `${labelPosition}px`;
+            span.style.transform = 'translateY(0%)';
+        } else if (i === numTicks - 1) {
+            // Top label = maxValue flush at top
+            labelPosition = maxValue * pixelsPerUnit;
+            span.style.bottom = `${labelPosition}px`;
+            span.style.transform = 'translateY(-100%)';
+        } else {
+            // Middle labels centered
+            labelPosition = labelValue * pixelsPerUnit;
             span.style.bottom = `${labelPosition}px`;
             span.style.transform = 'translateY(50%)';
-            yAxis.appendChild(span);
-
-            labelPositions.push(labelPosition);
         }
 
-        drawGridLines(labelPositions);
-    };
+        span.style.position = 'absolute';
+        yAxis.appendChild(span);
+        labelPositions.push(labelPosition);
+    }
+
+    drawGridLines(labelPositions);
+};
 
     const animateBarGrowth = () => {
         return new Promise(resolve => {

@@ -154,6 +154,25 @@ body {
   padding: 30px;
 }
 
+/* Performance Status Section */
+.performance-status-section {
+  flex: 1;
+  position: relative;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.performance-status {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 68%;
+  padding: 30px;
+}
+
 .status-circles {
   display: flex;
   gap: 20px;
@@ -207,7 +226,12 @@ body {
 
 .circle.completed span,
 .circle.in-progress span,
-.circle.not-started span {
+.circle.not-started span,
+.circle.outstanding span,
+.circle.highly-efficient span,
+.circle.productive span,
+.circle.average-performer span,
+.circle.needs-improvement span {
   /* Conic-gradient set dynamically */
 }
 
@@ -218,11 +242,32 @@ body {
   text-align: center;
 }
 
-.circle.completed p::before {
+.circle.outstanding p::before {
   content: "\2022";
   color: #41A186;
   margin-right: 5px;
 }
+.circle.highly-efficient p::before {
+  content: "\2022";
+  color: #4CAF50;
+  margin-right: 5px;
+}
+.circle.productive p::before {
+  content: "\2022";
+  color: #2196F3;
+  margin-right: 5px;
+}
+.circle.average-performer p::before {
+  content: "\2022";
+  color: #9854CB;
+  margin-right: 5px;
+}
+.circle.needs-improvement p::before {
+  content: "\2022";
+  color: #AC415B;
+  margin-right: 5px;
+}
+
 
 .circle.in-progress p::before {
   content: "\2022";
@@ -236,12 +281,25 @@ body {
   margin-right: 5px;
 }
 
+.circle.average-performer p::before {
+  content: "\2022";
+  color: #9854CB;
+  margin-right: 5px;
+}
+
+.circle.needs-improvement p::before {
+  content: "\2022";
+  color: #AC415B;
+  margin-right: 5px;
+}
+
 .analytics-section {
   margin-top: 40px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
   width: 100%;
   padding-top: 0;
-  height: 400px;
+  height: auto;
+  min-height: 400px;
   position: relative;
   box-sizing: border-box;
 }
@@ -249,7 +307,7 @@ body {
 .analytics {
   background-color: #fff;
   border-radius: 10px;
-  padding: 20px;
+  padding: 40px; /* Expanded padding for axis titles */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   box-sizing: border-box;
@@ -277,6 +335,12 @@ body {
   overflow: visible;
 }
 
+.y-axis-container {
+  position: relative;
+  width: 90px; /* Increased for more gap */
+  flex-shrink: 0;
+}
+
 .y-axis {
   display: flex;
   flex-direction: column;
@@ -287,7 +351,6 @@ body {
   color: #333;
   text-align: right;
   padding-top: 0;
-  flex-shrink: 0;
   min-height: 300px;
   position: relative;
   height: 100%;
@@ -301,6 +364,23 @@ body {
   justify-content: flex-end;
   position: absolute;
   color: #333;
+}
+
+.y-axis-title {
+  position: absolute;
+  left: -70px; /* Increased for more gap */
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  font-size: 20px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.x-axis-title {
+  text-align: center;
+  font-size: 20px;
+  color: #333;
+  margin-top: 30px; /* Increased for more gap */
 }
 
 .year-selector-wrapper {
@@ -342,22 +422,21 @@ body {
   align-items: flex-end;
   position: relative;
   flex: 1;
-  overflow: hidden;
   min-height: 300px;
-  padding-bottom: 60px;
 }
 
+/* baseline */
 .bar-chart::after {
   content: '';
   position: absolute;
-  bottom: 30px;
+  bottom: 0;  /* <-- real bottom */
   left: 0;
   right: 0;
   height: 1px;
   background-color: #e0e0e0;
-  z-index: 0;
 }
 
+/* Bars */
 .bar {
   flex: 1;
   width: 20px;
@@ -365,8 +444,7 @@ body {
   background-color: #d3e8e1;
   border-radius: 5px 5px 0 0;
   position: relative;
-  height: var(--bar-height);
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  height: var(--bar-height, 0%); /* comes from JS */
   z-index: 1;
 }
 
@@ -376,16 +454,17 @@ body {
   box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
 }
 
+
+/* Month labels just below baseline */
 .bar::after {
   content: attr(data-month);
   position: absolute;
-  top: calc(100% + 30px);
+  top: 100%;       /* right under bar */
+  margin-top: 6px; /* spacing */
   left: 50%;
   transform: translateX(-50%);
-  font-size: 12px; /* Updated from missing value to 12px */
+  font-size: 12px;
   color: #333;
-  white-space: nowrap;
-  z-index: 2;
 }
 
 .bar-chart::before {
@@ -487,12 +566,14 @@ body {
   }
 
   .system-stats-section,
-  .project-status-section {
+  .project-status-section,
+  .performance-status-section {
     flex: none;
     width: 100%;
   }
 
-  .project-status {
+  .project-status,
+  .performance-status {
     min-height: auto;
     padding: 20px;
   }
@@ -514,21 +595,36 @@ body {
 
   .analytics-section {
     margin-top: 30px;
-    height: 350px;
+    height: auto;
+    min-height: 350px;
   }
 
   .analytics {
-    padding: 15px;
+    padding: 30px; /* Adjusted for responsive */
   }
 
   .bar-chart {
     min-height: 250px;
   }
 
+  .y-axis-container {
+    width: 80px;
+  }
+
   .y-axis {
     width: 35px;
     min-height: 250px;
     font-size: 11px;
+  }
+
+  .y-axis-title {
+    left: -45px;
+    font-size: 12px;
+  }
+
+  .x-axis-title {
+    font-size: 12px;
+    margin-top: 25px;
   }
 }
 
@@ -592,7 +688,8 @@ body {
     font-size: 14px;
   }
 
-  .project-status {
+  .project-status,
+  .performance-status {
     padding: 15px;
   }
 
@@ -614,11 +711,12 @@ body {
 
   .analytics-section {
     margin-top: 20px;
-    height: 300px;
+    height: auto;
+    min-height: 300px;
   }
 
   .analytics {
-    padding: 12px;
+    padding: 20px; /* Adjusted for responsive */
   }
 
   .section-title {
@@ -628,7 +726,7 @@ body {
 
   .bar-chart {
     min-height: 200px;
-    padding-bottom: 50px;
+    padding-bottom: 70px; /* Adjusted */
   }
 
   .bar-chart::after {
@@ -645,10 +743,24 @@ body {
     top: calc(100% + 25px);
   }
 
+  .y-axis-container {
+    width: 70px;
+  }
+
   .y-axis {
     width: 30px;
     min-height: 200px;
     font-size: 10px;
+  }
+
+  .y-axis-title {
+    left: -40px;
+    font-size: 11px;
+  }
+
+  .x-axis-title {
+    font-size: 11px;
+    margin-top: 20px;
   }
 
   .year-selector-container {
@@ -720,7 +832,8 @@ body {
     font-size: 12px;
   }
 
-  .project-status {
+  .project-status,
+  .performance-status {
     padding: 12px;
   }
 
@@ -741,11 +854,12 @@ body {
 
   .analytics-section {
     margin-top: 15px;
-    height: 250px;
+    height: auto;
+    min-height: 250px;
   }
 
   .analytics {
-    padding: 10px;
+    padding: 15px; /* Adjusted for responsive */
   }
 
   .section-title {
@@ -755,7 +869,7 @@ body {
 
   .bar-chart {
     min-height: 180px;
-    padding-bottom: 40px;
+    padding-bottom: 60px; /* Adjusted */
   }
 
   .bar-chart::after {
@@ -772,10 +886,24 @@ body {
     top: calc(100% + 20px);
   }
 
+  .y-axis-container {
+    width: 60px;
+  }
+
   .y-axis {
     width: 25px;
     min-height: 180px;
     font-size: 9px;
+  }
+
+  .y-axis-title {
+    left: -35px;
+    font-size: 10px;
+  }
+
+  .x-axis-title {
+    font-size: 10px;
+    margin-top: 15px;
   }
 
   .year-selector-container {
@@ -845,7 +973,8 @@ body {
     font-size: 11px;
   }
 
-  .project-status {
+  .project-status,
+  .performance-status {
     padding: 10px;
   }
 
@@ -865,11 +994,12 @@ body {
 
   .analytics-section {
     margin-top: 10px;
-    height: 220px;
+    height: auto;
+    min-height: 220px;
   }
 
   .analytics {
-    padding: 8px;
+    padding: 10px; /* Adjusted for responsive */
   }
 
   .section-title {
@@ -879,7 +1009,7 @@ body {
 
   .bar-chart {
     min-height: 160px;
-    padding-bottom: 35px;
+    padding-bottom: 50px; /* Adjusted */
   }
 
   .bar-chart::after {
@@ -896,10 +1026,24 @@ body {
     top: calc(100% + 18px);
   }
 
+  .y-axis-container {
+    width: 50px;
+  }
+
   .y-axis {
     width: 20px;
     min-height: 160px;
     font-size: 8px;
+  }
+
+  .y-axis-title {
+    left: -30px;
+    font-size: 9px;
+  }
+
+  .x-axis-title {
+    font-size: 9px;
+    margin-top: 10px;
   }
 
   .year-selector-container {

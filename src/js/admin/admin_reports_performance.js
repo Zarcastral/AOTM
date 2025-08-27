@@ -156,28 +156,33 @@ function updateDownloadButtonState() {
 }
 
 /* ------------------------------
-   Representative percentages for remark labels
+   Score mapping for remark labels
    ------------------------------ */
-const remarkRep = {
-  "NEEDS_IMPROVEMENT": 10,
-  "AVERAGE_PERFORMER": 30,
-  "PRODUCTIVE": 50,
-  "HIGHLY_EFFICIENT": 70,
-  "OUTSTANDING": 90
+const scoreMap = {
+  "OUTSTANDING": 5,
+  "HIGHLY_EFFICIENT": 4,
+  "PRODUCTIVE": 3,
+  "AVERAGE_PERFORMER": 2,
+  "NEEDS_IMPROVEMENT": 1
 };
 
-function remarkLabelToRepresentativePercent(remarkLabel) {
-  if (!remarkLabel) return remarkRep["NEEDS_IMPROVEMENT"];
-  const normalized = String(remarkLabel).trim().toLowerCase();
+function remarkToScore(remarkLabel) {
+  if (!remarkLabel) return 1;
+  const normalized = String(remarkLabel).trim().toUpperCase().replace(/ /g, "_");
+  
+  if (scoreMap[normalized]) return scoreMap[normalized];
 
-  if (normalized === "needs improvement" || normalized === "needs_improvement") return remarkRep["NEEDS_IMPROVEMENT"];
-  if (normalized === "average performer" || normalized === "average_performer" || normalized === "average") return remarkRep["AVERAGE_PERFORMER"];
-  if (normalized === "productive") return remarkRep["PRODUCTIVE"];
-  if (normalized === "highly efficient" || normalized === "highly_efficient") return remarkRep["HIGHLY_EFFICIENT"];
-  if (normalized === "outstanding") return remarkRep["OUTSTANDING"];
-  const numeric = parseInt(String(remarkLabel).replace("%", "").trim());
-  if (!isNaN(numeric)) return numeric;
-  return remarkRep["NEEDS_IMPROVEMENT"];
+  // Fallback for variations
+  if (normalized.includes("OUTSTANDING")) return 5;
+  if (normalized.includes("HIGHLY") && normalized.includes("EFFICIENT")) return 4;
+  if (normalized.includes("PRODUCTIVE")) return 3;
+  if (normalized.includes("AVERAGE")) return 2;
+  if (normalized.includes("NEEDS") && normalized.includes("IMPROVEMENT")) return 1;
+
+  const numeric = parseInt(String(remarkLabel).trim());
+  if (!isNaN(numeric) && numeric >= 1 && numeric <= 5) return numeric;
+  
+  return 1;
 }
 
 function getRemarkFromPercentage(percentage) {
@@ -241,9 +246,15 @@ async function fetchPerformance() {
     const projectsSnap = await getDocs(projectsQuery);
     console.log(`Found ${projectsSnap.size} projects where project_creator is Admin`);
 
+    const historyQuery = query(collection(db, "tb_project_history"), where("project_creator", "==", "Admin"));
+    const historySnap = await getDocs(historyQuery);
+    console.log(`Found ${historySnap.size} project history records where project_creator is Admin`);
+
+    const allProjectDocs = [...projectsSnap.docs, ...historySnap.docs];
+
     const combinedRows = [];
 
-    for (const projectDoc of projectsSnap.docs) {
+    for (const projectDoc of allProjectDocs) {
       const projectData = projectDoc.data();
       const projectId = projectData.project_id; // Use project_id field
       const projectBarangay = projectData.barangay_name || "N/A";
@@ -309,10 +320,22 @@ async function fetchPerformance() {
               console.warn(`Skipping attendance ${attDoc.id} because no project_id field`);
               continue;
             }
+
+            let projectExists = false;
             const projectQuery = query(collection(db, "tb_projects"), where("project_id", "==", attProjectId));
             const projectSnap = await getDocs(projectQuery);
-            if (projectSnap.empty) {
-              console.warn(`Skipping attendance ${attDoc.id} because no matching project_id ${attProjectId}`);
+            if (!projectSnap.empty) {
+              projectExists = true;
+            } else {
+              const historyProjectQuery = query(collection(db, "tb_project_history"), where("project_id", "==", attProjectId));
+              const historyProjectSnap = await getDocs(historyProjectQuery);
+              if (!historyProjectSnap.empty) {
+                projectExists = true;
+              }
+            }
+
+            if (!projectExists) {
+              console.warn(`Skipping attendance ${attDoc.id} because no matching project_id ${attProjectId} in tb_projects or tb_project_history`);
               continue;
             }
 
@@ -382,10 +405,22 @@ async function fetchPerformance() {
             console.warn(`Skipping attendance ${sessionId} because no project_id field`);
             continue;
           }
+
+          let projectExists = false;
           const projectQuery = query(collection(db, "tb_projects"), where("project_id", "==", attProjectId));
           const projectSnap = await getDocs(projectQuery);
-          if (projectSnap.empty) {
-            console.warn(`Skipping attendance ${sessionId} because no matching project_id ${attProjectId}`);
+          if (!projectSnap.empty) {
+            projectExists = true;
+          } else {
+            const historyProjectQuery = query(collection(db, "tb_project_history"), where("project_id", "==", attProjectId));
+            const historyProjectSnap = await getDocs(historyProjectQuery);
+            if (!historyProjectSnap.empty) {
+              projectExists = true;
+            }
+          }
+
+          if (!projectExists) {
+            console.warn(`Skipping attendance ${sessionId} because no matching project_id ${attProjectId} in tb_projects or tb_project_history`);
             continue;
           }
 
@@ -427,7 +462,7 @@ async function fetchPerformance() {
         const farmerBarangay = displayInfo.barangay || projectBarangay;
 
         let presentDays = 0;
-        let repPercentSum = 0;
+        let scoreSum = 0;
 
         for (const sessionId of sessionIds) {
           const entries = attendanceByTask[sessionId] || [];
@@ -439,15 +474,23 @@ async function fetchPerformance() {
             presentDays++;
           }
 
-          const repPercent = remarkLabelToRepresentativePercent(remarkForDay);
-          repPercentSum += repPercent;
+          const score = remarkToScore(remarkForDay);
+          scoreSum += score;
         }
 
-        const avgProductivity = Math.round((repPercentSum / sessionIds.length) || 0);
-        const remarkCategory = getRemarkFromPercentage(avgProductivity);
-        const attendance = totalDays > 0 ? `${presentDays}/${totalDays} days` : "0/0 days";
+        // totalSessions = number of attendance records actually logged
+        const totalSessions = sessionIds.length;
 
-        console.log(`Farmer: ${displayName}, Present Days: ${presentDays}, Total Days: ${totalDays}, Productivity: ${avgProductivity}%`);
+        // Compute productivity based only on logged attendance records
+        const avgProductivity = totalSessions > 0 ? Math.round((presentDays / totalSessions) * 100) : 0;
+
+        // Map to remark category
+        const remarkCategory = getRemarkFromPercentage(avgProductivity);
+
+        // Format attendance string
+        const attendance = `${presentDays}/${totalSessions} days`;
+
+        console.log(`Farmer: ${displayName}, Present Days: ${presentDays}, Total Sessions: ${totalSessions}, Productivity: ${avgProductivity}%`);
 
         combinedRows.push({
           project_id: projectId,
@@ -455,7 +498,7 @@ async function fetchPerformance() {
           farmer_name: displayName,
           barangay: farmerBarangay,
           present_days: presentDays,
-          total_days: totalDays,
+          total_days: totalSessions,   // <-- changed from totalDays
           attendance: attendance,
           productivity: avgProductivity,
           productivity_display: `${avgProductivity}%`,
@@ -463,6 +506,7 @@ async function fetchPerformance() {
           project_start_date: projectStartDate,
           project_end_date: projectEndDate
         });
+
       }
     }
 

@@ -22,31 +22,30 @@
       <div class="system-stats-section">
         <h4 class="section-title">SYSTEM</h4>
         <div class="system-stats">
-            <!-- Inside the stats-card for farmers -->
-            <!-- Inside the stats-card for farmers -->
-            <div class="stats-card">
-              <img src="/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
-              <div class="stats-info">
-                <p>Farmers</p>
-                <div class="number-wrapper total-farmers"> <!-- Added total-farmers class -->
-                  <div class="change-indicators">
-                    <span id="new-farmers" class="new-farmers"></span>
-                  </div>
-                  <h3 id="total-farmers">
-                    <!-- Current total count will go here -->
-                  </h3>
-                  <span>This Year</span>
+          <!-- Inside the stats-card for farmers -->
+          <div class="stats-card">
+            <img src="/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
+            <div class="stats-info">
+              <p>Farmers</p>
+              <div class="number-wrapper total-farmers"> <!-- Added total-farmers class -->
+                <div class="change-indicators">
+                  <span id="new-farmers" class="new-farmers"></span>
                 </div>
+                <h3 id="total-farmers">
+                  <!-- Current total count will go here -->
+                </h3>
+                <span>This Year</span>
               </div>
             </div>
+          </div>
           <div class="stats-card">
             <img src="/images/graphBig.png" alt="Projects Icon" class="stats-icon projects-icon">
             <div class="stats-info">
               <p>Projects</p>
               <div class="number-wrapper">
-                  <h3 id="total-projects">
-                    <!--Dynamically Updating Records-->
-                  </h3>
+                <h3 id="total-projects">
+                  <!--Dynamically Updating Records-->
+                </h3>
                 <span>This Month</span>
               </div>
             </div>
@@ -82,41 +81,85 @@
       </div>
     </div>
 
-<!-- Analytics Section -->
-<div class="analytics-section">
-  <h4 class="section-title">ANALYTICS</h4>
-  <div class="analytics">
-      <div class="harvest-info">
+        <!-- Performance Status Section -->
+    <div class="performance-status-section">
+      <h4 class="section-title">PERFORMANCE STATUS</h4>
+      <div class="performance-status">
+        <div class="status-circles">
+          <div class="circle outstanding">
+            <span id="total-outstanding">
+              <!--Dynamically Updating Records-->
+            </span>
+            <p>Outstanding</p>
+          </div>
+          <div class="circle highly-efficient">
+            <span id="total-highly-efficient">
+              <!--Dynamically Updating Records-->
+            </span>
+            <p>Highly Efficient</p>
+          </div>
+          <div class="circle productive">
+            <span id="total-productive">
+              <!--Dynamically Updating Records-->
+            </span>
+            <p>Productive</p>
+          </div>
+          <div class="circle average-performer">
+            <span id="total-average-performer">
+              <!--Dynamically Updating Records-->
+            </span>
+            <p>Average Performer</p>
+          </div>
+          <div class="circle needs-improvement">
+            <span id="total-needs-improvement">
+              <!--Dynamically Updating Records-->
+            </span>
+            <p>Needs Improvement</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="analytics-section">
+      <h4 class="section-title">ANALYTICS</h4>
+      <div class="analytics">
+        <div class="harvest-info">
           <div class="year-selector-wrapper">
             <h5>Harvest Information</h5>
             <div class="year-selector-container">
               <label for="year-selector" class="year-selector-label">Select a Year:</label>
               <select id="year-selector" class="year-selector">
-                  <!-- Years will be populated dynamically -->
+                <!-- Years will be populated dynamically -->
               </select>
             </div>
           </div>
           <div class="chart-wrapper">
-              <div class="y-axis">
-              </div>
-              <div class="bar-chart">
-                  <div class="bar" data-month="Jan"></div>
-                  <div class="bar" data-month="Feb"></div>
-                  <div class="bar" data-month="Mar"></div>
-                  <div class="bar" data-month="Apr"></div>
-                  <div class="bar" data-month="May"></div>
-                  <div class="bar" data-month="Jun"></div>
-                  <div class="bar" data-month="Jul"></div>
-                  <div class="bar" data-month="Aug"></div>
-                  <div class="bar" data-month="Sep"></div>
-                  <div class="bar" data-month="Oct"></div>
-                  <div class="bar" data-month="Nov"></div>
-                  <div class="bar" data-month="Dec"></div>
-              </div>
+            <div class="y-axis-container">
+              <div class="y-axis-title">Kilograms</div>
+              <div class="y-axis"></div>
+            </div>
+            <div class="bar-chart">
+              <div class="bar" data-month="Jan"></div>
+              <div class="bar" data-month="Feb"></div>
+              <div class="bar" data-month="Mar"></div>
+              <div class="bar" data-month="Apr"></div>
+              <div class="bar" data-month="May"></div>
+              <div class="bar" data-month="Jun"></div>
+              <div class="bar" data-month="Jul"></div>
+              <div class="bar" data-month="Aug"></div>
+              <div class="bar" data-month="Sep"></div>
+              <div class="bar" data-month="Oct"></div>
+              <div class="bar" data-month="Nov"></div>
+              <div class="bar" data-month="Dec"></div>
+            </div>
           </div>
+          <div class="x-axis-title">Months</div>
+        </div>
       </div>
-  </div>
-</div>
+    </div>
+
+  </div> <!-- ✅ closes .main-content -->
 
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="/src/auth/header.js"></script>
