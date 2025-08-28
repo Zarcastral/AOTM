@@ -229,10 +229,8 @@ async function fetchPerformance() {
   try {
     isDataLoading = true;
     updateDownloadButtonState();
-    displayPerformance(filteredPerformance); // Display loading message
-    console.log("Starting fetchPerformance...");
+    displayPerformance(filteredPerformance);
 
-    // Ensure auth loaded and user is Admin
     await getAuthenticatedUser();
     if (!currentUser || currentUser.user_type !== "Admin") {
       console.warn("User is not authorized to fetch performance data (not Admin).");
@@ -244,291 +242,106 @@ async function fetchPerformance() {
 
     const projectsQuery = query(collection(db, "tb_projects"), where("project_creator", "==", "Admin"));
     const projectsSnap = await getDocs(projectsQuery);
-    console.log(`Found ${projectsSnap.size} projects where project_creator is Admin`);
-
     const historyQuery = query(collection(db, "tb_project_history"), where("project_creator", "==", "Admin"));
     const historySnap = await getDocs(historyQuery);
-    console.log(`Found ${historySnap.size} project history records where project_creator is Admin`);
 
     const allProjectDocs = [...projectsSnap.docs, ...historySnap.docs];
 
-    const combinedRows = [];
+    // GLOBAL MAP keyed by farmer_id to remove duplicates across all projects
+    const farmersMap = {};
 
     for (const projectDoc of allProjectDocs) {
       const projectData = projectDoc.data();
-      const projectId = projectData.project_id; // Use project_id field
-      const projectBarangay = projectData.barangay_name || "N/A";
+      const projectId = projectData.project_id;
       const projectName = projectData.project_name || "Unknown Project";
+      const projectBarangay = projectData.barangay_name || "N/A";
       const projectStartDate = projectData.start_date;
       const projectEndDate = projectData.end_date;
-      const totalDays = calculateTotalDays(projectStartDate, projectEndDate);
-      console.log(`Processing project: ${projectName}, project_id: ${projectId}, Total Days: ${totalDays}, Start Date: ${projectStartDate ? (projectStartDate.toDate ? projectStartDate.toDate().toISOString() : projectStartDate) : 'N/A'}`);
 
-      // Get project tasks from top-level tb_project_task collection
+      if (projectData.project_creator !== currentUser.user_type) continue;
+
       const tasksQuery = query(collection(db, "tb_project_task"), where("project_id", "==", projectId));
-      console.log(`Querying tasks with project_id: ${projectId}`);
       const tasksSnap = await getDocs(tasksQuery);
       const taskDocs = tasksSnap.docs;
-      console.log(`Found ${taskDocs.length} tasks for project_id ${projectId}`);
 
-      const farmerLowerToDisplay = {};
-      const farmerLowerSet = new Set();
-      const attendanceByTask = {};
-      let sessionIds = [];
+      const attendanceDocs = [];
 
       if (taskDocs.length > 0) {
-        sessionIds = taskDocs.map(t => t.id);
-
         for (const taskDoc of taskDocs) {
           const taskData = taskDoc.data();
           const taskProjectTaskId = taskData.project_task_id;
-          if (!taskProjectTaskId) {
-            console.warn(`Task ${taskDoc.id} has no project_task_id field, skipping`);
-            continue;
-          }
-          const taskId = taskDoc.id;
-          console.log(`Processing task with ID: ${taskId}, project_id: ${projectId}, project_task_id: ${taskProjectTaskId}`);
-          let attendanceSnap;
-          try {
-            attendanceSnap = await getDocs(query(collection(db, "tb_attendance"), where("project_task_id", "==", taskProjectTaskId)));
-            console.log(`Found ${attendanceSnap.size} attendance records for task project_task_id ${taskProjectTaskId}`);
-          } catch (e) {
-            console.error(`Error fetching attendance for task ${taskId}:`, e);
-            attendanceSnap = { docs: [] };
-          }
+          if (!taskProjectTaskId) continue;
 
-          const entries = [];
-          for (const attDoc of attendanceSnap.docs) {
-            const attData = attDoc.data();
-            console.log(`Attendance data for task ${taskId}:`, attData);
-
-            // Additional checks
-            const attProjectTaskId = attData.project_task_id;
-            if (!attProjectTaskId) {
-              console.warn(`Skipping attendance ${attDoc.id} because no project_task_id field`);
-              continue;
-            }
-            const taskQuery = query(collection(db, "tb_project_task"), where("project_task_id", "==", attProjectTaskId));
-            const taskSnap = await getDocs(taskQuery);
-            if (taskSnap.empty) {
-              console.warn(`Skipping attendance ${attDoc.id} because no matching project_task_id ${attProjectTaskId}`);
-              continue;
-            }
-
-            const attProjectId = attData.project_id;
-            if (!attProjectId) {
-              console.warn(`Skipping attendance ${attDoc.id} because no project_id field`);
-              continue;
-            }
-
-            let projectExists = false;
-            const projectQuery = query(collection(db, "tb_projects"), where("project_id", "==", attProjectId));
-            const projectSnap = await getDocs(projectQuery);
-            if (!projectSnap.empty) {
-              projectExists = true;
-            } else {
-              const historyProjectQuery = query(collection(db, "tb_project_history"), where("project_id", "==", attProjectId));
-              const historyProjectSnap = await getDocs(historyProjectQuery);
-              if (!historyProjectSnap.empty) {
-                projectExists = true;
-              }
-            }
-
-            if (!projectExists) {
-              console.warn(`Skipping attendance ${attDoc.id} because no matching project_id ${attProjectId} in tb_projects or tb_project_history`);
-              continue;
-            }
-
-            const farmers = attData.farmers || [];
-
-            if (Array.isArray(farmers)) {
-              farmers.forEach(f => {
-                if (f && typeof f === "object") {
-                  const displayName = String(f.farmer_name || f.name || "Unknown").trim();
-                  const lowerName = displayName.toLowerCase();
-                  const present = String(f.present || "No").trim().toLowerCase();
-                  const remark = f.remarks || f.remark || f.remark_label || "Needs Improvement";
-                  const barangay = f.barangay || f.barangay_name || projectBarangay || "N/A";
-
-                  entries.push({ lowerName, displayName, present, remark, barangay });
-                  farmerLowerSet.add(lowerName);
-                  if (!farmerLowerToDisplay[lowerName]) {
-                    farmerLowerToDisplay[lowerName] = { displayName, barangay };
-                  }
-                }
-              });
-            } else {
-              console.warn(`No valid farmers array found in attendance for task ${taskId}`);
-            }
-          }
-
-          attendanceByTask[taskId] = entries;
+          const attSnap = await getDocs(query(collection(db, "tb_attendance"), where("project_task_id", "==", taskProjectTaskId)));
+          attSnap.forEach(doc => attendanceDocs.push(doc));
         }
       } else {
-        // Fallback: Query attendance directly by project_id
-        let attendanceSnap;
-        try {
-          attendanceSnap = await getDocs(query(collection(db, "tb_attendance"), where("project_id", "==", projectId)));
-          console.log(`Found ${attendanceSnap.size} attendance records directly for project ${projectId}`);
-        } catch (e) {
-          console.error(`Error fetching attendance for project ${projectId}:`, e);
-          attendanceSnap = { docs: [] };
-        }
-
-        if (attendanceSnap.size === 0) {
-          console.warn(`No attendance found for project_id ${projectId}, skipping`);
-          continue;
-        }
-
-        sessionIds = attendanceSnap.docs.map(d => d.id);
-
-        for (const attDoc of attendanceSnap.docs) {
-          const sessionId = attDoc.id;
-          const attData = attDoc.data();
-          console.log(`Attendance data for session ${sessionId}:`, attData);
-
-          // Additional checks for fallback
-          const attProjectTaskId = attData.project_task_id;
-          if (!attProjectTaskId) {
-            console.warn(`Skipping attendance ${sessionId} because no project_task_id field`);
-            continue;
-          }
-          const taskQuery = query(collection(db, "tb_project_task"), where("project_task_id", "==", attProjectTaskId));
-          const taskSnap = await getDocs(taskQuery);
-          if (taskSnap.empty) {
-            console.warn(`Skipping attendance ${sessionId} because no matching project_task_id ${attProjectTaskId}`);
-            continue;
-          }
-
-          const attProjectId = attData.project_id;
-          if (!attProjectId) {
-            console.warn(`Skipping attendance ${sessionId} because no project_id field`);
-            continue;
-          }
-
-          let projectExists = false;
-          const projectQuery = query(collection(db, "tb_projects"), where("project_id", "==", attProjectId));
-          const projectSnap = await getDocs(projectQuery);
-          if (!projectSnap.empty) {
-            projectExists = true;
-          } else {
-            const historyProjectQuery = query(collection(db, "tb_project_history"), where("project_id", "==", attProjectId));
-            const historyProjectSnap = await getDocs(historyProjectQuery);
-            if (!historyProjectSnap.empty) {
-              projectExists = true;
-            }
-          }
-
-          if (!projectExists) {
-            console.warn(`Skipping attendance ${sessionId} because no matching project_id ${attProjectId} in tb_projects or tb_project_history`);
-            continue;
-          }
-
-          const entries = [];
-          const farmers = attData.farmers || [];
-
-          if (Array.isArray(farmers)) {
-            farmers.forEach(f => {
-              if (f && typeof f === "object") {
-                const displayName = String(f.farmer_name || f.name || "Unknown").trim();
-                const lowerName = displayName.toLowerCase();
-                const present = String(f.present || "No").trim().toLowerCase();
-                const remark = f.remarks || f.remark || f.remark_label || "Needs Improvement";
-                const barangay = f.barangay || f.barangay_name || projectBarangay || "N/A";
-
-                entries.push({ lowerName, displayName, present, remark, barangay });
-                farmerLowerSet.add(lowerName);
-                if (!farmerLowerToDisplay[lowerName]) {
-                  farmerLowerToDisplay[lowerName] = { displayName, barangay };
-                }
-              }
-            });
-          } else {
-            console.warn(`No valid farmers array found in attendance for session ${sessionId}`);
-          }
-
-          attendanceByTask[sessionId] = entries;
-        }
+        const attSnap = await getDocs(query(collection(db, "tb_attendance"), where("project_id", "==", projectId)));
+        attSnap.forEach(doc => attendanceDocs.push(doc));
       }
 
-      if (farmerLowerSet.size === 0) {
-        console.warn(`No farmers found for project_id ${projectId}, skipping`);
-        continue;
-      }
+      // Aggregate attendance into the global map
+      for (const attDoc of attendanceDocs) {
+        const attData = attDoc.data();
+        const farmers = attData.farmers || [];
+        if (!Array.isArray(farmers)) continue;
 
-      for (const lowerName of farmerLowerSet) {
-        const displayInfo = farmerLowerToDisplay[lowerName] || { displayName: lowerName, barangay: projectBarangay };
-        const displayName = displayInfo.displayName || lowerName;
-        const farmerBarangay = displayInfo.barangay || projectBarangay;
+        farmers.forEach(f => {
+          const farmerId = f.farmer_id || f.id;
+          if (!farmerId) return;
 
-        let presentDays = 0;
-        let scoreSum = 0;
-
-        for (const sessionId of sessionIds) {
-          const entries = attendanceByTask[sessionId] || [];
-          const found = entries.find(e => e.lowerName === lowerName);
-          const present = found ? found.present : "no";
-          const remarkForDay = found ? found.remark : "Needs Improvement";
-
-          if (present.toLowerCase() === "yes") {
-            presentDays++;
+          if (!farmersMap[farmerId]) {
+            farmersMap[farmerId] = {
+              farmer_name: f.farmer_name || f.name || "Unknown",
+              barangay: f.barangay || f.barangay_name || projectBarangay,
+              presentDays: 0,
+              totalSessions: 0,
+              scoreSum: 0
+            };
           }
 
-          const score = remarkToScore(remarkForDay);
-          scoreSum += score;
-        }
+          const present = String(f.present || "No").toLowerCase() === "yes";
+          const remark = f.remarks || f.remark || f.remark_label || "Needs Improvement";
 
-        // totalSessions = number of attendance records actually logged
-        const totalSessions = sessionIds.length;
-
-        // Compute productivity based only on logged attendance records
-        const avgProductivity = totalSessions > 0 ? Math.round((presentDays / totalSessions) * 100) : 0;
-
-        // Map to remark category
-        const remarkCategory = getRemarkFromPercentage(avgProductivity);
-
-        // Format attendance string
-        const attendance = `${presentDays}/${totalSessions} days`;
-
-        console.log(`Farmer: ${displayName}, Present Days: ${presentDays}, Total Sessions: ${totalSessions}, Productivity: ${avgProductivity}%`);
-
-        combinedRows.push({
-          project_id: projectId,
-          project_name: projectName,
-          farmer_name: displayName,
-          barangay: farmerBarangay,
-          present_days: presentDays,
-          total_days: totalSessions,   // <-- changed from totalDays
-          attendance: attendance,
-          productivity: avgProductivity,
-          productivity_display: `${avgProductivity}%`,
-          remarks: remarkCategory,
-          project_start_date: projectStartDate,
-          project_end_date: projectEndDate
+          if (present) farmersMap[farmerId].presentDays++;
+          farmersMap[farmerId].totalSessions++;
+          farmersMap[farmerId].scoreSum += remarkToScore(remark);
         });
-
       }
     }
 
+    // Convert map to array and compute productivity
+    const combinedRows = Object.values(farmersMap).map(farmer => {
+      const totalSessions = farmer.totalSessions || 1;
+      const avgProductivity = Math.round((farmer.presentDays / totalSessions) * 100);
+      const remarkCategory = getRemarkFromPercentage(avgProductivity);
+
+      return {
+        farmer_name: farmer.farmer_name,
+        barangay: farmer.barangay,
+        present_days: farmer.presentDays,
+        total_days: totalSessions,
+        attendance: `${farmer.presentDays}/${totalSessions} days`,
+        productivity: avgProductivity,
+        productivity_display: `${avgProductivity}%`,
+        remarks: remarkCategory
+      };
+    });
+
     performanceList = combinedRows.sort((a, b) => {
-  // First, sort by productivity descending
-  if (b.productivity !== a.productivity) return b.productivity - a.productivity;
+      if (b.productivity !== a.productivity) return b.productivity - a.productivity;
+      const remarkScoreA = remarkToScore(a.remarks);
+      const remarkScoreB = remarkToScore(b.remarks);
+      if (remarkScoreB !== remarkScoreA) return remarkScoreB - remarkScoreA;
+      return (a.farmer_name || "").localeCompare(b.farmer_name || "");
+    });
 
-  // Then by remark score descending
-  const remarkScoreA = remarkToScore(a.remarks);
-  const remarkScoreB = remarkToScore(b.remarks);
-  if (remarkScoreB !== remarkScoreA) return remarkScoreB - remarkScoreA;
-
-  // Finally, alphabetically by farmer_name
-  return (a.farmer_name || "").localeCompare(b.farmer_name || "");
-});
     filteredPerformance = [...performanceList];
-    console.log("Performance List:", performanceList);
-
     currentPage = 1;
     isDataLoading = false;
     updateDownloadButtonState();
     filterPerformance();
+
   } catch (error) {
     console.error("Error fetching performance data:", error);
     isDataLoading = false;
@@ -536,6 +349,7 @@ async function fetchPerformance() {
     displayPerformance([]);
   }
 }
+
 
 /* ------------------------------
    Fetch and populate barangay names

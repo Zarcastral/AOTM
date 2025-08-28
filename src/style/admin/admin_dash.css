@@ -268,6 +268,11 @@ body {
   margin-right: 5px;
 }
 
+.circle.completed p::before {
+  content: "\2022";
+  color: #41A186;
+  margin-right: 5px;
+}
 
 .circle.in-progress p::before {
   content: "\2022";
@@ -368,19 +373,23 @@ body {
 
 .y-axis-title {
   position: absolute;
-  left: -70px; /* Increased for more gap */
+  left: -115px; /* Increased for more gap */
   top: 50%;
   transform: translateY(-50%) rotate(-90deg);
   font-size: 20px;
+    font-weight: bold;
   color: #333;
   white-space: nowrap;
+  letter-spacing: 9px;
 }
 
 .x-axis-title {
   text-align: center;
-  font-size: 20px;
+  font-weight: bold;
+  font-size: 30px;
   color: #333;
   margin-top: 30px; /* Increased for more gap */
+  letter-spacing: 8px;
 }
 
 .year-selector-wrapper {

@@ -337,7 +337,7 @@ function updateProjectStatus() {
 }
 
 // Show performance status with filtering by project creator & user_type
-function updatePerformanceStatus() {
+async function updatePerformanceStatus() {
     try {
         const attendanceCollection = collection(db, "tb_attendance");
         const projectsCollection = collection(db, "tb_projects");
@@ -346,11 +346,11 @@ function updatePerformanceStatus() {
         const unsubscribe = onSnapshot(attendanceCollection, async (snapshot) => {
             try {
                 const currentUser = await getAuthenticatedUser();
+                console.log("Current User:", currentUser);
 
-                // build a map of project_id -> project_creator
+                // Build project -> creator map
                 const projectSnapshot = await getDocs(projectsCollection);
                 const historySnapshot = await getDocs(historyCollection);
-
                 const projectCreators = {};
 
                 projectSnapshot.forEach(doc => {
@@ -367,69 +367,156 @@ function updatePerformanceStatus() {
                     }
                 });
 
-                let outstandingCount = 0;
-                let highlyEfficientCount = 0;
-                let productiveCount = 0;
-                let averagePerformerCount = 0;
-                let needsImprovementCount = 0;
+                console.log("Project Creators Map:", projectCreators);
+
+                // Normalize remarks
+                const remarkScores = {
+                    "outstanding": 5,
+                    "highly efficient": 4,
+                    "productive": 3,
+                    "average performer": 2,
+                    "needs improvement": 1
+                };
+
+                const scoreToRemark = {
+                    5: "outstanding",
+                    4: "highly efficient",
+                    3: "productive",
+                    2: "average performer",
+                    1: "needs improvement"
+                };
+
+                const normalizeRemark = (remark) => {
+                    if (!remark) return null;
+                    remark = remark.toLowerCase().trim();
+                    if (remark === "high efficient") return "highly efficient";
+                    if (remark === "average") return "average performer";
+                    if (remark === "needs-improvement") return "needs improvement";
+                    return remark;
+                };
+
+                // Collect remarks per farmer
+                const farmerRemarks = {}; 
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const projectId = data.project_id;
 
-                    // Only include if project matches current user's type
-                    if (!projectId || projectCreators[projectId] !== currentUser.user_type) {
-                        return;
-                    }
+                    if (!projectId || projectCreators[projectId] !== currentUser.user_type) return;
 
                     if (Array.isArray(data.farmers)) {
                         data.farmers.forEach(farmer => {
-                            const remark = (farmer.remarks || "").toLowerCase();
-                            switch (remark) {
-                                case "outstanding":
-                                    outstandingCount++;
-                                    break;
-                                case "highly efficient":
-                                    highlyEfficientCount++;
-                                    break;
-                                case "productive":
-                                    productiveCount++;
-                                    break;
-                                case "average performer":
-                                    averagePerformerCount++;
-                                    break;
-                                case "needs improvement":
-                                    needsImprovementCount++;
-                                    break;
+                            if (!farmer.farmer_id) return;
+                            const remark = normalizeRemark(farmer.remarks);
+                            if (remark && remarkScores[remark]) {
+                                if (!farmerRemarks[farmer.farmer_id]) farmerRemarks[farmer.farmer_id] = [];
+                                farmerRemarks[farmer.farmer_id].push(remarkScores[remark]);
                             }
                         });
                     }
                 });
 
-                const totalPerformance =
-                    outstandingCount +
-                    highlyEfficientCount +
-                    productiveCount +
-                    averagePerformerCount +
-                    needsImprovementCount;
+                console.log("Farmer Remarks Collected:", farmerRemarks);
 
-                const calcPercent = (count) =>
-                    totalPerformance > 0 ? (count / totalPerformance) * 100 : 0;
+                // Average each farmer's remarks
+                const farmerAverages = {};
+                Object.keys(farmerRemarks).forEach(fid => {
+                    const scores = farmerRemarks[fid];
+                    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+                    const rounded = Math.round(avg);
+                    farmerAverages[fid] = scoreToRemark[rounded];
+                });
 
+                console.log("Farmer Averages:", farmerAverages);
+
+                // Count farmers in each category
+                let counts = {
+                    "outstanding": 0,
+                    "highly efficient": 0,
+                    "productive": 0,
+                    "average performer": 0,
+                    "needs improvement": 0
+                };
+
+                Object.values(farmerAverages).forEach(finalRemark => {
+                    counts[finalRemark]++;
+                });
+
+                console.log("Counts:", counts);
+
+                const totalFarmers = Object.keys(farmerAverages).length;
+                const calcPercent = (count) => totalFarmers > 0 ? (count / totalFarmers) * 100 : 0;
+
+                console.log("Total Farmers:", totalFarmers);
+
+                // Calculate overall performance
+                const totalScore = Object.values(farmerAverages)
+                    .map(r => remarkScores[r])
+                    .reduce((a, b) => a + b, 0);
+                const overallAverage = totalScore / (totalFarmers || 1);
+                const roundedOverall = Math.round(overallAverage);
+                const overallRemark = scoreToRemark[roundedOverall];
+
+                // Update overall performance element
+                const overallEl = document.getElementById("overall-performance");
+                if (overallEl) {
+                    overallEl.textContent = `Overall Performance: ${overallRemark}`;
+                }
+
+                // Function to update circle
                 const updateCircle = (id, count, percentage, color) => {
                     const el = document.getElementById(id);
                     if (el) {
-                        el.setAttribute("data-count", count.toLocaleString());
+                        el.style.position = "relative";
+                        el.style.borderRadius = "50%";
+                        el.style.display = "flex";
+                        el.style.alignItems = "center";
+                        el.style.justifyContent = "center";
+                        el.style.overflow = "hidden";
+
+                        const oldOverlay = el.querySelector(".circle-overlay");
+                        if (oldOverlay) oldOverlay.remove();
+
+                        const overlay = document.createElement("div");
+                        overlay.className = "circle-overlay";
+                        overlay.style.position = "absolute";
+                        overlay.style.top = 0;
+                        overlay.style.left = 0;
+                        overlay.style.width = "100%";
+                        overlay.style.height = "100%";
+                        overlay.style.display = "flex";
+                        overlay.style.flexDirection = "column";
+                        overlay.style.alignItems = "center";
+                        overlay.style.justifyContent = "center";
+                        overlay.style.zIndex = 10;
+                        overlay.style.pointerEvents = "none";
+
+                        const percentEl = document.createElement("div");
+                        percentEl.style.fontSize = "20px";
+                        percentEl.style.fontWeight = "bold";
+                        percentEl.style.color = "black";
+                        percentEl.textContent = `${Math.round(percentage)}%`;
+
+                        const countEl = document.createElement("div");
+                        countEl.style.fontSize = "12px";
+                        countEl.style.color = "gray";
+                        countEl.textContent = `(${count} farmer${count !== 1 ? "s" : ""})`;
+
+                        overlay.appendChild(percentEl);
+                        overlay.appendChild(countEl);
+                        el.appendChild(overlay);
+
                         el.style.background = `conic-gradient(from 0deg, #E0E0E0 0% 100%, ${color} 100% 100%)`;
                         animateGradient(el, percentage, color);
                     }
                 };
 
-                updateCircle("total-outstanding", outstandingCount, calcPercent(outstandingCount), "#41A186");
-                updateCircle("total-highly-efficient", highlyEfficientCount, calcPercent(highlyEfficientCount), "#4CAF50");
-                updateCircle("total-productive", productiveCount, calcPercent(productiveCount), "#2196F3");
-                updateCircle("total-average-performer", averagePerformerCount, calcPercent(averagePerformerCount), "#9854CB");
-                updateCircle("total-needs-improvement", needsImprovementCount, calcPercent(needsImprovementCount), "#AC415B");
+                // Update circles
+                updateCircle("total-outstanding", counts["outstanding"], calcPercent(counts["outstanding"]), "#41A186");
+                updateCircle("total-highly-efficient", counts["highly efficient"], calcPercent(counts["highly efficient"]), "#4CAF50");
+                updateCircle("total-productive", counts["productive"], calcPercent(counts["productive"]), "#2196F3");
+                updateCircle("total-average-performer", counts["average performer"], calcPercent(counts["average performer"]), "#9854CB");
+                updateCircle("total-needs-improvement", counts["needs improvement"], calcPercent(counts["needs improvement"]), "#AC415B");
 
             } catch (error) {
                 console.error("Problem filtering performance records:", error);
@@ -443,7 +530,6 @@ function updatePerformanceStatus() {
         console.error("Problem setting up performance status:", error);
     }
 }
-
 
 
 // Create the bar graph for harvest data

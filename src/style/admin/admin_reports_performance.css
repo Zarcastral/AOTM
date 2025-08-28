@@ -465,11 +465,24 @@ tbody tr:hover {
 .refresh-button {
   display: flex;
   align-items: center;
-  gap: 20px;          /* reduced gap between button and text */
-  margin: 10px 0;     /* top and bottom spacing */
-  padding-left: 25px; /* space from left edge of page/container */
+  gap: 20px;           /* space between text and button */
+  margin: 10px 0;      /* top and bottom spacing */
+  padding-left: 25px;  /* space from left edge */
   color: gray;
 }
+
+.refresh-button .text {
+  max-width: 300px;     /* or adjust based on container */
+  white-space: nowrap;   /* keep text on a single line */
+  overflow: hidden;
+  text-overflow: ellipsis; /* add "..." if too long */
+  flex-shrink: 1;       /* allow text to shrink a bit if needed */
+}
+
+.refresh-button .refresh-btn {
+  flex-shrink: 0;       /* keep button fixed size */
+}
+
 
 
 .refresh-btn {
@@ -482,6 +495,7 @@ tbody tr:hover {
   border-radius: 40px;
   cursor: pointer;
   transition: background-color 0.2s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* 3D shadow */
 }
 
 .refresh-btn:hover {
@@ -497,6 +511,7 @@ tbody tr:hover {
   border-radius: 40px;
   cursor: pointer;
   transition: background-color 0.2s;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4); /* 3D shadow */
 }
 
 .download-icon {
