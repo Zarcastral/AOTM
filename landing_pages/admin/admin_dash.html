@@ -15,8 +15,9 @@
   <!-- Placeholder for Header -->
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
+
   <div class="main-content">
-    <!-- Top Section: System Stats and Project Status -->
+    <!-- Top Section: System Stats and Performance Status -->
     <div class="top-section">
       <!-- System Stats Section -->
       <div class="system-stats-section">
@@ -27,25 +28,22 @@
             <img src="/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
             <div class="stats-info">
               <p>Farmers</p>
-              <div class="number-wrapper total-farmers"> <!-- Added total-farmers class -->
+              <div class="number-wrapper total-farmers">
                 <div class="change-indicators">
                   <span id="new-farmers" class="new-farmers"></span>
                 </div>
-                <h3 id="total-farmers">
-                  <!-- Current total count will go here -->
-                </h3>
+                <h3 id="total-farmers"></h3>
                 <span>This Year</span>
               </div>
             </div>
           </div>
+
           <div class="stats-card">
             <img src="/images/graphBig.png" alt="Projects Icon" class="stats-icon projects-icon">
             <div class="stats-info">
               <p>Projects</p>
               <div class="number-wrapper">
-                <h3 id="total-projects">
-                  <!--Dynamically Updating Records-->
-                </h3>
+                <h3 id="total-projects"></h3>
                 <span>This Month</span>
               </div>
             </div>
@@ -53,68 +51,39 @@
         </div>
       </div>
 
-      <!-- Project Status Section -->
-      <div class="project-status-section">
-        <h4 class="section-title">PROJECT STATUS (THIS YEAR)</h4>
-        <div class="project-status">
-          <div class="status-circles">
-            <div class="circle completed">
-              <span id="total-completed-projects">
-                <!--Dynamically Updating Records-->
-              </span>
-              <p>Completed</p>
-            </div>
-            <div class="circle in-progress">
-              <span id="total-inprogress-projects">
-                <!--Dynamically Updating Records-->
-              </span>
-              <p>In Progress</p>
-            </div>
-            <div class="circle not-started">
-              <span id="total-notstarted-projects">
-                <!--Dynamically Updating Records-->
-              </span>
-              <p>Not Started</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- Performance Status Section -->
+<div class="performance-status-section">
+  <h4 class="section-title">PERFORMANCE STATUS</h4>
+  <div class="performance-status-card" style="display:flex; align-items:center; gap:30px;">
+    <div id="overall-performance"></div>
+    <!-- Chart -->
+    <canvas id="performancePie" width="220" height="220"></canvas>
+    
+    <!-- Legend -->
+    <div id="performanceLegend"></div>
+  </div>
+</div>
 
-        <!-- Performance Status Section -->
-    <div class="performance-status-section">
-      <h4 class="section-title">PERFORMANCE STATUS</h4>
-      <div class="performance-status">
+
+
+    </div> <!-- /top-section -->
+
+    <!-- Project Status Section (moved above Analytics) -->
+    <div class="project-status-section">
+      <h4 class="section-title">PROJECT STATUS (THIS YEAR)</h4>
+      <div class="project-status">
         <div class="status-circles">
-          <div class="circle outstanding">
-            <span id="total-outstanding">
-              <!--Dynamically Updating Records-->
-            </span>
-            <p>Outstanding</p>
+          <div class="circle completed">
+            <span id="total-completed-projects"></span>
+            <p>Completed</p>
           </div>
-          <div class="circle highly-efficient">
-            <span id="total-highly-efficient">
-              <!--Dynamically Updating Records-->
-            </span>
-            <p>Highly Efficient</p>
+          <div class="circle in-progress">
+            <span id="total-inprogress-projects"></span>
+            <p>In Progress</p>
           </div>
-          <div class="circle productive">
-            <span id="total-productive">
-              <!--Dynamically Updating Records-->
-            </span>
-            <p>Productive</p>
-          </div>
-          <div class="circle average-performer">
-            <span id="total-average-performer">
-              <!--Dynamically Updating Records-->
-            </span>
-            <p>Average Performer</p>
-          </div>
-          <div class="circle needs-improvement">
-            <span id="total-needs-improvement">
-              <!--Dynamically Updating Records-->
-            </span>
-            <p>Needs Improvement</p>
+          <div class="circle not-started">
+            <span id="total-notstarted-projects"></span>
+            <p>Not Started</p>
           </div>
         </div>
       </div>
@@ -134,6 +103,7 @@
               </select>
             </div>
           </div>
+
           <div class="chart-wrapper">
             <div class="y-axis-container">
               <div class="y-axis-title">Kilograms</div>
@@ -163,6 +133,7 @@
 
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="/src/auth/header.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
 
