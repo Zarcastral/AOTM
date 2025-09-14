@@ -658,6 +658,7 @@ async function updateBarGraph() {
         tooltip.style.display = 'none';
     });
 }
+
 async function updatePerformanceStatus() {
   try {
     const attendanceCollection = collection(db, "tb_attendance");
