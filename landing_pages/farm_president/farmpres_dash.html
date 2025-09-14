@@ -15,20 +15,20 @@
   <div id="header-container"></div> <!-- This will hold the header content dynamically -->
 
   <div class="main-content">
-    <!-- Top Section: System Stats -->
+    <!-- Top Section: System Stats + Performance Status -->
     <div class="top-section">
       <!-- System Stats Section -->
       <div class="system-stats-section">
         <h4 class="section-title">SYSTEM</h4>
-        <div class="system-stats">
+        <div class="system-stats stacked">
           <div class="stats-card">
             <img src="/images/profile-2userBig.png" alt="Farmers Icon" class="stats-icon farmers-icon">
             <div class="stats-info">
               <p>Farmers</p>
               <div class="number-wrapper">
-                  <h3 id="total-farmers">
-                    <!--Dynamically Updating Records-->
-                  </h3>
+                <h3 id="total-farmers">
+                  <!-- Dynamically Updating Records -->
+                </h3>
                 <span>This Year</span>
               </div>
             </div>
@@ -38,58 +38,79 @@
             <div class="stats-info">
               <p>Projects</p>
               <div class="number-wrapper">
-                  <h3 id="total-projects">
-                    <!--Dynamically Updating Records-->
-                  </h3>
+                <h3 id="total-projects">
+                  <!-- Dynamically Updating Records -->
+                </h3>
                 <span>This Month</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <!-- Removed the Project Status Section -->
+
+      <!-- Performance Status Section -->
+<!-- Performance Status Section -->
+      <div class="performance-status-section">
+        <h4 class="section-title">PERFORMANCE STATUS</h4>
+        <div class="performance-status-card">
+          <!-- Overall performance label (e.g., Outstanding) -->
+          <div id="overall-performance"></div>
+          
+          <!-- Pie chart -->
+          <canvas id="performancePie" width="220" height="220"></canvas>
+          
+          <!-- Legend -->
+          <div id="performanceLegend"></div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Analytics Section -->
     <div class="analytics-section">
       <h4 class="section-title">ANALYTICS</h4>
       <div class="analytics">
-          <div class="harvest-info">
-              <div class="year-selector-wrapper">
-                <h5>Harvest Information (This Year)</h5>
-                <div class="year-selector-container">
-                  <label for="year-selector" class="year-selector-label">Select a Year:</label>
-                  <select id="year-selector" class="year-selector">
-                      <!-- Years will be populated dynamically -->
-                  </select>
-                </div>
-              </div>
-              <div class="chart-wrapper">
-                  <div class="y-axis">
-                  </div>
-                  <div class="bar-chart">
-                      <div class="bar" data-month="Jan"></div>
-                      <div class="bar" data-month="Feb"></div>
-                      <div class="bar" data-month="Mar"></div>
-                      <div class="bar" data-month="Apr"></div>
-                      <div class="bar" data-month="May"></div>
-                      <div class="bar" data-month="Jun"></div>
-                      <div class="bar" data-month="Jul"></div>
-                      <div class="bar" data-month="Aug"></div>
-                      <div class="bar" data-month="Sep"></div>
-                      <div class="bar" data-month="Oct"></div>
-                      <div class="bar" data-month="Nov"></div>
-                      <div class="bar" data-month="Dec"></div>
-                  </div>
-              </div>
+        <div class="harvest-info">
+          <div class="year-selector-wrapper">
+            <h5>Harvest Information (This Year)</h5>
+            <div class="year-selector-container">
+              <label for="year-selector" class="year-selector-label">Select a Year:</label>
+              <select id="year-selector" class="year-selector">
+                <!-- Years will be populated dynamically -->
+              </select>
+            </div>
           </div>
+
+          <div class="chart-wrapper">
+            <div class="y-axis-container">
+              <div class="y-axis-label">Kilograms</div>
+              <div class="y-axis"></div>
+            </div>
+            <div class="bar-chart">
+              <div class="bar" data-month="Jan"></div>
+              <div class="bar" data-month="Feb"></div>
+              <div class="bar" data-month="Mar"></div>
+              <div class="bar" data-month="Apr"></div>
+              <div class="bar" data-month="May"></div>
+              <div class="bar" data-month="Jun"></div>
+              <div class="bar" data-month="Jul"></div>
+              <div class="bar" data-month="Aug"></div>
+              <div class="bar" data-month="Sep"></div>
+              <div class="bar" data-month="Oct"></div>
+              <div class="bar" data-month="Nov"></div>
+              <div class="bar" data-month="Dec"></div>
+            </div>
+            <div class="x-axis-label">Months</div>
+          </div>
+
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Import the reusable script from src/auth -->
   <script type="module" src="/src/auth/header.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 
 </html>

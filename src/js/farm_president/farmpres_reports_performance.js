@@ -44,17 +44,17 @@ async function saveActivityLog(action, description) {
   }
 
   try {
-    const userDocRef = doc(db, "tb_farmers", currentUser.uid);
+    const userDocRef = doc(db, "tb_users", currentUser.uid);
     const userDocSnap = await getDoc(userDocRef);
 
     if (!userDocSnap.exists()) {
-      console.error("User data not found in tb_farmers.");
+      console.error("User data not found in tb_users.");
       return;
     }
 
     const userData = userDocSnap.data();
-    const userName = `${userData.first_name || ""} ${userData.last_name || "Unknown Farmer"}`.trim() || "Unknown Farmer";
-    const userType = "Farmer";
+    const userName = userData.user_name || "Unknown User";
+    const userType = userData.user_type || "Unknown Type";
 
     const currentTimestamp = Timestamp.now().toDate();
     const date = currentTimestamp.toLocaleDateString("en-US");
@@ -96,6 +96,8 @@ let performanceList = [];      // full combined rows
 let filteredPerformance = [];  // filtered view
 let currentPage = 1;
 const rowsPerPage = 5;
+let selectedMonth = null;
+let selectedYear = new Date().getFullYear();
 
 // <--------------------------> FUNCTION TO GET AUTHENTICATED USER <-------------------------->
 async function getAuthenticatedUser() {
@@ -105,27 +107,38 @@ async function getAuthenticatedUser() {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
+          // Fetch from tb_farmers instead of tb_users
           const userQuery = query(collection(db, "tb_farmers"), where("email", "==", user.email));
           const userSnapshot = await getDocs(userQuery);
 
           if (!userSnapshot.empty) {
             const userDoc = userSnapshot.docs[0];
             const userData = userDoc.data();
+
             currentUser = {
               uid: user.uid,
               email: user.email,
-              user_type: "Farmer",
-              barangay: userData.barangay_name || userData.barangay || "N/A",
+              user_type: userData.user_type || "Unknown",
+              barangay_name: userData.barangay_name || null,
               ...userData
             };
-            console.log("Authenticated user:", currentUser.email);
-            resolve(currentUser);
+
+            if (!currentUser.user_type) {
+              console.warn("User type is missing in tb_farmers.");
+              reject("User type missing.");
+            } else if (!currentUser.barangay_name) {
+              console.warn("User has no barangay assigned in tb_farmers.");
+              reject("User has no barangay.");
+            } else {
+              console.log("Authenticated user:", currentUser.email, "in barangay:", currentUser.barangay_name);
+              resolve(currentUser);
+            }
           } else {
             console.error("User record not found in tb_farmers collection.");
             reject("User record not found.");
           }
         } catch (error) {
-          console.error("Error fetching user data:", error);
+          console.error("Error fetching user data from tb_farmers:", error);
           reject(error);
         }
       } else {
@@ -135,6 +148,7 @@ async function getAuthenticatedUser() {
     });
   });
 }
+
 
 // Function to manage PDF download button state
 function updateDownloadButtonState() {
@@ -150,28 +164,33 @@ function updateDownloadButtonState() {
 }
 
 /* ------------------------------
-   Representative percentages for remark labels
+   Score mapping for remark labels
    ------------------------------ */
-const remarkRep = {
-  "NEEDS_IMPROVEMENT": 10,
-  "AVERAGE_PERFORMER": 30,
-  "PRODUCTIVE": 50,
-  "HIGHLY_EFFICIENT": 70,
-  "OUTSTANDING": 90
+const scoreMap = {
+  "OUTSTANDING": 5,
+  "HIGHLY_EFFICIENT": 4,
+  "PRODUCTIVE": 3,
+  "AVERAGE_PERFORMER": 2,
+  "NEEDS_IMPROVEMENT": 1
 };
 
-function remarkLabelToRepresentativePercent(remarkLabel) {
-  if (!remarkLabel) return remarkRep["NEEDS_IMPROVEMENT"];
-  const normalized = String(remarkLabel).trim().toLowerCase();
+function remarkToScore(remarkLabel) {
+  if (!remarkLabel) return 1;
+  const normalized = String(remarkLabel).trim().toUpperCase().replace(/ /g, "_");
+  
+  if (scoreMap[normalized]) return scoreMap[normalized];
 
-  if (normalized === "needs improvement" || normalized === "needs_improvement") return remarkRep["NEEDS_IMPROVEMENT"];
-  if (normalized === "average performer" || normalized === "average_performer" || normalized === "average") return remarkRep["AVERAGE_PERFORMER"];
-  if (normalized === "productive") return remarkRep["PRODUCTIVE"];
-  if (normalized === "highly efficient" || normalized === "highly_efficient") return remarkRep["HIGHLY_EFFICIENT"];
-  if (normalized === "outstanding") return remarkRep["OUTSTANDING"];
-  const numeric = parseInt(String(remarkLabel).replace("%", "").trim());
-  if (!isNaN(numeric)) return numeric;
-  return remarkRep["NEEDS_IMPROVEMENT"];
+  // Fallback for variations
+  if (normalized.includes("OUTSTANDING")) return 5;
+  if (normalized.includes("HIGHLY") && normalized.includes("EFFICIENT")) return 4;
+  if (normalized.includes("PRODUCTIVE")) return 3;
+  if (normalized.includes("AVERAGE")) return 2;
+  if (normalized.includes("NEEDS") && normalized.includes("IMPROVEMENT")) return 1;
+
+  const numeric = parseInt(String(remarkLabel).trim());
+  if (!isNaN(numeric) && numeric >= 1 && numeric <= 5) return numeric;
+  
+  return 1;
 }
 
 function getRemarkFromPercentage(percentage) {
@@ -212,262 +231,136 @@ function calculateTotalDays(startDate, endDate) {
 }
 
 /* ------------------------------
-   Fetch performance data
+   Fetch performance data (filtered by user's barangay)
    ------------------------------ */
 async function fetchPerformance() {
   try {
     isDataLoading = true;
     updateDownloadButtonState();
-    displayPerformance(filteredPerformance); // Display loading message
-    console.log("Starting fetchPerformance...");
+    displayPerformance(filteredPerformance);
 
-    // Ensure auth loaded
     await getAuthenticatedUser();
-    if (!currentUser || !currentUser.barangay) {
-      console.warn("User barangay not found, cannot fetch performance data.");
+    if (!currentUser) {
+      console.warn("User is not authenticated.");
       isDataLoading = false;
       updateDownloadButtonState();
       displayPerformance([]);
       return;
     }
 
-    const projectsQuery = query(collection(db, "tb_projects"), where("barangay_name", "==", currentUser.barangay));
+    // Current user's barangay
+    const userBarangay = currentUser.barangay_name;
+    if (!userBarangay) {
+      console.warn("Current user's barangay is not defined.");
+      isDataLoading = false;
+      updateDownloadButtonState();
+      displayPerformance([]);
+      return;
+    }
+
+    // Fetch projects and history filtered by the current user's barangay
+    const projectsQuery = query(collection(db, "tb_projects"), where("barangay_name", "==", userBarangay));
     const projectsSnap = await getDocs(projectsQuery);
-    console.log(`Found ${projectsSnap.size} projects in barangay ${currentUser.barangay}`);
 
-    const combinedRows = [];
+    const historyQuery = query(collection(db, "tb_project_history"), where("barangay_name", "==", userBarangay));
+    const historySnap = await getDocs(historyQuery);
 
-    for (const projectDoc of projectsSnap.docs) {
+    const allProjectDocs = [...projectsSnap.docs, ...historySnap.docs];
+
+    // GLOBAL MAP keyed by farmer_id to remove duplicates across all projects
+    const farmersMap = {};
+
+    for (const projectDoc of allProjectDocs) {
       const projectData = projectDoc.data();
-      const projectId = projectData.project_id; // Use project_id field
-      const projectBarangay = projectData.barangay_name || "N/A";
+      const projectId = projectData.project_id;
       const projectName = projectData.project_name || "Unknown Project";
-      const projectStartDate = projectData.start_date;
-      const projectEndDate = projectData.end_date;
-      const totalDays = calculateTotalDays(projectStartDate, projectEndDate);
-      console.log(`Processing project: ${projectName}, project_id: ${projectId}, Total Days: ${totalDays}, Start Date: ${projectStartDate ? (projectStartDate.toDate ? projectStartDate.toDate().toISOString() : projectStartDate) : 'N/A'}`);
+      const projectBarangay = projectData.barangay_name || "N/A";
 
-      // Get project tasks from top-level tb_project_task collection
       const tasksQuery = query(collection(db, "tb_project_task"), where("project_id", "==", projectId));
-      console.log(`Querying tasks with project_id: ${projectId}`);
       const tasksSnap = await getDocs(tasksQuery);
       const taskDocs = tasksSnap.docs;
-      console.log(`Found ${taskDocs.length} tasks for project_id ${projectId}`);
 
-      const farmerLowerToDisplay = {};
-      const farmerLowerSet = new Set();
-      const attendanceByTask = {};
-      let sessionIds = [];
+      const attendanceDocs = [];
 
       if (taskDocs.length > 0) {
-        sessionIds = taskDocs.map(t => t.id);
-
         for (const taskDoc of taskDocs) {
           const taskData = taskDoc.data();
           const taskProjectTaskId = taskData.project_task_id;
-          if (!taskProjectTaskId) {
-            console.warn(`Task ${taskDoc.id} has no project_task_id field, skipping`);
-            continue;
-          }
-          const taskId = taskDoc.id;
-          console.log(`Processing task with ID: ${taskId}, project_id: ${projectId}, project_task_id: ${taskProjectTaskId}`);
-          let attendanceSnap;
-          try {
-            attendanceSnap = await getDocs(query(collection(db, "tb_attendance"), where("project_task_id", "==", taskProjectTaskId)));
-            console.log(`Found ${attendanceSnap.size} attendance records for task project_task_id ${taskProjectTaskId}`);
-          } catch (e) {
-            console.error(`Error fetching attendance for task ${taskId}:`, e);
-            attendanceSnap = { docs: [] };
-          }
+          if (!taskProjectTaskId) continue;
 
-          const entries = [];
-          for (const attDoc of attendanceSnap.docs) {
-            const attData = attDoc.data();
-            console.log(`Attendance data for task ${taskId}:`, attData);
-
-            // Additional checks
-            const attProjectTaskId = attData.project_task_id;
-            if (!attProjectTaskId) {
-              console.warn(`Skipping attendance ${attDoc.id} because no project_task_id field`);
-              continue;
-            }
-            const taskQuery = query(collection(db, "tb_project_task"), where("project_task_id", "==", attProjectTaskId));
-            const taskSnap = await getDocs(taskQuery);
-            if (taskSnap.empty) {
-              console.warn(`Skipping attendance ${attDoc.id} because no matching project_task_id ${attProjectTaskId}`);
-              continue;
-            }
-
-            const attProjectId = attData.project_id;
-            if (!attProjectId) {
-              console.warn(`Skipping attendance ${attDoc.id} because no project_id field`);
-              continue;
-            }
-            const projectQuery = query(collection(db, "tb_projects"), where("project_id", "==", attProjectId));
-            const projectSnap = await getDocs(projectQuery);
-            if (projectSnap.empty) {
-              console.warn(`Skipping attendance ${attDoc.id} because no matching project_id ${attProjectId}`);
-              continue;
-            }
-
-            const farmers = attData.farmers || [];
-
-            if (Array.isArray(farmers)) {
-              farmers.forEach(f => {
-                if (f && typeof f === "object") {
-                  const displayName = String(f.farmer_name || f.name || "Unknown").trim();
-                  const lowerName = displayName.toLowerCase();
-                  const present = String(f.present || "No").trim().toLowerCase();
-                  const remark = f.remarks || f.remark || f.remark_label || "Needs Improvement";
-                  const barangay = f.barangay || f.barangay_name || projectBarangay || "N/A";
-
-                  entries.push({ lowerName, displayName, present, remark, barangay });
-                  farmerLowerSet.add(lowerName);
-                  if (!farmerLowerToDisplay[lowerName]) {
-                    farmerLowerToDisplay[lowerName] = { displayName, barangay };
-                  }
-                }
-              });
-            } else {
-              console.warn(`No valid farmers array found in attendance for task ${taskId}`);
-            }
-          }
-
-          attendanceByTask[taskId] = entries;
+          const attSnap = await getDocs(query(collection(db, "tb_attendance"), where("project_task_id", "==", taskProjectTaskId)));
+          attSnap.forEach(doc => attendanceDocs.push(doc));
         }
       } else {
-        // Fallback: Query attendance directly by project_id
-        let attendanceSnap;
-        try {
-          attendanceSnap = await getDocs(query(collection(db, "tb_attendance"), where("project_id", "==", projectId)));
-          console.log(`Found ${attendanceSnap.size} attendance records directly for project ${projectId}`);
-        } catch (e) {
-          console.error(`Error fetching attendance for project ${projectId}:`, e);
-          attendanceSnap = { docs: [] };
-        }
-
-        if (attendanceSnap.size === 0) {
-          console.warn(`No attendance found for project_id ${projectId}, skipping`);
-          continue;
-        }
-
-        sessionIds = attendanceSnap.docs.map(d => d.id);
-
-        for (const attDoc of attendanceSnap.docs) {
-          const sessionId = attDoc.id;
-          const attData = attDoc.data();
-          console.log(`Attendance data for session ${sessionId}:`, attData);
-
-          // Additional checks for fallback
-          const attProjectTaskId = attData.project_task_id;
-          if (!attProjectTaskId) {
-            console.warn(`Skipping attendance ${sessionId} because no project_task_id field`);
-            continue;
-          }
-          const taskQuery = query(collection(db, "tb_project_task"), where("project_task_id", "==", attProjectTaskId));
-          const taskSnap = await getDocs(taskQuery);
-          if (taskSnap.empty) {
-            console.warn(`Skipping attendance ${sessionId} because no matching project_task_id ${attProjectTaskId}`);
-            continue;
-          }
-
-          const attProjectId = attData.project_id;
-          if (!attProjectId) {
-            console.warn(`Skipping attendance ${sessionId} because no project_id field`);
-            continue;
-          }
-          const projectQuery = query(collection(db, "tb_projects"), where("project_id", "==", attProjectId));
-          const projectSnap = await getDocs(projectQuery);
-          if (projectSnap.empty) {
-            console.warn(`Skipping attendance ${sessionId} because no matching project_id ${attProjectId}`);
-            continue;
-          }
-
-          const entries = [];
-          const farmers = attData.farmers || [];
-
-          if (Array.isArray(farmers)) {
-            farmers.forEach(f => {
-              if (f && typeof f === "object") {
-                const displayName = String(f.farmer_name || f.name || "Unknown").trim();
-                const lowerName = displayName.toLowerCase();
-                const present = String(f.present || "No").trim().toLowerCase();
-                const remark = f.remarks || f.remark || f.remark_label || "Needs Improvement";
-                const barangay = f.barangay || f.barangay_name || projectBarangay || "N/A";
-
-                entries.push({ lowerName, displayName, present, remark, barangay });
-                farmerLowerSet.add(lowerName);
-                if (!farmerLowerToDisplay[lowerName]) {
-                  farmerLowerToDisplay[lowerName] = { displayName, barangay };
-                }
-              }
-            });
-          } else {
-            console.warn(`No valid farmers array found in attendance for session ${sessionId}`);
-          }
-
-          attendanceByTask[sessionId] = entries;
-        }
+        const attSnap = await getDocs(query(collection(db, "tb_attendance"), where("project_id", "==", projectId)));
+        attSnap.forEach(doc => attendanceDocs.push(doc));
       }
 
-      if (farmerLowerSet.size === 0) {
-        console.warn(`No farmers found for project_id ${projectId}, skipping`);
-        continue;
-      }
+      // Aggregate attendance into the global map with strict barangay filter
+      for (const attDoc of attendanceDocs) {
+        const attData = attDoc.data();
+        const farmers = attData.farmers || [];
+        if (!Array.isArray(farmers)) continue;
 
-      for (const lowerName of farmerLowerSet) {
-        const displayInfo = farmerLowerToDisplay[lowerName] || { displayName: lowerName, barangay: projectBarangay };
-        const displayName = displayInfo.displayName || lowerName;
-        const farmerBarangay = displayInfo.barangay || projectBarangay;
+        farmers.forEach((f) => {
+          const farmerId = f.farmer_id || f.id;
+          const farmerBarangay = f.barangay || f.barangay_name || projectBarangay;
 
-        let presentDays = 0;
-        let repPercentSum = 0;
+          // STRICT filter: only include farmers in current user's barangay
+          if (!farmerId || farmerBarangay !== userBarangay) return;
 
-        for (const sessionId of sessionIds) {
-          const entries = attendanceByTask[sessionId] || [];
-          const found = entries.find(e => e.lowerName === lowerName);
-          const present = found ? found.present : "no";
-          const remarkForDay = found ? found.remark : "Needs Improvement";
-
-          if (present.toLowerCase() === "yes") {
-            presentDays++;
+          if (!farmersMap[farmerId]) {
+            farmersMap[farmerId] = {
+              farmer_name: f.farmer_name || f.name || "Unknown",
+              barangay: farmerBarangay,
+              presentDays: 0,
+              totalSessions: 0,
+              scoreSum: 0
+            };
           }
 
-          const repPercent = remarkLabelToRepresentativePercent(remarkForDay);
-          repPercentSum += repPercent;
-        }
+          const present = String(f.present || "No").toLowerCase() === "yes";
+          const remark = f.remarks || f.remark || f.remark_label || "Needs Improvement";
 
-        const avgProductivity = Math.round((repPercentSum / sessionIds.length) || 0);
-        const remarkCategory = getRemarkFromPercentage(avgProductivity);
-        const attendance = totalDays > 0 ? `${presentDays}/${totalDays} days` : "0/0 days";
-
-        console.log(`Farmer: ${displayName}, Present Days: ${presentDays}, Total Days: ${totalDays}, Productivity: ${avgProductivity}%`);
-
-        combinedRows.push({
-          project_id: projectId,
-          project_name: projectName,
-          farmer_name: displayName,
-          barangay: farmerBarangay,
-          present_days: presentDays,
-          total_days: totalDays,
-          attendance: attendance,
-          productivity: avgProductivity,
-          productivity_display: `${avgProductivity}%`,
-          remarks: remarkCategory,
-          project_start_date: projectStartDate,
-          project_end_date: projectEndDate
+          if (present) farmersMap[farmerId].presentDays++;
+          farmersMap[farmerId].totalSessions++;
+          farmersMap[farmerId].scoreSum += remarkToScore(remark);
         });
       }
     }
 
-    performanceList = combinedRows.sort((a, b) => b.productivity - a.productivity);
-    filteredPerformance = [...performanceList];
-    console.log("Performance List:", performanceList);
+    // Convert map to array and compute productivity
+    const combinedRows = Object.values(farmersMap).map(farmer => {
+      const totalSessions = farmer.totalSessions || 1;
+      const avgProductivity = Math.round((farmer.presentDays / totalSessions) * 100);
+      const remarkCategory = getRemarkFromPercentage(avgProductivity);
 
+      return {
+        farmer_name: farmer.farmer_name,
+        barangay: farmer.barangay,
+        present_days: farmer.presentDays,
+        total_days: totalSessions,
+        attendance: `${farmer.presentDays}/${totalSessions} days`,
+        productivity: avgProductivity,
+        productivity_display: `${avgProductivity}%`,
+        remarks: remarkCategory
+      };
+    });
+
+    performanceList = combinedRows.sort((a, b) => {
+      if (b.productivity !== a.productivity) return b.productivity - a.productivity;
+      const remarkScoreA = remarkToScore(a.remarks);
+      const remarkScoreB = remarkToScore(b.remarks);
+      if (remarkScoreB !== remarkScoreA) return remarkScoreB - remarkScoreA;
+      return (a.farmer_name || "").localeCompare(b.farmer_name || "");
+    });
+
+    filteredPerformance = [...performanceList];
     currentPage = 1;
     isDataLoading = false;
     updateDownloadButtonState();
     filterPerformance();
+
   } catch (error) {
     console.error("Error fetching performance data:", error);
     isDataLoading = false;
@@ -476,14 +369,50 @@ async function fetchPerformance() {
   }
 }
 
+
+
+
+/* ------------------------------
+   Fetch and populate barangay names
+   ------------------------------ */
+async function fetchBarangayNames() {
+  try {
+    const barangaysCollection = collection(db, "tb_barangay");
+    const barangaysSnapshot = await getDocs(barangaysCollection);
+    const barangayNames = barangaysSnapshot.docs.map(doc => doc.data().barangay_name);
+    console.log("Barangay Names:", barangayNames);
+    populateBarangayDropdown(barangayNames);
+  } catch (e) {
+    console.error("Error fetching barangay names:", e);
+  }
+}
+
+function populateBarangayDropdown(barangayNames) {
+  const barangaySelect = document.querySelector(".barangay_select");
+  if (!barangaySelect) {
+    console.warn("Barangay select element not found");
+    return;
+  }
+  const firstOption = barangaySelect.querySelector("option")?.outerHTML || '<option value="">Barangay</option>';
+  barangaySelect.innerHTML = firstOption;
+
+  barangayNames.forEach(name => {
+    const option = document.createElement("option");
+    option.textContent = name;
+    option.value = name;
+    barangaySelect.appendChild(option);
+  });
+}
+
 /* ------------------------------
    Filtering - filterPerformance
    ------------------------------ */
 function filterPerformance() {
   const searchInput = document.getElementById("performance-search-bar");
   const searchQuery = searchInput ? String(searchInput.value).toLowerCase().trim() : "";
+  const selectedBarangay = (document.querySelector(".barangay_select")?.value || "").toLowerCase();
 
-  console.log("Filtering with:", { searchQuery });
+  console.log("Filtering with:", { searchQuery, selectedBarangay, selectedMonth, selectedYear });
 
   filteredPerformance = [...performanceList];
 
@@ -496,7 +425,37 @@ function filterPerformance() {
     });
   }
 
-  filteredPerformance.sort((a, b) => b.productivity - a.productivity);
+  if (selectedBarangay) {
+    filteredPerformance = filteredPerformance.filter(row => {
+      const match = String(row.barangay || "").toLowerCase().includes(selectedBarangay);
+      console.log(`Barangay filter for ${row.farmer_name || 'Unknown'}: ${match}, Barangay: ${row.barangay || 'N/A'}`);
+      return match;
+    });
+  }
+
+  if (selectedMonth !== null && selectedYear !== null) {
+    filteredPerformance = filteredPerformance.filter(row => {
+      const startDate = row.project_start_date ? parseDate(row.project_start_date) : null;
+      const match = startDate && startDate.getMonth() + 1 === selectedMonth && startDate.getFullYear() === selectedYear;
+      console.log(`Month filter for ${row.farmer_name || 'Unknown'}: ${match}, Start Date: ${startDate ? startDate.toISOString() : 'N/A'}`);
+      return match;
+    });
+  } else {
+    console.log("No month filter applied (selectedMonth is null)");
+  }
+    filteredPerformance.sort((a, b) => {
+      // First, sort by productivity descending
+      if (b.productivity !== a.productivity) return b.productivity - a.productivity;
+
+      // Then by remark score descending
+      const remarkScoreA = remarkToScore(a.remarks);
+      const remarkScoreB = remarkToScore(b.remarks);
+      if (remarkScoreB !== remarkScoreA) return remarkScoreB - remarkScoreA;
+
+      // Finally, alphabetically by farmer_name
+      return (a.farmer_name || "").localeCompare(b.farmer_name || "");
+    });
+
   console.log("Filtered Performance:", filteredPerformance);
   displayPerformance(filteredPerformance);
 }
@@ -518,24 +477,17 @@ function getRemarkColor(remark) {
    ------------------------------ */
 function displayPerformance(list) {
   const tableBody = document.querySelector(".performance_table table tbody");
-  if (!tableBody) {
-    console.error("Table body element not found, selector: .performance_table table tbody");
-    return;
-  }
+  if (!tableBody) return;
 
   tableBody.innerHTML = "";
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginated = list.slice(startIndex, endIndex);
 
-  console.log(`Displaying ${paginated.length} records for page ${currentPage}, startIndex: ${startIndex}, endIndex: ${endIndex}`);
-
   if (isDataLoading) {
-    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Processing data please wait...</td></tr>`;
-    console.log("Displaying loading message");
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Pulling Latest Records Please Wait..</td></tr>`;
   } else if (paginated.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No records found</td></tr>`;
-    console.log("No records to display, showing 'No records found'");
   } else {
     paginated.forEach((rowData, i) => {
       const rank = startIndex + i + 1;
@@ -549,13 +501,13 @@ function displayPerformance(list) {
         <td style="color: ${getRemarkColor(rowData.remarks)};">${rowData.remarks || "N/A"}</td>
       `;
       tableBody.appendChild(tr);
-      console.log(`Rendered row ${rank}:`, rowData);
     });
   }
 
   updatePagination();
   updateDownloadButtonState();
 }
+
 
 /* ------------------------------
    Pagination controls
@@ -576,18 +528,115 @@ function updatePagination() {
 }
 
 /* ------------------------------
+   Month picker
+   ------------------------------ */
+function showMonthPicker() {
+  const calendarIcon = document.querySelector('.calendar-btn-icon');
+  const monthPicker = document.getElementById('month-picker');
+  const yearDisplay = document.getElementById('year-display');
+  
+  if (yearDisplay) yearDisplay.textContent = selectedYear;
+  if (!calendarIcon || !monthPicker) {
+    console.warn("Calendar icon or month picker not found");
+    return;
+  }
+
+  monthPicker.style.position = 'absolute';
+  monthPicker.style.top = `${calendarIcon.offsetHeight + 5}px`;
+  monthPicker.style.right = '0px';
+  monthPicker.style.left = 'auto';
+  monthPicker.style.display = monthPicker.style.display === 'none' ? 'block' : 'none';
+}
+
+/* ------------------------------
    Event listeners and initialization
    ------------------------------ */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   console.log("DOM fully loaded, initializing...");
-  displayPerformance([]); // Initial display (will show "No records found" briefly)
-  fetchPerformance();
+
+  await fetchBarangayNames();
+
+  const latestTimestampEl = document.getElementById("latest-record-timestamp");
+  const savedPerformance = localStorage.getItem("performanceList");
+  const savedTimestamp = localStorage.getItem("performanceTimestamp");
+
+  if (savedPerformance) {
+    performanceList = JSON.parse(savedPerformance);
+    filteredPerformance = [...performanceList];
+    displayPerformance(filteredPerformance);
+  } else {
+    displayPerformance([]);
+  }
+
+  // Restore latest record timestamp
+  if (savedTimestamp && latestTimestampEl) {
+    latestTimestampEl.textContent = `Latest Record Date and Time: ${savedTimestamp}`;
+  }
+
   updateDownloadButtonState();
 
+  const pullBtn = document.getElementById("pull-latest-btn");
+  // Disable the button on page load
+  if (pullBtn) {
+    pullBtn.disabled = true;
+    pullBtn.style.opacity = 0.5;
+    pullBtn.style.cursor = 'not-allowed';
+  }
+
+  if (pullBtn) {
+    pullBtn.disabled = false;
+    pullBtn.style.opacity = 1;
+    pullBtn.style.cursor = 'pointer';
+  }
+
+  if (pullBtn) {
+    pullBtn.addEventListener("click", async () => {
+      console.log("Pull Latest Records button clicked");
+
+      // Disable button to prevent spamming
+      pullBtn.disabled = true;
+      pullBtn.style.opacity = 0.5;
+      pullBtn.style.cursor = 'not-allowed';
+
+      // Show temporary loading message
+      isDataLoading = true;
+      displayPerformance([]); // Shows "Pulling Latest Records Please Wait.."
+
+      // Fetch latest data
+      await fetchPerformance();
+
+      // Update latest record timestamp
+      const now = new Date();
+      const formatted = now.toLocaleString("en-US", { 
+        month: "long", day: "numeric", year: "numeric", 
+        hour: "2-digit", minute: "2-digit", second: "2-digit" 
+      });
+      if (latestTimestampEl) latestTimestampEl.textContent = `Latest Record Date and Time: ${formatted}`;
+
+      // Save new data and timestamp to localStorage
+      localStorage.setItem("performanceList", JSON.stringify(filteredPerformance));
+      localStorage.setItem("performanceTimestamp", formatted);
+
+      // Re-enable button after data is fetched
+      isDataLoading = false;
+      displayPerformance(filteredPerformance);
+
+      pullBtn.disabled = false;
+      pullBtn.style.opacity = 1;
+      pullBtn.style.cursor = 'pointer';
+    });
+  }
+
+  // Search and barangay filters
   const searchBar = document.getElementById("performance-search-bar");
   if (searchBar) searchBar.addEventListener("input", filterPerformance);
+  const barangaySelect = document.querySelector(".barangay_select");
+  if (barangaySelect) barangaySelect.addEventListener("change", filterPerformance);
 
+  // Pagination controls
   const prevPageBtn = document.getElementById("performance-prev-page");
+  const nextPageBtn = document.getElementById("performance-next-page");
+
   if (prevPageBtn) prevPageBtn.addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -595,14 +644,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const nextPageBtn = document.getElementById("performance-next-page");
   if (nextPageBtn) nextPageBtn.addEventListener("click", () => {
     if (currentPage * rowsPerPage < filteredPerformance.length) {
       currentPage++;
       displayPerformance(filteredPerformance);
     }
   });
+
+  // Automatically fetch data if needed on page load
+  // await fetchPerformance();
 });
+
+
 
 /* ------------------------------
    PDF generation

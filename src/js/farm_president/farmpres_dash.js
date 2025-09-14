@@ -23,6 +23,7 @@ const auth = getAuth();
 // Run the initialization when the script loads
 document.addEventListener("DOMContentLoaded", () => {
     initializeDashboard();
+    updatePerformanceStatus();
 });
 
 async function getAuthenticatedUser() {
@@ -656,4 +657,354 @@ async function updateBarGraph() {
         highlightHighestBar();
         tooltip.style.display = 'none';
     });
+}
+async function updatePerformanceStatus() {
+  try {
+    const attendanceCollection = collection(db, "tb_attendance");
+    const projectsCollection = collection(db, "tb_projects");
+    const historyCollection = collection(db, "tb_project_history");
+
+    const unsubscribe = onSnapshot(attendanceCollection, async (snapshot) => {
+      try {
+        console.log("updatePerformanceStatus: onSnapshot fired, docs:", snapshot.size);
+
+        // Get current user (may have farmer_id or other fields)
+        const currentUser = await getAuthenticatedUser();
+
+        // Ensure we have current user's barangay_name. If not present, try to fetch from tb_farmers.
+        let currentBarangay = currentUser?.barangay_name;
+        if (!currentBarangay) {
+          try {
+            const farmerQuery = query(collection(db, "tb_farmers"), where("email", "==", currentUser.email));
+            const farmerSnap = await getDocs(farmerQuery);
+            if (!farmerSnap.empty) {
+              const farmerData = farmerSnap.docs[0].data();
+              currentBarangay = farmerData?.barangay_name;
+            }
+          } catch (fetchErr) {
+            console.warn("Could not fetch farmer record to derive barangay_name:", fetchErr);
+          }
+        }
+
+        if (!currentBarangay) {
+          console.warn("updatePerformanceStatus: current user's barangay_name not found — aborting performance calculation.");
+          return;
+        }
+
+        // Build project -> barangay_name map (using both active projects and history)
+        const [projectSnapshot, historySnapshot] = await Promise.all([
+          getDocs(projectsCollection),
+          getDocs(historyCollection)
+        ]);
+        const projectBarangays = {};
+        projectSnapshot.forEach(doc => {
+          const d = doc.data();
+          if (d && d.project_id && d.barangay_name) {
+            projectBarangays[d.project_id] = d.barangay_name;
+          }
+        });
+        historySnapshot.forEach(doc => {
+          const d = doc.data();
+          if (d && d.project_id && d.barangay_name) {
+            projectBarangays[d.project_id] = d.barangay_name;
+          }
+        });
+
+        // Remark scoring & normalization
+        const remarkScores = {
+          "outstanding": 5,
+          "highly efficient": 4,
+          "productive": 3,
+          "average performer": 2,
+          "needs improvement": 1
+        };
+        const scoreToRemark = {
+          5: "outstanding",
+          4: "highly efficient",
+          3: "productive",
+          2: "average performer",
+          1: "needs improvement"
+        };
+        const normalizeRemark = (remark) => {
+          if (!remark) return null;
+          let r = String(remark).toLowerCase().trim();
+          if (r === "high efficient") return "highly efficient";
+          if (r === "average") return "average performer";
+          if (r === "needs-improvement") return "needs improvement";
+          if (r.includes("outstanding")) return "outstanding";
+          if (r.includes("high") && r.includes("efficient")) return "highly efficient";
+          if (r.includes("productive")) return "productive";
+          if (r.includes("average")) return "average performer";
+          if (r.includes("need")) return "needs improvement";
+          return r;
+        };
+
+        // Collect farmer remark scores per farmer_id
+        const farmerRemarks = {};
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (!data) return;
+          const projectId = data.project_id;
+          if (!projectId) return;
+
+          // Filter by barangay
+          const projBarangay = projectBarangays[projectId];
+          if (!projBarangay) return;
+          if (projBarangay !== currentBarangay) return;
+
+          if (Array.isArray(data.farmers)) {
+            data.farmers.forEach(farmer => {
+              if (!farmer || !farmer.farmer_id) return;
+              const remark = normalizeRemark(farmer.remarks);
+              if (remark && remarkScores[remark]) {
+                if (!farmerRemarks[farmer.farmer_id]) farmerRemarks[farmer.farmer_id] = [];
+                farmerRemarks[farmer.farmer_id].push(remarkScores[remark]);
+              }
+            });
+          }
+        });
+
+        // Per-farmer average & final remark
+        const farmerAverages = {};
+        Object.keys(farmerRemarks).forEach(fid => {
+          const scores = farmerRemarks[fid];
+          if (!scores || scores.length === 0) return;
+          const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+          const rounded = Math.round(avg);
+          const clamped = Math.min(5, Math.max(1, rounded));
+          farmerAverages[fid] = scoreToRemark[clamped] || "needs improvement";
+        });
+
+        const totalFarmers = Object.keys(farmerAverages).length;
+        console.log("totalFarmers:", totalFarmers);
+
+        // Compute overall performance percent
+        const totalScore = Object.values(farmerAverages)
+          .map(r => remarkScores[r] || 1)
+          .reduce((a, b) => a + b, 0);
+        const performancePercent = totalFarmers > 0 ? Math.round((totalScore / totalFarmers / 5) * 100) : 0;
+
+        // Determine label and color
+        let labelText = "No Data";
+        let circleColor = "#E0E0E0";
+        if (totalFarmers === 0) {
+          labelText = "No Data";
+          circleColor = "#E0E0E0";
+        } else if (performancePercent <= 20) {
+          labelText = "Needs Improvement";
+          circleColor = "#AC415B";
+        } else if (performancePercent <= 40) {
+          labelText = "Average Performer";
+          circleColor = "#9854CB";
+        } else if (performancePercent <= 60) {
+          labelText = "Productive";
+          circleColor = "#2196F3";
+        } else if (performancePercent <= 80) {
+          labelText = "Highly Efficient";
+          circleColor = "#4CAF50";
+        } else {
+          labelText = "Outstanding";
+          circleColor = "#41A186";
+        }
+
+        // Build remark distribution
+        const remarkDistribution = {
+          "Outstanding": 0,
+          "Highly Efficient": 0,
+          "Productive": 0,
+          "Average Performer": 0,
+          "Needs Improvement": 0
+        };
+        Object.values(farmerAverages).forEach(r => {
+          if (r === "outstanding") remarkDistribution["Outstanding"]++;
+          else if (r === "highly efficient") remarkDistribution["Highly Efficient"]++;
+          else if (r === "productive") remarkDistribution["Productive"]++;
+          else if (r === "average performer") remarkDistribution["Average Performer"]++;
+          else if (r === "needs improvement") remarkDistribution["Needs Improvement"]++;
+        });
+
+        console.log("remarkDistribution:", remarkDistribution);
+
+        // ensure canvas exists
+        const canvasEl = document.getElementById("performancePie");
+        if (!canvasEl) {
+          console.error("performancePie canvas not found in DOM");
+          return;
+        }
+        const legendEl = document.getElementById("performanceLegend");
+        const categoryEl = document.getElementById("overall-performance");
+        const cardEl = document.querySelector(".performance-status-card");
+
+        // Layout
+        if (cardEl) {
+          cardEl.style.display = "flex";
+          cardEl.style.flexDirection = "column";
+          cardEl.style.alignItems = "center";
+          cardEl.style.justifyContent = "flex-start";
+          cardEl.style.gap = "12px";
+          cardEl.style.padding = "18px";
+          cardEl.style.boxSizing = "border-box";
+        }
+
+        if (categoryEl && cardEl) {
+          if (categoryEl.parentElement !== cardEl) {
+            cardEl.appendChild(categoryEl);
+          }
+          categoryEl.style.fontSize = "36px";
+          categoryEl.style.fontWeight = "700";
+          categoryEl.style.color = circleColor;
+          categoryEl.style.textAlign = "center";
+          categoryEl.style.width = "100%";
+          categoryEl.style.margin = "6px 0 8px 0";
+          categoryEl.textContent = labelText;
+        }
+
+        // Create (or reuse) a row wrapper for pie + legend
+        let rowWrap = cardEl ? cardEl.querySelector(".performance-row-wrap") : null;
+        if (!rowWrap && cardEl) {
+          rowWrap = document.createElement("div");
+          rowWrap.className = "performance-row-wrap";
+          cardEl.appendChild(rowWrap);
+        }
+        if (rowWrap) {
+          rowWrap.style.display = "flex";
+          rowWrap.style.flexDirection = "row";
+          rowWrap.style.alignItems = "center";
+          rowWrap.style.justifyContent = "center";
+          rowWrap.style.gap = "24px";
+          rowWrap.style.width = "100%";
+          rowWrap.style.boxSizing = "border-box";
+        }
+
+        if (rowWrap && canvasEl) {
+          rowWrap.appendChild(canvasEl);
+          canvasEl.style.width = "220px";
+          canvasEl.style.height = "220px";
+        }
+        if (rowWrap && legendEl) {
+          rowWrap.appendChild(legendEl);
+          legendEl.style.display = "flex";
+          legendEl.style.flexDirection = "column";
+          legendEl.style.gap = "10px";
+          legendEl.style.minWidth = "200px";
+          legendEl.style.maxWidth = "320px";
+          legendEl.style.boxSizing = "border-box";
+          legendEl.style.padding = "4px 8px";
+          legendEl.style.alignSelf = "flex-start";
+          legendEl.style.textAlign = "left";
+        }
+
+        // Destroy old chart instance if present
+        if (window.performanceChart) {
+          try {
+            window.performanceChart.destroy();
+          } catch (e) {
+            console.warn("error destroying old chart (ignored):", e);
+          }
+        }
+
+        // Prepare data for Chart.js
+        const labels = Object.keys(remarkDistribution);
+        const values = Object.values(remarkDistribution);
+        const total = values.reduce((a, b) => a + b, 0);
+        const colors = ["#41A186", "#4CAF50", "#2196F3", "#9854CB", "#AC415B"];
+
+        // Plugin to draw percent labels on slices, skip if too small
+        const percentPlugin = {
+          id: 'percentPlugin',
+          afterDatasetsDraw(chart) {
+            const {ctx} = chart;
+            const dataset = chart.data.datasets[0];
+            const meta = chart.getDatasetMeta(0);
+            const totalLocal = dataset.data.reduce((s, v) => s + v, 0);
+            ctx.save();
+            meta.data.forEach((arc, i) => {
+              const value = dataset.data[i];
+              if (!value || totalLocal === 0) return;
+              const percent = (value / totalLocal) * 100;
+              if (percent < 5) return; // skip if slice < 5%
+
+              const start = arc.startAngle;
+              const end = arc.endAngle;
+              const midAngle = (start + end) / 2;
+              const midRadius = (arc.outerRadius + arc.innerRadius) / 2;
+              const x = arc.x + Math.cos(midAngle) * midRadius;
+              const y = arc.y + Math.sin(midAngle) * midRadius;
+
+              // Format percentage dynamically
+              const pctText = percent % 1 === 0 ? `${percent.toFixed(0)}%` : `${percent.toFixed(1)}%`;
+
+              ctx.fillStyle = '#ffffff';
+              ctx.font = '600 12px Poppins, Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(pctText, x, y);
+            });
+            ctx.restore();
+          }
+        };
+
+        // Create Chart.js pie
+        window.performanceChart = new Chart(canvasEl.getContext("2d"), {
+          type: "pie",
+          data: {
+            labels: labels,
+            datasets: [{
+              data: total === 0 ? [1] : values,
+              backgroundColor: colors,
+            }]
+          },
+          options: {
+            responsive: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const v = context.parsed;
+                    const pct = total === 0 ? 0 : (v / total * 100);
+                    const pctText = pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1);
+                    return `${context.label}: ${v} (${pctText}%)`;
+                  }
+                }
+              }
+            }
+          },
+          plugins: [percentPlugin]
+        });
+
+        console.log("Pie chart created.");
+
+        // Build legend
+        if (legendEl) {
+          const legendItems = labels.map((lab, i) => {
+            const count = total === 0 ? 0 : values[i];
+            const pct = total === 0 ? 0 : (values[i] / total * 100);
+            const pctText = pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1);
+            return `
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px; color:#243B53;">
+                <span style="width:14px; height:14px; background:${colors[i]}; border-radius:3px; display:inline-block;"></span>
+                <div style="display:flex; flex-direction:column;">
+                  <span style="white-space:nowrap;">${lab}</span>
+                  <span style="color:#666; font-size:13px;">${count} ${count === 1 ? 'farmer' : 'farmers'} • ${pctText}%</span>
+                </div>
+              </div>
+            `;
+          }).join("");
+          legendEl.innerHTML = legendItems;
+        }
+
+        console.log("Layout updated: performance label at top, pie left, legend right.");
+
+      } catch (error) {
+        console.error("Problem filtering performance records:", error);
+      }
+    }, (error) => {
+      console.error("Problem getting performance updates:", error);
+    });
+
+    return unsubscribe;
+  } catch (error) {
+    console.error("Problem setting up performance status:", error);
+  }
 }

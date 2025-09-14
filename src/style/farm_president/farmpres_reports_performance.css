@@ -590,7 +590,36 @@ body.preview-active::before {
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
+.refresh-button .text {
+  max-width: 300px;     /* or adjust based on container */
+  white-space: nowrap;   /* keep text on a single line */
+  overflow: hidden;
+  text-overflow: ellipsis; /* add "..." if too long */
+  flex-shrink: 1;       /* allow text to shrink a bit if needed */
+}
 
+.refresh-button .refresh-btn {
+  flex-shrink: 0;       /* keep button fixed size */
+}
+
+
+
+.refresh-btn {
+  background-color: #41A186;
+  color: white;
+  padding: 10px 25px;
+  font-size: 15px;
+  font-weight: bold;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* 3D shadow */
+}
+
+.refresh-btn:hover {
+  background-color: #318a71;
+}
 /* Media Queries for Responsiveness */
 @media (max-width: 768px) {
   .header {
