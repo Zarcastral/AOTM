@@ -173,6 +173,17 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 30px;
+  width: 100%; /* Ensure it takes full width of parent */
+  box-sizing: border-box;
+}
+
+/* Pie Chart Canvas */
+#performancePie {
+  max-width: 220px; /* Base size for larger screens */
+  max-height: 220px;
+  width: 100% !important; /* Allow Chart.js to scale within max-width */
+  height: auto !important; /* Maintain aspect ratio but allow flexibility */
 }
 
 /* small spacing for title sitting above the card */
@@ -634,6 +645,10 @@ body {
     padding: 20px;
   }
 
+  #performancePie {
+    max-width: 180px; /* Slightly smaller for tablets */
+    max-height: 180px;
+  }
   .status-circles {
     gap: 15px;
     justify-content: center;
@@ -748,7 +763,10 @@ body {
   .performance-status {
     padding: 15px;
   }
-
+#performancePie {
+    max-width: 150px; /* Adjust for smaller screens */
+    max-height: 150px;
+  }
   .status-circles {
     flex-direction: row;
     flex-wrap: wrap;
@@ -783,6 +801,7 @@ body {
   .bar-chart {
     min-height: 200px;
     padding-bottom: 70px; /* Adjusted */
+    gap: 5px;
   }
 
   .bar-chart::after {
@@ -892,7 +911,10 @@ body {
   .performance-status {
     padding: 12px;
   }
-
+  #performancePie {
+    max-width: 120px; /* Smaller size for mobile */
+    max-height: 120px;
+  }
   .status-circles {
     flex-direction: column;
     gap: 15px;
@@ -1033,7 +1055,11 @@ body {
   .performance-status {
     padding: 10px;
   }
-
+  #performancePie {
+    max-width: 100px; /* Smallest size for very small screens */
+    max-height: 100px;
+    margin-left: 25px;
+  }
   .status-circles {
     gap: 12px;
   }

@@ -155,31 +155,13 @@ body {
   padding: 30px;
 }
 
-/* right column wrapper (title remains outside the white card) */
+/* Performance Status Section */
 .performance-status-section {
   flex: 1; /* match width/height flexibility with other columns */
   display: flex;
   flex-direction: column;
 }
 
-/* the actual white card inside the column */
-.performance-card {
-  flex: 1; /* fills the available height (so it matches left column) */
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-/* small spacing for title sitting above the card */
-.performance-status-section .section-title {
-  margin-bottom: 12px;
-  color: #486581; /* match your .section-title color */
-}
 .performance-status-card {
   flex: 1; /* fills parent height */
   background: #fff;
@@ -187,40 +169,28 @@ body {
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
   padding: 15px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* Keep row layout for chart and legend */
   align-items: center;
   justify-content: center;
+  gap: 30px;
+  width: 100%; /* Ensure it takes full width of parent */
+  box-sizing: border-box;
 }
 
-/* keep circle container centered within the white card */
-.performance-circle-container {
-  width: 200px;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
+/* Pie Chart Canvas */
+#performancePie {
+  max-width: 220px; /* Base size for larger screens */
+  max-height: 220px;
+  width: 100% !important; /* Allow Chart.js to scale within max-width */
+  height: auto !important; /* Maintain aspect ratio but allow flexibility */
 }
-#performance-circle {
-  width: 180px;       /* or whatever fits inside container */
-  height: 180px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background: #E0E0E0; /* fallback color */
+
+/* small spacing for title sitting above the card */
+.performance-status-section .section-title {
+  margin-bottom: 12px;
+  color: #486581; /* match your .section-title color */
 }
-#performance-circle .percentage {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-}
-#performance-circle .farmer-count {
-  font-size: 1rem;
-  color: #666;
-}
+
 .status-circles {
   display: flex;
   gap: 20px;
@@ -425,7 +395,7 @@ body {
   top: 50%;
   transform: translateY(-50%) rotate(-90deg);
   font-size: 20px;
-    font-weight: bold;
+  font-weight: bold;
   color: #333;
   white-space: nowrap;
   letter-spacing: 9px;
@@ -439,6 +409,7 @@ body {
   margin-top: 30px; /* Increased for more gap */
   letter-spacing: 8px;
 }
+
 .year-selector-wrapper {
   display: flex;
   justify-content: space-between;
@@ -485,7 +456,7 @@ body {
 .bar-chart::after {
   content: '';
   position: absolute;
-  bottom: 0;  /* <-- real bottom */
+  bottom: 0;  /* real bottom */
   left: 0;
   right: 0;
   height: 1px;
@@ -509,7 +480,6 @@ body {
   transition: background-color 0.2s ease;
   box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.2);
 }
-
 
 /* Month labels just below baseline */
 .bar::after {
@@ -628,10 +598,19 @@ body {
     width: 100%;
   }
 
-  .project-status,
-  .performance-status {
+  .project-status {
     min-height: auto;
     padding: 20px;
+  }
+
+  .performance-status-card {
+    padding: 12px;
+    gap: 20px;
+  }
+
+  #performancePie {
+    max-width: 180px; /* Slightly smaller for tablets */
+    max-height: 180px;
   }
 
   .status-circles {
@@ -744,9 +723,20 @@ body {
     font-size: 14px;
   }
 
-  .project-status,
-  .performance-status {
+  .project-status {
     padding: 15px;
+  }
+
+  .performance-status-card {
+    padding: 10px;
+    gap: 15px;
+    flex-direction: column; /* Stack chart and legend vertically on smaller screens */
+    align-items: center;
+  }
+
+  #performancePie {
+    max-width: 150px; /* Adjust for smaller screens */
+    max-height: 150px;
   }
 
   .status-circles {
@@ -782,6 +772,7 @@ body {
 
   .bar-chart {
     min-height: 200px;
+    gap: 5px;
     padding-bottom: 70px; /* Adjusted */
   }
 
@@ -888,9 +879,18 @@ body {
     font-size: 12px;
   }
 
-  .project-status,
-  .performance-status {
+  .project-status {
     padding: 12px;
+  }
+
+  .performance-status-card {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  #performancePie {
+    max-width: 120px; /* Smaller size for mobile */
+    max-height: 120px;
   }
 
   .status-circles {
@@ -1029,9 +1029,19 @@ body {
     font-size: 11px;
   }
 
-  .project-status,
-  .performance-status {
+  .project-status {
     padding: 10px;
+  }
+
+  .performance-status-card {
+    padding: 6px;
+    gap: 8px;
+  }
+
+  #performancePie {
+    max-width: 100px; /* Smallest size for very small screens */
+    max-height: 100px;
+    margin-left: 25px;
   }
 
   .status-circles {
